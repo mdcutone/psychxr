@@ -54,7 +54,8 @@ ovrTrackingCap_MagYawCorrection = ovr_capi.ovrTrackingCap_MagYawCorrection
 ovrTrackingCap_Position = ovr_capi.ovrTrackingCap_Position
 
 # enum ovrExtensions
-ovrExtension_TextureLayout_Octilinear = ovr_capi.ovrExtension_TextureLayout_Octilinear
+ovrExtension_TextureLayout_Octilinear = \
+    ovr_capi.ovrExtension_TextureLayout_Octilinear
 
 # enum ovrEyeType
 ovrEye_Left = ovr_capi.ovrEye_Left
@@ -128,7 +129,8 @@ ovrMirrorOption_PostDistortion = ovr_capi.ovrMirrorOption_PostDistortion
 ovrMirrorOption_LeftEyeOnly = ovr_capi.ovrMirrorOption_LeftEyeOnly
 ovrMirrorOption_RightEyeOnly = ovr_capi.ovrMirrorOption_RightEyeOnly
 ovrMirrorOption_IncludeGuardian = ovr_capi.ovrMirrorOption_IncludeGuardian
-ovrMirrorOption_IncludeNotifications = ovr_capi.ovrMirrorOption_IncludeNotifications
+ovrMirrorOption_IncludeNotifications = \
+    ovr_capi.ovrMirrorOption_IncludeNotifications
 ovrMirrorOption_IncludeSystemGui = ovr_capi.ovrMirrorOption_IncludeSystemGui
 
 
@@ -956,3 +958,13 @@ cdef class ovrMirrorTextureDesc:
     @MirrorOptions.setter
     def MirrorOptions(self, int value):
         self.c_data.MirrorOptions = <unsigned int>value
+
+
+cdef class ovrTextureSwapChain:
+    cdef ovr_capi.ovrTextureSwapChain c_data
+
+
+cdef class ovrMirrorTexture:
+    cdef ovr_capi.ovrMirrorTexture c_data
+
+
