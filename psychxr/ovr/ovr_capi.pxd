@@ -235,7 +235,7 @@ cdef extern from "OVR_CAPI.h":
         OVR_FORMAT_BC7_UNORM = 23,
         OVR_FORMAT_BC7_UNORM_SRGB = 24
 
-    ctypedef enum ovrTextureMiscFlags:
+    ctypedef enum ovrTextureFlags:
         ovrTextureMisc_None,
         ovrTextureMisc_DX_Typeless = 0x0001,
         ovrTextureMisc_AllowGenerateMips = 0x0002,
@@ -251,7 +251,7 @@ cdef extern from "OVR_CAPI.h":
         int MipLevels
         int SampleCount
         ovrBool StaticImage 
-        unsigned int MiscFlags 
+        unsigned int MiscFlags
         unsigned int BindFlags 
 
     ctypedef enum ovrMirrorOptions:
