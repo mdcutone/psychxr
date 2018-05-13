@@ -32,6 +32,8 @@ environment. The declarations in the file are contemporaneous with version 1.24
 
 """
 cimport ovr_capi
+from libc.stdint cimport uintptr_t, uint32_t, int32_t
+from libc.stdlib cimport malloc, free
 
 # --- ENUMS/CONSTANTS ---
 
@@ -240,7 +242,6 @@ ovrLogLevel_Info = ovr_capi. ovrLogLevel_Info
 ovrLogLevel_Error = ovr_capi.ovrLogLevel_Error
 
 
-
 # --- C-LEVEL STRUCTURE EXTENSION TYPES ---
 #
 # C-level structures are wrapped as Cython extension types which allows them to
@@ -250,6 +251,22 @@ ovrLogLevel_Error = ovr_capi.ovrLogLevel_Error
 # Extension types can reference C data in other extension types, allowing access
 # to fields which contained in nested structures.
 #
+
+cdef class ovrErrorInfo:
+    cdef ovr_capi.ovrErrorInfo* c_data
+    cdef ovr_capi.ovrErrorInfo  c_ovrErrorInfo
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrErrorInfo
+
+    @property
+    def Result(self):
+        return self.c_data.Result
+
+    @property
+    def ErrorString(self):
+        return self.c_data.ErrorString
+
 
 cdef class ovrColorf:
     cdef ovr_capi.ovrColorf* c_data
@@ -506,8 +523,8 @@ cdef class ovrPosef:
     def __cinit__(self):
         self.c_data = &self.c_ovrPosef
 
-        self.obj_orientation = ovrQuatf()
-        self.obj_position = ovrVector3f()
+        self.obj_Orientation = ovrQuatf()
+        self.obj_Position = ovrVector3f()
         self.obj_Orientation.c_data = &self.c_data.Orientation
         self.obj_Position.c_data = &self.c_data.Position
 
@@ -1397,3 +1414,250 @@ cdef class ovrExternalCamera:
     @property
     def Extrinsics(self):
         return self.obj_Extrinsics
+
+
+cdef class ovrInitParams:
+    cdef ovr_capi.ovrInitParams* c_data
+    cdef ovr_capi.ovrInitParams  c_ovrInitParams
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrInitParams
+
+    # TODO - callback and user data
+
+    @property
+    def Flags(self):
+        return <int>self.c_data.Flags
+
+    @Flags.setter
+    def Flags(self, int value):
+        self.c_data.Flags = <uint32_t>value
+
+    @property
+    def RequestedMinorVersion(self):
+        return <int>self.c_data.RequestedMinorVersion
+
+    @RequestedMinorVersion.setter
+    def RequestedMinorVersion(self, int value):
+        self.c_data.RequestedMinorVersion = <uint32_t>value
+
+    @property
+    def ConnectionTimeoutMS(self):
+        return <int>self.c_data.ConnectionTimeoutMS
+
+    @ConnectionTimeoutMS.setter
+    def ConnectionTimeoutMS(self, int value):
+        self.c_data.ConnectionTimeoutMS = <uint32_t>value
+
+
+cdef class ovrSessionStatus:
+    cdef ovr_capi.ovrSessionStatus* c_data
+    cdef ovr_capi.ovrSessionStatus  c_ovrSessionStatus
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrSessionStatus
+
+    @property
+    def IsVisible(self):
+        return <int>self.c_data.IsVisible
+
+    @property
+    def HmdPresent(self):
+        return <int>self.c_data.HmdPresent
+
+    @property
+    def HmdMounted(self):
+        return <int>self.c_data.HmdMounted
+
+    @property
+    def DisplayLost(self):
+        return <int>self.c_data.DisplayLost
+
+    @property
+    def ShouldQuit(self):
+        return <int>self.c_data.ShouldQuit
+
+    @property
+    def ShouldRecenter(self):
+        return <int>self.c_data.ShouldRecenter
+
+    @property
+    def HasInputFocus(self):
+        return <int>self.c_data.HasInputFocus
+
+    @property
+    def OverlayPresent(self):
+        return <int>self.c_data.OverlayPresent
+
+    @property
+    def DepthRequested(self):
+        return <int>self.c_data.DepthRequested
+
+
+# --- API EXPORTED FUNCTIONS ---
+#
+cpdef int ovr_Initialize(ovrInitParams params):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_Initialize(params.c_data)
+
+    return result
+
+cpdef void ovr_Shutdown():
+    ovr_capi.ovr_Shutdown()
+
+cpdef void ovr_GetLastErrorInfo(ovrErrorInfo errorInfo):
+    ovr_capi.ovr_GetLastErrorInfo(errorInfo.c_data)
+
+cpdef str ovr_GetVersionString():
+    cdef const char* version_string = ovr_capi.ovr_GetVersionString()
+
+    return version_string.decode("utf-8")
+
+cpdef tuple ovr_TraceMessage(int level):
+    cdef const char* message_string = b""
+    cdef int result = ovr_capi.ovr_TraceMessage(level, message_string)
+
+    return result, message_string.decode("utf-8")
+
+cpdef tuple ovr_IdentifyClient():
+    cdef const char* identity_string = b""
+    cdef int result = ovr_capi.ovr_IdentifyClient(identity_string)
+
+    return result, identity_string.decode("utf-8")
+
+cpdef ovrHmdDesc ovr_GetHmdDesc(ovrSession session):
+    cdef ovrHmdDesc to_return = ovrHmdDesc()
+    (<ovrHmdDesc>to_return).c_data[0] = ovr_capi.ovr_GetHmdDesc(session.c_data)
+
+    return to_return
+
+cpdef int ovr_GetTrackerCount(ovrSession session):
+    cdef unsigned int result = ovr_capi.ovr_GetTrackerCount(session.c_data)
+
+    return <int>result
+
+cpdef ovrTrackerDesc ovr_GetTrackerDesc(ovrSession session,
+                                        int trackerDescIndex):
+    cdef ovrTrackerDesc to_return = ovrTrackerDesc()
+    (<ovrTrackerDesc>to_return).c_data[0] = ovr_capi.ovr_GetTrackerDesc(
+        session.c_data, <unsigned int>trackerDescIndex)
+
+    return to_return
+
+cpdef int ovr_Create(ovrSession pPession,
+                     ovrGraphicsLuid pLuid):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_Create(&pPession.c_data,
+                                                         pLuid.c_data)
+
+    return <int>result
+
+cpdef void ovr_Destroy(ovrSession session):
+    ovr_capi.ovr_Destroy(session.c_data)
+
+cpdef int ovr_GetSessionStatus(ovrSession session,
+                               ovrSessionStatus sessionStatus):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetSessionStatus(
+        session.c_data,
+        sessionStatus.c_data)
+
+    return <int>result
+
+cpdef int ovr_IsExtensionSupported(ovrSession session,
+                                   int extension,
+                                   bint outExtensionSupported):
+    cdef ovr_capi.ovrBool ext_supported = 0
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_IsExtensionSupported(
+        session.c_data,
+        <ovr_capi.ovrExtensions>extension,
+        &ext_supported)
+
+    return <int>ext_supported
+
+cpdef int ovr_EnableExtension(ovrSession session, int extension):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_EnableExtension(
+        session.c_data,
+        <ovr_capi.ovrExtensions>extension)
+
+    return <int>result
+
+cpdef int ovr_SetTrackingOriginType(ovrSession session, int origin):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_SetTrackingOriginType(
+        session.c_data,
+        <ovr_capi.ovrTrackingOrigin>origin)
+
+    return <int>result
+
+cpdef int ovr_GetTrackingOriginType(ovrSession session):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetTrackingOriginType(
+        session.c_data)
+
+    return <int>result
+
+cpdef int ovr_RecenterTrackingOrigin(ovrSession session):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_RecenterTrackingOrigin(
+        session.c_data)
+
+    return <int>result
+
+cpdef int ovr_SpecifyTrackingOrigin(ovrSession session, ovrPosef originPose):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_SpecifyTrackingOrigin(
+        session.c_data,
+        originPose.c_data[0])
+
+    return <int>result
+
+cpdef void ovr_ClearShouldRecenterFlag(ovrSession session):
+    ovr_capi.ovr_ClearShouldRecenterFlag(session.c_data)
+
+cpdef ovrTrackingState ovr_GetTrackingState(ovrSession session,
+                                            double absTime,
+                                            bint latencyMarker):
+    cdef ovrTrackingState to_return = ovrTrackingState()
+    (<ovrTrackingState>to_return).c_data[0] = ovr_capi.ovr_GetTrackingState(
+        session.c_data,
+        absTime,
+        <ovr_capi.ovrBool>latencyMarker)
+
+    return to_return
+
+cpdef int ovr_GetDevicePoses(ovrSession session,
+                             list deviceTypes,
+                             int deviceCount,
+                             double absTime,
+                             list outDevicePoses):
+
+    # create deviceTypes array
+    cdef ovr_capi.ovrTrackedDeviceType* c_in_devices = \
+        <ovr_capi.ovrTrackedDeviceType*>malloc(
+            deviceCount * sizeof(ovr_capi.ovrTrackedDeviceType))
+    # create outDevicePoses array
+    cdef ovr_capi.ovrPoseStatef* c_out_poses = <ovr_capi.ovrPoseStatef*>malloc(
+        deviceCount * sizeof(ovr_capi.ovrPoseStatef))
+
+    # convert the Python list to C, this is a list of integers
+    cdef size_t i
+    for i in range(<size_t>deviceCount):
+        c_in_devices[i] = <ovr_capi.ovrTrackedDeviceType>(deviceTypes[i])
+
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetDevicePoses(
+        session.c_data,
+        c_in_devices,
+        deviceCount,
+        absTime,
+        c_out_poses)
+
+    # populate output list
+    for i in range(<size_t>deviceCount):
+        this_device = ovrPoseStatef()
+        (<ovrPoseStatef>this_device).c_data[0] = c_out_poses[i]
+        outDevicePoses.append(this_device)
+
+    free(c_in_devices)
+    free(c_out_poses)
+
+    return <int>result
+
+cpdef double ovr_GetPredictedDisplayTime(ovrSession session, int frameIndex):
+    cdef double pred_time = ovr_capi.ovr_GetPredictedDisplayTime(
+        session.c_data, <long long>frameIndex)
+
+    return pred_time
