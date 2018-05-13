@@ -1,5 +1,7 @@
 import psychxr.ovr.capi as capi
 
-color = capi.ovrHmdDesc()
-color.DefaultEyeFov[capi.ovrEye_Left].UpTan = 10.0
-print(color.DefaultEyeFov[capi.ovrEye_Right].UpTan)
+color = capi.ovrColorf(1.0, 0.5, 0.2, 1.0)
+x = capi.ovrInputState()
+
+print()
+

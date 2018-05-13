@@ -300,7 +300,6 @@ cdef extern from "OVR_CAPI.h":
     ctypedef enum ovrTouch:
         ovrTouch_A = ovrButton_A,
         ovrTouch_B = ovrButton_B,
-        ovrTouch_B = ovrButton_B,
         ovrTouch_RThumb = ovrButton_RThumb,
         ovrTouch_RThumbRest = 0x00000008,
         ovrTouch_RIndexTrigger = 0x00000010,

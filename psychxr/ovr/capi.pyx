@@ -136,6 +136,110 @@ ovrMirrorOption_IncludeNotifications = \
     ovr_capi.ovrMirrorOption_IncludeNotifications
 ovrMirrorOption_IncludeSystemGui = ovr_capi.ovrMirrorOption_IncludeSystemGui
 
+# enum ovrButton
+ovrButton_A = ovr_capi.ovrButton_A
+ovrButton_B = ovr_capi.ovrButton_B
+ovrButton_RThumb = ovr_capi.ovrButton_RThumb
+ovrButton_RShoulder = ovr_capi.ovrButton_RShoulder
+ovrButton_X = ovr_capi.ovrButton_X
+ovrButton_Y = ovr_capi.ovrButton_Y
+ovrButton_LThumb = ovr_capi.ovrButton_LThumb
+ovrButton_LShoulder = ovr_capi.ovrButton_LShoulder
+ovrButton_Up = ovr_capi.ovrButton_Up
+ovrButton_Down = ovr_capi.ovrButton_Down
+ovrButton_Left = ovr_capi.ovrButton_Left
+ovrButton_Right = ovr_capi.ovrButton_Right
+ovrButton_Enter = ovr_capi.ovrButton_Enter
+ovrButton_Back = ovr_capi.ovrButton_Back
+ovrButton_VolUp = ovr_capi.ovrButton_VolUp
+ovrButton_VolDown = ovr_capi.ovrButton_VolDown
+ovrButton_Home = ovr_capi.ovrButton_Home
+ovrButton_Private = ovr_capi.ovrButton_Private
+ovrButton_RMask = ovr_capi.ovrButton_RMask
+ovrButton_LMask = ovr_capi.ovrButton_LMask
+
+# enum ovrTouch
+ovrTouch_A = ovr_capi.ovrTouch_A
+ovrTouch_B = ovr_capi.ovrTouch_B
+ovrTouch_RThumb = ovr_capi.ovrTouch_RThumb
+ovrTouch_RThumbRest = ovr_capi.ovrTouch_RThumbRest
+ovrTouch_RIndexTrigger = ovr_capi.ovrTouch_RIndexTrigger
+ovrTouch_RButtonMask = ovr_capi.ovrTouch_RButtonMask
+ovrTouch_X = ovr_capi.ovrTouch_X
+ovrTouch_Y = ovr_capi.ovrTouch_Y
+ovrTouch_LThumb = ovr_capi.ovrTouch_LThumb
+ovrTouch_LThumbRest = ovr_capi.ovrTouch_LThumbRest
+ovrTouch_LIndexTrigger = ovr_capi.ovrTouch_LIndexTrigger
+ovrTouch_LButtonMask = ovr_capi.ovrTouch_LButtonMask
+ovrTouch_RIndexPointing = ovr_capi.ovrTouch_RIndexPointing
+ovrTouch_RThumbUp = ovr_capi.ovrTouch_RThumbUp
+ovrTouch_LIndexPointing = ovr_capi.ovrTouch_LIndexPointing
+ovrTouch_LThumbUp = ovr_capi.ovrTouch_LThumbUp
+ovrTouch_RPoseMask = ovr_capi.ovrTouch_RPoseMask
+ovrTouch_LPoseMask = ovr_capi.ovrTouch_LPoseMask
+
+# enum ovrControllerType
+ovrControllerType_None = ovr_capi.ovrControllerType_None
+ovrControllerType_LTouch = ovr_capi.ovrControllerType_LTouch
+ovrControllerType_RTouch = ovr_capi.ovrControllerType_RTouch
+ovrControllerType_Touch = ovr_capi.ovrControllerType_Touch
+ovrControllerType_Remote = ovr_capi.ovrControllerType_Remote
+ovrControllerType_XBox = ovr_capi.ovrControllerType_XBox
+ovrControllerType_Object0 = ovr_capi.ovrControllerType_Object0
+ovrControllerType_Object1 = ovr_capi.ovrControllerType_Object1
+ovrControllerType_Object2 = ovr_capi.ovrControllerType_Object2
+ovrControllerType_Object3 = ovr_capi.ovrControllerType_Object3
+ovrControllerType_Active = ovr_capi.ovrControllerType_Active
+
+# enum ovrHapticsBufferSubmitMode
+ovrHapticsBufferSubmit_Enqueue = ovr_capi.ovrHapticsBufferSubmit_Enqueue
+
+OVR_HAPTICS_BUFFER_SAMPLES_MAX = ovr_capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX
+
+# enum ovrTrackedDeviceType
+ovrTrackedDevice_None = ovr_capi.ovrTrackedDevice_None
+ovrTrackedDevice_HMD = ovr_capi.ovrTrackedDevice_HMD
+ovrTrackedDevice_LTouch = ovr_capi.ovrTrackedDevice_LTouch
+ovrTrackedDevice_RTouch = ovr_capi.ovrTrackedDevice_RTouch
+ovrTrackedDevice_Touch = ovr_capi.ovrTrackedDevice_Touch
+ovrTrackedDevice_Object0 = ovr_capi.ovrTrackedDevice_Object0
+ovrTrackedDevice_Object1 = ovr_capi.ovrTrackedDevice_Object1
+ovrTrackedDevice_Object2 = ovr_capi.ovrTrackedDevice_Object2
+ovrTrackedDevice_Object3 = ovr_capi.ovrTrackedDevice_Object3
+
+# enum ovrBoundaryType
+ovrBoundary_PlayArea = ovr_capi.ovrBoundary_PlayArea
+
+# enum ovrHandType
+ovrHand_Left = ovr_capi.ovrHand_Left
+ovrHand_Right = ovr_capi.ovrHand_Right
+ovrHand_Count = ovr_capi.ovrHand_Count
+
+# enum ovrCameraStatusFlags
+ovrCameraStatus_None = ovr_capi.ovrCameraStatus_None
+ovrCameraStatus_Connected = ovr_capi.ovrCameraStatus_Connected
+ovrCameraStatus_Calibrating = ovr_capi.ovrCameraStatus_Calibrating
+ovrCameraStatus_CalibrationFailed = ovr_capi.ovrCameraStatus_CalibrationFailed
+ovrCameraStatus_Calibrated = ovr_capi.ovrCameraStatus_Calibrated
+ovrCameraStatus_Capturing = ovr_capi.ovrCameraStatus_Capturing
+
+OVR_MAX_EXTERNAL_CAMERA_COUNT = ovr_capi.OVR_MAX_EXTERNAL_CAMERA_COUNT
+OVR_EXTERNAL_CAMERA_NAME_SIZE = ovr_capi.OVR_EXTERNAL_CAMERA_NAME_SIZE
+
+# enum ovrInitFlags
+ovrInit_Debug = ovr_capi.ovrInit_Debug
+ovrInit_RequestVersion = ovr_capi.ovrInit_RequestVersion
+ovrInit_Invisible = ovr_capi.ovrInit_Invisible
+ovrInit_MixedRendering = ovr_capi.ovrInit_MixedRendering
+ovrInit_FocusAware = ovr_capi.ovrInit_FocusAware
+ovrinit_WritableBits = ovr_capi.ovrinit_WritableBits
+
+# enum ovrLogLevel
+ovrLogLevel_Debug = ovr_capi.ovrLogLevel_Debug
+ovrLogLevel_Info = ovr_capi. ovrLogLevel_Info
+ovrLogLevel_Error = ovr_capi.ovrLogLevel_Error
+
+
 
 # --- C-LEVEL STRUCTURE EXTENSION TYPES ---
 #
@@ -971,3 +1075,325 @@ cdef class ovrMirrorTexture:
     cdef ovr_capi.ovrMirrorTexture c_data
 
 
+cdef class ovrTouchHapticsDesc:
+    cdef ovr_capi.ovrTouchHapticsDesc* c_data
+    cdef ovr_capi.ovrTouchHapticsDesc  c_ovrTouchHapticsDesc
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrTouchHapticsDesc
+
+    @property
+    def SampleRateHz(self):
+        return <int>self.c_data.SampleRateHz
+
+    @property
+    def SampleSizeInBytes(self):
+        return <int>self.c_data.SampleSizeInBytes
+
+    @property
+    def QueueMinSizeToAvoidStarvation(self):
+        return <int>self.c_data.QueueMinSizeToAvoidStarvation
+
+    @property
+    def SubmitMinSamples(self):
+        return <int>self.c_data.SubmitMinSamples
+
+    @property
+    def SubmitMaxSamples(self):
+        return <int>self.c_data.SubmitMaxSamples
+
+    @property
+    def SubmitOptimalSamples(self):
+        return <int>self.c_data.SubmitOptimalSamples
+
+
+cdef class ovrHapticsBuffer:
+    cdef ovr_capi.ovrHapticsBuffer* c_data
+    cdef ovr_capi.ovrHapticsBuffer  c_ovrHapticsBuffer
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrHapticsBuffer
+
+    @property
+    def Samples(self):
+        raise NotImplemented("Setting samples from Python not yet supported.")
+
+    @Samples.setter
+    def Samples(self, int value):
+        raise NotImplemented("Setting samples from Python not yet supported.")
+
+    @property
+    def SamplesCount(self):
+        return <int>self.c_data.SamplesCount
+
+    @SamplesCount.setter
+    def SamplesCount(self, int value):
+        self.c_data.SamplesCount = value
+
+    @property
+    def SubmitMode(self):
+        return <int>self.c_data.SubmitMode
+
+    @SubmitMode.setter
+    def SubmitMode(self, int value):
+        self.c_data.SubmitMode = <ovr_capi.ovrHapticsBufferSubmitMode>value
+
+
+cdef class ovrHapticsPlaybackState:
+    cdef ovr_capi.ovrHapticsPlaybackState* c_data
+    cdef ovr_capi.ovrHapticsPlaybackState  c_ovrHapticsPlaybackState
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrHapticsPlaybackState
+
+    @property
+    def RemainingQueueSpace(self):
+        return <int>self.c_data.RemainingQueueSpace
+
+    @property
+    def SamplesQueued(self):
+        return <int>self.c_data.SamplesQueued
+
+
+cdef class ovrBoundaryLookAndFeel:
+    cdef ovr_capi.ovrBoundaryLookAndFeel* c_data
+    cdef ovr_capi.ovrBoundaryLookAndFeel  c_ovrBoundaryLookAndFeel
+
+    # nested color
+    cdef ovrColorf obj_Color
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrBoundaryLookAndFeel
+
+        self.obj_Color = ovrColorf()
+        self.obj_Color.c_data = &self.c_data.Color
+
+    @property
+    def Color(self):
+        return self.obj_Color
+
+    @Color.setter
+    def Color(self, ovrColorf value):
+        self.c_data.Color = value.c_data[0]
+
+
+cdef class ovrInputState:
+    cdef ovr_capi.ovrInputState* c_data
+    cdef ovr_capi.ovrInputState  c_ovrInputState
+
+    # nested fields
+    cdef tuple obj_Thumbstick
+    cdef ovrVector2f obj_Thumbstick0
+    cdef ovrVector2f obj_Thumbstick1
+
+    cdef tuple obj_ThumbstickNoDeadzone
+    cdef ovrVector2f obj_ThumbstickNoDeadzone0
+    cdef ovrVector2f obj_ThumbstickNoDeadzone1
+
+    cdef tuple obj_ThumbstickRaw
+    cdef ovrVector2f obj_ThumbstickRaw0
+    cdef ovrVector2f obj_ThumbstickRaw1
+
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrInputState
+
+        self.obj_Thumbstick0 = ovrVector2f()
+        self.obj_Thumbstick1 = ovrVector2f()
+        self.obj_ThumbstickNoDeadzone0 = ovrVector2f()
+        self.obj_ThumbstickNoDeadzone1 = ovrVector2f()
+        self.obj_ThumbstickRaw0 = ovrVector2f()
+        self.obj_ThumbstickRaw1 = ovrVector2f()
+
+        self.obj_Thumbstick0.c_data = &self.c_data.Thumbstick[0]
+        self.obj_Thumbstick1.c_data = &self.c_data.Thumbstick[1]
+        self.obj_ThumbstickNoDeadzone0.c_data = \
+            &self.c_data.ThumbstickNoDeadzone[0]
+        self.obj_ThumbstickNoDeadzone1.c_data = \
+            &self.c_data.ThumbstickNoDeadzone[1]
+        self.obj_ThumbstickRaw0.c_data = &self.c_data.ThumbstickRaw[0]
+        self.obj_ThumbstickRaw1.c_data = &self.c_data.ThumbstickRaw[1]
+
+        # tuples for arrayed objects
+        self.obj_Thumbstick = (self.obj_Thumbstick0, self.obj_Thumbstick1)
+        self.obj_ThumbstickNoDeadzone = (self.obj_ThumbstickNoDeadzone0,
+                                         self.obj_ThumbstickNoDeadzone1)
+        self.obj_ThumbstickRaw = (self.obj_ThumbstickRaw0,
+                                  self.obj_ThumbstickRaw1)
+
+    @property
+    def TimeInSeconds(self):
+        return <double>self.c_data.TimeInSeconds
+
+    @property
+    def Buttons(self):
+        return self.c_data.Buttons
+
+    @property
+    def Touches(self):
+        return self.c_data.Touches
+
+    @property
+    def IndexTrigger(self):
+        return self.c_data.IndexTrigger
+
+    @property
+    def HandTrigger(self):
+        return self.c_data.HandTrigger
+
+    @property
+    def Thumbstick(self):
+        return self.obj_Thumbstick
+
+    @property
+    def ControllerType(self):
+        return <int>self.c_data.ControllerType
+
+    @property
+    def IndexTriggerNoDeadzone(self):
+        return self.c_data.IndexTriggerNoDeadzone
+
+    @property
+    def HandTriggerNoDeadzone(self):
+        return self.c_data.HandTriggerNoDeadzone
+
+    @property
+    def ThumbstickNoDeadzone(self):
+        return self.obj_ThumbstickNoDeadzone
+
+    @property
+    def IndexTriggerRaw(self):
+        return self.c_data.IndexTriggerRaw
+
+    @property
+    def HandTriggerRaw(self):
+        return self.c_data.HandTriggerRaw
+
+    @property
+    def ThumbstickRaw(self):
+        return self.obj_ThumbstickRaw
+
+
+cdef class ovrCameraIntrinsics:
+    cdef ovr_capi.ovrCameraIntrinsics* c_data
+    cdef ovr_capi.ovrCameraIntrinsics  c_ovrCameraIntrinsics
+
+    cdef ovrFovPort obj_FOVPort
+    cdef ovrSizei obj_ImageSensorPixelResolution
+    cdef ovrMatrix4f obj_LensDistortionMatrix
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrCameraIntrinsics
+
+        self.obj_FOVPort = ovrFovPort()
+        self.obj_FOVPort.c_data = &self.c_data.FOVPort
+
+        self.obj_ImageSensorPixelResolution = ovrSizei()
+        self.obj_ImageSensorPixelResolution.c_data = \
+            &self.c_data.ImageSensorPixelResolution
+
+        self.obj_LensDistortionMatrix = ovrMatrix4f()
+        self.obj_LensDistortionMatrix.c_data = &self.c_data.LensDistortionMatrix
+
+    @property
+    def LastChangedTime(self):
+        return self.c_data.LastChangedTime
+
+    @property
+    def FOVPort(self):
+        return self.obj_FOVPort
+
+    @property
+    def VirtualNearPlaneDistanceMeters(self):
+        return self.c_data.VirtualNearPlaneDistanceMeters
+
+    @property
+    def VirtualFarPlaneDistanceMeters(self):
+        return self.c_data.VirtualFarPlaneDistanceMeters
+
+    @property
+    def ImageSensorPixelResolution(self):
+        return self.obj_ImageSensorPixelResolution
+
+    @property
+    def LensDistortionMatrix(self):
+        return self.obj_LensDistortionMatrix
+
+    @property
+    def ExposurePeriodSeconds(self):
+        return self.c_data.ExposurePeriodSeconds
+
+    @property
+    def ExposureDurationSeconds(self):
+        return self.c_data.ExposureDurationSeconds
+
+
+cdef class ovrCameraExtrinsics:
+    cdef ovr_capi.ovrCameraExtrinsics* c_data
+    cdef ovr_capi.ovrCameraExtrinsics  c_ovrCameraExtrinsics
+
+    cdef ovrPosef obj_RelativePose
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrCameraExtrinsics
+
+        self.obj_RelativePose = ovrPosef()
+        self.obj_RelativePose.c_data = &self.c_data.RelativePose
+
+    @property
+    def LastChangedTimeSeconds(self):
+        return self.c_data.LastChangedTimeSeconds
+
+    @property
+    def CameraStatusFlags(self):
+        return self.c_data.CameraStatusFlags
+
+    @property
+    def AttachedToDevice(self):
+        return <int>self.c_data.AttachedToDevice
+
+    @property
+    def RelativePose(self):
+        return self.obj_RelativePose
+
+    @property
+    def LastExposureTimeSeconds(self):
+        return self.c_data.LastExposureTimeSeconds
+
+    @property
+    def ExposureLatencySeconds(self):
+        return self.c_data.ExposureLatencySeconds
+
+    @property
+    def AdditionalLatencySeconds(self):
+        return self.c_data.AdditionalLatencySeconds
+
+
+cdef class ovrExternalCamera:
+    cdef ovr_capi.ovrExternalCamera* c_data
+    cdef ovr_capi.ovrExternalCamera  c_ovrExternalCamera
+
+    cdef ovrCameraIntrinsics obj_Intrinsics
+    cdef ovrCameraExtrinsics obj_Extrinsics
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrExternalCamera
+
+        self.obj_Intrinsics = ovrCameraIntrinsics()
+        self.obj_Intrinsics.c_data = &self.c_data.Intrinsics
+
+        self.obj_Extrinsics = ovrCameraExtrinsics()
+        self.obj_Extrinsics.c_data = &self.c_data.Extrinsics
+
+    @property
+    def Name(self):
+        # TODO - make a string
+        return self.c_data.Name
+
+    @property
+    def Intrinsics(self):
+        return self.obj_Intrinsics
+
+    @property
+    def Extrinsics(self):
+        return self.obj_Extrinsics
