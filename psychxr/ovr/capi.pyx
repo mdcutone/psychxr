@@ -30,6 +30,8 @@
 environment. The declarations in the file are contemporaneous with version 1.24
 (retrieved 04.15.2018) of the Oculus Rift(TM) PC SDK.
 
+This library is not "Pythonic" in coding style, this is deliberate.
+
 """
 cimport ovr_capi
 from libc.stdint cimport uintptr_t, uint32_t, int32_t
@@ -2505,19 +2507,13 @@ cpdef void ovr_DestroyTextureSwapChain(
         ovrSession session,
         ovrTextureSwapChain chain):
 
-    cdef ovr_capi.ovrResult result = \
-        ovr_capi.ovr_DestroyTextureSwapChain(
-            session.c_data,
-            chain.c_data)
+    ovr_capi.ovr_DestroyTextureSwapChain(session.c_data, chain.c_data)
 
 cpdef void ovr_DestroyMirrorTexture(
         ovrSession session,
         ovrMirrorTexture mirrorTexture):
 
-    cdef ovr_capi.ovrResult result = \
-        ovr_capi.ovr_DestroyMirrorTexture(
-            session.c_data,
-            mirrorTexture.c_data)
+    ovr_capi.ovr_DestroyMirrorTexture(session.c_data, mirrorTexture.c_data)
 
 cpdef ovrSizei ovr_GetFovTextureSize(
         ovrSession session,
@@ -2526,10 +2522,10 @@ cpdef ovrSizei ovr_GetFovTextureSize(
         float pixelsPerDisplayPixel):
 
     cdef ovrSizei texture_size = ovrSizei()
-    (<ovrSizei>texture_size).c_data = ovr_capi.ovr_GetFovTextureSize(
+    (<ovrSizei>texture_size).c_data[0] = ovr_capi.ovr_GetFovTextureSize(
         session.c_data,
         <ovr_capi.ovrEyeType>eye,
-        fov.c_data,
+        fov.c_data[0],
         pixelsPerDisplayPixel)
 
     return texture_size
@@ -2540,10 +2536,10 @@ cpdef ovrEyeRenderDesc ovr_GetRenderDesc(
         ovrFovPort fov):
 
     cdef ovrEyeRenderDesc render_desc = ovrEyeRenderDesc()
-    (<ovrEyeRenderDesc>render_desc).c_data = ovr_capi.ovr_GetRenderDesc(
+    (<ovrEyeRenderDesc>render_desc).c_data[0] = ovr_capi.ovr_GetRenderDesc(
         session.c_data,
         <ovr_capi.ovrEyeType>eyeType,
-        fov.c_data)
+        fov.c_data[0])
 
     return render_desc
 
@@ -2574,48 +2570,22 @@ cpdef int ovr_EndFrame(
         object layerPtrList,
         int layerCount):
 
+    # this is not very pythonic, but that's not what were going for
     assert layerCount <= 16
 
-    # allocate arrays for layer pointers and view scale descriptors
-    cdef ovr_capi.ovrViewScaleDesc *view_scale[16]
-    cdef ovr_capi.ovrLayerHeader **layer_ptrs[16]
+    cdef ovr_capi.ovrLayerHeader* layer_array[16]
 
-    # point arrays to the data
     cdef size_t i
     for i in range(<size_t>layerCount):
-        view_scale[i] = &(<ovrViewScaleDesc>(layerPtrList[i].Header)).c_data
-        layer_ptrs[i] = &(<ovrLayerHeader>(layerPtrList[i].Header)).c_data
+        #viewsc_list[i] = &(<ovrViewScaleDesc>viewScaleDesc[i]).c_data
+        layer_array[i] = (<ovrLayerHeader>(layerPtrList[i].Header)).c_data
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_EndFrame(
         session.c_data,
         <long long>frameIndex,
-        view_scale,
-        layerCount)
-
-    return result
-
-cpdef int ovr_SubmitFrame(
-        ovrSession session,
-        int frameIndex,
-        object viewScaleDesc,
-        object layerPtrList,
-        int layerCount):
-
-    assert layerCount <= 16
-
-    cdef ovr_capi.ovrViewScaleDesc *view_scale[16]
-    cdef ovr_capi.ovrLayerHeader **layer_ptrs[16]
-
-    cdef size_t i
-    for i in range(<size_t>layerCount):
-        view_scale[i] = &(<ovrViewScaleDesc>(layerPtrList[i].Header)).c_data
-        layer_ptrs[i] = &(<ovrLayerHeader>(layerPtrList[i].Header)).c_data
-
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_SubmitFrame(
-        session.c_data,
-        <long long>frameIndex,
-        view_scale,
-        layerCount)
+        NULL,
+        layer_array,
+        <unsigned int>layerCount)
 
     return result
 

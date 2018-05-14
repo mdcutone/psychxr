@@ -2,7 +2,9 @@
 
 import pyglet
 from pyglet.window import key
+import pyglet.gl as GL
 import psychxr.ovr.capi as capi
+import math
 
 window = pyglet.window.Window(width=640, height=480, caption="Oculus Rift Test")
 pyglet.app.run()
@@ -18,11 +20,12 @@ def on_key_press(symbol, modifiers):
         capi.ovr_Shutdown()
         pyglet.app.exit()
 
-# initialize
+# initialize OVR library
 init_pars = capi.ovrInitParams()
+init_pars.Flags = capi.ovrInit_Debug
 capi.ovr_Initialize(init_pars)
 
-# create session
+# create OVR session
 session = capi.ovrSession()
 if capi.ovr_Create(session, capi.ovrGraphicsLuid()) < 0:
     print("Failed to create OVR session.")
@@ -33,19 +36,30 @@ if capi.ovr_Create(session, capi.ovrGraphicsLuid()) < 0:
 # get HMD descriptor
 hmd_settings = capi.ovr_GetHmdDesc(session)
 
-tm = capi.ovr_GetPredictedDisplayTime(session, 0)
-tracker_state = capi.ovr_GetTrackingState(session, tm, False)
-out_poses = []
-pose = capi.ovr_GetDevicePoses(session,
-                               [capi.ovrTrackedDevice_HMD],
-                               1,
-                               tm,
-                               out_poses)
+# get required texture size
+recommendedTex0Size = capi.ovr_GetFovTextureSize(
+    session, capi.ovrEye_Left, hmd_settings.DefaultEyeFov[0], 1.0)
+recommendedTex1Size = capi.ovr_GetFovTextureSize(
+    session, capi.ovrEye_Left, hmd_settings.DefaultEyeFov[1], 1.0)
+bufferSize = capi.ovrSizei()
+bufferSize.w = recommendedTex0Size.w + recommendedTex1Size.w
+bufferSize.h = max(recommendedTex0Size.h, recommendedTex1Size.h)
 
-print(out_poses)
+# allocate and configure texture swap chain
+textureSwapChain = capi.ovrTextureSwapChain()
+desc = capi.ovrTextureSwapChainDesc()
+desc.Type = capi.ovrTexture_2D
+desc.ArraySize = 1
+desc.Format = capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+desc.Width = bufferSize.w
+desc.Height = bufferSize.h
+desc.MipLevels = 1
+desc.SampleCount = 1
+desc.StaticImage = False
 
-print(out_poses[0].ThePose.Position.x)
+# create texture swap chain
+texId = 0
+if capi.ovr_CreateTextureSwapChainGL(session, desc, textureSwapChain) == 0:
+    capi.ovr_GetTextureSwapChainBufferGL(session, textureSwapChain, 0, texId)
+    GL.glBindTexture(GL.GL_TEXTURE_2D, texId)
 
-
-print(hmd_settings.Manufacturer)
-print(hmd_settings.Resolution.w, hmd_settings.Resolution.h)
