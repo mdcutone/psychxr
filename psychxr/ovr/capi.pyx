@@ -2355,9 +2355,11 @@ cpdef int ovr_SpecifyTrackingOrigin(ovrSession session, ovrPosef originPose):
 cpdef void ovr_ClearShouldRecenterFlag(ovrSession session):
     ovr_capi.ovr_ClearShouldRecenterFlag(session.c_data)
 
-cpdef ovrTrackingState ovr_GetTrackingState(ovrSession session,
-                                            double absTime,
-                                            bint latencyMarker):
+cpdef ovrTrackingState ovr_GetTrackingState(
+        ovrSession session,
+        double absTime,
+        bint latencyMarker):
+
     cdef ovrTrackingState to_return = ovrTrackingState()
     (<ovrTrackingState>to_return).c_data[0] = ovr_capi.ovr_GetTrackingState(
         session.c_data,
@@ -2366,46 +2368,37 @@ cpdef ovrTrackingState ovr_GetTrackingState(ovrSession session,
 
     return to_return
 
-cpdef int ovr_GetDevicePoses(ovrSession session,
-                             list deviceTypes,
-                             int deviceCount,
-                             double absTime,
-                             list outDevicePoses):
+cpdef int ovr_GetDevicePoses(
+        ovrSession session,
+        object deviceTypes,
+        int deviceCount,
+        double absTime,
+        object outDevicePoses):
 
-    # create deviceTypes array
-    cdef ovr_capi.ovrTrackedDeviceType* c_in_devices = \
-        <ovr_capi.ovrTrackedDeviceType*>malloc(
-            deviceCount * sizeof(ovr_capi.ovrTrackedDeviceType))
-    if not c_in_devices:
-        raise MemoryError()
+    if not isinstance(deviceTypes, (tuple, list,)):
+        raise TypeError()
 
-    # create outDevicePoses array
-    cdef ovr_capi.ovrPoseStatef* c_out_poses = <ovr_capi.ovrPoseStatef*>malloc(
-        deviceCount * sizeof(ovr_capi.ovrPoseStatef))
-    if not c_out_poses:
-        raise MemoryError()
+    # arrays to store c-level data returned by struct
+    cdef ovr_capi.ovrTrackedDeviceType[9] c_devices
+    cdef ovr_capi.ovrPoseStatef[9] c_poses
 
     # convert the Python list to C, this is a list of integers
     cdef size_t i
     for i in range(<size_t>deviceCount):
-        c_in_devices[i] = <ovr_capi.ovrTrackedDeviceType>(deviceTypes[i])
+        c_devices[i] = <ovr_capi.ovrTrackedDeviceType>(deviceTypes[i])
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetDevicePoses(
         session.c_data,
-        c_in_devices,
+        c_devices,
         deviceCount,
         absTime,
-        c_out_poses)
+        c_poses)
 
     # populate output list
     for i in range(<size_t>deviceCount):
         this_device = ovrPoseStatef()
-        (<ovrPoseStatef>this_device).c_data[0] = c_out_poses[i]
+        (<ovrPoseStatef>this_device).c_data[0] = c_poses[i]
         outDevicePoses.append(this_device)
-
-    # free C arrays
-    free(c_in_devices)
-    free(c_out_poses)
 
     return <int>result
 
@@ -2417,9 +2410,10 @@ cpdef ovrTrackerPose ovr_GetTrackerPose(ovrSession session, int trackerPoseIndex
 
     return tracker_pose
 
-cpdef int ovr_GetInputState(ovrSession session,
-                            int controllerType,
-                            ovrInputState inputState):
+cpdef int ovr_GetInputState(
+        ovrSession session,
+        int controllerType,
+        ovrInputState inputState):
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
         session.c_data,
@@ -2434,8 +2428,10 @@ cpdef int ovr_GetConnectedControllerTypes(ovrSession session):
 
     return <int>conn_contr
 
-cpdef ovrTouchHapticsDesc ovr_GetTouchHapticsDesc(ovrSession session,
-                                                  int controllerType):
+cpdef ovrTouchHapticsDesc ovr_GetTouchHapticsDesc(
+        ovrSession session,
+        int controllerType):
+
     cdef ovrTouchHapticsDesc haptics_desc = ovrTouchHapticsDesc()
     (<ovrTrackerPose>haptics_desc).c_data[0] = ovr_capi.ovr_GetTrackerPose(
         session.c_data,
