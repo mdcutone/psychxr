@@ -2290,8 +2290,10 @@ cpdef ovrTrackerDesc ovr_GetTrackerDesc(ovrSession session,
 
     return to_return
 
-cpdef int ovr_Create(ovrSession pPession,
-                     ovrGraphicsLuid pLuid):
+cpdef int ovr_Create(
+        ovrSession pPession,
+        ovrGraphicsLuid pLuid):
+
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_Create(&pPession.c_data,
                                                          pLuid.c_data)
 
@@ -2300,8 +2302,10 @@ cpdef int ovr_Create(ovrSession pPession,
 cpdef void ovr_Destroy(ovrSession session):
     ovr_capi.ovr_Destroy(session.c_data)
 
-cpdef int ovr_GetSessionStatus(ovrSession session,
-                               ovrSessionStatus sessionStatus):
+cpdef int ovr_GetSessionStatus(
+        ovrSession session,
+        ovrSessionStatus sessionStatus):
+
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetSessionStatus(
         session.c_data,
         sessionStatus.c_data)
@@ -2402,7 +2406,10 @@ cpdef int ovr_GetDevicePoses(
 
     return <int>result
 
-cpdef ovrTrackerPose ovr_GetTrackerPose(ovrSession session, int trackerPoseIndex):
+cpdef ovrTrackerPose ovr_GetTrackerPose(
+        ovrSession session,
+        int trackerPoseIndex):
+
     cdef ovrTrackerPose tracker_pose = ovrTrackerPose()
     (<ovrTrackerPose>tracker_pose).c_data[0] = ovr_capi.ovr_GetTrackerPose(
         session.c_data,
@@ -2439,15 +2446,10 @@ cpdef ovrTouchHapticsDesc ovr_GetTouchHapticsDesc(
 
     return haptics_desc
 
-cpdef double ovr_GetPredictedDisplayTime(ovrSession session, int frameIndex):
-    cdef double pred_time = ovr_capi.ovr_GetPredictedDisplayTime(
-        session.c_data, <long long>frameIndex)
-
-    return pred_time
-
-cpdef int ovr_GetTextureSwapChainLength(ovrSession session,
-                                        ovrTextureSwapChain chain,
-                                        int out_Length):
+cpdef int ovr_GetTextureSwapChainLength(
+        ovrSession session,
+        ovrTextureSwapChain chain,
+        int out_Length):
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetTextureSwapChainLength(
         session.c_data,
@@ -2455,3 +2457,113 @@ cpdef int ovr_GetTextureSwapChainLength(ovrSession session,
         &out_Length)
 
     return <int>result
+
+cpdef int ovr_GetTextureSwapChainCurrentIndex(
+        ovrSession session,
+        ovrTextureSwapChain chain,
+        int out_Index):
+
+    cdef ovr_capi.ovrResult result = \
+        ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
+            session.c_data,
+            chain.c_data,
+            &out_Index)
+
+    return <int>result
+
+cpdef int ovr_GetTextureSwapChainDesc(
+        ovrSession session,
+        ovrTextureSwapChain chain,
+        ovrTextureSwapChainDesc out_Desc):
+
+    cdef ovr_capi.ovrResult result = \
+        ovr_capi.ovr_GetTextureSwapChainDesc(
+            session.c_data,
+            chain.c_data,
+            out_Desc.c_data)
+
+    return <int>result
+
+cpdef int ovr_CommitTextureSwapChain(
+        ovrSession session,
+        ovrTextureSwapChain chain):
+
+    cdef ovr_capi.ovrResult result = \
+        ovr_capi.ovr_CommitTextureSwapChain(
+            session.c_data,
+            chain.c_data)
+
+    return <int>result
+
+cpdef void ovr_DestroyTextureSwapChain(
+        ovrSession session,
+        ovrTextureSwapChain chain):
+
+    cdef ovr_capi.ovrResult result = \
+        ovr_capi.ovr_DestroyTextureSwapChain(
+            session.c_data,
+            chain.c_data)
+
+cpdef void ovr_DestroyMirrorTexture(
+        ovrSession session,
+        ovrMirrorTexture mirrorTexture):
+
+    cdef ovr_capi.ovrResult result = \
+        ovr_capi.ovr_DestroyMirrorTexture(
+            session.c_data,
+            mirrorTexture.c_data)
+
+cpdef ovrSizei ovr_GetFovTextureSize(
+        ovrSession session,
+        int eye,
+        ovrFovPort fov,
+        float pixelsPerDisplayPixel):
+
+    cdef ovrSizei texture_size = ovrSizei()
+    (<ovrSizei>texture_size).c_data = ovr_capi.ovr_GetFovTextureSize(
+        session.c_data,
+        <ovr_capi.ovrEyeType>eye,
+        fov.c_data,
+        pixelsPerDisplayPixel)
+
+    return texture_size
+
+cpdef ovrEyeRenderDesc ovr_GetRenderDesc(
+        ovrSession session,
+        int eyeType,
+        ovrFovPort fov):
+
+    cdef ovrEyeRenderDesc render_desc = ovrEyeRenderDesc()
+    (<ovrEyeRenderDesc>render_desc).c_data = ovr_capi.ovr_GetRenderDesc(
+        session.c_data,
+        <ovr_capi.ovrEyeType>eyeType,
+        fov.c_data)
+
+    return render_desc
+
+cpdef int ovr_WaitToBeginFrame(
+        ovrSession session,
+        int frameIndex):
+
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_WaitToBeginFrame(
+        session.c_data,
+        <long long>frameIndex)
+
+    return result
+
+cpdef int ovr_BeginFrame(
+        ovrSession session,
+        int frameIndex):
+
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_BeginFrame(
+        session.c_data,
+        <long long>frameIndex)
+
+    return result
+
+# <<<<<<<
+cpdef double ovr_GetPredictedDisplayTime(ovrSession session, int frameIndex):
+    cdef double pred_time = ovr_capi.ovr_GetPredictedDisplayTime(
+        session.c_data, <long long>frameIndex)
+
+    return pred_time
