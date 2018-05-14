@@ -2282,11 +2282,14 @@ cpdef int ovr_GetTrackerCount(ovrSession session):
 
     return <int>result
 
-cpdef ovrTrackerDesc ovr_GetTrackerDesc(ovrSession session,
-                                        int trackerDescIndex):
+cpdef ovrTrackerDesc ovr_GetTrackerDesc(
+        ovrSession session,
+        int trackerDescIndex):
+
     cdef ovrTrackerDesc to_return = ovrTrackerDesc()
     (<ovrTrackerDesc>to_return).c_data[0] = ovr_capi.ovr_GetTrackerDesc(
-        session.c_data, <unsigned int>trackerDescIndex)
+        session.c_data,
+        <unsigned int>trackerDescIndex)
 
     return to_return
 
@@ -2294,8 +2297,9 @@ cpdef int ovr_Create(
         ovrSession pPession,
         ovrGraphicsLuid pLuid):
 
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_Create(&pPession.c_data,
-                                                         pLuid.c_data)
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_Create(
+        &pPession.c_data,
+        pLuid.c_data)
 
     return <int>result
 
@@ -2312,9 +2316,11 @@ cpdef int ovr_GetSessionStatus(
 
     return <int>result
 
-cpdef int ovr_IsExtensionSupported(ovrSession session,
-                                   int extension,
-                                   bint outExtensionSupported):
+cpdef int ovr_IsExtensionSupported(
+        ovrSession session,
+        int extension,
+        bint outExtensionSupported):
+
     cdef ovr_capi.ovrBool ext_supported = 0
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_IsExtensionSupported(
         session.c_data,
@@ -2561,9 +2567,72 @@ cpdef int ovr_BeginFrame(
 
     return result
 
+cpdef int ovr_EndFrame(
+        ovrSession session,
+        int frameIndex,
+        object viewScaleDesc,
+        object layerPtrList,
+        int layerCount):
+
+    assert layerCount <= 16
+
+    # allocate arrays for layer pointers and view scale descriptors
+    cdef ovr_capi.ovrViewScaleDesc *view_scale[16]
+    cdef ovr_capi.ovrLayerHeader **layer_ptrs[16]
+
+    # point arrays to the data
+    cdef size_t i
+    for i in range(<size_t>layerCount):
+        view_scale[i] = &(<ovrViewScaleDesc>(layerPtrList[i].Header)).c_data
+        layer_ptrs[i] = &(<ovrLayerHeader>(layerPtrList[i].Header)).c_data
+
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_EndFrame(
+        session.c_data,
+        <long long>frameIndex,
+        view_scale,
+        layerCount)
+
+    return result
+
+cpdef int ovr_SubmitFrame(
+        ovrSession session,
+        int frameIndex,
+        object viewScaleDesc,
+        object layerPtrList,
+        int layerCount):
+
+    assert layerCount <= 16
+
+    cdef ovr_capi.ovrViewScaleDesc *view_scale[16]
+    cdef ovr_capi.ovrLayerHeader **layer_ptrs[16]
+
+    cdef size_t i
+    for i in range(<size_t>layerCount):
+        view_scale[i] = &(<ovrViewScaleDesc>(layerPtrList[i].Header)).c_data
+        layer_ptrs[i] = &(<ovrLayerHeader>(layerPtrList[i].Header)).c_data
+
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_SubmitFrame(
+        session.c_data,
+        <long long>frameIndex,
+        view_scale,
+        layerCount)
+
+    return result
+
 # <<<<<<<
+
+cpdef int ovr_ResetPerfStats(ovrSession session):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetPerfStats(session.c_data)
+
+    return result
+
 cpdef double ovr_GetPredictedDisplayTime(ovrSession session, int frameIndex):
     cdef double pred_time = ovr_capi.ovr_GetPredictedDisplayTime(
         session.c_data, <long long>frameIndex)
 
     return pred_time
+
+cpdef double ovr_GetTimeInSeconds(ovrSession session, int frameIndex):
+    cdef double current_time = ovr_capi.ovr_GetTimeInSeconds()
+
+    return current_time
