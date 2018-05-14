@@ -2619,8 +2619,6 @@ cpdef int ovr_SubmitFrame(
 
     return result
 
-# <<<<<<<
-
 cpdef int ovr_ResetPerfStats(ovrSession session):
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetPerfStats(session.c_data)
 
