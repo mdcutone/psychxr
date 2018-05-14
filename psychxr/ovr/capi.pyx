@@ -238,9 +238,27 @@ ovrinit_WritableBits = ovr_capi.ovrinit_WritableBits
 
 # enum ovrLogLevel
 ovrLogLevel_Debug = ovr_capi.ovrLogLevel_Debug
-ovrLogLevel_Info = ovr_capi. ovrLogLevel_Info
+ovrLogLevel_Info = ovr_capi.ovrLogLevel_Info
 ovrLogLevel_Error = ovr_capi.ovrLogLevel_Error
 
+# enum ovrLayerType:
+ovrLayerType_Disabled = ovr_capi.ovrLayerType_Disabled
+ovrLayerType_EyeFov = ovr_capi.ovrLayerType_EyeFov
+ovrLayerType_EyeFovDepth = ovr_capi.ovrLayerType_EyeFovDepth
+ovrLayerType_Quad = ovr_capi.ovrLayerType_Quad
+ovrLayerType_EyeMatrix = ovr_capi.ovrLayerType_EyeMatrix
+ovrLayerType_EyeFovMultires = ovr_capi.ovrLayerType_EyeFovMultires
+ovrLayerType_Cylinder = ovr_capi.ovrLayerType_Cylinder
+ovrLayerType_Cube = ovr_capi.ovrLayerType_Cube
+
+# enum ovrLayerFlags:
+ovrLayerFlag_HighQuality = ovr_capi.ovrLayerFlag_HighQuality
+ovrLayerFlag_TextureOriginAtBottomLeft = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
+ovrLayerFlag_HeadLocked = ovr_capi.ovrLayerFlag_HeadLocked
+
+# enum ovrTextureLayout
+ovrTextureLayout_Rectilinear = ovr_capi.ovrTextureLayout_Rectilinear
+ovrTextureLayout_Octilinear = ovr_capi.ovrTextureLayout_Rectilinear
 
 # --- C-LEVEL STRUCTURE EXTENSION TYPES ---
 #
@@ -1494,6 +1512,735 @@ cdef class ovrSessionStatus:
         return <int>self.c_data.DepthRequested
 
 
+cdef class ovrLayerHeader:
+    cdef ovr_capi.ovrLayerHeader* c_data
+    cdef ovr_capi.ovrLayerHeader  c_ovrLayerHeader
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrLayerHeader
+
+    @property
+    def Type(self):
+        return <int>self.c_data.Type
+
+    @Type.setter
+    def Type(self, int value):
+        self.c_data.Type = <ovr_capi.ovrLayerType>value
+
+    @property
+    def Flags(self):
+        return <int>self.c_data.Flags
+
+    @Flags.setter
+    def Flags(self, int value):
+        self.c_data.Flags = <unsigned int>value
+
+
+cdef class ovrLayerEyeFov:
+    cdef ovr_capi.ovrLayerEyeFov* c_data
+    cdef ovr_capi.ovrLayerEyeFov  c_ovrLayerEyeFov
+
+    cdef ovrLayerHeader obj_Header
+    cdef tuple obj_ColorTexture
+    cdef ovrTextureSwapChain obj_ColorTexture0
+    cdef ovrTextureSwapChain obj_ColorTexture1
+    cdef tuple obj_Viewport
+    cdef ovrRecti obj_Viewport0
+    cdef ovrRecti obj_Viewport1
+    cdef tuple obj_Fov
+    cdef ovrFovPort obj_Fov0
+    cdef ovrFovPort obj_Fov1
+    cdef tuple obj_RenderPose
+    cdef ovrPosef obj_RenderPose0
+    cdef ovrPosef obj_RenderPose1
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrLayerEyeFov
+
+        self.obj_Header = ovrLayerHeader()
+        self.obj_Header.c_data = &self.c_data.Header
+
+        self.obj_ColorTexture0 = ovrTextureSwapChain()
+        self.obj_ColorTexture0.c_data = self.c_data.ColorTexture[0]
+        self.obj_ColorTexture1 = ovrTextureSwapChain()
+        self.obj_ColorTexture1.c_data = self.c_data.ColorTexture[1]
+        self.obj_ColorTexture = (self.obj_ColorTexture0, self.obj_ColorTexture1)
+
+        self.obj_Viewport0 = ovrRecti()
+        self.obj_Viewport0.c_data = &self.c_data.Viewport[0]
+        self.obj_Viewport1 = ovrRecti()
+        self.obj_Viewport1.c_data = &self.c_data.Viewport[1]
+        self.obj_Viewport = (self.obj_Viewport0, self.obj_Viewport1)
+
+        self.obj_Fov0 = ovrFovPort()
+        self.obj_Fov0.c_data = &self.c_data.Fov[0]
+        self.obj_Fov1 = ovrFovPort()
+        self.obj_Fov1.c_data = &self.c_data.Fov[1]
+        self.obj_Fov = (self.obj_Fov0, self.obj_Fov1)
+
+        self.obj_RenderPose0 = ovrPosef()
+        self.obj_RenderPose0.c_data = &self.c_data.RenderPose[0]
+        self.obj_RenderPose1 = ovrPosef()
+        self.obj_RenderPose1.c_data = &self.c_data.RenderPose[1]
+        self.obj_RenderPose = (self.obj_RenderPose0, self.obj_RenderPose1)
+
+    @property
+    def Header(self):
+        return self.obj_Header
+
+    @Header.setter
+    def Header(self, ovrLayerHeader value):
+        self.obj_Header.c_data = value.c_data
+
+    @property
+    def ColorTexture(self):
+        return self.obj_ColorTexture
+
+    @ColorTexture.setter
+    def ColorTexture(self, tuple value):
+        self.obj_ColorTexture0.c_data = (<ovrTextureSwapChain>value[0]).c_data
+        self.obj_ColorTexture1.c_data = (<ovrTextureSwapChain>value[1]).c_data
+
+    @property
+    def Viewport(self):
+        return self.obj_Viewport
+
+    @Viewport.setter
+    def Viewport(self, tuple value):
+        self.obj_Viewport0.c_data = (<ovrRecti>value[0]).c_data
+        self.obj_Viewport1.c_data = (<ovrRecti>value[1]).c_data
+
+    @property
+    def Fov(self):
+        return self.obj_Viewport
+
+    @Fov.setter
+    def Fov(self, tuple value):
+        self.obj_Fov0.c_data = (<ovrFovPort>value[0]).c_data
+        self.obj_Fov1.c_data = (<ovrFovPort>value[1]).c_data
+
+    @property
+    def RenderPose(self):
+        return self.obj_Viewport
+
+    @RenderPose.setter
+    def RenderPose(self, tuple value):
+        self.obj_RenderPose0.c_data = (<ovrPosef>value[0]).c_data
+        self.obj_RenderPose1.c_data = (<ovrPosef>value[1]).c_data
+
+    @property
+    def SensorSampleTime(self):
+        return <double>self.c_data.SensorSampleTime
+
+    @SensorSampleTime.setter
+    def SensorSampleTime(self, double value):
+        self.c_data.SensorSampleTime = value
+
+
+cdef class ovrLayerEyeFovDepth:
+    cdef ovr_capi.ovrLayerEyeFovDepth* c_data
+    cdef ovr_capi.ovrLayerEyeFovDepth  c_ovrLayerEyeFovDepth
+
+    cdef ovrLayerHeader obj_Header
+    cdef tuple obj_ColorTexture
+    cdef ovrTextureSwapChain obj_ColorTexture0
+    cdef ovrTextureSwapChain obj_ColorTexture1
+    cdef tuple obj_Viewport
+    cdef ovrRecti obj_Viewport0
+    cdef ovrRecti obj_Viewport1
+    cdef tuple obj_Fov
+    cdef ovrFovPort obj_Fov0
+    cdef ovrFovPort obj_Fov1
+    cdef tuple obj_RenderPose
+    cdef ovrPosef obj_RenderPose0
+    cdef ovrPosef obj_RenderPose1
+    cdef tuple obj_DepthTexture
+    cdef ovrTextureSwapChain obj_DepthTexture0
+    cdef ovrTextureSwapChain obj_DepthTexture1
+    cdef ovrTimewarpProjectionDesc obj_ProjectionDesc
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrLayerEyeFovDepth
+
+        self.obj_Header = ovrLayerHeader()
+        self.obj_Header.c_data = &self.c_data.Header
+
+        self.obj_ColorTexture0 = ovrTextureSwapChain()
+        self.obj_ColorTexture0.c_data = self.c_data.ColorTexture[0]
+        self.obj_ColorTexture1 = ovrTextureSwapChain()
+        self.obj_ColorTexture1.c_data = self.c_data.ColorTexture[1]
+        self.obj_ColorTexture = (self.obj_ColorTexture0, self.obj_ColorTexture1)
+
+        self.obj_Viewport0 = ovrRecti()
+        self.obj_Viewport0.c_data = &self.c_data.Viewport[0]
+        self.obj_Viewport1 = ovrRecti()
+        self.obj_Viewport1.c_data = &self.c_data.Viewport[1]
+        self.obj_Viewport = (self.obj_Viewport0, self.obj_Viewport1)
+
+        self.obj_Fov0 = ovrFovPort()
+        self.obj_Fov0.c_data = &self.c_data.Fov[0]
+        self.obj_Fov1 = ovrFovPort()
+        self.obj_Fov1.c_data = &self.c_data.Fov[1]
+        self.obj_Fov = (self.obj_Fov0, self.obj_Fov1)
+
+        self.obj_RenderPose0 = ovrPosef()
+        self.obj_RenderPose0.c_data = &self.c_data.RenderPose[0]
+        self.obj_RenderPose1 = ovrPosef()
+        self.obj_RenderPose1.c_data = &self.c_data.RenderPose[1]
+        self.obj_RenderPose = (self.obj_RenderPose0, self.obj_RenderPose1)
+
+        self.obj_DepthTexture0 = ovrTextureSwapChain()
+        self.obj_DepthTexture0.c_data = self.c_data.DepthTexture[0]
+        self.obj_DepthTexture1 = ovrTextureSwapChain()
+        self.obj_DepthTexture1.c_data = self.c_data.DepthTexture[1]
+        self.obj_DepthTexture = (self.obj_DepthTexture0, self.obj_DepthTexture1)
+
+        self.obj_ProjectionDesc = ovrTimewarpProjectionDesc()
+        self.obj_ProjectionDesc.c_data = &self.c_data.ProjectionDesc
+
+    @property
+    def Header(self):
+        return self.obj_Header
+
+    @Header.setter
+    def Header(self, ovrLayerHeader value):
+        self.obj_Header.c_data = value.c_data
+
+    @property
+    def ColorTexture(self):
+        return self.obj_ColorTexture
+
+    @ColorTexture.setter
+    def ColorTexture(self, object value):
+        if not isinstance(value, (tuple, list)):
+            raise TypeError(
+                "Viewport must be list or tuple of 'ovrTextureSwapChain'.")
+
+        self.obj_ColorTexture0.c_data = (<ovrTextureSwapChain>value[0]).c_data
+        self.obj_ColorTexture1.c_data = (<ovrTextureSwapChain>value[1]).c_data
+
+    @property
+    def Viewport(self):
+        return self.obj_Viewport
+
+    @Viewport.setter
+    def Viewport(self, tuple value):
+        if not isinstance(value, (tuple, list)):
+            raise TypeError(
+                "Viewport must be list or tuple of 'ovrRecti'.")
+
+        self.obj_Viewport0.c_data = (<ovrRecti>value[0]).c_data
+        self.obj_Viewport1.c_data = (<ovrRecti>value[1]).c_data
+
+    @property
+    def Fov(self):
+        return self.obj_Viewport
+
+    @Fov.setter
+    def Fov(self, tuple value):
+        self.obj_Fov0.c_data = (<ovrFovPort>value[0]).c_data
+        self.obj_Fov1.c_data = (<ovrFovPort>value[1]).c_data
+
+    @property
+    def RenderPose(self):
+        return self.obj_Viewport
+
+    @RenderPose.setter
+    def RenderPose(self, object value):
+        if not isinstance(value, (tuple, list)):
+            raise TypeError(
+                "RenderPose must be list or tuple of 'ovrPosef'.")
+
+        self.obj_RenderPose0.c_data = (<ovrPosef>value[0]).c_data
+        self.obj_RenderPose1.c_data = (<ovrPosef>value[1]).c_data
+
+    @property
+    def SensorSampleTime(self):
+        return <double>self.c_data.SensorSampleTime
+
+    @SensorSampleTime.setter
+    def SensorSampleTime(self, double value):
+        self.c_data.SensorSampleTime = value
+
+    @property
+    def DepthTexture(self):
+        return self.obj_DepthTexture
+
+    @DepthTexture.setter
+    def DepthTexture(self, object value):
+        if not isinstance(value, (tuple, list)):
+            raise TypeError(
+                "DepthTexture must be list or tuple of 'ovrTextureSwapChain'.")
+
+        self.obj_DepthTexture0.c_data = (<ovrTextureSwapChain>value[0]).c_data
+        self.obj_DepthTexture1.c_data = (<ovrTextureSwapChain>value[1]).c_data
+
+    @property
+    def ProjectionDesc(self):
+        return self.obj_ProjectionDesc
+
+    @ProjectionDesc.setter
+    def ProjectionDesc(self, ovrTimewarpProjectionDesc value):
+        self.obj_ProjectionDesc.c_data = value.c_data
+
+
+cdef class ovrTextureLayoutOctilinear:
+    cdef ovr_capi.ovrTextureLayoutOctilinear* c_data
+    cdef ovr_capi.ovrTextureLayoutOctilinear  c_ovrTextureLayoutOctilinear
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrTextureLayoutOctilinear
+
+    @property
+    def WarpLeft(self):
+        return <float>self.c_data.WarpLeft
+
+    @WarpLeft.setter
+    def WarpLeft(self, float value):
+        self.c_data.WarpLeft = value
+
+    @property
+    def WarpRight(self):
+        return <float>self.c_data.WarpRight
+
+    @WarpRight.setter
+    def WarpRight(self, float value):
+        self.c_data.WarpRight = value
+
+    @property
+    def WarpUp(self):
+        return <float>self.c_data.WarpUp
+
+    @WarpUp.setter
+    def WarpUp(self, float value):
+        self.c_data.WarpUp = value
+
+    @property
+    def WarpDown(self):
+        return <float>self.c_data.WarpDown
+
+    @WarpDown.setter
+    def WarpDown(self, float value):
+        self.c_data.WarpDown = value
+
+    @property
+    def SizeLeft(self):
+        return <float>self.c_data.SizeLeft
+
+    @SizeLeft.setter
+    def SizeLeft(self, float value):
+        self.c_data.SizeLeft = value
+
+    @property
+    def SizeRight(self):
+        return <float>self.c_data.SizeRight
+
+    @SizeRight.setter
+    def SizeRight(self, float value):
+        self.c_data.SizeRight = value
+
+    @property
+    def SizeUp(self):
+        return <float>self.c_data.SizeUp
+
+    @SizeUp.setter
+    def SizeUp(self, float value):
+        self.c_data.SizeUp = value
+
+    @property
+    def SizeDown(self):
+        return <float>self.c_data.SizeDown
+
+    @SizeDown.setter
+    def SizeDown(self, float value):
+        self.c_data.SizeDown = value
+
+
+cdef class ovrLayerEyeFovMultires:
+    cdef ovr_capi.ovrLayerEyeFovMultires* c_data
+    cdef ovr_capi.ovrLayerEyeFovMultires  c_ovrLayerEyeFovMultires
+
+    cdef ovrLayerHeader obj_Header
+    cdef tuple obj_ColorTexture
+    cdef ovrTextureSwapChain obj_ColorTexture0
+    cdef ovrTextureSwapChain obj_ColorTexture1
+    cdef tuple obj_Viewport
+    cdef ovrRecti obj_Viewport0
+    cdef ovrRecti obj_Viewport1
+    cdef tuple obj_Fov
+    cdef ovrFovPort obj_Fov0
+    cdef ovrFovPort obj_Fov1
+    cdef tuple obj_RenderPose
+    cdef ovrPosef obj_RenderPose0
+    cdef ovrPosef obj_RenderPose1
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrLayerEyeFovMultires
+
+        self.obj_Header = ovrLayerHeader()
+        self.obj_Header.c_data = &self.c_data.Header
+
+        self.obj_ColorTexture0 = ovrTextureSwapChain()
+        self.obj_ColorTexture0.c_data = self.c_data.ColorTexture[0]
+        self.obj_ColorTexture1 = ovrTextureSwapChain()
+        self.obj_ColorTexture1.c_data = self.c_data.ColorTexture[1]
+        self.obj_ColorTexture = (self.obj_ColorTexture0, self.obj_ColorTexture1)
+
+        self.obj_Viewport0 = ovrRecti()
+        self.obj_Viewport0.c_data = &self.c_data.Viewport[0]
+        self.obj_Viewport1 = ovrRecti()
+        self.obj_Viewport1.c_data = &self.c_data.Viewport[1]
+        self.obj_Viewport = (self.obj_Viewport0, self.obj_Viewport1)
+
+        self.obj_Fov0 = ovrFovPort()
+        self.obj_Fov0.c_data = &self.c_data.Fov[0]
+        self.obj_Fov1 = ovrFovPort()
+        self.obj_Fov1.c_data = &self.c_data.Fov[1]
+        self.obj_Fov = (self.obj_Fov0, self.obj_Fov1)
+
+        self.obj_RenderPose0 = ovrPosef()
+        self.obj_RenderPose0.c_data = &self.c_data.RenderPose[0]
+        self.obj_RenderPose1 = ovrPosef()
+        self.obj_RenderPose1.c_data = &self.c_data.RenderPose[1]
+        self.obj_RenderPose = (self.obj_RenderPose0, self.obj_RenderPose1)
+
+    @property
+    def Header(self):
+        return self.obj_Header
+
+    @Header.setter
+    def Header(self, ovrLayerHeader value):
+        self.obj_Header.c_data = value.c_data
+
+    @property
+    def ColorTexture(self):
+        return self.obj_ColorTexture
+
+    @ColorTexture.setter
+    def ColorTexture(self, tuple value):
+        self.obj_ColorTexture0.c_data = (<ovrTextureSwapChain>value[0]).c_data
+        self.obj_ColorTexture1.c_data = (<ovrTextureSwapChain>value[1]).c_data
+
+    @property
+    def Viewport(self):
+        return self.obj_Viewport
+
+    @Viewport.setter
+    def Viewport(self, tuple value):
+        self.obj_Viewport0.c_data = (<ovrRecti>value[0]).c_data
+        self.obj_Viewport1.c_data = (<ovrRecti>value[1]).c_data
+
+    @property
+    def Fov(self):
+        return self.obj_Viewport
+
+    @Fov.setter
+    def Fov(self, tuple value):
+        self.obj_Fov0.c_data = (<ovrFovPort>value[0]).c_data
+        self.obj_Fov1.c_data = (<ovrFovPort>value[1]).c_data
+
+    @property
+    def RenderPose(self):
+        return self.obj_RenderPose
+
+    @RenderPose.setter
+    def RenderPose(self, tuple value):
+        self.obj_RenderPose0.c_data = (<ovrPosef>value[0]).c_data
+        self.obj_RenderPose1.c_data = (<ovrPosef>value[1]).c_data
+
+    @property
+    def SensorSampleTime(self):
+        return <double>self.c_data.SensorSampleTime
+
+    @SensorSampleTime.setter
+    def SensorSampleTime(self, double value):
+        self.c_data.SensorSampleTime = value
+
+    @property
+    def TextureLayout(self):
+        return <int>self.c_data.TextureLayout
+
+    @TextureLayout.setter
+    def TextureLayout(self, int value):
+        self.c_data.TextureLayout = <ovr_capi.ovrTextureLayout>value
+
+
+cdef class ovrLayerEyeMatrix:
+    cdef ovr_capi.ovrLayerEyeMatrix* c_data
+    cdef ovr_capi.ovrLayerEyeMatrix  c_ovrLayerEyeMatrix
+
+    cdef ovrLayerHeader obj_Header
+    cdef tuple obj_ColorTexture
+    cdef ovrTextureSwapChain obj_ColorTexture0
+    cdef ovrTextureSwapChain obj_ColorTexture1
+    cdef tuple obj_Viewport
+    cdef ovrRecti obj_Viewport0
+    cdef ovrRecti obj_Viewport1
+    cdef tuple obj_RenderPose
+    cdef ovrPosef obj_RenderPose0
+    cdef ovrPosef obj_RenderPose1
+    cdef tuple obj_Matrix
+    cdef ovrMatrix4f obj_Matrix0
+    cdef ovrMatrix4f obj_Matrix1
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrLayerEyeMatrix
+
+        self.obj_Header = ovrLayerHeader()
+        self.obj_Header.c_data = &self.c_data.Header
+
+        self.obj_ColorTexture0 = ovrTextureSwapChain()
+        self.obj_ColorTexture0.c_data = self.c_data.ColorTexture[0]
+        self.obj_ColorTexture1 = ovrTextureSwapChain()
+        self.obj_ColorTexture1.c_data = self.c_data.ColorTexture[1]
+        self.obj_ColorTexture = (self.obj_ColorTexture0, self.obj_ColorTexture1)
+
+        self.obj_Viewport0 = ovrRecti()
+        self.obj_Viewport0.c_data = &self.c_data.Viewport[0]
+        self.obj_Viewport1 = ovrRecti()
+        self.obj_Viewport1.c_data = &self.c_data.Viewport[1]
+        self.obj_Viewport = (self.obj_Viewport0, self.obj_Viewport1)
+
+        self.obj_RenderPose0 = ovrPosef()
+        self.obj_RenderPose0.c_data = &self.c_data.RenderPose[0]
+        self.obj_RenderPose1 = ovrPosef()
+        self.obj_RenderPose1.c_data = &self.c_data.RenderPose[1]
+        self.obj_RenderPose = (self.obj_RenderPose0, self.obj_RenderPose1)
+
+        self.obj_Matrix0 = ovrMatrix4f()
+        self.obj_Matrix0.c_data = &self.c_data.Matrix[0]
+        self.obj_Matrix1 = ovrMatrix4f()
+        self.obj_Matrix1.c_data = &self.c_data.Matrix[1]
+        self.obj_Matrix = (self.obj_Matrix0, self.obj_Matrix1)
+
+    @property
+    def Header(self):
+        return self.obj_Header
+
+    @Header.setter
+    def Header(self, ovrLayerHeader value):
+        self.obj_Header.c_data = value.c_data
+
+    @property
+    def ColorTexture(self):
+        return self.obj_ColorTexture
+
+    @ColorTexture.setter
+    def ColorTexture(self, tuple value):
+        self.obj_ColorTexture0.c_data = (<ovrTextureSwapChain>value[0]).c_data
+        self.obj_ColorTexture1.c_data = (<ovrTextureSwapChain>value[1]).c_data
+
+    @property
+    def Viewport(self):
+        return self.obj_Viewport
+
+    @Viewport.setter
+    def Viewport(self, tuple value):
+        self.obj_Viewport0.c_data = (<ovrRecti>value[0]).c_data
+        self.obj_Viewport1.c_data = (<ovrRecti>value[1]).c_data
+
+    @property
+    def RenderPose(self):
+        return self.obj_RenderPose
+
+    @RenderPose.setter
+    def RenderPose(self, tuple value):
+        self.obj_RenderPose0.c_data = (<ovrPosef>value[0]).c_data
+        self.obj_RenderPose1.c_data = (<ovrPosef>value[1]).c_data
+
+    @property
+    def Matrix(self):
+        return self.obj_Matrix
+
+    @Matrix.setter
+    def Matrix(self, tuple value):
+        self.obj_Matrix0.c_data = (<ovrMatrix4f>value[0]).c_data
+        self.obj_Matrix1.c_data = (<ovrMatrix4f>value[1]).c_data
+
+    @property
+    def SensorSampleTime(self):
+        return <double>self.c_data.SensorSampleTime
+
+    @SensorSampleTime.setter
+    def SensorSampleTime(self, double value):
+        self.c_data.SensorSampleTime = value
+
+    # TODO - ovrTextureLayoutDesc_Union
+
+
+cdef class ovrLayerQuad:
+    cdef ovr_capi.ovrLayerQuad* c_data
+    cdef ovr_capi.ovrLayerQuad  c_ovrLayerQuad
+
+    cdef ovrLayerHeader obj_Header
+    cdef ovrTextureSwapChain obj_ColorTexture
+    cdef ovrRecti obj_Viewport
+    cdef ovrPosef obj_QuadPoseCenter
+    cdef ovrVector2f obj_QuadSize
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrLayerQuad
+
+        self.obj_Header = ovrLayerHeader()
+        self.obj_Header.c_data = &self.c_data.Header
+
+        self.obj_ColorTexture = ovrTextureSwapChain()
+        self.obj_ColorTexture.c_data = self.c_data.ColorTexture
+
+        self.obj_Viewport = ovrRecti()
+        self.obj_Viewport.c_data = &self.c_data.Viewport
+
+        self.obj_QuadPoseCenter = ovrPosef()
+        self.obj_QuadPoseCenter.c_data = &self.c_data.QuadPoseCenter
+
+        self.obj_QuadSize = ovrVector2f()
+        self.obj_QuadSize.c_data = &self.c_data.QuadSize
+
+    @property
+    def Header(self):
+        return self.obj_Header
+
+    @Header.setter
+    def Header(self, ovrLayerHeader value):
+        self.obj_Header.c_data = value.c_data
+
+    @property
+    def ColorTexture(self):
+        return self.obj_ColorTexture
+
+    @ColorTexture.setter
+    def ColorTexture(self, ovrTextureSwapChain value):
+        self.obj_ColorTexture.c_data = value.c_data
+
+    @property
+    def Viewport(self):
+        return self.obj_Viewport
+
+    @Viewport.setter
+    def Viewport(self, ovrRecti value):
+        self.obj_Viewport.c_data = value.c_data
+
+    @property
+    def QuadPoseCenter(self):
+        return self.obj_QuadPoseCenter
+
+    @QuadPoseCenter.setter
+    def QuadPoseCenter(self, ovrPosef value):
+        self.obj_QuadPoseCenter.c_data = value.c_data
+
+    @property
+    def QuadSize(self):
+        return self.obj_QuadSize
+
+    @QuadSize.setter
+    def QuadSize(self, ovrVector2f value):
+        self.obj_QuadSize.c_data = value.c_data
+
+
+cdef class ovrLayerCylinder:
+    cdef ovr_capi.ovrLayerCylinder* c_data
+    cdef ovr_capi.ovrLayerCylinder  c_ovrLayerCylinder
+
+    cdef ovrLayerHeader obj_Header
+    cdef ovrTextureSwapChain obj_ColorTexture
+    cdef ovrRecti obj_Viewport
+    cdef ovrPosef obj_CylinderPoseCenter
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrLayerCylinder
+
+        self.obj_Header = ovrLayerHeader()
+        self.obj_Header.c_data = &self.c_data.Header
+
+        self.obj_ColorTexture = ovrTextureSwapChain()
+        self.obj_ColorTexture.c_data = self.c_data.ColorTexture
+
+        self.obj_Viewport = ovrRecti()
+        self.obj_Viewport.c_data = &self.c_data.Viewport
+
+        self.obj_CylinderPoseCenter = ovrPosef()
+        self.obj_CylinderPoseCenter.c_data = &self.c_data.CylinderPoseCenter
+
+    @property
+    def Header(self):
+        return self.obj_Header
+
+    @Header.setter
+    def Header(self, ovrLayerHeader value):
+        self.obj_Header.c_data = value.c_data
+
+    @property
+    def ColorTexture(self):
+        return self.obj_ColorTexture
+
+    @ColorTexture.setter
+    def ColorTexture(self, ovrTextureSwapChain value):
+        self.obj_ColorTexture.c_data = value.c_data
+
+    @property
+    def Viewport(self):
+        return self.obj_Viewport
+
+    @Viewport.setter
+    def Viewport(self, ovrRecti value):
+        self.obj_Viewport.c_data = value.c_data
+
+    @property
+    def CylinderPoseCenter(self):
+        return self.obj_CylinderPoseCenter
+
+    @CylinderPoseCenter.setter
+    def CylinderPoseCenter(self, ovrPosef value):
+        self.obj_CylinderPoseCenter.c_data = value.c_data
+
+
+cdef class ovrLayerCube:
+    cdef ovr_capi.ovrLayerCube* c_data
+    cdef ovr_capi.ovrLayerCube  c_ovrLayerCube
+
+    cdef ovrLayerHeader obj_Header
+    cdef ovrQuatf obj_Orientation
+    cdef ovrTextureSwapChain obj_CubeMapTexture
+
+    cdef ovrPosef obj_CylinderPoseCenter
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrLayerCube
+
+        self.obj_Header = ovrLayerHeader()
+        self.obj_Header.c_data = &self.c_data.Header
+
+        self.obj_Orientation = ovrQuatf()
+        self.obj_Orientation.c_data = &self.c_data.Orientation
+
+        self.obj_CubeMapTexture = ovrTextureSwapChain()
+        self.obj_CubeMapTexture.c_data = self.c_data.CubeMapTexture
+
+    @property
+    def Header(self):
+        return self.obj_Header
+
+    @Header.setter
+    def Header(self, ovrLayerHeader value):
+        self.obj_Header.c_data = value.c_data
+
+    @property
+    def Orientation(self):
+        return self.obj_Orientation
+
+    @Orientation.setter
+    def Orientation(self, ovrQuatf value):
+        self.obj_Orientation.c_data = value.c_data
+
+    @property
+    def CubeMapTexture(self):
+        return self.obj_CubeMapTexture
+
+    @CubeMapTexture.setter
+    def CubeMapTexture(self, ovrTextureSwapChain value):
+        self.obj_CubeMapTexture.c_data = value.c_data
+
+
 # --- API EXPORTED FUNCTIONS ---
 #
 cpdef int ovr_Initialize(ovrInitParams params):
@@ -1629,9 +2376,14 @@ cpdef int ovr_GetDevicePoses(ovrSession session,
     cdef ovr_capi.ovrTrackedDeviceType* c_in_devices = \
         <ovr_capi.ovrTrackedDeviceType*>malloc(
             deviceCount * sizeof(ovr_capi.ovrTrackedDeviceType))
+    if not c_in_devices:
+        raise MemoryError()
+
     # create outDevicePoses array
     cdef ovr_capi.ovrPoseStatef* c_out_poses = <ovr_capi.ovrPoseStatef*>malloc(
         deviceCount * sizeof(ovr_capi.ovrPoseStatef))
+    if not c_out_poses:
+        raise MemoryError()
 
     # convert the Python list to C, this is a list of integers
     cdef size_t i
@@ -1651,13 +2403,59 @@ cpdef int ovr_GetDevicePoses(ovrSession session,
         (<ovrPoseStatef>this_device).c_data[0] = c_out_poses[i]
         outDevicePoses.append(this_device)
 
+    # free C arrays
     free(c_in_devices)
     free(c_out_poses)
 
     return <int>result
+
+cpdef ovrTrackerPose ovr_GetTrackerPose(ovrSession session, int trackerPoseIndex):
+    cdef ovrTrackerPose tracker_pose = ovrTrackerPose()
+    (<ovrTrackerPose>tracker_pose).c_data[0] = ovr_capi.ovr_GetTrackerPose(
+        session.c_data,
+        <unsigned int>trackerPoseIndex)
+
+    return tracker_pose
+
+cpdef int ovr_GetInputState(ovrSession session,
+                            int controllerType,
+                            ovrInputState inputState):
+
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
+        session.c_data,
+        <ovr_capi.ovrControllerType>controllerType,
+        inputState.c_data)
+
+    return <int>result
+
+cpdef int ovr_GetConnectedControllerTypes(ovrSession session):
+    cdef unsigned int conn_contr = \
+        ovr_capi.ovr_GetConnectedControllerTypes(session.c_data)
+
+    return <int>conn_contr
+
+cpdef ovrTouchHapticsDesc ovr_GetTouchHapticsDesc(ovrSession session,
+                                                  int controllerType):
+    cdef ovrTouchHapticsDesc haptics_desc = ovrTouchHapticsDesc()
+    (<ovrTrackerPose>haptics_desc).c_data[0] = ovr_capi.ovr_GetTrackerPose(
+        session.c_data,
+        <ovr_capi.ovrControllerType>controllerType)
+
+    return haptics_desc
 
 cpdef double ovr_GetPredictedDisplayTime(ovrSession session, int frameIndex):
     cdef double pred_time = ovr_capi.ovr_GetPredictedDisplayTime(
         session.c_data, <long long>frameIndex)
 
     return pred_time
+
+cpdef int ovr_GetTextureSwapChainLength(ovrSession session,
+                                        ovrTextureSwapChain chain,
+                                        int out_Length):
+
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetTextureSwapChainLength(
+        session.c_data,
+        chain.c_data,
+        &out_Length)
+
+    return <int>result

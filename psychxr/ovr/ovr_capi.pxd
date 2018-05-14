@@ -120,7 +120,7 @@ cdef extern from "OVR_CAPI.h":
     ctypedef enum ovrEyeType:
         ovrEye_Left = 0, 
         ovrEye_Right = 1,
-        ovrEye_Count = 2 
+        ovrEye_Count = 2
 
     ctypedef enum ovrTrackingOrigin:
         ovrTrackingOrigin_EyeLevel = 0,
@@ -523,7 +523,7 @@ cdef extern from "OVR_CAPI.h":
 
     ctypedef struct ovrLayerHeader:
         ovrLayerType Type
-        unsigned Flags
+        unsigned int Flags
 
     ctypedef struct ovrLayerEyeFov:
         ovrLayerHeader Header
@@ -537,7 +537,7 @@ cdef extern from "OVR_CAPI.h":
         ovrLayerHeader Header
         ovrTextureSwapChain[2] ColorTexture
         ovrRecti[2] Viewport
-        ovrFovPort Fov
+        ovrFovPort[2] Fov
         ovrPosef[2] RenderPose
         double SensorSampleTime
         ovrTextureSwapChain[2] DepthTexture
