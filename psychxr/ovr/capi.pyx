@@ -36,6 +36,7 @@ This library is not always "Pythonic" in coding style, this is deliberate.
 cimport ovr_capi, ovr_capi_gl, ovr_errorcode, ovr_capi_util
 from libc.stdint cimport uintptr_t, uint32_t, int32_t
 from libc.stdlib cimport malloc, free
+import enum
 
 # -----------------
 # Initialize module
