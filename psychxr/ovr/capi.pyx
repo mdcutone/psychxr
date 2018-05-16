@@ -33,7 +33,7 @@ environment. The declarations in the file are contemporaneous with version 1.24
 This library is not always "Pythonic" in coding style, this is deliberate.
 
 """
-cimport ovr_capi, ovr_capi_gl, ovr_errorcode
+cimport ovr_capi, ovr_capi_gl, ovr_errorcode, ovr_capi_util
 from libc.stdint cimport uintptr_t, uint32_t, int32_t
 from libc.stdlib cimport malloc, free
 
@@ -293,6 +293,39 @@ ovrLayerFlag_HeadLocked = ovr_capi.ovrLayerFlag_HeadLocked
 ovrTextureLayout_Rectilinear = ovr_capi.ovrTextureLayout_Rectilinear
 ovrTextureLayout_Octilinear = ovr_capi.ovrTextureLayout_Rectilinear
 
+# enum ovrPerfHudMode
+ovrPerfHud_Off = ovr_capi.ovrPerfHud_Off
+ovrPerfHud_PerfSummary = ovr_capi.ovrPerfHud_PerfSummary
+ovrPerfHud_LatencyTiming = ovr_capi.ovrPerfHud_LatencyTiming
+ovrPerfHud_AppRenderTiming = ovr_capi.ovrPerfHud_AppRenderTiming
+ovrPerfHud_CompRenderTiming = ovr_capi.ovrPerfHud_CompRenderTiming
+ovrPerfHud_AswStats = ovr_capi.ovrPerfHud_AswStats
+ovrPerfHud_VersionInfo = ovr_capi.ovrPerfHud_VersionInfo
+ovrPerfHud_Count = ovr_capi.ovrPerfHud_Count
+
+# enum ovrLayerHudMode
+ovrLayerHud_Off = ovr_capi.ovrLayerHud_Off
+ovrLayerHud_Info = ovr_capi.ovrLayerHud_Info
+
+# enum ovrDebugHudStereoMode
+ovrDebugHudStereo_Off = ovr_capi.ovrDebugHudStereo_Off
+ovrDebugHudStereo_Quad = ovr_capi.ovrDebugHudStereo_Quad
+ovrDebugHudStereo_QuadWithCrosshair = ovr_capi.ovrDebugHudStereo_QuadWithCrosshair
+ovrDebugHudStereo_CrosshairAtInfinity = ovr_capi.ovrDebugHudStereo_CrosshairAtInfinity
+ovrDebugHudStereo_Count = ovr_capi.ovrDebugHudStereo_Count
+
+# enum ovrProjectionModifier
+ovrProjection_None = ovr_capi_util.ovrProjection_None
+ovrProjection_LeftHanded = ovr_capi_util.ovrProjection_LeftHanded
+ovrProjection_FarLessThanNear = ovr_capi_util.ovrProjection_FarLessThanNear
+ovrProjection_FarClipAtInfinity = ovr_capi_util.ovrProjection_FarClipAtInfinity
+ovrProjection_ClipRangeOpenGL = ovr_capi_util.ovrProjection_ClipRangeOpenGL
+
+# enum ovrHapticsGenMode
+ovrHapticsGenMode_PointSample = ovr_capi_util.ovrHapticsGenMode_PointSample
+ovrHapticsGenMode_Count = ovr_capi_util.ovrHapticsGenMode_Count
+
+
 # --- C-LEVEL STRUCTURE EXTENSION TYPES ---
 #
 # C-level structures are wrapped as Cython extension types which allows them to
@@ -302,7 +335,6 @@ ovrTextureLayout_Octilinear = ovr_capi.ovrTextureLayout_Rectilinear
 # Extension types can reference C data in other extension types, allowing access
 # to fields which contained in nested structures.
 #
-
 cdef class ovrErrorInfo:
     cdef ovr_capi.ovrErrorInfo* c_data
     cdef ovr_capi.ovrErrorInfo  c_ovrErrorInfo
@@ -363,6 +395,9 @@ cdef class ovrColorf:
     def a(self, float value):
         self.c_data.a = value
 
+    def as_tuple(self):
+        return self.c_data.r, self.c_data.g, self.c_data.b, self.c_data.a
+
 
 cdef class ovrVector2i:
     cdef ovr_capi.ovrVector2i* c_data
@@ -389,6 +424,9 @@ cdef class ovrVector2i:
     @y.setter
     def y(self, int value):
         self.c_data.y = value
+
+    def as_tuple(self):
+        return self.c_data.x, self.c_data.y
 
 
 cdef class ovrSizei:
@@ -417,6 +455,9 @@ cdef class ovrSizei:
     def h(self, int value):
         self.c_data.h = value
 
+    def as_tuple(self):
+        return self.c_data.w, self.c_data.h
+
 
 cdef class ovrRecti:
     cdef ovr_capi.ovrRecti* c_data
@@ -441,6 +482,10 @@ cdef class ovrRecti:
     @property
     def Size(self):
         return <ovrSizei>self.obj_size
+
+    def as_tuple(self):
+        return self.c_data.Pos.x, self.c_data.Pos.y, \
+               self.c_data.Size.w, self.c_data.Size.h
 
 
 cdef class ovrQuatf:
@@ -487,6 +532,9 @@ cdef class ovrQuatf:
     def w(self, float value):
         self.c_data.w = value
 
+    def as_tuple(self):
+        return self.c_data.x, self.c_data.y, self.c_data.z, self.c_data.w
+
 
 cdef class ovrVector2f:
     cdef ovr_capi.ovrVector2f* c_data
@@ -513,6 +561,9 @@ cdef class ovrVector2f:
     @y.setter
     def y(self, float value):
         self.c_data.y = value
+
+    def as_tuple(self):
+        return self.c_data.x, self.c_data.y
 
 
 cdef class ovrVector3f:
@@ -549,6 +600,9 @@ cdef class ovrVector3f:
     @z.setter
     def z(self, float value):
         self.c_data.z = value
+
+    def as_tuple(self):
+        return self.c_data.x, self.c_data.y, self.c_data.z
 
 
 cdef class ovrMatrix4f:
@@ -1137,14 +1191,18 @@ cdef class ovrMirrorTextureDesc:
 
 cdef class ovrTextureSwapChain:
     cdef ovr_capi.ovrTextureSwapChain* c_data
-    cdef ovr_capi.ovrTextureSwapChain c_ovrTextureSwapChain
+    cdef ovr_capi.ovrTextureSwapChain  c_ovrTextureSwapChain
 
     def __cinit__(self):
         self.c_data = &self.c_ovrTextureSwapChain
 
 
 cdef class ovrMirrorTexture:
-    cdef ovr_capi.ovrMirrorTexture c_data
+    cdef ovr_capi.ovrMirrorTexture* c_data
+    cdef ovr_capi.ovrMirrorTexture  c_ovrMirrorTexture
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrMirrorTexture
 
 
 cdef class ovrTouchHapticsDesc:
@@ -2283,7 +2341,161 @@ cdef class ovrLayerCube:
         self.obj_CubeMapTexture.c_data = value.c_data
 
 
-# --- API EXPORTED FUNCTIONS ---
+cdef class ovrPerfStatsPerCompositorFrame:
+    cdef ovr_capi.ovrPerfStatsPerCompositorFrame* c_data
+    cdef ovr_capi.ovrPerfStatsPerCompositorFrame  c_ovrPerfStatsPerCompositorFrame
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrPerfStatsPerCompositorFrame
+
+    @property
+    def HmdVsyncIndex(self):
+        return <int>self.c_data[0].HmdVsyncIndex
+
+    @property
+    def AppFrameIndex(self):
+        return <int>self.c_data[0].AppFrameIndex
+
+    @property
+    def AppDroppedFrameCount(self):
+        return <int>self.c_data[0].AppDroppedFrameCount
+
+    @property
+    def AppMotionToPhotonLatency(self):
+        return <float>self.c_data[0].AppMotionToPhotonLatency
+
+    @property
+    def AppQueueAheadTime(self):
+        return <float>self.c_data[0].AppQueueAheadTime
+
+    @property
+    def AppCpuElapsedTime(self):
+        return <float>self.c_data[0].AppCpuElapsedTime
+
+    @property
+    def AppGpuElapsedTime(self):
+        return <float>self.c_data[0].AppGpuElapsedTime
+
+    @property
+    def CompositorFrameIndex(self):
+        return <int>self.c_data[0].CompositorFrameIndex
+
+    @property
+    def CompositorDroppedFrameCount(self):
+        return <int>self.c_data[0].CompositorDroppedFrameCount
+
+    @property
+    def CompositorLatency(self):
+        return <float>self.c_data[0].CompositorLatency
+
+    @property
+    def CompositorCpuElapsedTime(self):
+        return <float>self.c_data[0].CompositorCpuElapsedTime
+
+    @property
+    def CompositorGpuElapsedTime(self):
+        return <float>self.c_data[0].CompositorGpuElapsedTime
+
+    @property
+    def CompositorCpuStartToGpuEndElapsedTime(self):
+        return <float>self.c_data[0].CompositorCpuStartToGpuEndElapsedTime
+
+    @property
+    def CompositorGpuEndToVsyncElapsedTime(self):
+        return <float>self.c_data[0].CompositorGpuEndToVsyncElapsedTime
+
+    @property
+    def AswIsActive(self):
+        return <bint>self.c_data[0].AswIsActive
+
+    @property
+    def AswActivatedToggleCount(self):
+        return <int>self.c_data[0].AswActivatedToggleCount
+
+    @property
+    def AswPresentedFrameCount(self):
+        return <int>self.c_data[0].AswPresentedFrameCount
+
+    @property
+    def AswFailedFrameCount(self):
+        return <int>self.c_data[0].AswFailedFrameCount
+
+
+cdef class ovrPerfStats:
+    cdef ovr_capi.ovrPerfStats* c_data
+    cdef ovr_capi.ovrPerfStats  c_ovrPerfStats
+
+    cdef tuple obj_FrameStats
+    cdef ovr_capi.ovrPerfStatsPerCompositorFrame obj_FrameStats0
+    cdef ovr_capi.ovrPerfStatsPerCompositorFrame obj_FrameStats1
+    cdef ovr_capi.ovrPerfStatsPerCompositorFrame obj_FrameStats2
+    cdef ovr_capi.ovrPerfStatsPerCompositorFrame obj_FrameStats3
+    cdef ovr_capi.ovrPerfStatsPerCompositorFrame obj_FrameStats4
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrPerfStats
+
+        self.obj_FrameStats0 = ovrPerfStatsPerCompositorFrame()
+        self.obj_FrameStats0.c_data = self.c_data[0].FrameStats[0]
+
+        self.obj_FrameStats1 = ovrPerfStatsPerCompositorFrame()
+        self.obj_FrameStats1.c_data = self.c_data[0].FrameStats[1]
+
+        self.obj_FrameStats2 = ovrPerfStatsPerCompositorFrame()
+        self.obj_FrameStats2.c_data = self.c_data[0].FrameStats[2]
+
+        self.obj_FrameStats3 = ovrPerfStatsPerCompositorFrame()
+        self.obj_FrameStats3.c_data = self.c_data[0].FrameStats[3]
+
+        self.obj_FrameStats4 = ovrPerfStatsPerCompositorFrame()
+        self.obj_FrameStats4.c_data = self.c_data[0].FrameStats[4]
+
+        self.obj_FrameStats = (self.obj_FrameStats0,
+                               self.obj_FrameStats1,
+                               self.obj_FrameStats2,
+                               self.obj_FrameStats3,
+                               self.obj_FrameStats4)
+
+    @property
+    def FrameStats(self):
+        return self.obj_FrameStats
+
+    @property
+    def FrameStatsCount(self):
+        return <int>self.c_data[0].FrameStatsCount
+
+    @property
+    def AnyFrameStatsDropped(self):
+        return <bint>self.c_data[0].AnyFrameStatsDropped
+
+    @property
+    def AdaptiveGpuPerformanceScale(self):
+        return <float>self.c_data[0].AdaptiveGpuPerformanceScale
+
+    @property
+    def AswIsAvailable(self):
+        return <bint>self.c_data[0].AswIsAvailable
+
+
+cdef class ovrDetectResult:
+    cdef ovr_capi_util.ovrDetectResult* c_data
+    cdef ovr_capi_util.ovrDetectResult  c_ovrDetectResult
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrDetectResult
+
+    @property
+    def IsOculusServiceRunning(self):
+        return <bint>self.c_data[0].IsOculusServiceRunning
+
+    @property
+    def IsOculusHMDConnected(self):
+        return <bint>self.c_data[0].IsOculusHMDConnected
+
+
+# --------------------
+# LibOVR API FUNCTIONS
+# --------------------
 #
 cpdef int ovr_Initialize(ovrInitParams params):
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_Initialize(params.c_data)
@@ -2447,13 +2659,13 @@ cpdef int ovr_GetDevicePoses(
 
     # convert the Python list to C, this is a list of integers
     cdef size_t i
-    for i in range(<size_t>deviceCount):
+    for i in range(deviceCount):
         c_devices[i] = <ovr_capi.ovrTrackedDeviceType>(deviceTypes[i])
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetDevicePoses(
         _ptr_session_,
         c_devices,
-        deviceCount,
+        <int>deviceCount,
         absTime,
         c_poses)
 
@@ -2481,6 +2693,9 @@ cpdef int ovr_GetInputState(int controllerType, ovrInputState inputState):
         <ovr_capi.ovrControllerType>controllerType,
         inputState.c_data)
 
+    if debug_mode:
+        check_result(result)
+
     return <int>result
 
 cpdef int ovr_GetConnectedControllerTypes():
@@ -2507,6 +2722,9 @@ cpdef int ovr_GetTextureSwapChainLength(
         chain.c_data[0],
         &out_Length)
 
+    if debug_mode:
+        check_result(result)
+
     return <int>result
 
 cpdef int ovr_GetTextureSwapChainCurrentIndex(
@@ -2518,6 +2736,9 @@ cpdef int ovr_GetTextureSwapChainCurrentIndex(
             _ptr_session_,
             chain.c_data[0],
             &out_Index)
+
+    if debug_mode:
+        check_result(result)
 
     return <int>result
 
@@ -2531,6 +2752,9 @@ cpdef int ovr_GetTextureSwapChainDesc(
             chain.c_data[0],
             out_Desc.c_data)
 
+    if debug_mode:
+        check_result(result)
+
     return <int>result
 
 cpdef int ovr_CommitTextureSwapChain(ovrTextureSwapChain chain):
@@ -2540,15 +2764,16 @@ cpdef int ovr_CommitTextureSwapChain(ovrTextureSwapChain chain):
             _ptr_session_,
             chain.c_data[0])
 
+    if debug_mode:
+        check_result(result)
+
     return <int>result
 
 cpdef void ovr_DestroyTextureSwapChain(ovrTextureSwapChain chain):
-
     ovr_capi.ovr_DestroyTextureSwapChain(_ptr_session_, chain.c_data[0])
 
 cpdef void ovr_DestroyMirrorTexture(ovrMirrorTexture mirrorTexture):
-
-    ovr_capi.ovr_DestroyMirrorTexture(_ptr_session_, mirrorTexture.c_data)
+    ovr_capi.ovr_DestroyMirrorTexture(_ptr_session_, mirrorTexture.c_data[0])
 
 cpdef ovrSizei ovr_GetFovTextureSize(
         int eye,
@@ -2579,6 +2804,9 @@ cpdef int ovr_WaitToBeginFrame(int frameIndex):
         _ptr_session_,
         <long long>frameIndex)
 
+    if debug_mode:
+        check_result(result)
+
     return result
 
 cpdef int ovr_BeginFrame(int frameIndex):
@@ -2587,18 +2815,18 @@ cpdef int ovr_BeginFrame(int frameIndex):
         _ptr_session_,
         <long long>frameIndex)
 
+    if debug_mode:
+        check_result(result)
+
     return result
 
 cpdef int ovr_EndFrame(
         int frameIndex,
         object viewScaleDesc,
-        object layerPtrList,
-        int layerCount):
-
-    # this is not very pythonic, but that's not what were going for
-    assert layerCount <= 16
+        object layerPtrList):
 
     cdef ovr_capi.ovrLayerHeader* layer_array[16]
+    cdef int layerCount = <int>len(layerPtrList)
 
     cdef size_t i
     for i in range(<size_t>layerCount):
@@ -2613,6 +2841,15 @@ cpdef int ovr_EndFrame(
         <unsigned int>layerCount)
 
     return result
+
+cpdef int ovr_GetPerfStats(ovrPerfStats outStats):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetPerfStats(
+        _ptr_session_, outStats.c_data)
+
+    if debug_mode:
+        check_result(result)
+
+    return <int>result
 
 cpdef int ovr_ResetPerfStats():
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetPerfStats(_ptr_session_)
@@ -2648,13 +2885,154 @@ cpdef int ovr_GetTextureSwapChainBufferGL(
         object out_TexId):
 
     cdef unsigned int tex_id = 0
-    cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
-        _ptr_session_,
-        chain.c_data[0],
-        index,
-        &tex_id)
+    cdef ovr_capi.ovrResult result = \
+        ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
+            _ptr_session_,
+            chain.c_data[0],
+            index,
+            &tex_id)
 
     if debug_mode:
         check_result(result)
 
     return tex_id
+
+cpdef int ovr_CreateMirrorTextureWithOptionsGL(
+        ovrMirrorTextureDesc desc,
+        ovrMirrorTexture out_MirrorTexture):
+
+    cdef unsigned int tex_id = 0
+    cdef ovr_capi.ovrResult result = \
+        ovr_capi_gl.ovr_CreateMirrorTextureWithOptionsGL(
+            _ptr_session_,
+            &desc.c_data[0],
+            &out_MirrorTexture.c_data[0])
+
+    if debug_mode:
+        check_result(result)
+
+    return <int>result
+
+cpdef int ovr_CreateMirrorTextureGL(
+        ovrMirrorTextureDesc desc,
+        ovrMirrorTexture out_MirrorTexture):
+
+    cdef unsigned int tex_id = 0
+    cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateMirrorTextureGL(
+        _ptr_session_,
+        &desc.c_data[0],
+        out_MirrorTexture.c_data)
+
+    if debug_mode:
+        check_result(result)
+
+    return <int>result
+
+cpdef int ovr_GetMirrorTextureBufferGL(
+        ovrMirrorTexture mirrorTexture,
+        int out_TexId):
+
+    cdef unsigned int tex_id = 0
+    cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_GetMirrorTextureBufferGL(
+        _ptr_session_,
+        mirrorTexture.c_data[0],
+        &tex_id)
+
+    if debug_mode:
+        check_result(result)
+
+    return <int>result
+
+# ovr utilities
+cdef ovrDetectResult ovr_Detect(int timeoutMilliseconds):
+    cdef ovrDetectResult detect_results = ovrDetectResult()
+    detect_results = ovr_capi_util.ovr_Detect(timeoutMilliseconds)
+
+    return detect_results
+
+cdef ovrMatrix4f ovrMatrix4f_Projection(
+        ovrFovPort fov,
+        float znear,
+        float zfar,
+        int projectionModFlags):
+
+    cdef ovrMatrix4f out_matrix = ovr_capi_util.ovrMatrix4f_Projection(
+        fov.c_data[0],
+        znear,
+        zfar,
+        <unsigned int>projectionModFlags)
+
+    return out_matrix
+
+cdef ovrTimewarpProjectionDesc ovrTimewarpProjectionDesc_FromProjection(
+        ovrMatrix4f projection,
+        int projectionModFlags):
+
+    cdef ovrTimewarpProjectionDesc out_proj = \
+        ovr_capi_util.ovrTimewarpProjectionDesc_FromProjection(
+            projection.c_data[0],
+            <unsigned int>projectionModFlags)
+
+    return out_proj
+
+cdef ovrMatrix4f ovrMatrix4f_OrthoSubProjection(
+        ovrMatrix4f projection,
+        ovrVector2f orthoScale,
+        float orthoDistance,
+        float HmdToEyeOffsetX):
+
+    cdef ovrTimewarpProjectionDesc out_proj = \
+        ovr_capi_util.ovrMatrix4f_OrthoSubProjection(
+            projection.c_data[0],
+            orthoScale.c_data[0],
+            orthoDistance,
+            HmdToEyeOffsetX)
+
+    return out_proj
+
+cpdef void ovr_CalcEyePoses(
+        ovrPosef headPose,
+        list HmdToEyePose,
+        list outEyePoses):
+
+    assert len(HmdToEyePose) == 2
+
+    cdef ovr_capi.ovrPosef[2] c_HmdToEyePose
+    cdef ovr_capi.ovrPosef[2] c_outEyePoses
+
+    c_HmdToEyePose[0] = (<ovrPosef>HmdToEyePose[0]).c_data[0]
+    c_HmdToEyePose[1] = (<ovrPosef>HmdToEyePose[1]).c_data[0]
+
+    ovr_capi_util.ovr_CalcEyePoses2(
+        headPose.c_data[0],
+        c_HmdToEyePose,
+        c_outEyePoses)
+
+    (<ovrPosef>outEyePoses[0]).c_data[0] = c_outEyePoses[0]
+    (<ovrPosef>outEyePoses[1]).c_data[0] = c_outEyePoses[1]
+
+cpdef void ovr_GetEyePoses(
+        int frameIndex,
+        bint latencyMarker,
+        list HmdToEyePose,
+        list outEyePoses,
+        double outSensorSampleTime):
+
+    cdef ovr_capi.ovrPosef[2] c_HmdToEyePose
+    cdef ovr_capi.ovrPosef[2] c_outEyePoses
+
+    c_HmdToEyePose[0] = (<ovrPosef>HmdToEyePose[0]).c_data[0]
+    c_HmdToEyePose[1] = (<ovrPosef>HmdToEyePose[1]).c_data[0]
+
+    cdef double out_SampleTime
+    ovr_capi_util.ovr_GetEyePoses2(
+        _ptr_session_,
+        <long long>frameIndex,
+        <ovr_capi.ovrBool>latencyMarker,
+        c_HmdToEyePose,
+        c_outEyePoses,
+        &out_SampleTime)
+
+
+cpdef void ovrPosef_FlipHandedness(ovrPosef inPose, ovrPosef outPose):
+    ovr_capi_util.ovrPosef_FlipHandedness(inPose.c_data, outPose.c_data)
