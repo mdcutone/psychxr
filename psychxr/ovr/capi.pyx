@@ -2498,6 +2498,21 @@ cdef class ovrDetectResult:
 # --------------------
 #
 cpdef int ovr_Initialize(ovrInitParams params):
+    """ovr_Initialize(params)
+    
+    Initialize LibOVR and load the runtime shared library.
+    
+    Parameters
+    ----------
+    params : ovrInitParams
+        Object specifying initialization parameters for this session. 
+    
+    Returns
+    -------
+    result : int
+        Call result.
+        
+    """
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_Initialize(params.c_data)
 
     if debug_mode:
@@ -2506,6 +2521,17 @@ cpdef int ovr_Initialize(ovrInitParams params):
     return result
 
 cpdef void ovr_Shutdown():
+    """ovr_Shutdown(params)
+    
+    Shutdown the current session, invalidating any pointers and data retrieved
+    from previous API calls. This should be called eventually after every
+    successful ovr_Initialize call.
+
+    Returns
+    -------
+    None
+        
+    """
     ovr_capi.ovr_Shutdown()
 
 cpdef void ovr_GetLastErrorInfo(ovrErrorInfo errorInfo):
@@ -3032,7 +3058,6 @@ cpdef void ovr_GetEyePoses(
         c_HmdToEyePose,
         c_outEyePoses,
         &out_SampleTime)
-
 
 cpdef void ovrPosef_FlipHandedness(ovrPosef inPose, ovrPosef outPose):
     ovr_capi_util.ovrPosef_FlipHandedness(inPose.c_data, outPose.c_data)

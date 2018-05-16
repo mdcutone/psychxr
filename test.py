@@ -14,7 +14,6 @@ init_pars.Flags = capi.ovrInit_Debug
 capi.ovr_Initialize(init_pars)
 
 # create OVR session
-
 if capi.ovr_Create() < 0:
     print("Failed to create OVR session.")
     capi.ovr_Destroy()
