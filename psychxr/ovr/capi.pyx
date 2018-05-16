@@ -2337,7 +2337,6 @@ cpdef int ovr_GetTrackerCount():
     return <int>result
 
 cpdef ovrTrackerDesc ovr_GetTrackerDesc(
-        ovrSession session,
         int trackerDescIndex):
 
     cdef ovrTrackerDesc to_return = ovrTrackerDesc()
@@ -2433,12 +2432,14 @@ cpdef ovrTrackingState ovr_GetTrackingState(double absTime, bint latencyMarker):
 
 cpdef int ovr_GetDevicePoses(
         object deviceTypes,
-        int deviceCount,
         double absTime,
         object outDevicePoses):
 
     if not isinstance(deviceTypes, (tuple, list,)):
         raise TypeError()
+
+    # determine number of devices
+    cdef size_t deviceCount = <size_t>len(deviceTypes)
 
     # arrays to store c-level data returned by struct
     cdef ovr_capi.ovrTrackedDeviceType[9] c_devices
