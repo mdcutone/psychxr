@@ -35,6 +35,7 @@ This library is not always "Pythonic" in coding style, this is deliberate.
 """
 cimport ovr_capi, ovr_capi_gl, ovr_errorcode, ovr_capi_util
 from libc.stdint cimport uintptr_t, uint32_t, int32_t
+from libcpp cimport nullptr
 from libc.stdlib cimport malloc, free
 import enum
 
@@ -53,13 +54,23 @@ cdef uint32_t LIBOVR_MINOR_VERSION = 24
 cdef ovr_capi.ovrSession _ptr_session_
 cdef ovr_capi.ovrGraphicsLuid _ptr_luid_
 
+# Arrays to store device poses.
+cdef ovr_capi.ovrTrackedDeviceType[9] _device_types_
+cdef ovr_capi.ovrPoseStatef[9] _device_poses_
+
+# Array of texture swap chains, we are going to manage them here. we can create
+# up to 16 swap chain textures here. We can raise this limit if needed, but we
+# are limited to 16 render layers anyways.
+#
+cdef ovr_capi.ovrTextureSwapChain _swap_textures_
+
 # Function to check for errors returned by OVRLib functions
-cdef check_result(ovr_capi.ovrResult result):
+def check_result(result):
     cdef ovr_errorcode.ovrErrorInfo error_info
 
-    if ovr_errorcode.OVR_FAILURE(result):
+    if not ovr_errorcode.OVR_UNQUALIFIED_SUCCESS(result):
         ovr_capi.ovr_GetLastErrorInfo(&error_info)
-        raise RuntimeError(error_info.ErrorString.decode("utf-8"))
+        raise RuntimeError(str(result) + error_info.ErrorString.decode("utf-8"))
 
 # Enable error checking on OVRLib functions by setting 'debug_mode=True'. All
 # LibOVR functions that return a 'ovrResult' type will be checked. A
@@ -473,6 +484,14 @@ cdef class ovrRecti:
         self.obj_pos = ovrVector2i()
         self.obj_size = ovrSizei()
 
+        self.update_fields()
+
+        self.c_data.Pos.x = x
+        self.c_data.Pos.y = y
+        self.c_data.Size.w = w
+        self.c_data.Size.h = h
+
+    cdef update_fields(self):
         self.obj_pos.c_data = &self.c_data.Pos
         self.obj_size.c_data = &self.c_data.Size
 
@@ -631,6 +650,10 @@ cdef class ovrPosef:
 
         self.obj_Orientation = ovrQuatf()
         self.obj_Position = ovrVector3f()
+
+        self.update_fields()
+
+    cdef update_fields(self):
         self.obj_Orientation.c_data = &self.c_data.Orientation
         self.obj_Position.c_data = &self.c_data.Position
 
@@ -663,7 +686,11 @@ cdef class ovrPoseStatef:
         self.obj_AngularAcceleration = ovrVector3f()
         self.obj_LinearAcceleration = ovrVector3f()
 
+        self.update_fields()
+
+    cdef update_fields(self):
         self.obj_ThePose.c_data = &self.c_data.ThePose
+        self.obj_ThePose.update_fields()
         self.obj_AngularVelocity.c_data = &self.c_data.AngularVelocity
         self.obj_LinearVelocity.c_data = &self.c_data.LinearVelocity
         self.obj_AngularAcceleration.c_data = &self.c_data.AngularAcceleration
@@ -778,16 +805,19 @@ cdef class ovrHmdDesc:
         self.obj_MaxEyeFov1 = ovrFovPort()
         self.obj_Resolution = ovrSizei()
 
-        self.obj_DefaultEyeFov0.c_data = &self.c_data.DefaultEyeFov[0]
-        self.obj_DefaultEyeFov1.c_data = &self.c_data.DefaultEyeFov[1]
-        self.obj_MaxEyeFov0.c_data = &self.c_data.MaxEyeFov[0]
-        self.obj_MaxEyeFov1.c_data = &self.c_data.MaxEyeFov[1]
-        self.obj_Resolution.c_data = &self.c_data.Resolution
+        self.update_fields()
 
         # tuples for arrayed objects
         self.obj_DefaultEyeFov = (self.obj_DefaultEyeFov0,
                                   self.obj_DefaultEyeFov1)
         self.obj_MaxEyeFov = (self.obj_MaxEyeFov0, self.obj_MaxEyeFov1)
+
+    cdef update_fields(self):
+        self.obj_DefaultEyeFov0.c_data = &self.c_data.DefaultEyeFov[0]
+        self.obj_DefaultEyeFov1.c_data = &self.c_data.DefaultEyeFov[1]
+        self.obj_MaxEyeFov0.c_data = &self.c_data.MaxEyeFov[0]
+        self.obj_MaxEyeFov1.c_data = &self.c_data.MaxEyeFov[1]
+        self.obj_Resolution.c_data = &self.c_data.Resolution
 
     @property
     def Type(self):
@@ -979,11 +1009,16 @@ cdef class ovrEyeRenderDesc:
         self.obj_PixelsPerTanAngleAtCenter = ovrVector2f()
         self.obj_HmdToEyePose = ovrPosef()
 
+        self.update_fields()
+
+    cdef update_fields(self):
         self.obj_Fov.c_data = &self.c_data.Fov
         self.obj_DistortedViewport.c_data = &self.c_data.DistortedViewport
+        self.obj_DistortedViewport.update_fields()
         self.obj_PixelsPerTanAngleAtCenter.c_data = \
             &self.c_data.PixelsPerTanAngleAtCenter
         self.obj_HmdToEyePose.c_data = &self.c_data.HmdToEyePose
+        self.obj_HmdToEyePose.update_fields()
 
     @property
     def Eye(self):
@@ -1123,7 +1158,7 @@ cdef class ovrTextureSwapChainDesc:
 
     @StaticImage.setter
     def StaticImage(self, bint value):
-        self.c_data.StaticImage = <ovr_capi.ovrBool>value
+        self.c_data.StaticImage = ovr_capi.ovrFalse
 
     @property
     def MiscFlags(self):
@@ -1638,8 +1673,8 @@ cdef class ovrLayerEyeFov:
 
     cdef ovrLayerHeader obj_Header
     cdef tuple obj_ColorTexture
-    cdef ovrTextureSwapChain obj_ColorTexture0
-    cdef ovrTextureSwapChain obj_ColorTexture1
+    cdef int obj_ColorTexture0
+    cdef int obj_ColorTexture1
     cdef tuple obj_Viewport
     cdef ovrRecti obj_Viewport0
     cdef ovrRecti obj_Viewport1
@@ -1654,31 +1689,35 @@ cdef class ovrLayerEyeFov:
         self.c_data = &self.c_ovrLayerEyeFov
 
         self.obj_Header = ovrLayerHeader()
-        self.obj_Header.c_data = &self.c_data.Header
-
-        self.obj_ColorTexture0 = ovrTextureSwapChain()
-        self.obj_ColorTexture0.c_data = &self.c_data.ColorTexture[0]
-        self.obj_ColorTexture1 = ovrTextureSwapChain()
-        self.obj_ColorTexture1.c_data = &self.c_data.ColorTexture[1]
-        self.obj_ColorTexture = (self.obj_ColorTexture0, self.obj_ColorTexture1)
 
         self.obj_Viewport0 = ovrRecti()
-        self.obj_Viewport0.c_data = &self.c_data.Viewport[0]
         self.obj_Viewport1 = ovrRecti()
-        self.obj_Viewport1.c_data = &self.c_data.Viewport[1]
         self.obj_Viewport = (self.obj_Viewport0, self.obj_Viewport1)
 
         self.obj_Fov0 = ovrFovPort()
-        self.obj_Fov0.c_data = &self.c_data.Fov[0]
         self.obj_Fov1 = ovrFovPort()
-        self.obj_Fov1.c_data = &self.c_data.Fov[1]
         self.obj_Fov = (self.obj_Fov0, self.obj_Fov1)
 
         self.obj_RenderPose0 = ovrPosef()
-        self.obj_RenderPose0.c_data = &self.c_data.RenderPose[0]
         self.obj_RenderPose1 = ovrPosef()
-        self.obj_RenderPose1.c_data = &self.c_data.RenderPose[1]
         self.obj_RenderPose = (self.obj_RenderPose0, self.obj_RenderPose1)
+
+        self.update_fields()
+
+    cdef update_fields(self):
+        self.obj_Header.c_data = &self.c_data.Header
+        self.c_data[0].ColorTexture[0] = _swap_textures_
+        self.c_data[0].ColorTexture[1] = _swap_textures_
+        self.obj_Viewport0.c_data = &self.c_data.Viewport[0]
+        self.obj_Viewport0.update_fields()
+        self.obj_Viewport1.c_data = &self.c_data.Viewport[1]
+        self.obj_Viewport1.update_fields()
+        self.obj_Fov0.c_data = &self.c_data.Fov[0]
+        self.obj_Fov1.c_data = &self.c_data.Fov[1]
+        self.obj_RenderPose0.c_data = &self.c_data.RenderPose[0]
+        self.obj_RenderPose0.update_fields()
+        self.obj_RenderPose1.c_data = &self.c_data.RenderPose[1]
+        self.obj_RenderPose1.update_fields()
 
     @property
     def Header(self):
@@ -1690,14 +1729,16 @@ cdef class ovrLayerEyeFov:
 
     @property
     def ColorTexture(self):
-        return self.obj_ColorTexture
+        cdef ovrTextureSwapChainDesc out = ovrTextureSwapChainDesc()
+
+        ovr_capi.ovr_GetTextureSwapChainDesc(_ptr_session_, _swap_textures_, out.c_data)
+        return out
 
     @ColorTexture.setter
     def ColorTexture(self, tuple value):
-        self.obj_ColorTexture0 = value[0]
-        self.obj_ColorTexture1 = value[1]
-        self.c_data.ColorTexture[0] = self.obj_ColorTexture0.c_data[0]
-        self.c_data.ColorTexture[1] = self.obj_ColorTexture1.c_data[0]
+        print(value[0], value[1])
+        self.c_data[0].ColorTexture[0] = _swap_textures_
+        self.c_data[0].ColorTexture[1] = _swap_textures_
 
     @property
     def Viewport(self):
@@ -1705,12 +1746,14 @@ cdef class ovrLayerEyeFov:
 
     @Viewport.setter
     def Viewport(self, tuple value):
-        self.obj_Viewport0.c_data = (<ovrRecti>value[0]).c_data
-        self.obj_Viewport1.c_data = (<ovrRecti>value[1]).c_data
+        self.obj_Viewport0.c_data[0] = (<ovrRecti>value[0]).c_data[0]
+        self.obj_Viewport0.update_fields()
+        self.obj_Viewport1.c_data[0] = (<ovrRecti>value[1]).c_data[0]
+        self.obj_Viewport1.update_fields()
 
     @property
     def Fov(self):
-        return self.obj_Viewport
+        return self.obj_Fov
 
     @Fov.setter
     def Fov(self, tuple value):
@@ -1719,12 +1762,14 @@ cdef class ovrLayerEyeFov:
 
     @property
     def RenderPose(self):
-        return self.obj_Viewport
+        return self.obj_RenderPose
 
     @RenderPose.setter
     def RenderPose(self, tuple value):
         self.obj_RenderPose0.c_data = (<ovrPosef>value[0]).c_data
+        self.obj_RenderPose0.update_fields()
         self.obj_RenderPose1.c_data = (<ovrPosef>value[1]).c_data
+        self.obj_RenderPose1.update_fields()
 
     @property
     def SensorSampleTime(self):
@@ -2672,35 +2717,38 @@ cpdef ovrTrackingState ovr_GetTrackingState(double absTime, bint latencyMarker):
 cpdef int ovr_GetDevicePoses(
         object deviceTypes,
         double absTime,
-        object outDevicePoses):
+        list outDevicePoses):
 
     if not isinstance(deviceTypes, (tuple, list,)):
+        raise TypeError()
+
+    if not isinstance(outDevicePoses, (tuple, list,)):
         raise TypeError()
 
     # determine number of devices
     cdef size_t deviceCount = <size_t>len(deviceTypes)
 
-    # arrays to store c-level data returned by struct
-    cdef ovr_capi.ovrTrackedDeviceType[9] c_devices
-    cdef ovr_capi.ovrPoseStatef[9] c_poses
-
     # convert the Python list to C, this is a list of integers
     cdef size_t i
     for i in range(deviceCount):
-        c_devices[i] = <ovr_capi.ovrTrackedDeviceType>(deviceTypes[i])
+        _device_types_[i] = <ovr_capi.ovrTrackedDeviceType>(deviceTypes[i])
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetDevicePoses(
         _ptr_session_,
-        c_devices,
+        _device_types_,
         <int>deviceCount,
         absTime,
-        c_poses)
+        _device_poses_)
 
     # populate output list
+    cdef ovrPoseStatef this_pose
     for i in range(<size_t>deviceCount):
-        this_device = ovrPoseStatef()
-        (<ovrPoseStatef>this_device).c_data[0] = c_poses[i]
-        outDevicePoses.append(this_device)
+        this_pose = outDevicePoses[i]
+        this_pose.c_data = &_device_poses_[i]
+        this_pose.update_fields()
+
+    if debug_mode:
+        check_result(result)
 
     return <int>result
 
@@ -2741,12 +2789,12 @@ cpdef ovrTouchHapticsDesc ovr_GetTouchHapticsDesc(int controllerType):
     return haptics_desc
 
 cpdef int ovr_GetTextureSwapChainLength(
-        ovrTextureSwapChain chain,
+        int chain,
         int out_Length):
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetTextureSwapChainLength(
         _ptr_session_,
-        chain.c_data[0],
+        _swap_textures_,
         &out_Length)
 
     if debug_mode:
@@ -2755,28 +2803,29 @@ cpdef int ovr_GetTextureSwapChainLength(
     return <int>result
 
 cpdef int ovr_GetTextureSwapChainCurrentIndex(
-        ovrTextureSwapChain chain,
+        int chain,
         int out_Index):
 
+    cdef int idx_out
     cdef ovr_capi.ovrResult result = \
         ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
             _ptr_session_,
-            chain.c_data[0],
-            &out_Index)
+            _swap_textures_,
+            &idx_out)
 
     if debug_mode:
         check_result(result)
 
-    return <int>result
+    return <int>idx_out
 
 cpdef int ovr_GetTextureSwapChainDesc(
-        ovrTextureSwapChain chain,
+        int chain,
         ovrTextureSwapChainDesc out_Desc):
 
     cdef ovr_capi.ovrResult result = \
         ovr_capi.ovr_GetTextureSwapChainDesc(
             _ptr_session_,
-            chain.c_data[0],
+            _swap_textures_,
             out_Desc.c_data)
 
     if debug_mode:
@@ -2784,20 +2833,20 @@ cpdef int ovr_GetTextureSwapChainDesc(
 
     return <int>result
 
-cpdef int ovr_CommitTextureSwapChain(ovrTextureSwapChain chain):
+cpdef int ovr_CommitTextureSwapChain(int chain):
 
     cdef ovr_capi.ovrResult result = \
         ovr_capi.ovr_CommitTextureSwapChain(
             _ptr_session_,
-            chain.c_data[0])
+            _swap_textures_)
 
     if debug_mode:
         check_result(result)
 
     return <int>result
 
-cpdef void ovr_DestroyTextureSwapChain(ovrTextureSwapChain chain):
-    ovr_capi.ovr_DestroyTextureSwapChain(_ptr_session_, chain.c_data[0])
+cpdef void ovr_DestroyTextureSwapChain(int chain):
+    ovr_capi.ovr_DestroyTextureSwapChain(_ptr_session_, _swap_textures_)
 
 cpdef void ovr_DestroyMirrorTexture(ovrMirrorTexture mirrorTexture):
     ovr_capi.ovr_DestroyMirrorTexture(_ptr_session_, mirrorTexture.c_data[0])
@@ -2850,22 +2899,22 @@ cpdef int ovr_BeginFrame(int frameIndex):
 cpdef int ovr_EndFrame(
         int frameIndex,
         object viewScaleDesc,
-        object layerPtrList):
+        ovrLayerEyeFov layerPtrList):
 
-    cdef ovr_capi.ovrLayerHeader* layer_array[16]
-    cdef int layerCount = <int>len(layerPtrList)
+    cdef ovr_capi.ovrLayerHeader* layers = &layerPtrList.c_data.Header
+    cdef ovr_capi.ovrViewScaleDesc* np = NULL
 
-    cdef size_t i
-    for i in range(<size_t>layerCount):
-        #viewsc_list[i] = &(<ovrViewScaleDesc>viewScaleDesc[i]).c_data
-        layer_array[i] = (<ovrLayerHeader>(layerPtrList[i].Header)).c_data
+    print(layerPtrList.c_data.Viewport[1].Size.w)
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_EndFrame(
         _ptr_session_,
         <long long>frameIndex,
-        NULL,
-        layer_array,
-        <unsigned int>layerCount)
+        np,
+        &layers,
+        <unsigned int>1)
+
+    if debug_mode:
+        check_result(result)
 
     return result
 
@@ -2897,17 +2946,20 @@ cpdef double ovr_GetTimeInSeconds(int frameIndex):
 # OPENGL SPECIFIC FUNCTIONS
 cpdef int ovr_CreateTextureSwapChainGL(
         ovrTextureSwapChainDesc desc,
-        ovrTextureSwapChain out_TextureSwapChain):
+        int chain):
 
     cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
         _ptr_session_,
         desc.c_data,
-        &out_TextureSwapChain.c_data[0])
+        &_swap_textures_)
+
+    if debug_mode:
+        check_result(result)
 
     return <int>result
 
 cpdef int ovr_GetTextureSwapChainBufferGL(
-        ovrTextureSwapChain chain,
+        int chain,
         int index,
         object out_TexId):
 
@@ -2915,7 +2967,7 @@ cpdef int ovr_GetTextureSwapChainBufferGL(
     cdef ovr_capi.ovrResult result = \
         ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
             _ptr_session_,
-            chain.c_data[0],
+            _swap_textures_,
             index,
             &tex_id)
 
@@ -3019,8 +3071,8 @@ cdef ovrMatrix4f ovrMatrix4f_OrthoSubProjection(
 
 cpdef void ovr_CalcEyePoses(
         ovrPosef headPose,
-        list HmdToEyePose,
-        list outEyePoses):
+        object HmdToEyePose,
+        object outEyePoses):
 
     assert len(HmdToEyePose) == 2
 
@@ -3062,3 +3114,13 @@ cpdef void ovr_GetEyePoses(
 
 cpdef void ovrPosef_FlipHandedness(ovrPosef inPose, ovrPosef outPose):
     ovr_capi_util.ovrPosef_FlipHandedness(inPose.c_data, outPose.c_data)
+
+cpdef bint ovr_SetInt(str propertyName, int value):
+    cdef const char* prop = <bytes>propertyName
+
+    cdef ovr_capi.ovrBool result = ovr_capi.ovr_SetInt(
+        _ptr_session_,
+        prop,
+        value)
+
+    return <bint>result
