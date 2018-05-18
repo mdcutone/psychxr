@@ -1725,18 +1725,17 @@ cdef class ovrLayerEyeFov:
 
     @Header.setter
     def Header(self, ovrLayerHeader value):
-        self.obj_Header.c_data = value.c_data
+        self.c_data.Header = value.c_data.Header
 
     @property
     def ColorTexture(self):
         cdef ovrTextureSwapChainDesc out = ovrTextureSwapChainDesc()
-
         ovr_capi.ovr_GetTextureSwapChainDesc(_ptr_session_, _swap_textures_, out.c_data)
+
         return out
 
     @ColorTexture.setter
     def ColorTexture(self, tuple value):
-        print(value[0], value[1])
         self.c_data[0].ColorTexture[0] = _swap_textures_
         self.c_data[0].ColorTexture[1] = _swap_textures_
 
@@ -1746,10 +1745,8 @@ cdef class ovrLayerEyeFov:
 
     @Viewport.setter
     def Viewport(self, tuple value):
-        self.obj_Viewport0.c_data[0] = (<ovrRecti>value[0]).c_data[0]
-        self.obj_Viewport0.update_fields()
-        self.obj_Viewport1.c_data[0] = (<ovrRecti>value[1]).c_data[0]
-        self.obj_Viewport1.update_fields()
+        self.c_data.Viewport[0] = (<ovrRecti>value[0]).c_data[0]
+        self.c_data.Viewport[1] = (<ovrRecti>value[1]).c_data[0]
 
     @property
     def Fov(self):
@@ -1757,8 +1754,8 @@ cdef class ovrLayerEyeFov:
 
     @Fov.setter
     def Fov(self, tuple value):
-        self.obj_Fov0.c_data = (<ovrFovPort>value[0]).c_data
-        self.obj_Fov1.c_data = (<ovrFovPort>value[1]).c_data
+        self.c_data.Fov[0] = (<ovrFovPort>value[0]).c_data
+        self.c_data.Fov[1] = (<ovrFovPort>value[1]).c_data
 
     @property
     def RenderPose(self):
@@ -1766,10 +1763,8 @@ cdef class ovrLayerEyeFov:
 
     @RenderPose.setter
     def RenderPose(self, tuple value):
-        self.obj_RenderPose0.c_data = (<ovrPosef>value[0]).c_data
-        self.obj_RenderPose0.update_fields()
-        self.obj_RenderPose1.c_data = (<ovrPosef>value[1]).c_data
-        self.obj_RenderPose1.update_fields()
+        self.c_data.RenderPose = (<ovrPosef>value[0]).c_data
+        self.c_data.RenderPose = (<ovrPosef>value[1]).c_data
 
     @property
     def SensorSampleTime(self):
