@@ -38,13 +38,19 @@ from libc.stdint cimport uintptr_t, uint32_t, int32_t
 from libcpp cimport nullptr
 from libc.stdlib cimport malloc, free
 import enum
+import sys
 
 # -----------------
 # Initialize module
 # -----------------
-# Set the required minor version of the Oculus library this version of PsychXR
-# was built on.
-cdef uint32_t LIBOVR_MINOR_VERSION = 24
+#
+cdef ovr_capi.ovrInitParams _init_params_  # initialization parameters
+# Set the required minor version of LibOVR this version of PsychXR was built on.
+_init_params_.Flags = ovr_capi.ovrInit_RequestVersion
+_init_params_.RequestedMinorVersion = 25
+
+# HMD descriptor storing information about the HMD being used.
+cdef ovr_capi.ovrHmdDesc _hmd_desc_
 
 # Since we are only using one session per module instance here, so we are going
 # to create our session pointer here and use it module-wide. This eliminates the
@@ -54,23 +60,35 @@ cdef uint32_t LIBOVR_MINOR_VERSION = 24
 cdef ovr_capi.ovrSession _ptr_session_
 cdef ovr_capi.ovrGraphicsLuid _ptr_luid_
 
+# texture swap chain
+cdef ovr_capi.ovrTextureSwapChain _swap_chain_
+cdef ovr_capi.ovrMirrorTexture _mirror_texture_
+
+# VR structures
+cdef ovr_capi.ovrEyeRenderDesc[2] _eye_render_desc_
+cdef ovr_capi.ovrPosef[2] _hmd_to_eye_view_pose_
+cdef ovr_capi.ovrSizei _buffer_size_
+
 # Arrays to store device poses.
 cdef ovr_capi.ovrTrackedDeviceType[9] _device_types_
 cdef ovr_capi.ovrPoseStatef[9] _device_poses_
+cdef ovr_capi.ovrLayerEyeFov _eye_layer_
 
 # Array of texture swap chains, we are going to manage them here. we can create
 # up to 16 swap chain textures here. We can raise this limit if needed, but we
 # are limited to 16 render layers anyways.
 #
-cdef ovr_capi.ovrTextureSwapChain _swap_textures_
+#cdef ovr_capi.ovrTextureSwapChain _swap_textures_
 
 # Function to check for errors returned by OVRLib functions
 def check_result(result):
     cdef ovr_errorcode.ovrErrorInfo error_info
 
-    if not ovr_errorcode.OVR_UNQUALIFIED_SUCCESS(result):
+    if ovr_errorcode.OVR_FAILURE(result):
         ovr_capi.ovr_GetLastErrorInfo(&error_info)
+        #sys.exit(result)
         raise RuntimeError(str(result) + error_info.ErrorString.decode("utf-8"))
+
 
 # Enable error checking on OVRLib functions by setting 'debug_mode=True'. All
 # LibOVR functions that return a 'ovrResult' type will be checked. A
@@ -78,6 +96,212 @@ def check_result(result):
 # associated message passed from LibOVR.
 #
 debug_mode = False
+
+# -----------------
+# PsychXR Functions
+# -----------------
+#
+cpdef int initialize(flags=0x00000000, timeout=0):
+    # OR together user specified flags
+    _init_params_.Flags = (_init_params_.Flags | <uint32_t>flags)
+    _init_params_.ConnectionTimeoutMS = <uint32_t>timeout
+
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_Initialize(&_init_params_)
+
+    if debug_mode:
+        check_result(result)
+
+    return <int>result
+
+cpdef int create():
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_Create(
+        &_ptr_session_, &_ptr_luid_)
+
+    if debug_mode:
+        check_result(result)
+
+    if ovr_errorcode.OVR_FAILURE(result):
+        ovr_capi.ovr_Destroy(_ptr_session_)
+        ovr_capi.ovr_Shutdown()
+
+    return <int>result
+
+cpdef void setup_gl():
+    # update the HMD descriptor since we successfully created a session
+    _hmd_desc_ = ovr_capi.ovr_GetHmdDesc(_ptr_session_)
+    cdef ovr_capi.ovrSizei recommendedTex0Size = ovr_capi.ovr_GetFovTextureSize(
+        _ptr_session_, ovr_capi.ovrEye_Left, _hmd_desc_.DefaultEyeFov[0], 1.0)
+    cdef ovr_capi.ovrSizei recommendedTex1Size = ovr_capi.ovr_GetFovTextureSize(
+        _ptr_session_, ovr_capi.ovrEye_Right, _hmd_desc_.DefaultEyeFov[1], 1.0)
+    _buffer_size_.w = recommendedTex0Size.w + recommendedTex1Size.w
+    _buffer_size_.h = max(recommendedTex0Size.h, recommendedTex1Size.h)
+
+    print(_hmd_desc_.DefaultEyeFov[0].UpTan, _buffer_size_.h)
+
+    # configure texture swap chain
+    cdef ovr_capi.ovrTextureSwapChainDesc desc
+    desc.Type = ovr_capi.ovrTexture_2D
+    desc.ArraySize = 1
+    desc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+    desc.Width = _buffer_size_.w
+    desc.Height = _buffer_size_.h
+    desc.MipLevels = 1
+    desc.SampleCount = 1
+    desc.StaticImage = ovr_capi.ovrFalse
+    desc.MiscFlags = ovr_capi.ovrTextureMisc_None
+    desc.BindFlags = ovr_capi.ovrTextureBind_None
+
+    cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
+        _ptr_session_, &desc, &_swap_chain_)
+
+    if debug_mode:
+        check_result(result)
+
+    # configure texture swap chain
+    cdef ovr_capi.ovrMirrorTextureDesc mirror_desc
+    mirror_desc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+    mirror_desc.Width = _buffer_size_.w
+    mirror_desc.Height = _buffer_size_.h
+    mirror_desc.MiscFlags = ovr_capi.ovrTextureMisc_None
+    mirror_desc.MirrorOptions = ovr_capi.ovrMirrorOption_PostDistortion
+
+    result = ovr_capi_gl.ovr_CreateMirrorTextureGL(
+        _ptr_session_, &mirror_desc, &_mirror_texture_)
+    if debug_mode:
+        check_result(result)
+
+    # configure views
+    _eye_render_desc_[0] = ovr_capi.ovr_GetRenderDesc(
+        _ptr_session_,
+        ovr_capi.ovrEye_Left,
+        _hmd_desc_.DefaultEyeFov[0])
+
+    _eye_render_desc_[1] = ovr_capi.ovr_GetRenderDesc(
+        _ptr_session_,
+        ovr_capi.ovrEye_Right,
+        _hmd_desc_.DefaultEyeFov[1])
+
+    # configure render layer
+    _eye_layer_.Header.Type = ovr_capi.ovrLayerType_EyeFov
+    _eye_layer_.Header.Flags = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft | ovr_capi.ovrLayerFlag_HeadLocked
+    _eye_layer_.Fov[0] = _eye_render_desc_[0].Fov
+    _eye_layer_.Fov[1] = _eye_render_desc_[1].Fov
+
+    cdef ovr_capi.ovrRecti vp0
+    vp0.Pos.x = 0
+    vp0.Pos.y = 0
+    vp0.Size.w = _buffer_size_.w / 2
+    vp0.Size.h = _buffer_size_.h
+
+    cdef ovr_capi.ovrRecti vp1
+    vp1.Pos.x = _buffer_size_.w / 2
+    vp1.Pos.y = 0
+    vp1.Size.w = _buffer_size_.w / 2
+    vp1.Size.h = _buffer_size_.h
+
+    _eye_layer_.Viewport[0] = vp0
+    _eye_layer_.Viewport[1] = vp1
+    _eye_layer_.ColorTexture[0] = _swap_chain_
+    _eye_layer_.ColorTexture[1] = NULL
+
+
+
+cpdef get_buffer_size():
+    return _buffer_size_.w, _buffer_size_.h
+
+cpdef void destroy():
+    ovr_capi.ovr_Destroy(_ptr_session_)
+
+cpdef void shutdown():
+    ovr_capi.ovr_Shutdown()
+
+cpdef int wait_to_begin_frame(int frame_idx):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_WaitToBeginFrame(
+        _ptr_session_,
+        <long long>frame_idx)
+
+    return <int>result
+
+cpdef begin_frame(int frame_idx=0):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_WaitToBeginFrame(
+        _ptr_session_,
+        <long long>frame_idx)
+
+    if debug_mode:
+        check_result(result)
+
+    cdef double abs_time = ovr_capi.ovr_GetPredictedDisplayTime(
+        _ptr_session_,
+        <long long>frame_idx)
+
+    cdef ovr_capi.ovrTrackingState hmd_state = ovr_capi.ovr_GetTrackingState(
+        _ptr_session_,
+        abs_time,
+        ovr_capi.ovrTrue)
+
+    ovr_capi_util.ovr_CalcEyePoses2(
+        hmd_state.HeadPose.ThePose,
+        _hmd_to_eye_view_pose_,
+        _eye_layer_.RenderPose)
+
+    result = ovr_capi.ovr_BeginFrame(
+        _ptr_session_,
+        <long long>frame_idx)
+
+    if debug_mode:
+        check_result(result)
+
+    return result
+
+cpdef end_frame(int frame_idx=0):
+    cdef ovr_capi.ovrLayerHeader* layers
+    layers = &_eye_layer_.Header
+
+    cdef ovr_capi.ovrResult result = \
+            ovr_capi.ovr_CommitTextureSwapChain(
+                _ptr_session_,
+                _swap_chain_)
+
+    result = ovr_capi.ovr_EndFrame(
+        _ptr_session_,
+        <long long>frame_idx,
+        NULL,
+        &layers,
+        <unsigned int>1)
+
+    if debug_mode:
+        check_result(result)
+
+    return result
+
+cpdef unsigned int get_swap_chain_buffer_gl():
+    cdef int out_index
+    cdef unsigned int out_tex_id
+    cdef ovr_capi.ovrResult result = \
+        ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
+            _ptr_session_,
+            _swap_chain_,
+            &out_index)
+
+    result = \
+        ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
+            _ptr_session_,
+            _swap_chain_,
+            out_index,
+            &out_tex_id)
+
+    return <unsigned int>out_tex_id
+
+cpdef unsigned int get_mirror_texture():
+    cdef unsigned int out_tex_id
+    cdef ovr_capi.ovrResult result = \
+        ovr_capi_gl.ovr_GetMirrorTextureBufferGL(
+            _ptr_session_,
+            _mirror_texture_,
+            &out_tex_id)
+
+    return <unsigned int>out_tex_id
+
 
 # --------------------------
 # LibOVR Constants and Enums
@@ -1673,8 +1897,8 @@ cdef class ovrLayerEyeFov:
 
     cdef ovrLayerHeader obj_Header
     cdef tuple obj_ColorTexture
-    cdef int obj_ColorTexture0
-    cdef int obj_ColorTexture1
+    cdef ovrTextureSwapChain obj_ColorTexture0
+    cdef ovrTextureSwapChain obj_ColorTexture1
     cdef tuple obj_Viewport
     cdef ovrRecti obj_Viewport0
     cdef ovrRecti obj_Viewport1
@@ -1694,6 +1918,10 @@ cdef class ovrLayerEyeFov:
         self.obj_Viewport1 = ovrRecti()
         self.obj_Viewport = (self.obj_Viewport0, self.obj_Viewport1)
 
+        self.obj_ColorTexture0 = ovrTextureSwapChain()
+        self.obj_ColorTexture1 = ovrTextureSwapChain()
+        self.obj_ColorTexture = (self.obj_ColorTexture0, self.obj_ColorTexture1)
+
         self.obj_Fov0 = ovrFovPort()
         self.obj_Fov1 = ovrFovPort()
         self.obj_Fov = (self.obj_Fov0, self.obj_Fov1)
@@ -1706,8 +1934,8 @@ cdef class ovrLayerEyeFov:
 
     cdef update_fields(self):
         self.obj_Header.c_data = &self.c_data.Header
-        self.c_data[0].ColorTexture[0] = _swap_textures_
-        self.c_data[0].ColorTexture[1] = _swap_textures_
+        self.obj_ColorTexture0.c_data = &self.c_data.ColorTexture[0]
+        self.obj_ColorTexture1.c_data = &self.c_data.ColorTexture[1]
         self.obj_Viewport0.c_data = &self.c_data.Viewport[0]
         self.obj_Viewport0.update_fields()
         self.obj_Viewport1.c_data = &self.c_data.Viewport[1]
@@ -1725,37 +1953,47 @@ cdef class ovrLayerEyeFov:
 
     @Header.setter
     def Header(self, ovrLayerHeader value):
-        self.c_data.Header = value.c_data.Header
+        self.c_data.Header = value.c_data[0]
+        self.obj_Header.c_data = &self.c_data.Header
 
     @property
     def ColorTexture(self):
         cdef ovrTextureSwapChainDesc out = ovrTextureSwapChainDesc()
-        ovr_capi.ovr_GetTextureSwapChainDesc(_ptr_session_, _swap_textures_, out.c_data)
 
         return out
 
     @ColorTexture.setter
-    def ColorTexture(self, tuple value):
-        self.c_data[0].ColorTexture[0] = _swap_textures_
-        self.c_data[0].ColorTexture[1] = _swap_textures_
+    def ColorTexture(self, ovrTextureSwapChain value):
+        self.c_data.ColorTexture[0] = value.c_data[0]
+        self.c_data.ColorTexture[1] = NULL
 
     @property
     def Viewport(self):
+        print(self.c_data.Viewport[0].Pos.x,self.c_data.Viewport[0].Pos.y,
+            self.c_data.Viewport[0].Size.w,self.c_data.Viewport[0].Size.h)
+        print(self.c_data.Viewport[1].Pos.x,self.c_data.Viewport[1].Pos.y,
+            self.c_data.Viewport[1].Size.w,self.c_data.Viewport[1].Size.h)
         return self.obj_Viewport
 
     @Viewport.setter
     def Viewport(self, tuple value):
         self.c_data.Viewport[0] = (<ovrRecti>value[0]).c_data[0]
+        self.obj_Viewport0.update_fields()
         self.c_data.Viewport[1] = (<ovrRecti>value[1]).c_data[0]
+        self.obj_Viewport1.update_fields()
 
     @property
     def Fov(self):
+        print(self.c_data.Fov[0].UpTan,self.c_data.Fov[0].DownTan,
+            self.c_data.Fov[0].RightTan,self.c_data.Fov[0].LeftTan)
+        print(self.c_data.Fov[1].UpTan,self.c_data.Fov[1].DownTan,
+            self.c_data.Fov[1].RightTan,self.c_data.Fov[1].LeftTan)
         return self.obj_Fov
 
     @Fov.setter
     def Fov(self, tuple value):
-        self.c_data.Fov[0] = (<ovrFovPort>value[0]).c_data
-        self.c_data.Fov[1] = (<ovrFovPort>value[1]).c_data
+        self.c_data.Fov[0] = (<ovrFovPort>value[0]).c_data[0]
+        self.c_data.Fov[1] = (<ovrFovPort>value[1]).c_data[0]
 
     @property
     def RenderPose(self):
@@ -1849,11 +2087,9 @@ cdef class ovrLayerEyeFovDepth:
         return self.obj_ColorTexture
 
     @ColorTexture.setter
-    def ColorTexture(self, tuple value):
-        self.obj_ColorTexture0 = value[0]
-        self.obj_ColorTexture1 = value[1]
-        self.c_data.ColorTexture[0] = self.obj_ColorTexture0.c_data[0]
-        self.c_data.ColorTexture[1] = self.obj_ColorTexture1.c_data[0]
+    def ColorTexture(self, ovrTextureSwapChain value):
+        self.c_data.ColorTexture[0] = value.c_data[0]
+        self.c_data.ColorTexture[1] = NULL
 
     @property
     def Viewport(self):
@@ -2554,7 +2790,7 @@ cpdef int ovr_Initialize(ovrInitParams params):
         Call result.
         
     """
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_Initialize(params.c_data)
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_Initialize(&params.c_data[0])
 
     if debug_mode:
         check_result(result)
@@ -2784,28 +3020,28 @@ cpdef ovrTouchHapticsDesc ovr_GetTouchHapticsDesc(int controllerType):
     return haptics_desc
 
 cpdef int ovr_GetTextureSwapChainLength(
-        int chain,
-        int out_Length):
+        ovrTextureSwapChain chain):
 
+    cdef int out_Length
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetTextureSwapChainLength(
         _ptr_session_,
-        _swap_textures_,
+        chain.c_data[0],
         &out_Length)
 
     if debug_mode:
         check_result(result)
 
-    return <int>result
+    return <int>out_Length
 
 cpdef int ovr_GetTextureSwapChainCurrentIndex(
-        int chain,
+        ovrTextureSwapChain chain,
         int out_Index):
 
     cdef int idx_out
     cdef ovr_capi.ovrResult result = \
         ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
             _ptr_session_,
-            _swap_textures_,
+            chain.c_data[0],
             &idx_out)
 
     if debug_mode:
@@ -2814,13 +3050,13 @@ cpdef int ovr_GetTextureSwapChainCurrentIndex(
     return <int>idx_out
 
 cpdef int ovr_GetTextureSwapChainDesc(
-        int chain,
+        ovrTextureSwapChain chain,
         ovrTextureSwapChainDesc out_Desc):
 
     cdef ovr_capi.ovrResult result = \
         ovr_capi.ovr_GetTextureSwapChainDesc(
             _ptr_session_,
-            _swap_textures_,
+            chain.c_data[0],
             out_Desc.c_data)
 
     if debug_mode:
@@ -2828,20 +3064,19 @@ cpdef int ovr_GetTextureSwapChainDesc(
 
     return <int>result
 
-cpdef int ovr_CommitTextureSwapChain(int chain):
-
+cpdef int ovr_CommitTextureSwapChain(ovrTextureSwapChain chain):
     cdef ovr_capi.ovrResult result = \
         ovr_capi.ovr_CommitTextureSwapChain(
             _ptr_session_,
-            _swap_textures_)
+            chain.c_data[0])
 
     if debug_mode:
         check_result(result)
 
     return <int>result
 
-cpdef void ovr_DestroyTextureSwapChain(int chain):
-    ovr_capi.ovr_DestroyTextureSwapChain(_ptr_session_, _swap_textures_)
+cpdef void ovr_DestroyTextureSwapChain(ovrTextureSwapChain chain):
+    ovr_capi.ovr_DestroyTextureSwapChain(_ptr_session_, chain.c_data[0])
 
 cpdef void ovr_DestroyMirrorTexture(ovrMirrorTexture mirrorTexture):
     ovr_capi.ovr_DestroyMirrorTexture(_ptr_session_, mirrorTexture.c_data[0])
@@ -2894,17 +3129,14 @@ cpdef int ovr_BeginFrame(int frameIndex):
 cpdef int ovr_EndFrame(
         int frameIndex,
         object viewScaleDesc,
-        ovrLayerEyeFov layerPtrList):
+        ovrLayerHeader layerPtrList):
 
-    cdef ovr_capi.ovrLayerHeader* layers = &layerPtrList.c_data.Header
-    cdef ovr_capi.ovrViewScaleDesc* np = NULL
-
-    print(layerPtrList.c_data.Viewport[1].Size.w)
+    cdef ovr_capi.ovrLayerHeader* layers = layerPtrList.c_data
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_EndFrame(
         _ptr_session_,
         <long long>frameIndex,
-        np,
+        NULL,
         &layers,
         <unsigned int>1)
 
@@ -2941,12 +3173,12 @@ cpdef double ovr_GetTimeInSeconds(int frameIndex):
 # OPENGL SPECIFIC FUNCTIONS
 cpdef int ovr_CreateTextureSwapChainGL(
         ovrTextureSwapChainDesc desc,
-        int chain):
+        ovrTextureSwapChain chain):
 
     cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
         _ptr_session_,
         desc.c_data,
-        &_swap_textures_)
+        &chain.c_data[0])
 
     if debug_mode:
         check_result(result)
@@ -2954,7 +3186,7 @@ cpdef int ovr_CreateTextureSwapChainGL(
     return <int>result
 
 cpdef int ovr_GetTextureSwapChainBufferGL(
-        int chain,
+        ovrTextureSwapChain chain,
         int index,
         object out_TexId):
 
@@ -2962,7 +3194,7 @@ cpdef int ovr_GetTextureSwapChainBufferGL(
     cdef ovr_capi.ovrResult result = \
         ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
             _ptr_session_,
-            _swap_textures_,
+            chain.c_data[0],
             index,
             &tex_id)
 
@@ -3110,8 +3342,8 @@ cpdef void ovr_GetEyePoses(
 cpdef void ovrPosef_FlipHandedness(ovrPosef inPose, ovrPosef outPose):
     ovr_capi_util.ovrPosef_FlipHandedness(inPose.c_data, outPose.c_data)
 
-cpdef bint ovr_SetInt(str propertyName, int value):
-    cdef const char* prop = <bytes>propertyName
+cpdef bint ovr_SetInt(bytes propertyName, int value):
+    cdef const char* prop = propertyName
 
     cdef ovr_capi.ovrBool result = ovr_capi.ovr_SetInt(
         _ptr_session_,
