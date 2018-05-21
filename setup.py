@@ -39,20 +39,46 @@ if platform.system() == 'Windows':
     OCULUS_SDK_INCLUDE_EXTRAS = os.path.join(OCULUS_SDK_INCLUDE, 'Extras')
     OCULUS_SDK_LIB = os.path.join(
         OCULUS_SDK_PATH, 'LibOVR', 'Lib', 'Windows', 'x64', 'Release', 'VS2015')
+    # set enviornment variables for build
+    LIBRARIES = ['glfw3dll', 'glew32', 'opengl32', 'User32', "LibOVR"]
+    LIB_DIRS = ['lib/win64/', OCULUS_SDK_LIB]
 else:
     raise Exception('Trying to install PsychHMD on an unsupported '
         'operating system. Exiting.')
+
 
 # extensions to build
 ext_modules = [
     Extension("psychxr.ovr.capi", ["psychxr/ovr/capi.pyx"],
         include_dirs = [OCULUS_SDK_INCLUDE,
                         OCULUS_SDK_INCLUDE_EXTRAS,
-                        "psychxr/ovr/"],
-        libraries = ["LibOVR"],
-        library_dirs = [OCULUS_SDK_LIB],
+                        "psychxr/ovr/",
+                        "include/GLFW/",
+                        "include/GL/"],
+        libraries = LIBRARIES,
+        library_dirs = LIB_DIRS,
         language="c++",
-        extra_compile_args=[''])
+        extra_compile_args=['']),
+    Extension("psychxr.ovr.test", ["psychxr/ovr/test.pyx"],
+              include_dirs=[OCULUS_SDK_INCLUDE,
+                            OCULUS_SDK_INCLUDE_EXTRAS,
+                            "psychxr/ovr/",
+                            "include/GLFW/",
+                            "include/"],
+              libraries=LIBRARIES,
+              library_dirs=LIB_DIRS,
+              language="c++",
+              extra_compile_args=['']),
+    Extension("psychxr.ovr.rift", ["psychxr/ovr/rift.pyx"],
+              include_dirs=[OCULUS_SDK_INCLUDE,
+                            OCULUS_SDK_INCLUDE_EXTRAS,
+                            "psychxr/ovr/",
+                            "include/GLFW/",
+                            "include/"],
+              libraries=LIBRARIES,
+              library_dirs=LIB_DIRS,
+              language="c++",
+              extra_compile_args=['']),
 ]
 
 setup_pars = {
