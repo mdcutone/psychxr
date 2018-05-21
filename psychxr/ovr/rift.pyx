@@ -162,6 +162,21 @@ cpdef void setup_render_layer(object buffer_size):
     _eye_layer_.Viewport[1].Size.w = buffer_size[0] / 2
     _eye_layer_.Viewport[1].Size.h = buffer_size[1]
 
+cpdef void setup_mirror_texture(int width=800, int height=600):
+    cdef ovr_capi.ovrMirrorTextureDesc mirror_desc
+    mirror_desc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+    mirror_desc.Width = width
+    mirror_desc.Height = height
+    mirror_desc.MiscFlags = ovr_capi.ovrTextureMisc_None
+    mirror_desc.MirrorOptions = ovr_capi.ovrMirrorOption_PostDistortion
+
+    global _mirror_texture_
+    cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateMirrorTextureGL(
+        _ptr_session_, &mirror_desc, &_mirror_texture_)
+
+    if debug_mode:
+        check_result(result)
+
 cpdef double get_display_time(unsigned int frame_index=0, bint predicted=True):
     cdef double t_secs
     if predicted:
@@ -208,6 +223,16 @@ cpdef unsigned int get_texture_swap_buffer():
         _ptr_session_, _swap_chain_, current_idx, &tex_id)
 
     return tex_id
+
+cpdef unsigned int get_mirror_texture():
+    cdef unsigned int out_tex_id
+    cdef ovr_capi.ovrResult result = \
+        ovr_capi_gl.ovr_GetMirrorTextureBufferGL(
+            _ptr_session_,
+            _mirror_texture_,
+            &out_tex_id)
+
+    return <unsigned int>out_tex_id
 
 cpdef void end_frame(unsigned int frame_index=0):
     ovr_capi.ovr_CommitTextureSwapChain(_ptr_session_, _swap_chain_)

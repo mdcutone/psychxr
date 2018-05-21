@@ -52,8 +52,15 @@ def main():
     GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0)
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
+    # mirror texture FBO
+    mirrorFbo = GL.GLuint()
+    GL.glGenFramebuffers(1, ctypes.byref(mirrorFbo))
+
     # setup the render layer after the GL context is current
     rift.setup_render_layer(buffer_size)
+
+    # setup a mirror texture
+    rift.setup_mirror_texture(800, 600)  # same size as window
 
     # frame index, increment this every frame
     frame_index = 0
@@ -121,6 +128,25 @@ def main():
 
         # increment frame index
         frame_index += 1
+
+        # blit mirror texture
+        GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, mirrorFbo)
+        GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
+
+        # bind the rift's texture to the framebuffer
+        GL.glFramebufferTexture2D(
+            GL.GL_READ_FRAMEBUFFER,
+            GL.GL_COLOR_ATTACHMENT0,
+            GL.GL_TEXTURE_2D, rift.get_mirror_texture(), 0)
+
+        GL.glViewport(0, 0, 800, 600)
+        GL.glScissor(0, 0, 800, 600)
+        GL.glBlitFramebuffer(0, 0, 800, 600,
+                             0, 600, 800, 0,
+                             GL.GL_COLOR_BUFFER_BIT,
+                             GL.GL_NEAREST)
+
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
         # flip the GLFW window and poll events
         glfw.swap_buffers(window)
