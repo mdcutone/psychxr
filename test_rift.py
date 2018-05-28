@@ -24,7 +24,9 @@ def main():
     if not window:
         glfw.terminate()
 
+    # always call this before setting up render layers
     glfw.make_context_current(window)
+
     # disable v-sync, we are syncing to the v-trace of head-set
     glfw.swap_interval(0)
 
@@ -95,17 +97,17 @@ def main():
         vp_width = int(buffer_size[0] / 2)
         vp_height = int(buffer_size[1])
 
+        # enable scissor test
+        GL.glEnable(GL.GL_SCISSOR_TEST)
+
         # render to each eye
         for eye in range(2):
-            # enable scissor test
-            GL.glEnable(GL.GL_SCISSOR_TEST)
-
             # set the viewport
             if eye == 0:  # left eye
                 GL.glViewport(0, 0, vp_width, vp_height)
                 GL.glScissor(0, 0, vp_width, vp_height)
 
-                # DRAW STUFF HERE
+                # DRAW LEFT EYE STUFF HERE
                 # clear left eye to red
                 GL.glClearColor(1.0, 0.2, 0.2, 1.0)
 
@@ -113,7 +115,7 @@ def main():
                 GL.glViewport(vp_width, 0, vp_width, vp_height)
                 GL.glScissor(vp_width, 0, vp_width, vp_height)
 
-                # DRAW STUFF HERE
+                # DRAW RIGHT EYE STUFF HERE
                 # clear right eye to blue
                 GL.glClearColor(0.2, 0.2, 1.0, 1.0)
 
@@ -142,7 +144,7 @@ def main():
         GL.glViewport(0, 0, 800, 600)
         GL.glScissor(0, 0, 800, 600)
         GL.glBlitFramebuffer(0, 0, 800, 600,
-                             0, 600, 800, 0,
+                             0, 600, 800, 0,  # this flips the texture
                              GL.GL_COLOR_BUFFER_BIT,
                              GL.GL_NEAREST)
 

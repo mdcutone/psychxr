@@ -97,6 +97,69 @@ def check_result(result):
 #
 debug_mode = False
 
+# ---------------
+# PsychXR Classes
+# ---------------
+#
+cdef class RenderLayer(object):
+    cdef ovr_capi.ovrTextureSwapChain _texture_swap_chain
+    cdef ovr_capi.ovrLayerEyeFov _eye_layer
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __cinit__(
+            self,
+            object size='recommended',
+            bint high_quality = True,
+            bint head_locked = False,
+            float texels_per_pixel = 1.0,
+            **kwargs):
+
+        # get hmd descriptor
+        global _hmd_desc_, _ptr_session_
+
+        # initialize swap chain texture
+        cdef ovr_capi.ovrTextureSwapChainDesc swap_desc
+        swap_desc.Type = ovr_capi.ovrTexture_2D
+        swap_desc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+        swap_desc.StaticImage = ovr_capi.ovrFalse
+        swap_desc.ArraySize = swap_desc.MipLevels = swap_desc.SampleCount = 1
+        swap_desc.MiscFlags = ovr_capi.ovrTextureMisc_None
+        swap_desc.BindFlags = ovr_capi.ovrTextureBind_None
+
+        # get the buffer size
+        cdef ovr_capi.ovrSizei rec_size_left, rec_size_right
+        #if isinstance(size, str) and size == 'recommended':
+        rec_size_left = ovr_capi.ovr_GetFovTextureSize(
+            _ptr_session_,
+            ovr_capi.ovrEye_Left,
+            _hmd_desc_.DefaultEyeFov[0],
+            texels_per_pixel)
+        rec_size_right = ovr_capi.ovr_GetFovTextureSize(
+            _ptr_session_,
+            ovr_capi.ovrEye_Right,
+            _hmd_desc_.DefaultEyeFov[1],
+            texels_per_pixel)
+
+        swap_desc.Width = rec_size_left.w + rec_size_right.w
+        swap_desc.Height = max(rec_size_left.h, rec_size_right.h)
+
+        # create the swap chain
+        global _ptr_session_
+        result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
+            _ptr_session_, &swap_desc, &self._texture_swap_chain)
+
+        if ovr_errorcode.OVR_FAILURE(result):
+            pass
+
+        # configure render layer
+        self._eye_layer.Header.Type = ovr_capi.ovrLayerType_EyeFov
+        self._eye_layer.Header.Flags = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
+        self._eye_layer.ColorTexture[0] = self._texture_swap_chain
+        self._eye_layer.ColorTexture[1] = NULL
+
+
 # -----------------
 # PsychXR Functions
 # -----------------
@@ -124,19 +187,19 @@ cpdef int create():
         ovr_capi.ovr_Destroy(_ptr_session_)
         ovr_capi.ovr_Shutdown()
 
+    # update the HMD descriptor since we successfully created a session
+    global _hmd_desc_
+    _hmd_desc_ = ovr_capi.ovr_GetHmdDesc(_ptr_session_)
+
     return <int>result
 
 cpdef void setup_gl():
-    # update the HMD descriptor since we successfully created a session
-    _hmd_desc_ = ovr_capi.ovr_GetHmdDesc(_ptr_session_)
     cdef ovr_capi.ovrSizei recommendedTex0Size = ovr_capi.ovr_GetFovTextureSize(
         _ptr_session_, ovr_capi.ovrEye_Left, _hmd_desc_.DefaultEyeFov[0], 1.0)
     cdef ovr_capi.ovrSizei recommendedTex1Size = ovr_capi.ovr_GetFovTextureSize(
         _ptr_session_, ovr_capi.ovrEye_Right, _hmd_desc_.DefaultEyeFov[1], 1.0)
     _buffer_size_.w = recommendedTex0Size.w + recommendedTex1Size.w
     _buffer_size_.h = max(recommendedTex0Size.h, recommendedTex1Size.h)
-
-    print(_hmd_desc_.DefaultEyeFov[0].UpTan, _buffer_size_.h)
 
     # configure texture swap chain
     cdef ovr_capi.ovrMirrorTextureDesc mirror_desc
