@@ -54,6 +54,110 @@ def check_result(result):
 #
 debug_mode = False
 
+# ---------------
+# PsychXR Classes
+# ---------------
+#
+cdef class TextureSwapChain(object):
+    cdef ovr_capi.ovrTextureSwapChain texture_swap_chain
+
+    def __init__(self, object size, **kwargs):
+        pass
+
+    def __cinit__(self, object size, **kwargs):
+
+        # get hmd descriptor
+        global _hmd_desc_, _ptr_session_
+
+        # initialize swap chain texture
+        cdef ovr_capi.ovrTextureSwapChainDesc swap_desc
+        swap_desc.Type = ovr_capi.ovrTexture_2D
+        swap_desc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+        swap_desc.Width = <int>size[0]
+        swap_desc.Height = <int>size[1]
+        swap_desc.StaticImage = ovr_capi.ovrFalse
+        swap_desc.ArraySize = swap_desc.MipLevels = swap_desc.SampleCount = 1
+        swap_desc.MiscFlags = ovr_capi.ovrTextureMisc_None
+        swap_desc.BindFlags = ovr_capi.ovrTextureBind_None
+
+        # create the texture swap chain
+        cdef ovr_capi.ovrResult result = 0
+        result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
+            _ptr_session_, &swap_desc, &self.texture_swap_chain)
+
+        if debug_mode:
+            check_result(result)
+
+    def get_size(self):
+        global _ptr_session_
+
+        cdef ovr_capi.ovrTextureSwapChainDesc swap_desc
+        ovr_capi.ovr_GetTextureSwapChainDesc(
+            _ptr_session_,
+            self.texture_swap_chain,
+            &swap_desc)
+
+        return swap_desc.Width, swap_desc.Height
+
+    def get_buffer(self):
+        cdef int current_idx = 0
+        cdef unsigned int tex_id = 0
+
+        global _ptr_session_
+        ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
+            _ptr_session_,
+            self.texture_swap_chain,
+            &current_idx)
+
+        ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
+            _ptr_session_,
+            self.texture_swap_chain,
+            current_idx,
+            &tex_id)
+
+        return tex_id
+
+    def commit(self):
+        ovr_capi.ovr_CommitTextureSwapChain(
+            _ptr_session_,
+            self.texture_swap_chain)
+
+
+cdef class RenderLayer(object):
+    cdef ovr_capi.ovrLayerEyeFov _eye_layer
+    cdef TextureSwapChain swap_chain
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __cinit__(
+            self,
+            TextureSwapChain swap_chain,
+            bint high_quality = True,
+            bint head_locked = False,
+            float texels_per_pixel = 1.0,
+            **kwargs):
+
+        # get hmd descriptor
+        global _hmd_desc_, _ptr_session_
+
+        # configure render layer
+        self._eye_layer.Header.Type = ovr_capi.ovrLayerType_EyeFov
+        self._eye_layer.Header.Flags = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
+        self._eye_layer.Fov[0] = _eye_render_desc_[0].Fov
+        self._eye_layer.Fov[1] = _eye_render_desc_[1].Fov
+        self._eye_layer.Viewport[0].Pos.x = 0
+        self._eye_layer.Viewport[0].Pos.y = 0
+        self._eye_layer.Viewport[0].Size.w = buffer_size[0] / 2
+        self._eye_layer.Viewport[0].Size.h = buffer_size[1]
+        self._eye_layer.Viewport[1].Pos.x = buffer_size[0] / 2
+        self._eye_layer.Viewport[1].Pos.y = 0
+        self._eye_layer.Viewport[1].Size.w = buffer_size[0] / 2
+        self._eye_layer.Viewport[1].Size.h = buffer_size[1]
+
+        self._eye_layer.ColorTexture[0] = self.texture_swap_chain
+        self._eye_layer.ColorTexture[1] = NULL
+
 # ----------------
 # Module Functions
 # ----------------
@@ -115,41 +219,13 @@ cpdef tuple get_buffer_size(float texels_per_pixel=1.0):
 
     return buffer_size.w, buffer_size.h
 
-cpdef void setup_render_layer(object buffer_size):
-    # setup the texture swap chain
-    cdef ovr_capi.ovrTextureSwapChainDesc tmp_desc
-    tmp_desc.Type = ovr_capi.ovrTexture_2D
-    tmp_desc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
-    tmp_desc.Width = buffer_size[0]
-    tmp_desc.Height = buffer_size[1]
-    tmp_desc.ArraySize = tmp_desc.MipLevels = tmp_desc.SampleCount = 1
-    tmp_desc.StaticImage = ovr_capi.ovrFalse
-    tmp_desc.BindFlags = tmp_desc.MiscFlags = 0
-
-    # create the texture swap chain
-    global _swap_chain_
-    cdef ovr_capi.ovrResult result = 0
-    result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
-        _ptr_session_, &tmp_desc, &_swap_chain_)
-
-    if debug_mode:
-        check_result(result)
-
-    # check if a texture ID is returned after creating the swap chain
-    cdef unsigned int out_tex_id
-    result = ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
-        _ptr_session_, _swap_chain_, 0, &out_tex_id)
-
-    if debug_mode:
-        check_result(result)
-
-    if <int>out_tex_id == 0:
-        pass  # raise an error, the texture ID returned is invalid
+cpdef void setup_render_layer(TextureSwapChain swap_chain):
+    buffer_size = swap_chain.get_size()
 
     # setup the render layer
     _eye_layer_.Header.Type = ovr_capi.ovrLayerType_EyeFov
     _eye_layer_.Header.Flags = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
-    _eye_layer_.ColorTexture[0] = _swap_chain_
+    _eye_layer_.ColorTexture[0] = swap_chain.texture_swap_chain
     _eye_layer_.ColorTexture[1] = NULL
     _eye_layer_.Fov[0] = _eye_render_desc_[0].Fov
     _eye_layer_.Fov[1] = _eye_render_desc_[1].Fov
@@ -235,7 +311,6 @@ cpdef unsigned int get_mirror_texture():
     return <unsigned int>out_tex_id
 
 cpdef void end_frame(unsigned int frame_index=0):
-    ovr_capi.ovr_CommitTextureSwapChain(_ptr_session_, _swap_chain_)
     cdef ovr_capi.ovrLayerHeader* layers = &_eye_layer_.Header
     result = ovr_capi.ovr_EndFrame(
         _ptr_session_,
