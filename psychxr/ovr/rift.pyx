@@ -296,6 +296,18 @@ cdef class ovrVector2i:
 
         return self * s
 
+    def lerp(self, ovrVector2i b, int f):
+        return self * (<int>1 - f) + b * f
+
+    def project_to(self, ovrVector2i b):
+        cdef int l2 = self.length_sq()
+        assert l2 != <int>0
+
+        return b * (self.dot(b) / l2)
+
+    def is_clockwise(self, ovrVector2i b):
+        return (self.c_data.x * b.c_data.y - self.c_data.y * b.c_data.x) < 0
+
 
 cdef class ovrSizei:
     cdef ovr_capi.ovrSizei* c_data
