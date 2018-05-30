@@ -2,6 +2,7 @@ cimport ovr_capi, ovr_capi_gl, ovr_errorcode, ovr_capi_util
 from libc.stdint cimport uintptr_t, uint32_t, int32_t
 from libcpp cimport nullptr
 from libc.stdlib cimport malloc, free
+from libc.math cimport fabs, sqrt
 
 # -----------------
 # Initialize module
@@ -58,6 +59,439 @@ debug_mode = False
 # PsychXR Classes
 # ---------------
 #
+cdef class ovrColorf:
+    cdef ovr_capi.ovrColorf* c_data
+    cdef ovr_capi.ovrColorf  c_ovrColorf
+
+    def __cinit__(self, float r=0.0, float g=0.0, float b=0.0, float a=0.0):
+        self.c_data = &self.c_ovrColorf
+
+        self.c_data.r = r
+        self.c_data.g = g
+        self.c_data.b = b
+        self.c_data.a = a
+
+    @property
+    def r(self):
+        return self.c_data.r
+
+    @r.setter
+    def r(self, float value):
+        self.c_data.r = value
+
+    @property
+    def g(self):
+        return self.c_data.g
+
+    @g.setter
+    def g(self, float value):
+        self.c_data.g = value
+
+    @property
+    def b(self):
+        return self.c_data.b
+
+    @b.setter
+    def b(self, float value):
+        self.c_data.b = value
+
+    @property
+    def a(self):
+        return self.c_data.a
+
+    @a.setter
+    def a(self, float value):
+        self.c_data.a = value
+
+    def as_tuple(self):
+        return self.c_data.r, self.c_data.g, self.c_data.b, self.c_data.a
+
+
+cdef class ovrVector2i:
+    cdef ovr_capi.ovrVector2i* c_data
+    cdef ovr_capi.ovrVector2i  c_ovrVector2i
+
+    def __cinit__(self, int x=0, int y=0):
+        self.c_data = &self.c_ovrVector2i
+
+        self.c_data.x = x
+        self.c_data.y = y
+
+    @property
+    def x(self):
+        return self.c_data.x
+
+    @x.setter
+    def x(self, int value):
+        self.c_data.x = value
+
+    @property
+    def y(self):
+        return self.c_data.y
+
+    @y.setter
+    def y(self, int value):
+        self.c_data.y = value
+
+    def as_tuple(self):
+        return self.c_data.x, self.c_data.y
+
+    def as_list(self):
+        return list(self.c_data.x, self.c_data.y)
+
+    def __eq__(self, ovrVector2i b):
+        return self.c_data.x == b.c_data.x and self.c_data.y == b.c_data.y
+
+    def __ne__(self, ovrVector2i b):
+        return self.c_data.x != b.c_data.x or self.c_data.y != b.c_data.y
+
+    def __add__(ovrVector2i a, ovrVector2i b):
+        cdef ovrVector2i to_return = ovrVector2i(
+            a.c_data.x + b.c_data.x,
+            a.c_data.y + b.c_data.y)
+
+        return to_return
+
+    def __iadd__(self, ovrVector2i b):
+        self.c_data.x += b.c_data.x
+        self.c_data.y += b.c_data.y
+
+    def __sub__(ovrVector2i a, ovrVector2i b):
+        cdef ovrVector2i to_return = ovrVector2i(
+            a.c_data.x - b.c_data.x,
+            a.c_data.y - b.c_data.y)
+
+        return to_return
+
+    def __isub__(self, ovrVector2i b):
+        self.c_data.x -= b.c_data.x
+        self.c_data.y -= b.c_data.y
+
+    def __neg__(self):
+        cdef ovrVector2i to_return = ovrVector2i(-self.c_data.x, -self.c_data.y)
+
+        return to_return
+
+    def __mul__(ovrVector2i a, object b):
+        cdef ovrVector2i to_return
+        if isinstance(b, ovrVector2i):
+            to_return = ovrVector2i(a.c_data.x * b.c_data.x,
+                                    a.c_data.y * b.c_data.y)
+        elif isinstance(b, (int, float)):
+            to_return = ovrVector2i(a.c_data.x * <int>b,
+                                    a.c_data.y * <int>b)
+
+        return to_return
+
+    def __imul__(self, object b):
+        cdef ovrVector2i to_return
+        if isinstance(b, ovrVector2i):
+            self.c_data.x *= b.c_data.x
+            self.c_data.y *= b.c_data.y
+        elif isinstance(b, (int, float)):
+            self.c_data.x *= <int>b
+            self.c_data.y *= <int>b
+
+    def __truediv__(ovrVector2i a, object b):
+        cdef int rcp = <int>1 / <int>b
+        cdef ovrVector2i to_return = ovrVector2i(
+            a.c_data.x * rcp,
+            a.c_data.y * rcp)
+
+        return to_return
+
+    def __itruediv__(self, object b):
+        cdef int rcp = <int>1 / <int>b
+        self.c_data.x *= rcp
+        self.c_data.y *= rcp
+
+    @staticmethod
+    def min(ovrVector2i a, ovrVector2i b):
+        cdef ovrVector2i to_return = ovrVector2i(
+            a.c_data.x if a.c_data.x < b.c_data.x else b.c_data.x,
+            a.c_data.y if a.c_data.y < b.c_data.y else b.c_data.y)
+
+        return to_return
+
+    @staticmethod
+    def max(ovrVector2i a, ovrVector2i b):
+        cdef ovrVector2i to_return = ovrVector2i(
+            a.c_data.x if a.c_data.x > b.c_data.x else b.c_data.x,
+            a.c_data.y if a.c_data.y > b.c_data.y else b.c_data.y)
+
+        return to_return
+
+    def clamped(self, int max_mag):
+        cdef int mag_squared = self.length_sq()
+        if mag_squared > max_mag * max_mag:
+            return self * (max_mag / sqrt(mag_squared))
+
+        return self
+
+    def is_equal(self, ovrVector2i b, int tolerance = 0):
+        return fabs(b.c_data.x - self.c_data.x) <= tolerance and \
+            fabs(b.c_data.y - self.c_data.y) <= tolerance
+
+    def compare(self, ovrVector2i b, int tolerance = 0):
+        return self.is_equal(b, tolerance)
+
+    def __getitem__(self, int idx):
+        assert 0 <= idx < 2
+        cdef int* ptr_val = &self.c_data.x + idx
+
+        return <int>ptr_val[0]
+
+    def __setitem__(self, int idx, int val):
+        assert 0 <= idx < 2
+        cdef int* ptr_val = &self.c_data.x + idx
+        ptr_val[0] = val
+
+    def entrywise_multiply(self, ovrVector2i b):
+        cdef ovrVector2i to_return = ovrVector2i(
+            self.c_data.x * b.c_data.x,
+            self.c_data.y * b.c_data.y)
+
+        return to_return
+
+    def dot(self, ovrVector2i b):
+        cdef int dot_prod = \
+            self.c_data.x * b.c_data.x + self.c_data.y * b.c_data.y
+
+        return <int>dot_prod
+
+    def angle(self, ovrVector2i b):
+        cdef int div = self.length_sq() * b.length_sq()
+        assert div != <int>0
+        cdef int to_return = self.dot(b) / sqrt(div)
+
+        return to_return
+
+    def length_sq(self):
+        return \
+            <int>(self.c_data.x * self.c_data.x + self.c_data.y * self.c_data.y)
+
+    def length(self):
+        return <int>sqrt(self.length_sq())
+
+    def distance_sq(self, ovrVector2i b):
+        return (self - b).length_sq()
+
+    def distance(self, ovrVector2i b):
+        return (self - b).length()
+
+    def is_normalized(self):
+        return fabs(self.length_sq() - <int>1) < 0
+
+    def normalize(self):
+        cdef int s = self.length()
+        if s != <int>0:
+            s = <int>1 / s
+
+        self *= s
+
+    def normalized(self):
+        cdef int s = self.length()
+        if s != <int>0:
+            s = <int>1 / s
+
+        return self * s
+
+
+cdef class ovrSizei:
+    cdef ovr_capi.ovrSizei* c_data
+    cdef ovr_capi.ovrSizei  c_ovrSizei
+
+    def __cinit__(self, int w=0, int h=0):
+        self.c_data = &self.c_ovrSizei
+
+        self.c_data.w = w
+        self.c_data.h = h
+
+    @property
+    def w(self):
+        return self.c_data.w
+
+    @w.setter
+    def w(self, int value):
+        self.c_data.w = value
+
+    @property
+    def h(self):
+        return self.c_data.h
+
+    @h.setter
+    def h(self, int value):
+        self.c_data.h = value
+
+    def as_tuple(self):
+        return self.c_data.w, self.c_data.h
+
+
+cdef class ovrRecti:
+    cdef ovr_capi.ovrRecti* c_data
+    cdef ovr_capi.ovrRecti  c_ovrRecti
+
+    # nested field objects
+    cdef ovrVector2i obj_pos
+    cdef ovrSizei obj_size
+
+    def __cinit__(self, int x=0, int y=0, int w=0, int h=0):
+        self.c_data = &self.c_ovrRecti
+        self.obj_pos = ovrVector2i()
+        self.obj_size = ovrSizei()
+
+        self.update_fields()
+
+        self.c_data.Pos.x = x
+        self.c_data.Pos.y = y
+        self.c_data.Size.w = w
+        self.c_data.Size.h = h
+
+    cdef update_fields(self):
+        self.obj_pos.c_data = &self.c_data.Pos
+        self.obj_size.c_data = &self.c_data.Size
+
+    @property
+    def Pos(self):
+        return <ovrVector2i>self.obj_pos
+
+    @property
+    def Size(self):
+        return <ovrSizei>self.obj_size
+
+    def as_tuple(self):
+        return self.c_data.Pos.x, self.c_data.Pos.y, \
+               self.c_data.Size.w, self.c_data.Size.h
+
+
+cdef class ovrQuatf:
+    cdef ovr_capi.ovrQuatf* c_data
+    cdef ovr_capi.ovrQuatf  c_ovrQuatf
+
+    def __cinit__(self, float x=0.0, float y=0.0, float z=0.0, float w=0.0):
+        self.c_data = &self.c_ovrQuatf
+
+        self.c_data.x = x
+        self.c_data.y = y
+        self.c_data.z = z
+        self.c_data.w = w
+
+    @property
+    def x(self):
+        return self.c_data.x
+
+    @x.setter
+    def x(self, float value):
+        self.c_data.x = value
+
+    @property
+    def y(self):
+        return self.c_data.y
+
+    @y.setter
+    def y(self, float value):
+        self.c_data.y = value
+
+    @property
+    def z(self):
+        return self.c_data.z
+
+    @z.setter
+    def z(self, float value):
+        self.c_data.z = value
+
+    @property
+    def w(self):
+        return self.c_data.w
+
+    @w.setter
+    def w(self, float value):
+        self.c_data.w = value
+
+    def as_tuple(self):
+        return self.c_data.x, self.c_data.y, self.c_data.z, self.c_data.w
+
+
+cdef class ovrVector2f:
+    cdef ovr_capi.ovrVector2f* c_data
+    cdef ovr_capi.ovrVector2f  c_ovrVector2f
+
+    def __cinit__(self, float x=0.0, float y=0.0):
+        self.c_data = &self.c_ovrVector2f
+
+        self.c_data.x = x
+        self.c_data.y = y
+
+    @property
+    def x(self):
+        return self.c_data.x
+
+    @x.setter
+    def x(self, float value):
+        self.c_data.x = value
+
+    @property
+    def y(self):
+        return self.c_data.y
+
+    @y.setter
+    def y(self, float value):
+        self.c_data.y = value
+
+    def as_tuple(self):
+        return self.c_data.x, self.c_data.y
+
+
+cdef class ovrVector3f:
+    cdef ovr_capi.ovrVector3f* c_data
+    cdef ovr_capi.ovrVector3f  c_ovrVector3f
+
+    def __cinit__(self, float x=0.0, float y=0.0, float z=0.0):
+        self.c_data = &self.c_ovrVector3f
+
+        self.c_data.x = x
+        self.c_data.y = y
+        self.c_data.z = z
+
+    @property
+    def x(self):
+        return self.c_data.x
+
+    @x.setter
+    def x(self, float value):
+        self.c_data.x = value
+
+    @property
+    def y(self):
+        return self.c_data.y
+
+    @y.setter
+    def y(self, float value):
+        self.c_data.y = value
+
+    @property
+    def z(self):
+        return self.c_data.z
+
+    @z.setter
+    def z(self, float value):
+        self.c_data.z = value
+
+    def as_tuple(self):
+        return self.c_data.x, self.c_data.y, self.c_data.z
+
+
+cdef class ovrMatrix4f:
+    cdef ovr_capi.ovrMatrix4f* c_data
+    cdef ovr_capi.ovrMatrix4f  c_ovrMatrix4f
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrMatrix4f
+
+    @property
+    def M(self):
+        return self.c_data.M
+
 cdef class TextureSwapChain(object):
     cdef ovr_capi.ovrTextureSwapChain texture_swap_chain
 
@@ -142,21 +576,21 @@ cdef class RenderLayer(object):
         global _hmd_desc_, _ptr_session_
 
         # configure render layer
-        self._eye_layer.Header.Type = ovr_capi.ovrLayerType_EyeFov
-        self._eye_layer.Header.Flags = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
-        self._eye_layer.Fov[0] = _eye_render_desc_[0].Fov
-        self._eye_layer.Fov[1] = _eye_render_desc_[1].Fov
-        self._eye_layer.Viewport[0].Pos.x = 0
-        self._eye_layer.Viewport[0].Pos.y = 0
-        self._eye_layer.Viewport[0].Size.w = buffer_size[0] / 2
-        self._eye_layer.Viewport[0].Size.h = buffer_size[1]
-        self._eye_layer.Viewport[1].Pos.x = buffer_size[0] / 2
-        self._eye_layer.Viewport[1].Pos.y = 0
-        self._eye_layer.Viewport[1].Size.w = buffer_size[0] / 2
-        self._eye_layer.Viewport[1].Size.h = buffer_size[1]
-
-        self._eye_layer.ColorTexture[0] = self.texture_swap_chain
-        self._eye_layer.ColorTexture[1] = NULL
+        # self._eye_layer.Header.Type = ovr_capi.ovrLayerType_EyeFov
+        # self._eye_layer.Header.Flags = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
+        # self._eye_layer.Fov[0] = _eye_render_desc_[0].Fov
+        # self._eye_layer.Fov[1] = _eye_render_desc_[1].Fov
+        # self._eye_layer.Viewport[0].Pos.x = 0
+        # self._eye_layer.Viewport[0].Pos.y = 0
+        # self._eye_layer.Viewport[0].Size.w = buffer_size[0] / 2
+        # self._eye_layer.Viewport[0].Size.h = buffer_size[1]
+        # self._eye_layer.Viewport[1].Pos.x = buffer_size[0] / 2
+        # self._eye_layer.Viewport[1].Pos.y = 0
+        # self._eye_layer.Viewport[1].Size.w = buffer_size[0] / 2
+        # self._eye_layer.Viewport[1].Size.h = buffer_size[1]
+        #
+        # self._eye_layer.ColorTexture[0] = self.texture_swap_chain
+        # self._eye_layer.ColorTexture[1] = NULL
 
 # ----------------
 # Module Functions
