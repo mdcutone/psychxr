@@ -688,3 +688,11 @@ cdef extern from "OVR_CAPI.h":
     cdef ovrBool ovr_SetFloatArray(ovrSession session, const char* propertyName, const float values[], unsigned int valuesSize)
     cdef const char* ovr_GetString(ovrSession session, const char* propertyName, const char* defaultVal)
     cdef ovrBool ovr_SetString(ovrSession session, const char* propertyName, const char* value)
+
+
+# additional types
+ctypedef struct ovrVector4f:
+    float x
+    float y
+    float z
+    float w
