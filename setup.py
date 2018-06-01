@@ -52,7 +52,17 @@ ext_modules = [
               include_dirs=[OCULUS_SDK_INCLUDE,
                             OCULUS_SDK_INCLUDE_EXTRAS,
                             "psychxr/ovr/",
-                            "include/GLFW/",
+                            "include/vrlinalg/",
+                            "include/"],
+              libraries=LIBRARIES,
+              library_dirs=LIB_DIRS,
+              language="c++",
+              extra_compile_args=['']),
+    Extension("psychxr.vrlinalg", ["psychxr/vrlinalg.pyx"],
+              include_dirs=[OCULUS_SDK_INCLUDE,
+                            OCULUS_SDK_INCLUDE_EXTRAS,
+                            "psychxr/ovr/",
+                            "include/vrlinalg/",
                             "include/"],
               libraries=LIBRARIES,
               library_dirs=LIB_DIRS,
@@ -61,7 +71,7 @@ ext_modules = [
 ]
 
 setup_pars = {
-    "name" : "PsychHMD",
+    "name" : "psychxr",
     "author" : "Matthew D. Cutone",
     "author_email" : "cutonem@yorku.ca",
     "packages" : ['psych_hmd',

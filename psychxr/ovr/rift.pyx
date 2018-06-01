@@ -3,7 +3,6 @@ from libc.stdint cimport uintptr_t, uint32_t, int32_t
 from libcpp cimport nullptr
 from libc.stdlib cimport malloc, free
 cimport libc.math as cmath
-cimport rift
 
 # -----------------
 # Initialize module
@@ -73,7 +72,7 @@ cdef float acos(float x):
         if x < -1.0:
             to_return = MATH_FLOAT_PI
         else:
-            to_return = rift.acosf(x)
+            to_return = cmath.acos(x)
 
     return to_return
 
@@ -85,7 +84,7 @@ cdef float asin(float x):
         if x < -1.0:
             to_return = MATH_FLOAT_PI
         else:
-            to_return = rift.asinf(x)
+            to_return = cmath.asin(x)
 
     return to_return
 
