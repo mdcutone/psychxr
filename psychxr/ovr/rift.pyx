@@ -1,4 +1,5 @@
 cimport ovr_capi, ovr_capi_gl, ovr_errorcode, ovr_capi_util
+from ovr_math cimport Vector2i, Vector2f, Vector3f, Vector4f, Matrix4f, Quatf, Posef
 from libc.stdint cimport uintptr_t, uint32_t, int32_t
 from libcpp cimport nullptr
 from libc.stdlib cimport malloc, free
@@ -1359,7 +1360,7 @@ cdef class ovrQuatf:
             self.c_data.w = 0.0
         elif nargin == 1:
             if isinstance(ovrMatrix4f, args[0]):
-                self.quat_from_rotation_matrix(args[0])
+                self.init_from_rotation_matrix(args[0])
 
         elif nargin == 2:
             # quaternion from axis and angle
@@ -1380,14 +1381,14 @@ cdef class ovrQuatf:
                     self.c_data.z = unit_axis.c_data.z * sin_half_angle
             elif isinstance(args[0], ovrVector3f) and \
                     isinstance(args[1], ovrVector3f):
-                self.quat_from_segment(args[0], args[1])
+                self._init_from_segment(args[0], args[1])
         elif nargin == 4:
             self.c_data.x = <float>args[0]
             self.c_data.y = <float>args[1]
             self.c_data.z = <float>args[2]
             self.c_data.w = <float>args[3]
 
-    cdef quat_from_rotation_matrix(self, ovrMatrix4f m):
+    cdef init_from_rotation_matrix(self, ovrMatrix4f m):
         # port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
         # 1570
         cdef float trace = 0.0
@@ -1422,7 +1423,7 @@ cdef class ovrQuatf:
 
         assert self.is_normalized()
 
-    cdef quat_from_segment(self, ovrVector3f from_vec, ovrVector3f to_vec):
+    cdef _init_from_segment(self, ovrVector3f from_vec, ovrVector3f to_vec):
         # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
         # 1614
         cdef float cx = from_vec.c_data.y * to_vec.c_data.z - \
@@ -1910,13 +1911,163 @@ cdef class ovrMatrix4f:
     cdef ovr_capi.ovrMatrix4f* c_data
     cdef ovr_capi.ovrMatrix4f  c_ovrMatrix4f
 
-    def __cinit__(self):
+    def __cinit__(self, *args):
         self.c_data = &self.c_ovrMatrix4f
+
+        cdef int nargin = <int>len(args)
+        if nargin == 0:
+            self.c_data[0] = <ovr_capi.ovrMatrix4f>Matrix4f.Identity()
+        elif nargin == 1:
+            if isinstance(args[0], ovrQuatf):
+                self.c_data[0] = <ovr_capi.ovrMatrix4f>Matrix4f(
+                    <Quatf>(<ovrQuatf>args[0]).c_data[0])
+            elif isinstance(args[0], ovrPosef):
+                self.c_data[0] = <ovr_capi.ovrMatrix4f>Matrix4f(
+                    <Posef>(<ovrPosef>args[0]).c_data[0])
+            elif isinstance(args[0], ovrMatrix4f):
+                self.c_data[0] = <ovr_capi.ovrMatrix4f>Matrix4f(
+                    <Matrix4f>(<ovrMatrix4f>args[0]).c_data[0])
+        elif nargin == 9:
+            self.c_data[0] = <ovr_capi.ovrMatrix4f>Matrix4f(
+                <float>args[0],
+                <float>args[1],
+                <float>args[2],
+                <float>args[3],
+                <float>args[4],
+                <float>args[5],
+                <float>args[6],
+                <float>args[7],
+                <float>args[8])
+        elif nargin == 16:
+            self.c_data[0] = <ovr_capi.ovrMatrix4f>Matrix4f(
+                <float>args[0],
+                <float>args[1],
+                <float>args[2],
+                <float>args[3],
+                <float>args[4],
+                <float>args[5],
+                <float>args[6],
+                <float>args[7],
+                <float>args[8],
+                <float>args[9],
+                <float>args[10],
+                <float>args[11],
+                <float>args[12],
+                <float>args[13],
+                <float>args[14],
+                <float>args[15])
 
     @property
     def M(self):
         return self.c_data.M
 
+    @staticmethod
+    def identity():
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        return to_return
+
+    def set_identity(self):
+        self.c_data[0] = <ovr_capi.ovrMatrix4f>Matrix4f()
+
+    def set_x_basis(self, ovrVector3f v):
+        cdef Matrix4f result = <Matrix4f>self.c_data[0]
+        result.SetXBasis(<Vector3f>v.c_data[0])
+        self.c_data[0] = <ovr_capi.ovrMatrix4f>result
+
+    def get_x_basis(self):
+        cdef ovrVector3f to_return = ovrVector3f()
+        cdef Vector3f vec_out = (<Matrix4f>self.c_data[0]).GetXBasis()
+        to_return.c_data[0] = <ovr_capi.ovrVector3f>vec_out
+
+        return to_return
+
+    @property
+    def x_basis(self):
+        return self.get_x_basis()
+
+    @x_basis.setter
+    def x_basis(self, object v):
+        if isinstance(v, ovrVector3f):
+            self.set_x_basis(v)
+        elif isinstance(v, (list, tuple)):
+            self.set_x_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
+
+    def set_y_basis(self, ovrVector3f v):
+        cdef Matrix4f result = <Matrix4f>self.c_data[0]
+        result.SetYBasis(<Vector3f>v.c_data[0])
+        self.c_data[0] = <ovr_capi.ovrMatrix4f>result
+
+    def get_y_basis(self):
+        cdef ovrVector3f to_return = ovrVector3f()
+        cdef Vector3f vec_out = (<Matrix4f>self.c_data[0]).GetYBasis()
+        to_return.c_data[0] = <ovr_capi.ovrVector3f>vec_out
+
+        return to_return
+
+    @property
+    def y_basis(self):
+        return self.get_y_basis()
+
+    @y_basis.setter
+    def y_basis(self, object v):
+        if isinstance(v, ovrVector3f):
+            self.set_y_basis(v)
+        elif isinstance(v, (list, tuple)):
+            self.set_y_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
+
+    def set_z_basis(self, ovrVector3f v):
+        cdef Matrix4f result = <Matrix4f>self.c_data[0]
+        result.SetZBasis(<Vector3f>v.c_data[0])
+        self.c_data[0] = <ovr_capi.ovrMatrix4f>result
+
+    def get_z_basis(self):
+        cdef ovrVector3f to_return = ovrVector3f()
+        cdef Vector3f vec_out = (<Matrix4f>self.c_data[0]).GetZBasis()
+        to_return.c_data[0] = <ovr_capi.ovrVector3f>vec_out
+
+        return to_return
+
+    @property
+    def z_basis(self):
+        return self.get_z_basis()
+
+    @z_basis.setter
+    def z_basis(self, object v):
+        if isinstance(v, ovrVector3f):
+            self.set_z_basis(v)
+        elif isinstance(v, (list, tuple)):
+            self.set_z_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
+
+    def __eq__(self, ovrMatrix4f b):
+        return <Matrix4f>((<ovrMatrix4f>self).c_data[0]) == <Matrix4f>b.c_data[0]
+
+    def __add__(ovrMatrix4f a, ovrMatrix4f b):
+        cdef ovrMatrix4f to_return = ovrMatrix4f(a)
+        to_return += b
+
+        return to_return
+
+    def __iadd__(self, ovrMatrix4f b):
+        cdef int i, j
+        for i in range(4):
+            for j in range(4):
+                self.c_data.M[i][j] += b.c_data.M[i][j]
+
+        return self
+
+    def __sub__(ovrMatrix4f a, ovrMatrix4f b):
+        cdef ovrMatrix4f to_return = ovrMatrix4f(a)
+        to_return -= b
+
+        return to_return
+
+    def __isub__(self, ovrMatrix4f b):
+        cdef int i, j
+        for i in range(4):
+            for j in range(4):
+                self.c_data.M[i][j] -= b.c_data.M[i][j]
+
+        return self
 
 cdef class TextureSwapChain(object):
     cdef ovr_capi.ovrTextureSwapChain texture_swap_chain
