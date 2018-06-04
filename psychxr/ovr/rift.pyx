@@ -2069,6 +2069,39 @@ cdef class ovrMatrix4f:
 
         return self
 
+    @staticmethod
+    def multiply(ovrMatrix4f r, ovrMatrix4f a, ovrMatrix4f b):
+        Matrix4f.Multiply(<Matrix4f*>(<ovrMatrix4f>r).c_data,
+                          <Matrix4f>(<ovrMatrix4f>a).c_data[0],
+                          <Matrix4f>(<ovrMatrix4f>b).c_data[0])
+
+    def __mul__(ovrMatrix4f a, object b):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        if isinstance(b, ovrMatrix4f):
+            (<ovrMatrix4f>to_return).c_data[0] = \
+                <ovr_capi.ovrMatrix4f>(
+                        <Matrix4f>(<ovrMatrix4f>a).c_data[0] *
+                        <Matrix4f>(<ovrMatrix4f>b).c_data[0])
+        elif isinstance(b, (int, float,)):
+            (<ovrMatrix4f>to_return).c_data[0] = \
+                <ovr_capi.ovrMatrix4f>(
+                        <Matrix4f>(<ovrMatrix4f>a).c_data[0] * <float>b)
+
+        return to_return
+
+    def __truediv__(ovrMatrix4f a, object b):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        if isinstance(b, (int, float,)):
+            (<ovrMatrix4f>to_return).c_data[0] = \
+                <ovr_capi.ovrMatrix4f>(
+                        <Matrix4f>(<ovrMatrix4f>a).c_data[0] / <float>b)
+
+        return to_return
+
+    def transform(self, object v):
+        pass
+
+
 cdef class TextureSwapChain(object):
     cdef ovr_capi.ovrTextureSwapChain texture_swap_chain
 
