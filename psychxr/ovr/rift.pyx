@@ -263,7 +263,7 @@ cdef class ovrVector2i:
     def clamped(self, int max_mag):
         cdef int mag_squared = self.length_sq()
         if mag_squared > max_mag * max_mag:
-            return self * (max_mag / cmath.sqrt(mag_squared))
+            return self * (max_mag / <float>cmath.sqrt(mag_squared))
 
         return self
 
@@ -301,7 +301,7 @@ cdef class ovrVector2i:
     def angle(self, ovrVector2i b):
         cdef int div = self.length_sq() * b.length_sq()
         assert div != <int>0
-        cdef int to_return = self.dot(b) / cmath.sqrt(div)
+        cdef int to_return = self.dot(b) / <float>cmath.sqrt(div)
 
         return to_return
 
@@ -1008,7 +1008,7 @@ cdef class ovrVector3f(object):
     def angle(self, ovrVector3f b):
         cdef float div = self.length_sq() * b.length_sq()
         assert div != <float>0
-        cdef float to_return = acos(self.dot(b) / cmath.sqrt(div))
+        cdef float to_return = <float>acos(self.dot(b) / cmath.sqrt(div))
 
         return to_return
 
@@ -1273,7 +1273,7 @@ cdef class ovrVector4f:
     def clamped(self, float max_mag):
         cdef float mag_squared = self.length_sq()
         if mag_squared > max_mag * max_mag:
-            return self * (max_mag / cmath.sqrt(mag_squared))
+            return self * (max_mag / <float>cmath.sqrt(mag_squared))
 
         return self
 
@@ -1374,8 +1374,8 @@ cdef class ovrQuatf:
                     self.c_data.w = <float>1
                 else:
                     unit_axis = axis.normalized()
-                    sin_half_angle = cmath.sin(angle * <float>0.5)
-                    self.c_data.w = cmath.cos(angle * <float>0.5)
+                    sin_half_angle = <float>cmath.sin(angle * <float>0.5)
+                    self.c_data.w = <float>cmath.cos(angle * <float>0.5)
                     self.c_data.x = unit_axis.c_data.x * sin_half_angle
                     self.c_data.y = unit_axis.c_data.y * sin_half_angle
                     self.c_data.z = unit_axis.c_data.z * sin_half_angle
@@ -1394,27 +1394,27 @@ cdef class ovrQuatf:
         cdef float trace = 0.0
         cdef float s = 0.0
         if trace > <float>0.0:
-            s = cmath.sqrt(trace + <float>1) * <float>2
+            s = <float>cmath.sqrt(trace + <float>1) * <float>2
             self.c_data.w = <float>0.25 * s
             self.c_data.x = (m.M[2][1] - m.M[1][2]) / s
             self.c_data.y = (m.M[0][2] - m.M[2][0]) / s
             self.c_data.z = (m.M[1][0] - m.M[0][1]) / s
         elif m.M[0][0] > m.M[1][1] and m.M[0][0] > m.M[2][2]:
-            s = cmath.sqrt(
+            s = <float>cmath.sqrt(
                 <float>1 + m.M[0][0] - m.M[1][1] - m.M[2][2]) * <float>2
             self.c_data.w = (m.M[2][1] - m.M[1][2]) / s
             self.c_data.x = <float>0.25 * s
             self.c_data.y = (m.M[0][1] + m.M[1][0]) / s
             self.c_data.z = (m.M[2][0] + m.M[0][2]) / s
         elif m.M[1][1] > m.M[2][2]:
-            s = cmath.sqrt(
+            s = <float>cmath.sqrt(
                 <float>1 + m.M[1][1] - m.M[0][0] - m.M[2][2]) * <float>2
             self.c_data.w = (m.M[0][2] - m.M[2][0]) / s
             self.c_data.x = (m.M[0][1] + m.M[1][0]) / s
             self.c_data.y = <float>0.25 * s
             self.c_data.z = (m.M[1][2] + m.M[2][1]) / s
         else:
-            s = cmath.sqrt(
+            s = <float>cmath.sqrt(
                 <float>1 + m.M[2][2] - m.M[0][0] - m.M[1][1]) * <float>2
             self.c_data.w = (m.M[1][0] - m.M[0][1]) / s
             self.c_data.x = (m.M[0][2] + m.M[2][0]) / s
@@ -1436,7 +1436,7 @@ cdef class ovrQuatf:
                          from_vec.c_data.y * to_vec.c_data.y + \
                          from_vec.c_data.z * to_vec.c_data.z
         cdef float cross_len_sq = cx * cx + cy * cy + cz * cz
-        cdef float magnitude = cmath.sqrt(dot * dot + cross_len_sq)
+        cdef float magnitude = <float>cmath.sqrt(dot * dot + cross_len_sq)
         cdef float cw = dot + magnitude
         cdef float sx = 0.0
         cdef float sz = 0.0
@@ -1449,7 +1449,7 @@ cdef class ovrQuatf:
                  to_vec.c_data.y * to_vec.c_data.y
             if sx > sz:
                 if sx >= MATH_FLOAT_SMALLESTNONDENORMAL:
-                    rcp_len = <float>1.0 / cmath.sqrt(sx)
+                    rcp_len = <float>1.0 / <float>cmath.sqrt(sx)
                 else:
                     rcp_len = MATH_FLOAT_HUGENUMBER
 
@@ -1459,7 +1459,7 @@ cdef class ovrQuatf:
                 self.c_data.w = <float>0
             else:
                 if sz >= MATH_FLOAT_SMALLESTNONDENORMAL:
-                    rcp_len = <float>1.0 / cmath.sqrt(sz)
+                    rcp_len = <float>1.0 / <float>cmath.sqrt(sz)
                 else:
                     rcp_len = MATH_FLOAT_HUGENUMBER
 
@@ -1469,7 +1469,7 @@ cdef class ovrQuatf:
                 self.c_data.w = <float>0
         else:
             if sz >= MATH_FLOAT_SMALLESTNONDENORMAL:
-                rcp_len = <float>1.0 / cmath.sqrt(sz)
+                rcp_len = <float>1.0 / <float>cmath.sqrt(sz)
             else:
                 rcp_len = MATH_FLOAT_HUGENUMBER
 
@@ -1666,7 +1666,7 @@ cdef class ovrQuatf:
                self.c_data.z * self.c_data.z
 
     def length(self):
-        return cmath.sqrt(self.length_sq())
+        return <float>cmath.sqrt(self.length_sq())
 
     def distance(self, ovrQuatf q):
         # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
@@ -1733,8 +1733,8 @@ cdef class ovrQuatf:
             return ovrQuatf(imag.x, imag.y, imag.z, cos_half_angle)
         else:
             if cmath.fabs(v.c_data.x) > cmath.fabs(v.c_data.y):
-                inv_length = cmath.sqrt(v.c_data.x * v.c_data.x +
-                                        v.c_data.z * v.c_data.z)
+                inv_length = <float>cmath.sqrt(v.c_data.x * v.c_data.x +
+                                               v.c_data.z * v.c_data.z)
                 if inv_length > <float>0:
                     inv_length = <float>1 / inv_length
 
@@ -1743,7 +1743,7 @@ cdef class ovrQuatf:
                                 v.c_data.x * inv_length,
                                 0)
             else:
-                inv_length = cmath.sqrt(
+                inv_length = <float>cmath.sqrt(
                     v.c_data.y * v.c_data.y + v.c_data.z * v.c_data.z)
                 if inv_length > <float>0:
                     inv_length = <float>1 / inv_length
@@ -1958,15 +1958,15 @@ cdef class ovrMatrix4f:
         cdef float zz = q.c_data.z * q.c_data.z
 
         self.c_data.M[0][0] = ww + xx - yy - zz
-        self.c_data.M[0][1] = 2 * (q.c_data.x * q.c_data.y - q.c_data.w * q.c_data.z)
-        self.c_data.M[0][2] = 2 * (q.c_data.x * q.c_data.z + q.c_data.w * q.c_data.y)
+        self.c_data.M[0][1] = <float>2 * (q.c_data.x * q.c_data.y - q.c_data.w * q.c_data.z)
+        self.c_data.M[0][2] = <float>2 * (q.c_data.x * q.c_data.z + q.c_data.w * q.c_data.y)
         self.c_data.M[0][3] = <float>0
-        self.c_data.M[1][0] = 2 * (q.c_data.x * q.c_data.y + q.c_data.w * q.c_data.z)
+        self.c_data.M[1][0] = <float>2 * (q.c_data.x * q.c_data.y + q.c_data.w * q.c_data.z)
         self.c_data.M[1][1] = ww - xx + yy - zz
-        self.c_data.M[1][2] = 2 * (q.c_data.y * q.c_data.z - q.c_data.w * q.c_data.x)
+        self.c_data.M[1][2] = <float>2 * (q.c_data.y * q.c_data.z - q.c_data.w * q.c_data.x)
         self.c_data.M[1][3] = <float>0
-        self.c_data.M[2][0] = 2 * (q.c_data.x * q.c_data.z - q.c_data.w * q.c_data.y)
-        self.c_data.M[2][1] = 2 * (q.c_data.y * q.c_data.z + q.c_data.w * q.c_data.x)
+        self.c_data.M[2][0] = <float>2 * (q.c_data.x * q.c_data.z - q.c_data.w * q.c_data.y)
+        self.c_data.M[2][1] = <float>2 * (q.c_data.y * q.c_data.z + q.c_data.w * q.c_data.x)
         self.c_data.M[2][2] = ww - xx - yy + zz
         self.c_data.M[2][3] = <float>0
         self.c_data.M[3][0] = <float>0
