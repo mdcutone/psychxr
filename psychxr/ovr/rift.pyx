@@ -1374,7 +1374,7 @@ cdef class ovrQuatf:
                     self.c_data.w = <float>1
                 else:
                     unit_axis = axis.normalized()
-                    half_angle = cmath.sin(angle * <float>0.5)
+                    sin_half_angle = cmath.sin(angle * <float>0.5)
                     self.c_data.w = cmath.cos(angle * <float>0.5)
                     self.c_data.x = unit_axis.c_data.x * sin_half_angle
                     self.c_data.y = unit_axis.c_data.y * sin_half_angle
@@ -1834,7 +1834,9 @@ cdef class ovrPosef:
         self.c_data = &self.c_ovrPosef
 
         # create property objects
+        self.field_position = ovrVector3f()
         self.field_position.c_data = &self.c_data.Position
+        self.field_orientation = ovrQuatf()
         self.field_orientation.c_data = &self.c_data.Orientation
 
         cdef int nargin = <int>len(args)  # get number of arguments
@@ -1842,8 +1844,8 @@ cdef class ovrPosef:
             pass
         elif nargin == 2:
             if isinstance(args[0], ovrVector3f) and isinstance(args[1], ovrQuatf):
-                self.field_position.c_data[0] = args[0].c_data[0]
-                self.field_orientation.c_data[0] = args[1].c_data[0]
+                self.field_position.c_data[0] = (<ovrVector3f>args[0]).c_data[0]
+                self.field_orientation.c_data[0] = (<ovrQuatf>args[1]).c_data[0]
 
     @property
     def rotation(self):
@@ -1851,7 +1853,7 @@ cdef class ovrPosef:
 
     @rotation.setter
     def rotation(self, ovrQuatf value):
-        self.field_orientation.c_data[0] = value.c_data[0]
+        self.field_orientation.c_data[0] = (<ovrQuatf>value).c_data[0]
 
     @property
     def translation(self):
@@ -1859,7 +1861,7 @@ cdef class ovrPosef:
 
     @translation.setter
     def translation(self, ovrVector3f value):
-        self.field_position.c_data[0] = value.c_data[0]
+        self.field_position.c_data[0] = (<ovrVector3f>value).c_data[0]
 
     def rotate(self, ovrVector3f v):
         return self.rotation.rotate(v)
@@ -1911,12 +1913,187 @@ cdef class ovrMatrix4f:
     cdef ovr_capi.ovrMatrix4f* c_data
     cdef ovr_capi.ovrMatrix4f  c_ovrMatrix4f
 
-    def __cinit__(self):
+    def __cinit__(self, *args, **kwargs):
         self.c_data = &self.c_ovrMatrix4f
+
+        cdef int nargin = <int>len(args)  # get number of arguments
+        if nargin == 0:
+            self.identity()
+        elif nargin == 1:
+            if isinstance(args[0], ovrQuatf):
+                self._init_from_quatf(args[0])
+            elif isinstance(args[0], ovrPosef):
+                self._init_from_posef(args[0])
+        elif nargin == 9:
+            self._init_from_floats_9(args)
+        elif nargin == 16:
+            self._init_from_floats_16(args)
+
+    cdef void _init_from_floats_16(self, tuple values):
+        assert <int>len(values) == 16
+        cdef size_t i, j, k
+        for i in range(4):
+            for j in range(4):
+                self.c_data.M[i][j] = <float>values[k]
+                k += 1
+
+    cdef void _init_from_floats_9(self, tuple values):
+        assert <int>len(values) == 9
+        cdef size_t i, j, k
+        for i in range(3):
+            for j in range(3):
+                k = (i * 3) + j
+                self.c_data.M[i][j] = <float>values[k]
+
+        self.c_data.M[2][3] = <float>0
+        self.c_data.M[3][0] = <float>0
+        self.c_data.M[3][1] = <float>0
+        self.c_data.M[3][2] = <float>0
+        self.c_data.M[3][3] = <float>1
+
+    cdef void _init_from_quatf(self, ovrQuatf q):
+        cdef float ww = q.c_data.w * q.c_data.w
+        cdef float xx = q.c_data.x * q.c_data.x
+        cdef float yy = q.c_data.y * q.c_data.y
+        cdef float zz = q.c_data.z * q.c_data.z
+
+        self.c_data.M[0][0] = ww + xx - yy - zz
+        self.c_data.M[0][1] = 2 * (q.c_data.x * q.c_data.y - q.c_data.w * q.c_data.z)
+        self.c_data.M[0][2] = 2 * (q.c_data.x * q.c_data.z + q.c_data.w * q.c_data.y)
+        self.c_data.M[0][3] = <float>0
+        self.c_data.M[1][0] = 2 * (q.c_data.x * q.c_data.y + q.c_data.w * q.c_data.z)
+        self.c_data.M[1][1] = ww - xx + yy - zz
+        self.c_data.M[1][2] = 2 * (q.c_data.y * q.c_data.z - q.c_data.w * q.c_data.x)
+        self.c_data.M[1][3] = <float>0
+        self.c_data.M[2][0] = 2 * (q.c_data.x * q.c_data.z - q.c_data.w * q.c_data.y)
+        self.c_data.M[2][1] = 2 * (q.c_data.y * q.c_data.z + q.c_data.w * q.c_data.x)
+        self.c_data.M[2][2] = ww - xx - yy + zz
+        self.c_data.M[2][3] = <float>0
+        self.c_data.M[3][0] = <float>0
+        self.c_data.M[3][1] = <float>0
+        self.c_data.M[3][2] = <float>0
+        self.c_data.M[3][3] = <float>1
+
+    cdef void _init_from_posef(self, ovrPosef p):
+        cdef ovrMatrix4f to_return = ovrMatrix4f(p.rotation)
+        to_return.set_translation(p.translation)
+
+        self.c_data[0] = to_return.c_data[0]
+
+    @staticmethod
+    def identity():
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        cdef size_t i, j
+        for i in range(4):
+            for j in range(4):
+                to_return.c_data.M[i][j] = <float>1 if i == j else <float>0
+
+        return to_return
 
     @property
     def M(self):
         return self.c_data.M
+
+    def set_identity(self):
+        cdef size_t i, j
+        for i in range(4):
+            for j in range(4):
+                self.c_data.M[i][j] = <float>1 if i == j else <float>0
+
+    def set_x_basis(self, ovrVector3f v):
+        self.c_data.M[0][0] = v.c_data.x
+        self.c_data.M[1][0] = v.c_data.y
+        self.c_data.M[2][0] = v.c_data.z
+
+    def get_x_basis(self):
+        cdef ovrVector3f to_return = ovrVector3f(
+            self.c_data.M[0][0],
+            self.c_data.M[1][0],
+            self.c_data.M[2][0])
+
+        return to_return
+
+    @property
+    def x_basis(self):
+        return self.get_x_basis()
+
+    @x_basis.setter
+    def x_basis(self, object value):
+        if isinstance(value, ovrVector3f):
+            self.set_x_basis(value)
+        elif isinstance(value, (list, tuple)):
+            self.c_data.M[0][0] = value[0]
+            self.c_data.M[1][0] = value[1]
+            self.c_data.M[2][0] = value[2]
+
+    def set_y_basis(self, ovrVector3f v):
+        self.c_data.M[0][1] = v.c_data.x
+        self.c_data.M[1][1] = v.c_data.y
+        self.c_data.M[2][1] = v.c_data.z
+
+    def get_y_basis(self):
+        cdef ovrVector3f to_return = ovrVector3f(
+            self.c_data.M[0][1],
+            self.c_data.M[1][1],
+            self.c_data.M[2][1])
+
+        return to_return
+
+    @property
+    def y_basis(self):
+        return self.get_x_basis()
+
+    @y_basis.setter
+    def y_basis(self, object value):
+        if isinstance(value, ovrVector3f):
+            self.set_y_basis(value)
+        elif isinstance(value, (list, tuple)):
+            self.c_data.M[0][1] = value[0]
+            self.c_data.M[1][1] = value[1]
+            self.c_data.M[2][1] = value[2]
+
+    def set_z_basis(self, ovrVector3f v):
+        self.c_data.M[0][2] = v.c_data.x
+        self.c_data.M[1][2] = v.c_data.y
+        self.c_data.M[2][2] = v.c_data.z
+
+    def get_z_basis(self):
+        cdef ovrVector3f to_return = ovrVector3f(
+            self.c_data.M[0][2],
+            self.c_data.M[1][2],
+            self.c_data.M[2][2])
+
+        return to_return
+
+    @property
+    def z_basis(self):
+        return self.get_z_basis()
+
+    @z_basis.setter
+    def z_basis(self, object value):
+        if isinstance(value, ovrVector3f):
+            self.set_z_basis(value)
+        elif isinstance(value, (list, tuple)):
+            self.c_data.M[0][2] = value[0]
+            self.c_data.M[1][2] = value[1]
+            self.c_data.M[2][2] = value[2]
+
+    def set_translation(self, ovrVector3f v):
+        self.c_data.M[0][3] = v.c_data.x
+        self.c_data.M[1][3] = v.c_data.y
+        self.c_data.M[2][3] = v.c_data.z
+
+    def __eq__(self, ovrMatrix4f b):
+        cdef size_t i, j
+        cdef bint is_equal = True
+        for i in range(4):
+            for j in range(4):
+                is_equal &= self.c_data.M[i][j] == b.c_data.M[i][j]
+
+        return is_equal
+
+    def __ne__(self, ovrMatrix4f b):
+        return not self.__eq__(b)
 
 
 cdef class TextureSwapChain(object):
