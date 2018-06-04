@@ -1578,6 +1578,125 @@ cdef class ovrQuatf:
 
         return self
 
+    def __mul__(ovrQuatf a, object b):
+        cdef ovrQuatf to_return
+        if isinstance(b, ovrVector3f):
+            to_return = a.rotate(b)
+        elif isinstance(b, (int, float)):
+            to_return = ovrQuatf(a.c_data.x * <float>b,
+                                    a.c_data.y * <float>b,
+                                    a.c_data.z * <float>b,
+                                    a.c_data.w * <float>b)
+
+        return to_return
+
+    def __imul__(self, object b):
+        cdef ovrQuatf to_return
+        if isinstance(b, ovrQuatf):
+            self.c_data.x *= b.c_data.x
+            self.c_data.y *= b.c_data.y
+            self.c_data.z *= b.c_data.z
+            self.c_data.w *= b.c_data.w
+        elif isinstance(b, (int, float)):
+            self.c_data.x *= <float>b
+            self.c_data.y *= <float>b
+            self.c_data.z *= <float>b
+            self.c_data.w *= <float>b
+
+        return self
+
+    def __truediv__(ovrVector4f a, object s):
+        cdef float rcp = <float>1 / <float>s
+        cdef ovrVector4f to_return = ovrVector4f(
+            a.c_data.x * rcp,
+            a.c_data.y * rcp,
+            a.c_data.z * rcp,
+            a.c_data.w * rcp)
+
+        return to_return
+
+    def __itruediv__(self, object s):
+        cdef float rcp = <float>1 / <float>s
+        self.c_data.x *= rcp
+        self.c_data.y *= rcp
+        self.c_data.z *= rcp
+        self.c_data.w *= rcp
+
+        return self
+
+    def is_equal(self, ovrQuatf b, float tolerance = 0.0):
+        return  self.abs(self.dot(b)) >= <float>1 - tolerance
+
+    def abs(self, object v):
+        cdef float to_return = 0.0
+        if <float>v >= 0:
+            to_return = v
+        else:
+            to_return = -v
+
+        return to_return
+
+    def imag(self):
+        cdef ovrVector3f to_return = ovrVector3f(
+            self.c_data.x,
+            self.c_data.y,
+            self.c_data.z)
+
+        return to_return
+
+    def length_sq(self):
+        return self.c_data.x * self.c_data.x + \
+               self.c_data.y * self.c_data.y + \
+               self.c_data.z * self.c_data.z + \
+               self.c_data.z * self.c_data.z
+
+    def length(self):
+        return cmath.sqrt(self.length_sq())
+
+    def distance(self, ovrQuatf q):
+        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
+        # 1764
+        cdef float d1 = (self - q).length()
+        cdef float d2 = (self + q).length()
+
+        return d1 if d1 < d2 else d2
+
+    def distance_sq(self, ovrQuatf q):
+        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
+        # 1770
+        cdef float d1 = (self - q).length_sq()
+        cdef float d2 = (self + q).length_sq()
+
+        return d1 if d1 < d2 else d2
+
+    def dot(self, ovrQuatf q):
+        return self.c_data.x * q.c_data.x + \
+               self.c_data.y * q.c_data.y + \
+               self.c_data.z * q.c_data.z + \
+               self.c_data.w * q.c_data.w
+
+    def angle(self, ovrQuatf q):
+        return <float>2 * acos(self.abs(self.dot(q)))
+
+    def is_normalized(self):
+        return cmath.fabs(self.length_sq() - <float>1) < 0
+
+    def normalize(self):
+        cdef float s = self.length()
+        if s != <float>0:
+            s = <float>1 / s
+
+        self *= s
+
+    def normalized(self):
+        cdef float s = self.length()
+        if s != <float>0:
+            s = <float>1 / s
+
+        return self * s
+
+
+
 
 cdef class ovrMatrix4f:
     cdef ovr_capi.ovrMatrix4f* c_data
