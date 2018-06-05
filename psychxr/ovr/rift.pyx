@@ -1231,6 +1231,75 @@ cdef class ovrMatrix4f:
     def set_identity(self):
         self.c_data[0] = ovr_math.Matrix4f()
 
+    def set_x_basis(self, ovrVector3f v):
+        (<ovrMatrix4f>self).c_data[0].SetXBasis(v.c_data[0])
+
+    def get_x_basis(self):
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovr_math.Matrix4f>self.c_data[0]).GetXBasis()
+
+        return to_return
+
+    @property
+    def x_basis(self):
+        return self.get_x_basis()
+
+    @x_basis.setter
+    def x_basis(self, object v):
+        if isinstance(v, ovrVector3f):
+            self.set_x_basis(<ovrVector3f>v)
+        elif isinstance(v, (list, tuple)):
+            self.set_x_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
+
+    def set_y_basis(self, ovrVector3f v):
+        (<ovrMatrix4f>self).c_data[0].SetYBasis(v.c_data[0])
+
+    def get_y_basis(self):
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovr_math.Matrix4f>self.c_data[0]).GetYBasis()
+
+        return to_return
+
+    @property
+    def y_basis(self):
+        return self.get_y_basis()
+
+    @y_basis.setter
+    def y_basis(self, object v):
+        if isinstance(v, ovrVector3f):
+            self.set_y_basis(<ovrVector3f>v)
+        elif isinstance(v, (list, tuple)):
+            self.set_y_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
+
+    def set_z_basis(self, ovrVector3f v):
+        (<ovrMatrix4f>self).c_data[0].SetZBasis(v.c_data[0])
+
+    def get_z_basis(self):
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovr_math.Matrix4f>self.c_data[0]).GetZBasis()
+
+        return to_return
+
+    @property
+    def z_basis(self):
+        return self.get_y_basis()
+
+    @z_basis.setter
+    def z_basis(self, object v):
+        if isinstance(v, ovrVector3f):
+            self.set_z_basis(<ovrVector3f>v)
+        elif isinstance(v, (list, tuple)):
+            self.set_z_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
+
+    def __eq__(self, ovrMatrix4f b):
+        return (<ovrMatrix4f>self).c_data[0] == b.c_data[0]
+
+    def __ne__(self, ovrMatrix4f b):
+        return (<ovrMatrix4f>self).c_data[0] != b.c_data[0]
+
 
 cdef class TextureSwapChain(object):
     cdef ovr_capi.ovrTextureSwapChain texture_swap_chain
