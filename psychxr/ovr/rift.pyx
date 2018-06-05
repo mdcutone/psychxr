@@ -824,133 +824,28 @@ cdef class ovrQuatf:
     def __cinit__(self, *args):
         self.c_data = &self.c_Quatf
 
-        cdef ovrVector3f axis, unit_axis
-        cdef float angle, sin_half_angle = 0.0
         cdef int nargin = <int>len(args)  # get number of arguments
         if nargin == 0:
-            self.c_data.x = 0.0
-            self.c_data.y = 0.0
-            self.c_data.z = 0.0
-            self.c_data.w = 0.0
+            self.c_data[0] = ovr_math.Quatf.Identity()
         elif nargin == 1:
             if isinstance(ovrMatrix4f, args[0]):
-                self.init_from_rotation_matrix(args[0])
-
+                self.c_data[0] = ovr_math.Quatf(
+                    (<ovrMatrix4f>args[0]).c_data[0])
+            elif isinstance(ovrMatrix4f, args[0]):
+                self.c_data[0] = ovr_math.Quatf(
+                    (<ovrQuatf>args[0]).c_data[0])
         elif nargin == 2:
             # quaternion from axis and angle
             if isinstance(args[0], ovrVector3f) and \
                     isinstance(args[1], (int, float)):
-                axis = args[0]
-                angle = <float>args[1]  # make sure this is a float
-                if axis.length_sq() == <float>0:
-                    assert angle == <float>0
-                    self.c_data.x = self.c_data.y = self.c_data.z = <float>0
-                    self.c_data.w = <float>1
-                else:
-                    unit_axis = axis.normalized()
-                    half_angle = cmath.sin(angle * <float>0.5)
-                    self.c_data.w = cmath.cos(angle * <float>0.5)
-                    self.c_data.x = unit_axis.c_data.x * sin_half_angle
-                    self.c_data.y = unit_axis.c_data.y * sin_half_angle
-                    self.c_data.z = unit_axis.c_data.z * sin_half_angle
-            elif isinstance(args[0], ovrVector3f) and \
-                    isinstance(args[1], ovrVector3f):
-                self._init_from_segment(args[0], args[1])
+                self.c_data[0] = ovr_math.Quatf(
+                    (<ovrVector3f>args[0]).c_data[0], <float>args[1])
         elif nargin == 4:
-            self.c_data.x = <float>args[0]
-            self.c_data.y = <float>args[1]
-            self.c_data.z = <float>args[2]
-            self.c_data.w = <float>args[3]
-
-    cdef init_from_rotation_matrix(self, ovrMatrix4f m):
-        # port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1570
-        cdef float trace = 0.0
-        cdef float s = 0.0
-        if trace > <float>0.0:
-            s = cmath.sqrt(trace + <float>1) * <float>2
-            self.c_data.w = <float>0.25 * s
-            self.c_data.x = (m.M[2][1] - m.M[1][2]) / s
-            self.c_data.y = (m.M[0][2] - m.M[2][0]) / s
-            self.c_data.z = (m.M[1][0] - m.M[0][1]) / s
-        elif m.M[0][0] > m.M[1][1] and m.M[0][0] > m.M[2][2]:
-            s = cmath.sqrt(
-                <float>1 + m.M[0][0] - m.M[1][1] - m.M[2][2]) * <float>2
-            self.c_data.w = (m.M[2][1] - m.M[1][2]) / s
-            self.c_data.x = <float>0.25 * s
-            self.c_data.y = (m.M[0][1] + m.M[1][0]) / s
-            self.c_data.z = (m.M[2][0] + m.M[0][2]) / s
-        elif m.M[1][1] > m.M[2][2]:
-            s = cmath.sqrt(
-                <float>1 + m.M[1][1] - m.M[0][0] - m.M[2][2]) * <float>2
-            self.c_data.w = (m.M[0][2] - m.M[2][0]) / s
-            self.c_data.x = (m.M[0][1] + m.M[1][0]) / s
-            self.c_data.y = <float>0.25 * s
-            self.c_data.z = (m.M[1][2] + m.M[2][1]) / s
-        else:
-            s = cmath.sqrt(
-                <float>1 + m.M[2][2] - m.M[0][0] - m.M[1][1]) * <float>2
-            self.c_data.w = (m.M[1][0] - m.M[0][1]) / s
-            self.c_data.x = (m.M[0][2] + m.M[2][0]) / s
-            self.c_data.y = (m.M[1][2] + m.M[2][1]) / s
-            self.c_data.z = <float>0.25 * s
-
-        assert self.is_normalized()
-
-    cdef _init_from_segment(self, ovrVector3f from_vec, ovrVector3f to_vec):
-        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1614
-        cdef float cx = from_vec.c_data.y * to_vec.c_data.z - \
-                        from_vec.c_data.z * to_vec.c_data.y
-        cdef float cy = from_vec.c_data.z * to_vec.c_data.x - \
-                        from_vec.c_data.x * to_vec.c_data.z
-        cdef float cz = from_vec.c_data.x * to_vec.c_data.y - \
-                        from_vec.c_data.y * to_vec.c_data.x
-        cdef float dot = from_vec.c_data.x * to_vec.c_data.x + \
-                         from_vec.c_data.y * to_vec.c_data.y + \
-                         from_vec.c_data.z * to_vec.c_data.z
-        cdef float cross_len_sq = cx * cx + cy * cy + cz * cz
-        cdef float magnitude = cmath.sqrt(dot * dot + cross_len_sq)
-        cdef float cw = dot + magnitude
-        cdef float sx = 0.0
-        cdef float sz = 0.0
-        cdef float rcp_len = 0.0
-
-        if cw < MATH_FLOAT_SMALLESTNONDENORMAL:
-            sx = to_vec.c_data.y * to_vec.c_data.y + \
-                 to_vec.c_data.z * to_vec.c_data.z
-            sz = to_vec.c_data.x * to_vec.c_data.x + \
-                 to_vec.c_data.y * to_vec.c_data.y
-            if sx > sz:
-                if sx >= MATH_FLOAT_SMALLESTNONDENORMAL:
-                    rcp_len = <float>1.0 / cmath.sqrt(sx)
-                else:
-                    rcp_len = MATH_FLOAT_HUGENUMBER
-
-                self.c_data.x = <float>0
-                self.c_data.y = to_vec.c_data.z * rcp_len
-                self.c_data.z = -to_vec.c_data.y * rcp_len
-                self.c_data.w = <float>0
-            else:
-                if sz >= MATH_FLOAT_SMALLESTNONDENORMAL:
-                    rcp_len = <float>1.0 / cmath.sqrt(sz)
-                else:
-                    rcp_len = MATH_FLOAT_HUGENUMBER
-
-                self.c_data.x = to_vec.c_data.y * rcp_len
-                self.c_data.y = -to_vec.c_data.x * rcp_len
-                self.c_data.z = <float>0
-                self.c_data.w = <float>0
-        else:
-            if sz >= MATH_FLOAT_SMALLESTNONDENORMAL:
-                rcp_len = <float>1.0 / cmath.sqrt(sz)
-            else:
-                rcp_len = MATH_FLOAT_HUGENUMBER
-
-            self.c_data.x = cx * rcp_len
-            self.c_data.y = cy * rcp_len
-            self.c_data.z = cz * rcp_len
-            self.c_data.w = cw * rcp_len
+            self.c_data[0] = ovr_math.Quatf(
+                <float>args[0],
+                <float>args[1],
+                <float>args[2],
+                <float>args[3])
 
     @property
     def x(self):
@@ -1005,24 +900,14 @@ cdef class ovrQuatf:
         return to_return
 
     def __eq__(self, ovrQuatf b):
-        return self.c_data.x == b.c_data.x and \
-               self.c_data.y == b.c_data.y and \
-               self.c_data.z == b.c_data.z and \
-               self.c_data.w == b.c_data.w
+        return (<ovrQuatf>self).c_data[0] == b.c_data[0]
 
     def __ne__(self, ovrQuatf b):
-        return self.c_data.x != b.c_data.x or \
-               self.c_data.y != b.c_data.y or \
-               self.c_data.z != b.c_data.z or \
-               self.c_data.w != b.c_data.w
-
+        return (<ovrQuatf>self).c_data[0] != b.c_data[0]
 
     def __add__(ovrQuatf a, ovrQuatf b):
-        cdef ovrQuatf to_return = ovrQuatf(
-            a.c_data.x + b.c_data.x,
-            a.c_data.y + b.c_data.y,
-            a.c_data.z + b.c_data.z,
-            a.c_data.w + b.c_data.w)
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = a.c_data[0] + b.c_data[0]
 
         return to_return
 
@@ -1035,11 +920,8 @@ cdef class ovrQuatf:
         return self
 
     def __sub__(ovrQuatf a, ovrQuatf b):
-        cdef ovrQuatf to_return = ovrQuatf(
-            a.c_data.x - b.c_data.x,
-            a.c_data.y - b.c_data.y,
-            a.c_data.z - b.c_data.z,
-            a.c_data.w - b.c_data.w)
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = a.c_data[0] - b.c_data[0]
 
         return to_return
 
@@ -1094,230 +976,136 @@ cdef class ovrQuatf:
 
         return self
 
-    def __truediv__(ovrQuatf a, object s):
-        cdef float rcp = <float>1 / <float>s
-        cdef ovrQuatf to_return = ovrQuatf(
-            a.c_data.x * rcp,
-            a.c_data.y * rcp,
-            a.c_data.z * rcp,
-            a.c_data.w * rcp)
+    def __truediv__(ovrQuatf a, float s):
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = a.c_data[0] / s
 
         return to_return
 
-    def __itruediv__(self, object s):
-        cdef float rcp = <float>1 / <float>s
-        self.c_data.x *= rcp
-        self.c_data.y *= rcp
-        self.c_data.z *= rcp
-        self.c_data.w *= rcp
+    def __itruediv__(self, float s):
+        (<ovrQuatf>self).c_data[0] = (<ovrQuatf>self).c_data[0] / s
 
         return self
 
     def is_equal(self, ovrQuatf b, float tolerance = 0.0):
         return  self.abs(self.dot(b)) >= <float>1 - tolerance
 
-    def abs(self, object v):
-        cdef float to_return = 0.0
-        if <float>v >= 0:
-            to_return = v
-        else:
-            to_return = -v
-
-        return to_return
+    def abs(self, float v):
+        return <float>(<ovrQuatf>self).c_data[0].Abs(v)
 
     def imag(self):
-        cdef ovrVector3f to_return = ovrVector3f(
-            self.c_data.x,
-            self.c_data.y,
-            self.c_data.z)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrQuatf>self).c_data[0].Imag()
 
         return to_return
 
     def length_sq(self):
-        return self.c_data.x * self.c_data.x + \
-               self.c_data.y * self.c_data.y + \
-               self.c_data.z * self.c_data.z + \
-               self.c_data.z * self.c_data.z
+        return <float>(<ovrQuatf>self).c_data[0].LengthSq()
 
     def length(self):
-        return cmath.sqrt(self.length_sq())
+        return <float>(<ovrQuatf>self).c_data[0].Length()
 
     def distance(self, ovrQuatf q):
-        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1764
-        cdef float d1 = (self - q).length()
-        cdef float d2 = (self + q).length()
-
-        return d1 if d1 < d2 else d2
+        return <float>(<ovrQuatf>self).c_data[0].Distance(q.c_data[0])
 
     def distance_sq(self, ovrQuatf q):
-        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1770
-        cdef float d1 = (self - q).length_sq()
-        cdef float d2 = (self + q).length_sq()
-
-        return d1 if d1 < d2 else d2
+        return <float>(<ovrQuatf>self).c_data[0].DistanceSq(q.c_data[0])
 
     def dot(self, ovrQuatf q):
-        return self.c_data.x * q.c_data.x + \
-               self.c_data.y * q.c_data.y + \
-               self.c_data.z * q.c_data.z + \
-               self.c_data.w * q.c_data.w
+        return <float>(<ovrQuatf>self).c_data[0].Dot(q.c_data[0])
 
     def angle(self, ovrQuatf q):
-        return <float>2 * acos(self.abs(self.dot(q)))
+        return <float>(<ovrQuatf>self).c_data[0].Angle(q.c_data[0])
 
     def is_normalized(self):
-        return cmath.fabs(self.length_sq() - <float>1) < 0
+        return <bint>(<ovrQuatf>self).c_data[0].IsNormalized()
 
     def normalize(self):
-        cdef float s = self.length()
-        if s != <float>0:
-            s = <float>1 / s
+        (<ovrQuatf>self).c_data[0].Normalize()
 
-        self *= s
+        return self
 
     def normalized(self):
-        cdef float s = self.length()
-        if s != <float>0:
-            s = <float>1 / s
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = \
+            (<ovrQuatf>self).c_data[0].Normalized()
 
-        return self * s
+        return to_return
 
     def conj(self):
-        cdef ovrQuatf to_return = ovrQuatf(
-            -self.c_data.x, -self.c_data.y, -self.c_data.z, self.c_data.w)
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = (<ovrQuatf>self).c_data[0].Conj()
+
         return to_return
 
     @staticmethod
     def align(ovrVector3f align_to, ovrVector3f v):
-        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1848
-        assert align_to.is_normalized() and v.is_normalized()
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = ovr_math.Quatf.Align(
+            align_to.c_data[0], v.c_data[0])
 
-        cdef ovrVector3f bisector = align_to + v
-        bisector.normalize()
-
-        cdef float cos_half_angle = v.dot(bisector)
-        cdef ovrVector3f imag
-        cdef float inv_length = 0.0
-
-        if cos_half_angle > <float>0:
-            imag = v.cross(bisector)
-            return ovrQuatf(imag.x, imag.y, imag.z, cos_half_angle)
-        else:
-            if cmath.fabs(v.c_data.x) > cmath.fabs(v.c_data.y):
-                inv_length = cmath.sqrt(v.c_data.x * v.c_data.x +
-                                        v.c_data.z * v.c_data.z)
-                if inv_length > <float>0:
-                    inv_length = <float>1 / inv_length
-
-                return ovrQuatf(-v.c_data.z * inv_length,
-                                0,
-                                v.c_data.x * inv_length,
-                                0)
-            else:
-                inv_length = cmath.sqrt(
-                    v.c_data.y * v.c_data.y + v.c_data.z * v.c_data.z)
-                if inv_length > <float>0:
-                    inv_length = <float>1 / inv_length
-                return ovrQuatf(0,
-                                v.c_data.z * inv_length,
-                                -v.c_data.y * inv_length,
-                                0)
+        return to_return
 
     def rotate(self, ovrVector3f v):
-        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1929
-        assert v.is_normalized()
-        cdef float uvx = <float>2 * (self.c_data.y * v.c_data.z -
-                                     self.c_data.z * v.c_data.y)
-        cdef float uvy = <float>2 * (self.c_data.z * v.c_data.x -
-                                     self.c_data.x * v.c_data.z)
-        cdef float uvz = <float>2 * (self.c_data.x * v.c_data.y -
-                                     self.c_data.y * v.c_data.x)
-
-        cdef ovrVector3f to_return = ovrVector3f(
-            v.c_data.x + self.c_data.w *
-            uvx + self.c_data.y *
-            uvz - self.c_data.z * uvy,
-            v.c_data.y + self.c_data.w *
-            uvy + self.c_data.z *
-            uvx - self.c_data.x * uvz,
-            v.c_data.z + self.c_data.w *
-            uvz + self.c_data.x *
-            uvy - self.c_data.y * uvx)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrQuatf>self).c_data[0].Rotate(v.c_data[0])
 
         return to_return
 
     def inverse_rotate(self, ovrVector3f v):
-        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1948
-        assert v.is_normalized()
-        cdef float uvx = <float>2 * (self.c_data.y * v.c_data.z -
-                                     self.c_data.z * v.c_data.y)
-        cdef float uvy = <float>2 * (self.c_data.z * v.c_data.x -
-                                     self.c_data.x * v.c_data.z)
-        cdef float uvz = <float>2 * (self.c_data.x * v.c_data.y -
-                                     self.c_data.y * v.c_data.x)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrQuatf>self).c_data[0].InverseRotate(v.c_data[0])
 
-        cdef ovrVector3f to_return = ovrVector3f(
-            v.c_data.x - self.c_data.w *
-            uvx + self.c_data.y *
-            uvz - self.c_data.z * uvy,
-            v.c_data.y - self.c_data.w *
-            uvy + self.c_data.z *
-            uvx - self.c_data.x * uvz,
-            v.c_data.z - self.c_data.w *
-            uvz + self.c_data.x *
-            uvy - self.c_data.y * uvx)
+        return to_return
 
     def inverted(self):
-        cdef ovrQuatf to_return = ovrQuatf(-self.c_data.x,
-                                           -self.c_data.y,
-                                           -self.c_data.z,
-                                            self.c_data.w)
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = (<ovrQuatf>self).c_data[0].Inverted()
+
         return to_return
 
     def inverse(self):
-        cdef ovrQuatf to_return = ovrQuatf(-self.c_data.x,
-                                           -self.c_data.y,
-                                           -self.c_data.z,
-                                            self.c_data.w)
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = (<ovrQuatf>self).c_data[0].Inverse()
+
         return to_return
 
     def invert(self):
-        self.c_data.x = -self.c_data.x
-        self.c_data.y = -self.c_data.y
-        self.c_data.z = -self.c_data.z
+        (<ovrQuatf>self).c_data[0].Inverse()
 
         return self
 
     def __invert__(self):
-        return self.invert()
+        return self.inverse()
 
 
 cdef class ovrPosef:
-    cdef ovr_capi.ovrPosef* c_data
-    cdef ovr_capi.ovrPosef  c_ovrPosef
+    cdef ovr_math.Posef* c_data
+    cdef ovr_math.Posef  c_Posef
 
     cdef ovrVector3f field_position
     cdef ovrQuatf field_orientation
 
     def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrPosef
+        self.c_data = &self.c_Posef
 
         # create property objects
-        self.field_position.c_data = &self.c_data.pos
-        self.field_orientation.c_data = &self.c_data.orientation
+        self.field_position = ovrVector3f()
+        self.field_position.c_data = &(<ovrPosef>self).c_data[0].Translation
+        self.field_orientation = ovrQuatf()
+        self.field_orientation.c_data = &(<ovrPosef>self).c_data[0].Rotation
 
         cdef int nargin = <int>len(args)  # get number of arguments
         if nargin == 0:
             pass
         elif nargin == 2:
-            if isinstance(args[0], ovrVector3f) and isinstance(args[1], ovrQuatf):
-                self.field_position.c_data[0] = args[0].c_data[0]
-                self.field_orientation.c_data[0] = args[1].c_data[0]
+            if isinstance(args[0], ovrVector3f) and \
+                    isinstance(args[1], ovrQuatf):
+                self.field_position.c_data[0] = (<ovrVector3f>args[0]).c_data[0]
+                self.field_orientation.c_data[0] = (<ovrQuatf>args[1]).c_data[0]
 
     @property
     def rotation(self):
@@ -1325,7 +1113,7 @@ cdef class ovrPosef:
 
     @rotation.setter
     def rotation(self, ovrQuatf value):
-        self.field_orientation.c_data[0] = value.c_data[0]
+        (<ovrPosef>self).c_data[0].Rotation = value.c_data[0]
 
     @property
     def translation(self):
@@ -1333,7 +1121,7 @@ cdef class ovrPosef:
 
     @translation.setter
     def translation(self, ovrVector3f value):
-        self.field_position.c_data[0] = value.c_data[0]
+        (<ovrPosef>self).c_data[0].Translation = value.c_data[0]
 
     def rotate(self, ovrVector3f v):
         return self.rotation.rotate(v)
@@ -1442,7 +1230,6 @@ cdef class ovrMatrix4f:
 
     def set_identity(self):
         self.c_data[0] = ovr_math.Matrix4f()
-
 
 
 cdef class TextureSwapChain(object):
