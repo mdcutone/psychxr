@@ -145,6 +145,9 @@ def main():
         # increment frame index
         frame_index += 1
 
+        # update session status
+        rift.update_session_status()
+
         # blit mirror texture
         GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, mirrorFbo)
         GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)

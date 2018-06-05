@@ -29,7 +29,8 @@ cdef ovr_capi.ovrTextureSwapChain _swap_chain_[32]
 #
 cdef ovr_capi.ovrMirrorTexture _mirror_texture_ = NULL
 
-# VR related structures to store head pose and other data used across frames.
+# Persistent VR related structures to store head pose and other data used across
+# frames.
 #
 cdef ovr_capi.ovrEyeRenderDesc[2] _eye_render_desc_
 cdef ovr_capi.ovrPosef[2] _hmd_to_eye_view_pose_
@@ -39,6 +40,10 @@ cdef ovr_capi.ovrLayerEyeFov _eye_layer_
 #
 cdef ovr_capi.ovrTrackedDeviceType[9] _device_types_
 cdef ovr_capi.ovrPoseStatef[9] _device_poses_
+
+# Session status
+#
+cdef ovr_capi.ovrSessionStatus _session_status_
 
 # Function to check for errors returned by OVRLib functions
 #
@@ -1823,3 +1828,45 @@ cpdef void end_frame(unsigned int frame_index=0):
 
     global _frame_index_
     _frame_index_ += 1
+
+cpdef void update_session_status():
+    """Update session status information.
+    
+    :return: None 
+    
+    """
+    global _ptr_session_, _session_status_
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetSessionStatus(
+        _ptr_session_, &_session_status_)
+
+cpdef bint is_visible():
+    global _session_status_
+    return (<ovr_capi.ovrSessionStatus>_session_status_).IsVisible
+
+cpdef bint hmd_present():
+    global _session_status_
+    return (<ovr_capi.ovrSessionStatus>_session_status_).HmdPresent
+
+cpdef bint display_lost():
+    global _session_status_
+    return (<ovr_capi.ovrSessionStatus>_session_status_).DisplayLost
+
+cpdef bint should_quit():
+    global _session_status_
+    return (<ovr_capi.ovrSessionStatus>_session_status_).ShouldQuit
+
+cpdef bint should_recenter():
+    global _session_status_
+    return (<ovr_capi.ovrSessionStatus>_session_status_).ShouldRecenter
+
+cpdef bint has_input_focus():
+    global _session_status_
+    return (<ovr_capi.ovrSessionStatus>_session_status_).HasInputFocus
+
+cpdef bint overlay_present():
+    global _session_status_
+    return (<ovr_capi.ovrSessionStatus>_session_status_).OverlayPresent
+
+cpdef bint depth_requested():
+    global _session_status_
+    return (<ovr_capi.ovrSessionStatus>_session_status_).DepthRequested
