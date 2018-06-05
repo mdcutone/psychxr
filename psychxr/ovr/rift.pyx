@@ -1,9 +1,9 @@
 cimport ovr_capi, ovr_capi_gl, ovr_errorcode, ovr_capi_util
+cimport ovr_math
 from libc.stdint cimport uintptr_t, uint32_t, int32_t
 from libcpp cimport nullptr
 from libc.stdlib cimport malloc, free
 cimport libc.math as cmath
-cimport rift
 
 # -----------------
 # Initialize module
@@ -73,7 +73,7 @@ cdef float acos(float x):
         if x < -1.0:
             to_return = MATH_FLOAT_PI
         else:
-            to_return = rift.acosf(x)
+            to_return = cmath.acos(x)
 
     return to_return
 
@@ -85,7 +85,7 @@ cdef float asin(float x):
         if x < -1.0:
             to_return = MATH_FLOAT_PI
         else:
-            to_return = rift.asinf(x)
+            to_return = cmath.asin(x)
 
     return to_return
 
@@ -263,7 +263,7 @@ cdef class ovrVector2i:
     def clamped(self, int max_mag):
         cdef int mag_squared = self.length_sq()
         if mag_squared > max_mag * max_mag:
-            return self * (max_mag / <float>cmath.sqrt(mag_squared))
+            return self * (max_mag / cmath.sqrt(mag_squared))
 
         return self
 
@@ -301,7 +301,7 @@ cdef class ovrVector2i:
     def angle(self, ovrVector2i b):
         cdef int div = self.length_sq() * b.length_sq()
         assert div != <int>0
-        cdef int to_return = self.dot(b) / <float>cmath.sqrt(div)
+        cdef int to_return = self.dot(b) / cmath.sqrt(div)
 
         return to_return
 
@@ -588,230 +588,22 @@ cdef class ovrRecti:
         return not self.__eq__(b)
 
 
-cdef class ovrVector2f:
-    cdef ovr_capi.ovrVector2f* c_data
-    cdef ovr_capi.ovrVector2f  c_ovrVector2f
-
-    def __cinit__(self, float x=0.0, float y=0.0):
-        self.c_data = &self.c_ovrVector2f
-
-        self.c_data.x = x
-        self.c_data.y = y
-
-    @property
-    def x(self):
-        return self.c_data.x
-
-    @x.setter
-    def x(self, float value):
-        self.c_data.x = value
-
-    @property
-    def y(self):
-        return self.c_data.y
-
-    @y.setter
-    def y(self, float value):
-        self.c_data.y = value
-
-    def as_tuple(self):
-        return self.c_data.x, self.c_data.y
-
-    def as_list(self):
-        return list(self.c_data.x, self.c_data.y)
-
-    def __len__(self):
-        return 2
-
-    def __eq__(self, ovrVector2f b):
-        return self.c_data.x == b.c_data.x and self.c_data.y == b.c_data.y
-
-    def __ne__(self, ovrVector2f b):
-        return self.c_data.x != b.c_data.x or self.c_data.y != b.c_data.y
-
-    def __add__(ovrVector2f a, ovrVector2f b):
-        cdef ovrVector2f to_return = ovrVector2f(
-            a.c_data.x + b.c_data.x,
-            a.c_data.y + b.c_data.y)
-
-        return to_return
-
-    def __iadd__(self, ovrVector2f b):
-        self.c_data.x += b.c_data.x
-        self.c_data.y += b.c_data.y
-
-    def __sub__(ovrVector2f a, ovrVector2f b):
-        cdef ovrVector2f to_return = ovrVector2f(
-            a.c_data.x - b.c_data.x,
-            a.c_data.y - b.c_data.y)
-
-        return to_return
-
-    def __isub__(self, ovrVector2i b):
-        self.c_data.x -= b.c_data.x
-        self.c_data.y -= b.c_data.y
-
-    def __neg__(self):
-        cdef ovrVector2f to_return = ovrVector2f(-self.c_data.x, -self.c_data.y)
-
-        return to_return
-
-    def __mul__(ovrVector2f a, object b):
-        cdef ovrVector2f to_return
-        if isinstance(b, ovrVector2f):
-            to_return = ovrVector2f(a.c_data.x * b.c_data.x,
-                                    a.c_data.y * b.c_data.y)
-        elif isinstance(b, (int, float)):
-            to_return = ovrVector2f(a.c_data.x * <float>b,
-                                    a.c_data.y * <float>b)
-
-        return to_return
-
-    def __imul__(self, object b):
-        cdef ovrVector2f to_return
-        if isinstance(b, ovrVector2f):
-            self.c_data.x *= b.c_data.x
-            self.c_data.y *= b.c_data.y
-        elif isinstance(b, (int, float)):
-            self.c_data.x *= <float>b
-            self.c_data.y *= <float>b
-
-    def __truediv__(ovrVector2f a, object b):
-        cdef float rcp = <float>1 / <float>b
-        cdef ovrVector2f to_return = ovrVector2f(
-            a.c_data.x * rcp,
-            a.c_data.y * rcp)
-
-        return to_return
-
-    def __itruediv__(self, object b):
-        cdef float rcp = <float>1 / <float>b
-        self.c_data.x *= rcp
-        self.c_data.y *= rcp
-
-    @staticmethod
-    def min(ovrVector2f a, ovrVector2f b):
-        cdef ovrVector2f to_return = ovrVector2f(
-            a.c_data.x if a.c_data.x < b.c_data.x else b.c_data.x,
-            a.c_data.y if a.c_data.y < b.c_data.y else b.c_data.y)
-
-        return to_return
-
-    @staticmethod
-    def max(ovrVector2f a, ovrVector2f b):
-        cdef ovrVector2f to_return = ovrVector2f(
-            a.c_data.x if a.c_data.x > b.c_data.x else b.c_data.x,
-            a.c_data.y if a.c_data.y > b.c_data.y else b.c_data.y)
-
-        return to_return
-
-    def clamped(self, float max_mag):
-        cdef float mag_squared = self.length_sq()
-        if mag_squared > max_mag * max_mag:
-            return self * (max_mag / cmath.sqrt(mag_squared))
-
-        return self
-
-    def is_equal(self, ovrVector2f b, float tolerance = 0.0):
-        return cmath.fabs(b.c_data.x - self.c_data.x) <= tolerance and \
-            cmath.fabs(b.c_data.y - self.c_data.y) <= tolerance
-
-    def compare(self, ovrVector2f b, float tolerance = 0):
-        return self.is_equal(b, tolerance)
-
-    def __getitem__(self, int idx):
-        assert 0 <= idx < 2
-        cdef float* ptr_val = &self.c_data.x + idx
-
-        return <float>ptr_val[0]
-
-    def __setitem__(self, int idx, float val):
-        assert 0 <= idx < 2
-        cdef float* ptr_val = &self.c_data.x + idx
-        ptr_val[0] = val
-
-    def entrywise_multiply(self, ovrVector2f b):
-        cdef ovrVector2f to_return = ovrVector2f(
-            self.c_data.x * b.c_data.x,
-            self.c_data.y * b.c_data.y)
-
-        return to_return
-
-    def dot(self, ovrVector2f b):
-        cdef float dot_prod = \
-            self.c_data.x * b.c_data.x + self.c_data.y * b.c_data.y
-
-        return <float>dot_prod
-
-    def angle(self, ovrVector2f b):
-        cdef float div = self.length_sq() * b.length_sq()
-        assert div != <float>0
-        cdef float to_return = self.dot(b) / cmath.sqrt(div)
-
-        return to_return
-
-    def length_sq(self):
-        return \
-            <float>(self.c_data.x * self.c_data.x + self.c_data.y * self.c_data.y)
-
-    def length(self):
-        return <float>cmath.sqrt(self.length_sq())
-
-    def distance_sq(self, ovrVector2f b):
-        return (self - b).length_sq()
-
-    def distance(self, ovrVector2f b):
-        return (self - b).length()
-
-    def is_normalized(self):
-        return cmath.fabs(self.length_sq() - <float>1) < 0
-
-    def normalize(self):
-        cdef float s = self.length()
-        if s != <float>0:
-            s = <float>1 / s
-
-        self *= s
-
-    def normalized(self):
-        cdef float s = self.length()
-        if s != <float>0:
-            s = <float>1 / s
-
-        return self * s
-
-    def lerp(self, ovrVector2f b, float f):
-        return self * (<float>1 - f) + b * f
-
-    def project_to(self, ovrVector2f b):
-        cdef float l2 = self.length_sq()
-        assert l2 != <float>0
-
-        return b * (self.dot(b) / l2)
-
-    def is_clockwise(self, ovrVector2f b):
-        return (self.c_data.x * b.c_data.y - self.c_data.y * b.c_data.x) < 0
-
-
 cdef class ovrVector3f(object):
-    cdef ovr_capi.ovrVector3f* c_data
-    cdef ovr_capi.ovrVector3f  c_ovrVector3f
+    cdef ovr_math.Vector3f* c_data
+    cdef ovr_math.Vector3f  c_Vector3f
 
     def __init__(self, *args, **kwargs):
         pass
 
     def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrVector3f
+        self.c_data = &self.c_Vector3f
 
         cdef int nargin = <int>len(args)  # get number of arguments
         if nargin == 0:
-            self.c_data.x = 0.0
-            self.c_data.y = 0.0
-            self.c_data.z = 0.0
+            self.c_data[0] = ovr_math.Vector3f.Zero()
         elif nargin == 3:
-            self.c_data.x = <float>args[0]
-            self.c_data.y = <float>args[1]
-            self.c_data.z = <float>args[2]
+            self.c_data[0] = ovr_math.Vector3f(
+                <float>args[0], <float>args[1], <float>args[2])
 
     @property
     def x(self):
@@ -845,127 +637,101 @@ cdef class ovrVector3f(object):
 
     @staticmethod
     def zero():
-        cdef ovrVector3f to_return = ovrVector3f(0, 0, 0)
+        cdef ovrVector3f to_return = ovrVector3f()
         return to_return
 
     def __eq__(self, ovrVector3f b):
-        return self.c_data.x == b.c_data.x and \
-               self.c_data.y == b.c_data.y and \
-               self.c_data.z == b.c_data.z
+        return (<ovrVector3f>self).c_data[0] == b.c_data[0]
 
     def __ne__(self, ovrVector3f b):
-        return self.c_data.x != b.c_data.x or \
-               self.c_data.y != b.c_data.y or \
-               self.c_data.z != b.c_data.z
+        return (<ovrVector3f>self).c_data[0] != b.c_data[0]
 
 
     def __add__(ovrVector3f a, ovrVector3f b):
-        cdef ovrVector3f to_return = ovrVector3f(
-            a.c_data.x + b.c_data.x,
-            a.c_data.y + b.c_data.y,
-            a.c_data.z + b.c_data.z)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = a.c_data[0] + b.c_data[0]
 
         return to_return
 
     def __iadd__(self, ovrVector3f b):
-        self.c_data.x += b.c_data.x
-        self.c_data.y += b.c_data.y
-        self.c_data.z += b.c_data.z
+        (<ovrVector3f>self).c_data[0] += b.c_data[0]
 
         return self
 
     def __sub__(ovrVector3f a, ovrVector3f b):
-        cdef ovrVector3f to_return = ovrVector3f(
-            a.c_data.x - b.c_data.x,
-            a.c_data.y - b.c_data.y,
-            a.c_data.z - b.c_data.z)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = a.c_data[0] - b.c_data[0]
 
         return to_return
 
     def __isub__(self, ovrVector3f b):
-        self.c_data.x -= b.c_data.x
-        self.c_data.y -= b.c_data.y
-        self.c_data.z -= b.c_data.z
+        (<ovrVector3f>self).c_data[0] -= b.c_data[0]
 
         return self
 
     def __neg__(self):
-        cdef ovrVector3f to_return = ovrVector3f(
-            -self.c_data.x, -self.c_data.y, -self.c_data.z)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = -(<ovrVector3f>self).c_data[0]
 
         return to_return
 
     def __mul__(ovrVector3f a, object b):
-        cdef ovrVector3f to_return
+        cdef ovrVector3f to_return = ovrVector3f()
         if isinstance(b, ovrVector3f):
-            to_return = ovrVector3f(a.c_data.x * b.c_data.x,
-                                    a.c_data.y * b.c_data.y,
-                                    a.c_data.z * b.c_data.z)
+            (<ovrVector3f>to_return).c_data[0] = \
+                (<ovrVector3f>a).c_data[0] * (<ovrVector3f>b).c_data[0]
         elif isinstance(b, (int, float)):
-            to_return = ovrVector3f(a.c_data.x * <float>b,
-                                    a.c_data.y * <float>b,
-                                    a.c_data.z * <float>b)
+            (<ovrVector3f>to_return).c_data[0] = \
+                (<ovrVector3f>a).c_data[0] * <float>b
 
         return to_return
 
     def __imul__(self, object b):
-        cdef ovrVector3f to_return
-        if isinstance(b, ovrVector3f):
-            self.c_data.x *= b.c_data.x
-            self.c_data.y *= b.c_data.y
-            self.c_data.z *= b.c_data.z
-        elif isinstance(b, (int, float)):
-            self.c_data.x *= <float>b
-            self.c_data.y *= <float>b
-            self.c_data.z *= <float>b
+        if isinstance(b, (int, float)):
+            (<ovrVector3f>self).c_data[0] = \
+                (<ovrVector3f>self).c_data[0] * <float>b
 
         return self
 
     def __truediv__(ovrVector3f a, object b):
-        cdef float rcp = <float>1 / <float>b
-        cdef ovrVector3f to_return = ovrVector3f(
-            a.c_data.x * rcp,
-            a.c_data.y * rcp,
-            a.c_data.z * rcp)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrVector3f>a).c_data[0] / (<ovrVector3f>b).c_data[0]
 
         return to_return
 
     def __itruediv__(self, object b):
-        cdef float rcp = <float>1 / <float>b
-        self.c_data.x *= rcp
-        self.c_data.y *= rcp
-        self.c_data.z *= rcp
+        if isinstance(b, (int, float)):
+            (<ovrVector3f>self).c_data[0] = \
+                (<ovrVector3f>self).c_data[0] / <float>b
 
         return self
 
     @staticmethod
     def min(ovrVector3f a, ovrVector3f b):
-        cdef ovrVector3f to_return = ovrVector3f(
-            a.c_data.x if a.c_data.x < b.c_data.x else b.c_data.x,
-            a.c_data.y if a.c_data.y < b.c_data.y else b.c_data.y,
-            a.c_data.z if a.c_data.z < b.c_data.z else b.c_data.z)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            ovr_math.Vector3f.Min(a.c_data[0], b.c_data[0])
 
         return to_return
 
     @staticmethod
     def max(ovrVector3f a, ovrVector3f b):
-        cdef ovrVector3f to_return = ovrVector3f(
-            a.c_data.x if a.c_data.x > b.c_data.x else b.c_data.x,
-            a.c_data.y if a.c_data.y > b.c_data.y else b.c_data.y,
-            a.c_data.z if a.c_data.z > b.c_data.z else b.c_data.z)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            ovr_math.Vector3f.Max(a.c_data[0], b.c_data[0])
 
         return to_return
 
     def clamped(self, float max_mag):
-        cdef float mag_squared = self.length_sq()
-        if mag_squared > max_mag * max_mag:
-            return self * (max_mag / cmath.sqrt(mag_squared))
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrVector3f>self).c_data[0].Clamped(max_mag)
 
-        return self
+        return to_return
 
     def is_equal(self, ovrVector3f b, float tolerance = 0.0):
-        return cmath.fabs(b.c_data.x - self.c_data.x) <= tolerance and \
-            cmath.fabs(b.c_data.y - self.c_data.y) <= tolerance
+        return (<ovrVector3f>self).c_data[0].IsEqual(b.c_data[0], tolerance)
 
     def compare(self, ovrVector3f b, float tolerance = 0.0):
         return self.is_equal(b, tolerance)
@@ -982,501 +748,104 @@ cdef class ovrVector3f(object):
         ptr_val[0] = val
 
     def entrywise_multiply(self, ovrVector3f b):
-        cdef ovrVector3f to_return = ovrVector3f(
-            self.c_data.x * b.c_data.x,
-            self.c_data.y * b.c_data.y,
-            self.c_data.z * b.c_data.z)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrVector3f>self).c_data[0].EntrywiseMultiply(
+            b.c_data[0])
 
         return to_return
 
     def dot(self, ovrVector3f b):
-        cdef float dot_prod = \
-            self.c_data.x * b.c_data.x + \
-            self.c_data.y * b.c_data.y + \
-            self.c_data.z * b.c_data.z
-
-        return <float>dot_prod
+        return <float>(<ovrVector3f>self).c_data[0].Dot(b.c_data[0])
 
     def cross(self, ovrVector3f b):
-        cdef ovrVector3f to_return = ovrVector3f(
-            self.c_data.y * b.c_data.z - self.c_data.z * b.c_data.y,
-            self.c_data.z * b.c_data.x - self.c_data.x * b.c_data.z,
-            self.c_data.x * b.c_data.y - self.c_data.y * b.c_data.x)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrVector3f>self).c_data[0].Cross(b.c_data[0])
 
         return to_return
 
     def angle(self, ovrVector3f b):
-        cdef float div = self.length_sq() * b.length_sq()
-        assert div != <float>0
-        cdef float to_return = <float>acos(self.dot(b) / cmath.sqrt(div))
-
-        return to_return
+        return <float>(<ovrVector3f>self).c_data[0].Angle(b.c_data[0])
 
     def length_sq(self):
-        return self.c_data.x * self.c_data.x + \
-               self.c_data.y * self.c_data.y + \
-               self.c_data.z * self.c_data.z
+        return <float>(<ovrVector3f>self).c_data[0].LengthSq()
 
     def length(self):
-        return <float>cmath.sqrt(self.length_sq())
+        return <float>(<ovrVector3f>self).c_data[0].Length()
 
     def distance_sq(self, ovrVector3f b):
-        return (self - b).length_sq()
+        return <float>(<ovrVector3f>self).c_data[0].DistanceSq(b.c_data[0])
 
     def distance(self, ovrVector3f b):
-        return (self - b).length()
+        return <float>(<ovrVector3f>self).c_data[0].Distance(b.c_data[0])
 
     def is_normalized(self):
-        return cmath.fabs(self.length_sq() - <float>1) < 0
+        return <bint>(<ovrVector3f>self).c_data[0].IsNormalized()
 
     def normalize(self):
-        cdef float s = self.length()
-        if s != <float>0:
-            s = <float>1 / s
-
-        self *= s
+        (<ovrVector3f>self).c_data[0].Normalize()
 
     def normalized(self):
-        cdef float s = self.length()
-        if s != <float>0:
-            s = <float>1 / s
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrVector3f>self).c_data[0].Normalized()
 
-        return self * s
+        return to_return
 
     def lerp(self, ovrVector3f b, float f):
-        return self * (<float>1 - f) + b * f
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrVector3f>self).c_data[0].Lerp(b.c_data[0], f)
+
+        return to_return
 
     def project_to(self, ovrVector3f b):
-        cdef float l2 = self.length_sq()
-        assert l2 != <float>0
-
-        return b * (self.dot(b) / l2)
-
-    def is_clockwise(self, ovrVector3f b):
-        return (self.c_data.x * b.c_data.y -
-                self.c_data.y * b.c_data.x -
-                self.c_data.z * b.c_data.z) < 0
-
-
-cdef class ovrPoint3f(ovrVector3f):
-    def __cinit__(self, *args):
-        super(ovrVector3f, self).__init__(self)
-
-
-cdef class ovrVector4f:
-    cdef ovr_capi.ovrVector4f* c_data
-    cdef ovr_capi.ovrVector4f  c_ovrVector4f
-
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrVector4f
-
-        cdef int nargin = <int>len(args)  # get number of arguments
-        if nargin == 0:
-            self.c_data.x = 0.0
-            self.c_data.y = 0.0
-            self.c_data.z = 0.0
-            self.c_data.w = 0.0
-        elif nargin == 1:
-            if isinstance(args[0], ovrVector3f):
-                self.c_data.x = (<ovrVector3f>args[0]).c_data.x
-                self.c_data.y = (<ovrVector3f>args[0]).c_data.y
-                self.c_data.z = (<ovrVector3f>args[0]).c_data.z
-                self.c_data.w = 1.0
-            elif isinstance(args[0], ovrVector4f):
-                self.c_data.x = (<ovrVector4f>args[0]).c_data.x
-                self.c_data.y = (<ovrVector4f>args[0]).c_data.y
-                self.c_data.z = (<ovrVector4f>args[0]).c_data.z
-                self.c_data.w = (<ovrVector4f>args[0]).c_data.w
-        elif nargin == 2:
-            if isinstance(args[0], ovrVector3f) and \
-                    isinstance(args[1], (int, float)):
-                self.c_data.x = (<ovrVector3f>args[0]).c_data.x
-                self.c_data.y = (<ovrVector3f>args[0]).c_data.y
-                self.c_data.z = (<ovrVector3f>args[0]).c_data.z
-                self.c_data.w = <float>args[1]
-        elif nargin == 4:
-            self.c_data.x = <float>args[0]
-            self.c_data.y = <float>args[1]
-            self.c_data.z = <float>args[2]
-            self.c_data.w = <float>args[3]
-
-    @property
-    def x(self):
-        return self.c_data.x
-
-    @x.setter
-    def x(self, float value):
-        self.c_data.x = value
-
-    @property
-    def y(self):
-        return self.c_data.y
-
-    @y.setter
-    def y(self, float value):
-        self.c_data.y = value
-
-    @property
-    def z(self):
-        return self.c_data.z
-
-    @z.setter
-    def z(self, float value):
-        self.c_data.z = value
-
-    @property
-    def w(self):
-        return self.c_data.w
-
-    @w.setter
-    def w(self, float value):
-        self.c_data.w = value
-
-    def as_tuple(self):
-        return self.c_data.x, self.c_data.y, self.c_data.z, self.c_data.w
-
-    def as_list(self):
-        return [self.c_data.x, self.c_data.y, self.c_data.z, self.c_data.w]
-
-    def __len__(self):
-        return 4
-
-    @staticmethod
-    def zero():
-        cdef ovrVector4f to_return = ovrVector4f(0, 0, 0, 0)
-        return to_return
-
-    def __eq__(self, ovrVector4f b):
-        return self.c_data.x == b.c_data.x and \
-               self.c_data.y == b.c_data.y and \
-               self.c_data.z == b.c_data.z and \
-               self.c_data.w == b.c_data.w
-
-    def __ne__(self, ovrVector4f b):
-        return self.c_data.x != b.c_data.x or \
-               self.c_data.y != b.c_data.y or \
-               self.c_data.z != b.c_data.z or \
-               self.c_data.w != b.c_data.w
-
-    def __add__(ovrVector4f a, ovrVector4f b):
-        cdef ovrVector3f to_return = ovrVector4f(
-            a.c_data.x + b.c_data.x,
-            a.c_data.y + b.c_data.y,
-            a.c_data.z + b.c_data.z,
-            a.c_data.w + b.c_data.w)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrVector3f>self).c_data[0].ProjectTo(
+            b.c_data[0])
 
         return to_return
 
-    def __iadd__(self, ovrVector4f b):
-        self.c_data.x += b.c_data.x
-        self.c_data.y += b.c_data.y
-        self.c_data.z += b.c_data.z
-        self.c_data.w += b.c_data.w
-
-        return self
-
-    def __sub__(ovrVector4f a, ovrVector4f b):
-        cdef ovrVector3f to_return = ovrVector4f(
-            a.c_data.x - b.c_data.x,
-            a.c_data.y - b.c_data.y,
-            a.c_data.z - b.c_data.z,
-            a.c_data.w - b.c_data.w)
+    def project_to_plane(self, ovrVector3f normal):
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrVector3f>self).c_data[0].ProjectToPlane(
+                normal.c_data[0])
 
         return to_return
-
-    def __isub__(self, ovrVector4f b):
-        self.c_data.x -= b.c_data.x
-        self.c_data.y -= b.c_data.y
-        self.c_data.z -= b.c_data.z
-        self.c_data.w -= b.c_data.w
-
-        return self
-
-    def __neg__(self):
-        cdef ovrVector4f to_return = ovrVector4f(
-            -self.c_data.x, -self.c_data.y, -self.c_data.z, -self.c_data.w)
-
-        return to_return
-
-    def __mul__(ovrVector4f a, object b):
-        cdef ovrVector4f to_return
-        if isinstance(b, ovrVector4f):
-            to_return = ovrVector4f(a.c_data.x * b.c_data.x,
-                                    a.c_data.y * b.c_data.y,
-                                    a.c_data.z * b.c_data.z,
-                                    a.c_data.w * b.c_data.w)
-        elif isinstance(b, (int, float)):
-            to_return = ovrVector4f(a.c_data.x * <float>b,
-                                    a.c_data.y * <float>b,
-                                    a.c_data.z * <float>b,
-                                    a.c_data.w * <float>b)
-
-        return to_return
-
-    def __imul__(self, object b):
-        cdef ovrVector4f to_return
-        if isinstance(b, ovrVector4f):
-            self.c_data.x *= b.c_data.x
-            self.c_data.y *= b.c_data.y
-            self.c_data.z *= b.c_data.z
-            self.c_data.w *= b.c_data.w
-        elif isinstance(b, (int, float)):
-            self.c_data.x *= <float>b
-            self.c_data.y *= <float>b
-            self.c_data.z *= <float>b
-            self.c_data.w *= <float>b
-
-        return self
-
-    def __truediv__(ovrVector4f a, object b):
-        cdef float rcp = <float>1 / <float>b
-        cdef ovrVector4f to_return = ovrVector4f(
-            a.c_data.x * rcp,
-            a.c_data.y * rcp,
-            a.c_data.z * rcp,
-            a.c_data.w * rcp)
-
-        return to_return
-
-    def __itruediv__(self, object b):
-        cdef float rcp = <float>1 / <float>b
-        self.c_data.x *= rcp
-        self.c_data.y *= rcp
-        self.c_data.z *= rcp
-        self.c_data.w *= rcp
-
-        return self
-
-    @staticmethod
-    def min(ovrVector4f a, ovrVector4f b):
-        cdef ovrVector4f to_return = ovrVector4f(
-            a.c_data.x if a.c_data.x < b.c_data.x else b.c_data.x,
-            a.c_data.y if a.c_data.y < b.c_data.y else b.c_data.y,
-            a.c_data.z if a.c_data.z < b.c_data.z else b.c_data.z,
-            a.c_data.z if a.c_data.z < b.c_data.z else b.c_data.w)
-
-        return to_return
-
-    @staticmethod
-    def max(ovrVector4f a, ovrVector4f b):
-        cdef ovrVector4f to_return = ovrVector4f(
-            a.c_data.x if a.c_data.x > b.c_data.x else b.c_data.x,
-            a.c_data.y if a.c_data.y > b.c_data.y else b.c_data.y,
-            a.c_data.z if a.c_data.z > b.c_data.z else b.c_data.z,
-            a.c_data.z if a.c_data.z > b.c_data.z else b.c_data.w)
-
-        return to_return
-
-    def clamped(self, float max_mag):
-        cdef float mag_squared = self.length_sq()
-        if mag_squared > max_mag * max_mag:
-            return self * (max_mag / <float>cmath.sqrt(mag_squared))
-
-        return self
-
-    def is_equal(self, ovrVector4f b, float tolerance = 0.0):
-        return cmath.fabs(b.c_data.x - self.c_data.x) <= tolerance and \
-            cmath.fabs(b.c_data.y - self.c_data.y) <= tolerance
-
-    def compare(self, ovrVector4f b, float tolerance = 0.0):
-        return self.is_equal(b, tolerance)
-
-    def __getitem__(self, int idx):
-        assert 0 <= idx < 4
-        cdef float* ptr_val = &self.c_data.x + idx
-
-        return <float>ptr_val[0]
-
-    def __setitem__(self, int idx, float val):
-        assert 0 <= idx < 4
-        cdef float* ptr_val = &self.c_data.x + idx
-        ptr_val[0] = val
-
-    def entrywise_multiply(self, ovrVector4f b):
-        cdef ovrVector4f to_return = ovrVector4f(
-            self.c_data.x * b.c_data.x,
-            self.c_data.y * b.c_data.y,
-            self.c_data.z * b.c_data.z,
-            self.c_data.w * b.c_data.w)
-
-        return to_return
-
-    def dot(self, ovrVector4f b):
-        cdef float dot_prod = \
-            self.c_data.x * b.c_data.x + \
-            self.c_data.y * b.c_data.y + \
-            self.c_data.z * b.c_data.z + \
-            self.c_data.w * b.c_data.w
-
-        return <float>dot_prod
-
-    def length_sq(self):
-        return self.c_data.x * self.c_data.x + \
-               self.c_data.y * self.c_data.y + \
-               self.c_data.z * self.c_data.z + \
-               self.c_data.w * self.c_data.w
-
-    def length(self):
-        return <float>cmath.sqrt(self.length_sq())
-
-    def is_normalized(self):
-        return cmath.fabs(self.length_sq() - <float>1) < 0
-
-    def normalize(self):
-        cdef float s = self.length()
-        if s != <float>0:
-            s = <float>1 / s
-
-        self *= s
-
-    def normalized(self):
-        cdef float s = self.length()
-        if s != <float>0:
-            s = <float>1 / s
-
-        return self * s
-
-    def lerp(self, ovrVector4f b, float f):
-        return self * (<float>1 - f) + b * f
 
 
 cdef class ovrQuatf:
-    cdef ovr_capi.ovrQuatf* c_data
-    cdef ovr_capi.ovrQuatf  c_ovrQuatf
+    cdef ovr_math.Quatf* c_data
+    cdef ovr_math.Quatf  c_Quatf
 
     def __cinit__(self, *args):
-        self.c_data = &self.c_ovrQuatf
+        self.c_data = &self.c_Quatf
 
-        cdef ovrVector3f axis, unit_axis
-        cdef float angle, sin_half_angle = 0.0
         cdef int nargin = <int>len(args)  # get number of arguments
         if nargin == 0:
-            self.c_data.x = 0.0
-            self.c_data.y = 0.0
-            self.c_data.z = 0.0
-            self.c_data.w = 0.0
+            self.c_data[0] = ovr_math.Quatf.Identity()
         elif nargin == 1:
             if isinstance(ovrMatrix4f, args[0]):
-                self.quat_from_rotation_matrix(args[0])
-
+                self.c_data[0] = ovr_math.Quatf(
+                    (<ovrMatrix4f>args[0]).c_data[0])
+            elif isinstance(ovrMatrix4f, args[0]):
+                self.c_data[0] = ovr_math.Quatf(
+                    (<ovrQuatf>args[0]).c_data[0])
         elif nargin == 2:
             # quaternion from axis and angle
             if isinstance(args[0], ovrVector3f) and \
                     isinstance(args[1], (int, float)):
-                axis = args[0]
-                angle = <float>args[1]  # make sure this is a float
-                if axis.length_sq() == <float>0:
-                    assert angle == <float>0
-                    self.c_data.x = self.c_data.y = self.c_data.z = <float>0
-                    self.c_data.w = <float>1
-                else:
-                    unit_axis = axis.normalized()
-                    sin_half_angle = <float>cmath.sin(angle * <float>0.5)
-                    self.c_data.w = <float>cmath.cos(angle * <float>0.5)
-                    self.c_data.x = unit_axis.c_data.x * sin_half_angle
-                    self.c_data.y = unit_axis.c_data.y * sin_half_angle
-                    self.c_data.z = unit_axis.c_data.z * sin_half_angle
-            elif isinstance(args[0], ovrVector3f) and \
-                    isinstance(args[1], ovrVector3f):
-                self.quat_from_segment(args[0], args[1])
+                self.c_data[0] = ovr_math.Quatf(
+                    (<ovrVector3f>args[0]).c_data[0], <float>args[1])
         elif nargin == 4:
-            self.c_data.x = <float>args[0]
-            self.c_data.y = <float>args[1]
-            self.c_data.z = <float>args[2]
-            self.c_data.w = <float>args[3]
-
-    cdef quat_from_rotation_matrix(self, ovrMatrix4f m):
-        # port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1570
-        cdef float trace = 0.0
-        cdef float s = 0.0
-        if trace > <float>0.0:
-            s = <float>cmath.sqrt(trace + <float>1) * <float>2
-            self.c_data.w = <float>0.25 * s
-            self.c_data.x = (m.M[2][1] - m.M[1][2]) / s
-            self.c_data.y = (m.M[0][2] - m.M[2][0]) / s
-            self.c_data.z = (m.M[1][0] - m.M[0][1]) / s
-        elif m.M[0][0] > m.M[1][1] and m.M[0][0] > m.M[2][2]:
-            s = <float>cmath.sqrt(
-                <float>1 + m.M[0][0] - m.M[1][1] - m.M[2][2]) * <float>2
-            self.c_data.w = (m.M[2][1] - m.M[1][2]) / s
-            self.c_data.x = <float>0.25 * s
-            self.c_data.y = (m.M[0][1] + m.M[1][0]) / s
-            self.c_data.z = (m.M[2][0] + m.M[0][2]) / s
-        elif m.M[1][1] > m.M[2][2]:
-            s = <float>cmath.sqrt(
-                <float>1 + m.M[1][1] - m.M[0][0] - m.M[2][2]) * <float>2
-            self.c_data.w = (m.M[0][2] - m.M[2][0]) / s
-            self.c_data.x = (m.M[0][1] + m.M[1][0]) / s
-            self.c_data.y = <float>0.25 * s
-            self.c_data.z = (m.M[1][2] + m.M[2][1]) / s
-        else:
-            s = <float>cmath.sqrt(
-                <float>1 + m.M[2][2] - m.M[0][0] - m.M[1][1]) * <float>2
-            self.c_data.w = (m.M[1][0] - m.M[0][1]) / s
-            self.c_data.x = (m.M[0][2] + m.M[2][0]) / s
-            self.c_data.y = (m.M[1][2] + m.M[2][1]) / s
-            self.c_data.z = <float>0.25 * s
-
-        assert self.is_normalized()
-
-    cdef quat_from_segment(self, ovrVector3f from_vec, ovrVector3f to_vec):
-        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1614
-        cdef float cx = from_vec.c_data.y * to_vec.c_data.z - \
-                        from_vec.c_data.z * to_vec.c_data.y
-        cdef float cy = from_vec.c_data.z * to_vec.c_data.x - \
-                        from_vec.c_data.x * to_vec.c_data.z
-        cdef float cz = from_vec.c_data.x * to_vec.c_data.y - \
-                        from_vec.c_data.y * to_vec.c_data.x
-        cdef float dot = from_vec.c_data.x * to_vec.c_data.x + \
-                         from_vec.c_data.y * to_vec.c_data.y + \
-                         from_vec.c_data.z * to_vec.c_data.z
-        cdef float cross_len_sq = cx * cx + cy * cy + cz * cz
-        cdef float magnitude = <float>cmath.sqrt(dot * dot + cross_len_sq)
-        cdef float cw = dot + magnitude
-        cdef float sx = 0.0
-        cdef float sz = 0.0
-        cdef float rcp_len = 0.0
-
-        if cw < MATH_FLOAT_SMALLESTNONDENORMAL:
-            sx = to_vec.c_data.y * to_vec.c_data.y + \
-                 to_vec.c_data.z * to_vec.c_data.z
-            sz = to_vec.c_data.x * to_vec.c_data.x + \
-                 to_vec.c_data.y * to_vec.c_data.y
-            if sx > sz:
-                if sx >= MATH_FLOAT_SMALLESTNONDENORMAL:
-                    rcp_len = <float>1.0 / <float>cmath.sqrt(sx)
-                else:
-                    rcp_len = MATH_FLOAT_HUGENUMBER
-
-                self.c_data.x = <float>0
-                self.c_data.y = to_vec.c_data.z * rcp_len
-                self.c_data.z = -to_vec.c_data.y * rcp_len
-                self.c_data.w = <float>0
-            else:
-                if sz >= MATH_FLOAT_SMALLESTNONDENORMAL:
-                    rcp_len = <float>1.0 / <float>cmath.sqrt(sz)
-                else:
-                    rcp_len = MATH_FLOAT_HUGENUMBER
-
-                self.c_data.x = to_vec.c_data.y * rcp_len
-                self.c_data.y = -to_vec.c_data.x * rcp_len
-                self.c_data.z = <float>0
-                self.c_data.w = <float>0
-        else:
-            if sz >= MATH_FLOAT_SMALLESTNONDENORMAL:
-                rcp_len = <float>1.0 / <float>cmath.sqrt(sz)
-            else:
-                rcp_len = MATH_FLOAT_HUGENUMBER
-
-            self.c_data.x = cx * rcp_len
-            self.c_data.y = cy * rcp_len
-            self.c_data.z = cz * rcp_len
-            self.c_data.w = cw * rcp_len
+            self.c_data[0] = ovr_math.Quatf(
+                <float>args[0],
+                <float>args[1],
+                <float>args[2],
+                <float>args[3])
 
     @property
     def x(self):
@@ -1531,24 +900,14 @@ cdef class ovrQuatf:
         return to_return
 
     def __eq__(self, ovrQuatf b):
-        return self.c_data.x == b.c_data.x and \
-               self.c_data.y == b.c_data.y and \
-               self.c_data.z == b.c_data.z and \
-               self.c_data.w == b.c_data.w
+        return (<ovrQuatf>self).c_data[0] == b.c_data[0]
 
     def __ne__(self, ovrQuatf b):
-        return self.c_data.x != b.c_data.x or \
-               self.c_data.y != b.c_data.y or \
-               self.c_data.z != b.c_data.z or \
-               self.c_data.w != b.c_data.w
-
+        return (<ovrQuatf>self).c_data[0] != b.c_data[0]
 
     def __add__(ovrQuatf a, ovrQuatf b):
-        cdef ovrQuatf to_return = ovrQuatf(
-            a.c_data.x + b.c_data.x,
-            a.c_data.y + b.c_data.y,
-            a.c_data.z + b.c_data.z,
-            a.c_data.w + b.c_data.w)
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = a.c_data[0] + b.c_data[0]
 
         return to_return
 
@@ -1561,11 +920,8 @@ cdef class ovrQuatf:
         return self
 
     def __sub__(ovrQuatf a, ovrQuatf b):
-        cdef ovrQuatf to_return = ovrQuatf(
-            a.c_data.x - b.c_data.x,
-            a.c_data.y - b.c_data.y,
-            a.c_data.z - b.c_data.z,
-            a.c_data.w - b.c_data.w)
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = a.c_data[0] - b.c_data[0]
 
         return to_return
 
@@ -1620,230 +976,134 @@ cdef class ovrQuatf:
 
         return self
 
-    def __truediv__(ovrQuatf a, object s):
-        cdef float rcp = <float>1 / <float>s
-        cdef ovrQuatf to_return = ovrQuatf(
-            a.c_data.x * rcp,
-            a.c_data.y * rcp,
-            a.c_data.z * rcp,
-            a.c_data.w * rcp)
+    def __truediv__(ovrQuatf a, float s):
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = a.c_data[0] / s
 
         return to_return
 
-    def __itruediv__(self, object s):
-        cdef float rcp = <float>1 / <float>s
-        self.c_data.x *= rcp
-        self.c_data.y *= rcp
-        self.c_data.z *= rcp
-        self.c_data.w *= rcp
+    def __itruediv__(self, float s):
+        (<ovrQuatf>self).c_data[0] = (<ovrQuatf>self).c_data[0] / s
 
         return self
 
     def is_equal(self, ovrQuatf b, float tolerance = 0.0):
         return  self.abs(self.dot(b)) >= <float>1 - tolerance
 
-    def abs(self, object v):
-        cdef float to_return = 0.0
-        if <float>v >= 0:
-            to_return = v
-        else:
-            to_return = -v
-
-        return to_return
+    def abs(self, float v):
+        return <float>(<ovrQuatf>self).c_data[0].Abs(v)
 
     def imag(self):
-        cdef ovrVector3f to_return = ovrVector3f(
-            self.c_data.x,
-            self.c_data.y,
-            self.c_data.z)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrQuatf>self).c_data[0].Imag()
 
         return to_return
 
     def length_sq(self):
-        return self.c_data.x * self.c_data.x + \
-               self.c_data.y * self.c_data.y + \
-               self.c_data.z * self.c_data.z + \
-               self.c_data.z * self.c_data.z
+        return <float>(<ovrQuatf>self).c_data[0].LengthSq()
 
     def length(self):
-        return <float>cmath.sqrt(self.length_sq())
+        return <float>(<ovrQuatf>self).c_data[0].Length()
 
     def distance(self, ovrQuatf q):
-        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1764
-        cdef float d1 = (self - q).length()
-        cdef float d2 = (self + q).length()
-
-        return d1 if d1 < d2 else d2
+        return <float>(<ovrQuatf>self).c_data[0].Distance(q.c_data[0])
 
     def distance_sq(self, ovrQuatf q):
-        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1770
-        cdef float d1 = (self - q).length_sq()
-        cdef float d2 = (self + q).length_sq()
-
-        return d1 if d1 < d2 else d2
+        return <float>(<ovrQuatf>self).c_data[0].DistanceSq(q.c_data[0])
 
     def dot(self, ovrQuatf q):
-        return self.c_data.x * q.c_data.x + \
-               self.c_data.y * q.c_data.y + \
-               self.c_data.z * q.c_data.z + \
-               self.c_data.w * q.c_data.w
+        return <float>(<ovrQuatf>self).c_data[0].Dot(q.c_data[0])
 
     def angle(self, ovrQuatf q):
-        return <float>2 * acos(self.abs(self.dot(q)))
+        return <float>(<ovrQuatf>self).c_data[0].Angle(q.c_data[0])
 
     def is_normalized(self):
-        return cmath.fabs(self.length_sq() - <float>1) < 0
+        return <bint>(<ovrQuatf>self).c_data[0].IsNormalized()
 
     def normalize(self):
-        cdef float s = self.length()
-        if s != <float>0:
-            s = <float>1 / s
+        (<ovrQuatf>self).c_data[0].Normalize()
 
-        self *= s
+        return self
 
     def normalized(self):
-        cdef float s = self.length()
-        if s != <float>0:
-            s = <float>1 / s
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = \
+            (<ovrQuatf>self).c_data[0].Normalized()
 
-        return self * s
+        return to_return
 
     def conj(self):
-        cdef ovrQuatf to_return = ovrQuatf(
-            -self.c_data.x, -self.c_data.y, -self.c_data.z, self.c_data.w)
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = (<ovrQuatf>self).c_data[0].Conj()
+
         return to_return
 
     @staticmethod
     def align(ovrVector3f align_to, ovrVector3f v):
-        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1848
-        assert align_to.is_normalized() and v.is_normalized()
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = ovr_math.Quatf.Align(
+            align_to.c_data[0], v.c_data[0])
 
-        cdef ovrVector3f bisector = align_to + v
-        bisector.normalize()
-
-        cdef float cos_half_angle = v.dot(bisector)
-        cdef ovrVector3f imag
-        cdef float inv_length = 0.0
-
-        if cos_half_angle > <float>0:
-            imag = v.cross(bisector)
-            return ovrQuatf(imag.x, imag.y, imag.z, cos_half_angle)
-        else:
-            if cmath.fabs(v.c_data.x) > cmath.fabs(v.c_data.y):
-                inv_length = <float>cmath.sqrt(v.c_data.x * v.c_data.x +
-                                               v.c_data.z * v.c_data.z)
-                if inv_length > <float>0:
-                    inv_length = <float>1 / inv_length
-
-                return ovrQuatf(-v.c_data.z * inv_length,
-                                0,
-                                v.c_data.x * inv_length,
-                                0)
-            else:
-                inv_length = <float>cmath.sqrt(
-                    v.c_data.y * v.c_data.y + v.c_data.z * v.c_data.z)
-                if inv_length > <float>0:
-                    inv_length = <float>1 / inv_length
-                return ovrQuatf(0,
-                                v.c_data.z * inv_length,
-                                -v.c_data.y * inv_length,
-                                0)
+        return to_return
 
     def rotate(self, ovrVector3f v):
-        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1929
-        assert v.is_normalized()
-        cdef float uvx = <float>2 * (self.c_data.y * v.c_data.z -
-                                     self.c_data.z * v.c_data.y)
-        cdef float uvy = <float>2 * (self.c_data.z * v.c_data.x -
-                                     self.c_data.x * v.c_data.z)
-        cdef float uvz = <float>2 * (self.c_data.x * v.c_data.y -
-                                     self.c_data.y * v.c_data.x)
-
-        cdef ovrVector3f to_return = ovrVector3f(
-            v.c_data.x + self.c_data.w *
-            uvx + self.c_data.y *
-            uvz - self.c_data.z * uvy,
-            v.c_data.y + self.c_data.w *
-            uvy + self.c_data.z *
-            uvx - self.c_data.x * uvz,
-            v.c_data.z + self.c_data.w *
-            uvz + self.c_data.x *
-            uvy - self.c_data.y * uvx)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrQuatf>self).c_data[0].Rotate(v.c_data[0])
 
         return to_return
 
     def inverse_rotate(self, ovrVector3f v):
-        # Port of Oculus SDK C++ routine found in OVR_Math.h, starting at line
-        # 1948
-        assert v.is_normalized()
-        cdef float uvx = <float>2 * (self.c_data.y * v.c_data.z -
-                                     self.c_data.z * v.c_data.y)
-        cdef float uvy = <float>2 * (self.c_data.z * v.c_data.x -
-                                     self.c_data.x * v.c_data.z)
-        cdef float uvz = <float>2 * (self.c_data.x * v.c_data.y -
-                                     self.c_data.y * v.c_data.x)
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovrQuatf>self).c_data[0].InverseRotate(v.c_data[0])
 
-        cdef ovrVector3f to_return = ovrVector3f(
-            v.c_data.x - self.c_data.w *
-            uvx + self.c_data.y *
-            uvz - self.c_data.z * uvy,
-            v.c_data.y - self.c_data.w *
-            uvy + self.c_data.z *
-            uvx - self.c_data.x * uvz,
-            v.c_data.z - self.c_data.w *
-            uvz + self.c_data.x *
-            uvy - self.c_data.y * uvx)
+        return to_return
 
     def inverted(self):
-        cdef ovrQuatf to_return = ovrQuatf(-self.c_data.x,
-                                           -self.c_data.y,
-                                           -self.c_data.z,
-                                            self.c_data.w)
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = (<ovrQuatf>self).c_data[0].Inverted()
+
         return to_return
 
     def inverse(self):
-        cdef ovrQuatf to_return = ovrQuatf(-self.c_data.x,
-                                           -self.c_data.y,
-                                           -self.c_data.z,
-                                            self.c_data.w)
+        cdef ovrQuatf to_return = ovrQuatf()
+        (<ovrQuatf>to_return).c_data[0] = (<ovrQuatf>self).c_data[0].Inverse()
+
         return to_return
 
     def invert(self):
-        self.c_data.x = -self.c_data.x
-        self.c_data.y = -self.c_data.y
-        self.c_data.z = -self.c_data.z
+        (<ovrQuatf>self).c_data[0].Inverse()
 
         return self
 
     def __invert__(self):
-        return self.invert()
+        return self.inverse()
 
 
 cdef class ovrPosef:
-    cdef ovr_capi.ovrPosef* c_data
-    cdef ovr_capi.ovrPosef  c_ovrPosef
+    cdef ovr_math.Posef* c_data
+    cdef ovr_math.Posef  c_Posef
 
     cdef ovrVector3f field_position
     cdef ovrQuatf field_orientation
 
     def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrPosef
+        self.c_data = &self.c_Posef
 
         # create property objects
         self.field_position = ovrVector3f()
-        self.field_position.c_data = &self.c_data.Position
+        self.field_position.c_data = &(<ovrPosef>self).c_data[0].Translation
         self.field_orientation = ovrQuatf()
-        self.field_orientation.c_data = &self.c_data.Orientation
+        self.field_orientation.c_data = &(<ovrPosef>self).c_data[0].Rotation
 
         cdef int nargin = <int>len(args)  # get number of arguments
         if nargin == 0:
             pass
         elif nargin == 2:
-            if isinstance(args[0], ovrVector3f) and isinstance(args[1], ovrQuatf):
+            if isinstance(args[0], ovrVector3f) and \
+                    isinstance(args[1], ovrQuatf):
                 self.field_position.c_data[0] = (<ovrVector3f>args[0]).c_data[0]
                 self.field_orientation.c_data[0] = (<ovrQuatf>args[1]).c_data[0]
 
@@ -1853,7 +1113,7 @@ cdef class ovrPosef:
 
     @rotation.setter
     def rotation(self, ovrQuatf value):
-        self.field_orientation.c_data[0] = (<ovrQuatf>value).c_data[0]
+        (<ovrPosef>self).c_data[0].Rotation = value.c_data[0]
 
     @property
     def translation(self):
@@ -1861,7 +1121,7 @@ cdef class ovrPosef:
 
     @translation.setter
     def translation(self, ovrVector3f value):
-        self.field_position.c_data[0] = (<ovrVector3f>value).c_data[0]
+        (<ovrPosef>self).c_data[0].Translation = value.c_data[0]
 
     def rotate(self, ovrVector3f v):
         return self.rotation.rotate(v)
@@ -1910,106 +1170,74 @@ cdef class ovrPosef:
 
 
 cdef class ovrMatrix4f:
-    cdef ovr_capi.ovrMatrix4f* c_data
-    cdef ovr_capi.ovrMatrix4f  c_ovrMatrix4f
+    cdef ovr_math.Matrix4f* c_data
+    cdef ovr_math.Matrix4f  c_Matrix4f
 
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrMatrix4f
+    def __cinit__(self, *args):
+        self.c_data = &self.c_Matrix4f
 
-        cdef int nargin = <int>len(args)  # get number of arguments
+        cdef int nargin = <int>len(args)
         if nargin == 0:
-            self.identity()
+            self.c_data[0] = ovr_math.Matrix4f.Identity()
         elif nargin == 1:
             if isinstance(args[0], ovrQuatf):
-                self._init_from_quatf(args[0])
+                self.c_data[0] = ovr_math.Matrix4f(
+                    <ovr_math.Quatf>(<ovrQuatf>args[0]).c_data[0])
             elif isinstance(args[0], ovrPosef):
-                self._init_from_posef(args[0])
+                self.c_data[0] = ovr_math.Matrix4f(
+                    <ovr_math.Posef>(<ovrPosef>args[0]).c_data[0])
+            elif isinstance(args[0], ovrMatrix4f):
+                self.c_data[0] = ovr_math.Matrix4f(
+                    <ovr_math.Matrix4f>(<ovrMatrix4f>args[0]).c_data[0])
         elif nargin == 9:
-            self._init_from_floats_9(args)
+            self.c_data[0] = ovr_math.Matrix4f(
+                <float>args[0],
+                <float>args[1],
+                <float>args[2],
+                <float>args[3],
+                <float>args[4],
+                <float>args[5],
+                <float>args[6],
+                <float>args[7],
+                <float>args[8])
         elif nargin == 16:
-            self._init_from_floats_16(args)
-
-    cdef void _init_from_floats_16(self, tuple values):
-        assert <int>len(values) == 16
-        cdef size_t i, j, k
-        for i in range(4):
-            for j in range(4):
-                self.c_data.M[i][j] = <float>values[k]
-                k += 1
-
-    cdef void _init_from_floats_9(self, tuple values):
-        assert <int>len(values) == 9
-        cdef size_t i, j, k
-        for i in range(3):
-            for j in range(3):
-                k = (i * 3) + j
-                self.c_data.M[i][j] = <float>values[k]
-
-        self.c_data.M[2][3] = <float>0
-        self.c_data.M[3][0] = <float>0
-        self.c_data.M[3][1] = <float>0
-        self.c_data.M[3][2] = <float>0
-        self.c_data.M[3][3] = <float>1
-
-    cdef void _init_from_quatf(self, ovrQuatf q):
-        cdef float ww = q.c_data.w * q.c_data.w
-        cdef float xx = q.c_data.x * q.c_data.x
-        cdef float yy = q.c_data.y * q.c_data.y
-        cdef float zz = q.c_data.z * q.c_data.z
-
-        self.c_data.M[0][0] = ww + xx - yy - zz
-        self.c_data.M[0][1] = <float>2 * (q.c_data.x * q.c_data.y - q.c_data.w * q.c_data.z)
-        self.c_data.M[0][2] = <float>2 * (q.c_data.x * q.c_data.z + q.c_data.w * q.c_data.y)
-        self.c_data.M[0][3] = <float>0
-        self.c_data.M[1][0] = <float>2 * (q.c_data.x * q.c_data.y + q.c_data.w * q.c_data.z)
-        self.c_data.M[1][1] = ww - xx + yy - zz
-        self.c_data.M[1][2] = <float>2 * (q.c_data.y * q.c_data.z - q.c_data.w * q.c_data.x)
-        self.c_data.M[1][3] = <float>0
-        self.c_data.M[2][0] = <float>2 * (q.c_data.x * q.c_data.z - q.c_data.w * q.c_data.y)
-        self.c_data.M[2][1] = <float>2 * (q.c_data.y * q.c_data.z + q.c_data.w * q.c_data.x)
-        self.c_data.M[2][2] = ww - xx - yy + zz
-        self.c_data.M[2][3] = <float>0
-        self.c_data.M[3][0] = <float>0
-        self.c_data.M[3][1] = <float>0
-        self.c_data.M[3][2] = <float>0
-        self.c_data.M[3][3] = <float>1
-
-    cdef void _init_from_posef(self, ovrPosef p):
-        cdef ovrMatrix4f to_return = ovrMatrix4f(p.rotation)
-        to_return.set_translation(p.translation)
-
-        self.c_data[0] = to_return.c_data[0]
-
-    @staticmethod
-    def identity():
-        cdef ovrMatrix4f to_return = ovrMatrix4f()
-        cdef size_t i, j
-        for i in range(4):
-            for j in range(4):
-                to_return.c_data.M[i][j] = <float>1 if i == j else <float>0
-
-        return to_return
+            self.c_data[0] = ovr_math.Matrix4f(
+                <float>args[0],
+                <float>args[1],
+                <float>args[2],
+                <float>args[3],
+                <float>args[4],
+                <float>args[5],
+                <float>args[6],
+                <float>args[7],
+                <float>args[8],
+                <float>args[9],
+                <float>args[10],
+                <float>args[11],
+                <float>args[12],
+                <float>args[13],
+                <float>args[14],
+                <float>args[15])
 
     @property
     def M(self):
         return self.c_data.M
 
+    @staticmethod
+    def identity():
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        return to_return
+
     def set_identity(self):
-        cdef size_t i, j
-        for i in range(4):
-            for j in range(4):
-                self.c_data.M[i][j] = <float>1 if i == j else <float>0
+        self.c_data[0] = ovr_math.Matrix4f()
 
     def set_x_basis(self, ovrVector3f v):
-        self.c_data.M[0][0] = v.c_data.x
-        self.c_data.M[1][0] = v.c_data.y
-        self.c_data.M[2][0] = v.c_data.z
+        (<ovrMatrix4f>self).c_data[0].SetXBasis(v.c_data[0])
 
     def get_x_basis(self):
-        cdef ovrVector3f to_return = ovrVector3f(
-            self.c_data.M[0][0],
-            self.c_data.M[1][0],
-            self.c_data.M[2][0])
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovr_math.Matrix4f>self.c_data[0]).GetXBasis()
 
         return to_return
 
@@ -2018,82 +1246,59 @@ cdef class ovrMatrix4f:
         return self.get_x_basis()
 
     @x_basis.setter
-    def x_basis(self, object value):
-        if isinstance(value, ovrVector3f):
-            self.set_x_basis(value)
-        elif isinstance(value, (list, tuple)):
-            self.c_data.M[0][0] = value[0]
-            self.c_data.M[1][0] = value[1]
-            self.c_data.M[2][0] = value[2]
+    def x_basis(self, object v):
+        if isinstance(v, ovrVector3f):
+            self.set_x_basis(<ovrVector3f>v)
+        elif isinstance(v, (list, tuple)):
+            self.set_x_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
 
     def set_y_basis(self, ovrVector3f v):
-        self.c_data.M[0][1] = v.c_data.x
-        self.c_data.M[1][1] = v.c_data.y
-        self.c_data.M[2][1] = v.c_data.z
+        (<ovrMatrix4f>self).c_data[0].SetYBasis(v.c_data[0])
 
     def get_y_basis(self):
-        cdef ovrVector3f to_return = ovrVector3f(
-            self.c_data.M[0][1],
-            self.c_data.M[1][1],
-            self.c_data.M[2][1])
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovr_math.Matrix4f>self.c_data[0]).GetYBasis()
 
         return to_return
 
     @property
     def y_basis(self):
-        return self.get_x_basis()
+        return self.get_y_basis()
 
     @y_basis.setter
-    def y_basis(self, object value):
-        if isinstance(value, ovrVector3f):
-            self.set_y_basis(value)
-        elif isinstance(value, (list, tuple)):
-            self.c_data.M[0][1] = value[0]
-            self.c_data.M[1][1] = value[1]
-            self.c_data.M[2][1] = value[2]
+    def y_basis(self, object v):
+        if isinstance(v, ovrVector3f):
+            self.set_y_basis(<ovrVector3f>v)
+        elif isinstance(v, (list, tuple)):
+            self.set_y_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
 
     def set_z_basis(self, ovrVector3f v):
-        self.c_data.M[0][2] = v.c_data.x
-        self.c_data.M[1][2] = v.c_data.y
-        self.c_data.M[2][2] = v.c_data.z
+        (<ovrMatrix4f>self).c_data[0].SetZBasis(v.c_data[0])
 
     def get_z_basis(self):
-        cdef ovrVector3f to_return = ovrVector3f(
-            self.c_data.M[0][2],
-            self.c_data.M[1][2],
-            self.c_data.M[2][2])
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovr_math.Matrix4f>self.c_data[0]).GetZBasis()
 
         return to_return
 
     @property
     def z_basis(self):
-        return self.get_z_basis()
+        return self.get_y_basis()
 
     @z_basis.setter
-    def z_basis(self, object value):
-        if isinstance(value, ovrVector3f):
-            self.set_z_basis(value)
-        elif isinstance(value, (list, tuple)):
-            self.c_data.M[0][2] = value[0]
-            self.c_data.M[1][2] = value[1]
-            self.c_data.M[2][2] = value[2]
-
-    def set_translation(self, ovrVector3f v):
-        self.c_data.M[0][3] = v.c_data.x
-        self.c_data.M[1][3] = v.c_data.y
-        self.c_data.M[2][3] = v.c_data.z
+    def z_basis(self, object v):
+        if isinstance(v, ovrVector3f):
+            self.set_z_basis(<ovrVector3f>v)
+        elif isinstance(v, (list, tuple)):
+            self.set_z_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
 
     def __eq__(self, ovrMatrix4f b):
-        cdef size_t i, j
-        cdef bint is_equal = True
-        for i in range(4):
-            for j in range(4):
-                is_equal &= self.c_data.M[i][j] == b.c_data.M[i][j]
-
-        return is_equal
+        return (<ovrMatrix4f>self).c_data[0] == b.c_data[0]
 
     def __ne__(self, ovrMatrix4f b):
-        return not self.__eq__(b)
+        return (<ovrMatrix4f>self).c_data[0] != b.c_data[0]
 
 
 cdef class TextureSwapChain(object):
