@@ -2,6 +2,8 @@ cimport ovr_capi, ovr_capi_gl, ovr_errorcode, ovr_capi_util
 cimport ovr_math
 cimport libc.math as cmath
 
+import OpenGL.GL as GL
+
 # -----------------
 # Initialize module
 # -----------------
@@ -44,6 +46,10 @@ cdef ovr_capi.ovrPoseStatef[9] _device_poses_
 # Session status
 #
 cdef ovr_capi.ovrSessionStatus _session_status_
+
+# Input states for supported HIDs
+#
+cdef ovr_capi.ovrInputState _ctrl_state_[2]
 
 # Function to check for errors returned by OVRLib functions
 #
@@ -1276,6 +1282,26 @@ cdef class ovrMatrix4f:
         elif isinstance(v, (list, tuple)):
             self.set_z_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
 
+    @property
+    def ctypes(self):
+        return (GL.GLfloat * 16)(
+            self.c_data.M[0][0],
+            self.c_data.M[1][0],
+            self.c_data.M[2][0],
+            self.c_data.M[3][0],
+            self.c_data.M[0][1],
+            self.c_data.M[1][1],
+            self.c_data.M[2][1],
+            self.c_data.M[3][1],
+            self.c_data.M[0][2],
+            self.c_data.M[1][2],
+            self.c_data.M[2][2],
+            self.c_data.M[3][2],
+            self.c_data.M[0][3],
+            self.c_data.M[1][3],
+            self.c_data.M[2][3],
+            self.c_data.M[3][3])
+
     def __eq__(self, ovrMatrix4f b):
         return (<ovrMatrix4f>self).c_data[0] == b.c_data[0]
 
@@ -1751,7 +1777,7 @@ cpdef str get_tracking_origin_type():
     :return: str
     """
     global _ptr_session_
-    cdef ovr_capi.ovrTrackingOrigin origin = ovr_capi.ovr_SetTrackingOriginType(
+    cdef ovr_capi.ovrTrackingOrigin origin = ovr_capi.ovr_GetTrackingOriginType(
         _ptr_session_)
 
     if origin == ovr_capi.ovrTrackingOrigin_FloorLevel:
@@ -2008,6 +2034,22 @@ cpdef bint depth_requested():
 # HID Functions
 # -------------
 #
-cpdef get_input_state(controller='xbox'):
-    global _ptr_session_
+cpdef double poll_xbox_controller_state():
+    global _ptr_session_, _ctrl_state_
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
+        _ptr_session_, ovr_capi.ovrControllerType_XBox, &_ctrl_state_[0])
 
+    if debug_mode:
+        check_result(result)
+
+    return (<ovr_capi.ovrInputState>_ctrl_state_[0]).TimeInSeconds
+
+cpdef double poll_remote_controller_state():
+    global _ptr_session_, _ctrl_state_
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
+        _ptr_session_, ovr_capi.ovrControllerType_Remote, &_ctrl_state_[1])
+
+    if debug_mode:
+        check_result(result)
+
+    return (<ovr_capi.ovrInputState>_ctrl_state_[1]).TimeInSeconds

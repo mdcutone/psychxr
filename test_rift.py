@@ -77,6 +77,10 @@ def main():
     # frame index, increment this every frame
     frame_index = 0
 
+    # compute projection matrices
+    proj_left = rift.get_eye_projection_matrix('left')
+    proj_right = rift.get_eye_projection_matrix('right')
+
     # begin application loop
     while not glfw.window_should_close(window):
         # wait for the buffer to be freed by the compositor, this is like
@@ -90,6 +94,10 @@ def main():
         # after calling 'wait_to_begin_frame' to minimize the motion-to-photon
         # latency.
         rift.calc_eye_poses(abs_time)
+
+        # get the view matrix from the HMD after calculating the pose
+        view_left = rift.get_eye_view_matrix('left')
+        view_right = rift.get_eye_view_matrix('right')
 
         # start frame rendering
         rift.begin_frame(frame_index)
@@ -119,18 +127,50 @@ def main():
             GL.glViewport(x, y, w, h)
             GL.glScissor(x, y, w, h)
             GL.glEnable(GL.GL_SCISSOR_TEST)  # enable scissor test
+            GL.glEnable(GL.GL_DEPTH_TEST)
 
             # Here we can make whatever OpenGL we wish to draw our image. As an
             # example, I'm going to clear the eye buffer texture all some color,
             # with the colour determined by the active eye buffer.
             if eye == 'left':
-                GL.glClearColor(1.0, 0.5, 0.5, 1.0)  # red
+                GL.glMatrixMode(GL.GL_PROJECTION)
+                GL.glLoadIdentity()
+                GL.glMultMatrixf(proj_left.ctypes)
+                GL.glMatrixMode(GL.GL_MODELVIEW)
+                GL.glLoadIdentity()
+                GL.glMultMatrixf(view_left.ctypes)
+
+                GL.glClearColor(0.5, 0.5, 0.5, 1.0)  # red
+                GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+
+                GL.glColor3f(1.0, 1.0, 1.0)
+                GL.glBegin(GL.GL_QUADS)
+                GL.glVertex3f(-1.0, -1.0, 0.0)
+                GL.glVertex3f(-1.0, 1.0, 0.0)
+                GL.glVertex3f(1.0, 1.0, 0.0)
+                GL.glVertex3f(1.0, -1.0, 0.0)
+                GL.glEnd()
+
             elif eye == 'right':
-                GL.glClearColor(0.5, 0.5, 1.0, 1.0)  # blue
+                GL.glMatrixMode(GL.GL_PROJECTION)
+                GL.glLoadIdentity()
+                GL.glMultMatrixf(proj_right.ctypes)
+                GL.glMatrixMode(GL.GL_MODELVIEW)
+                GL.glLoadIdentity()
+                GL.glMultMatrixf(view_right.ctypes)
 
-            view, proj = rift.get_eye_view_matrix(eye)
+                GL.glClearColor(0.5, 0.5, 0.5, 1.0)  # blue
+                GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
-            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+                GL.glColor3f(1.0, 1.0, 1.0)
+                GL.glBegin(GL.GL_QUADS)
+                GL.glVertex3f(-1.0, -1.0, 0.0)
+                GL.glVertex3f(-1.0, 1.0, 0.0)
+                GL.glVertex3f(1.0, 1.0, 0.0)
+                GL.glVertex3f(1.0, -1.0, 0.0)
+                GL.glEnd()
+
+        GL.glDisable(GL.GL_DEPTH_TEST)
 
         # commit the texture when were done drawing to it
         rift.commit_swap_chain(swap_chain)
@@ -159,6 +199,8 @@ def main():
 
         GL.glViewport(0, 0, 800, 600)
         GL.glScissor(0, 0, 800, 600)
+        GL.glClearColor(0.0, 0.0, 0.0, 1.0)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         GL.glBlitFramebuffer(0, 0, 800, 600,
                              0, 600, 800, 0,  # this flips the texture
                              GL.GL_COLOR_BUFFER_BIT,
