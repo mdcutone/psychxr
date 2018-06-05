@@ -285,10 +285,10 @@ cdef extern from "OVR_Math.h" namespace "OVR":
         void ToEulerAnglesABA()
         #@staticmethod
         #Matrix4f AxisConversion(const WorldAxes& to, const WorldAxes& from)
+        #@staticmethod
+        #Matrix4f Translation(float x, float y, float z)
         @staticmethod
         Matrix4f Translation(Vector3f& v)
-        @staticmethod
-        Matrix4f Translation(float x, float y, float z)
         void SetTranslation(Vector3f& v)
         Vector3f GetTranslation()
         @staticmethod

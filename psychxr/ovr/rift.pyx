@@ -24,9 +24,12 @@ cdef ovr_capi.ovrGraphicsLuid _ptr_luid_
 #
 cdef long long _frame_index_ = 0
 
-# texture swap chain
+# create an array of texture swap chains
 #
-cdef ovr_capi.ovrTextureSwapChain _swap_chain_ = NULL
+cdef ovr_capi.ovrTextureSwapChain _swap_chain_[32]
+
+# mirror texture swap chain, we only create one here
+#
 cdef ovr_capi.ovrMirrorTexture _mirror_texture_ = NULL
 
 # VR related structures to store head pose and other data used across frames.
@@ -55,40 +58,6 @@ def check_result(result):
 # associated message passed from LibOVR.
 #
 debug_mode = False
-
-# PsychXR related functions and types
-#
-cdef double MATH_DOUBLE_PI = 3.14159265358979323846
-cdef float MATH_FLOAT_PI = <float>MATH_DOUBLE_PI
-cdef double MATH_DOUBLE_PIOVER2 = <double>0.5 * MATH_DOUBLE_PI
-cdef float MATH_FLOAT_PIOVER2 = <float>MATH_DOUBLE_PIOVER2
-cdef float MATH_FLOAT_SMALLESTNONDENORMAL = 1.1754943508222875e-38
-cdef float MATH_FLOAT_HUGENUMBER = 1.8446742974197924e19
-
-cdef float acos(float x):
-    cdef float to_return = 0.0
-    if x > 1.0:
-        to_return = 0.0
-    else:
-        if x < -1.0:
-            to_return = MATH_FLOAT_PI
-        else:
-            to_return = cmath.acos(x)
-
-    return to_return
-
-cdef float asin(float x):
-    cdef float to_return = 0.0
-    if x > 1.0:
-        to_return = 0.0
-    else:
-        if x < -1.0:
-            to_return = MATH_FLOAT_PI
-        else:
-            to_return = cmath.asin(x)
-
-    return to_return
-
 
 cdef class ovrColorf:
     cdef ovr_capi.ovrColorf* c_data
@@ -137,7 +106,10 @@ cdef class ovrColorf:
     def as_tuple(self):
         return self.c_data.r, self.c_data.g, self.c_data.b, self.c_data.a
 
-
+# ---------------------
+# Oculus SDK Math Types
+# ---------------------
+#
 cdef class ovrVector2i:
     cdef ovr_capi.ovrVector2i* c_data
     cdef ovr_capi.ovrVector2i  c_ovrVector2i
@@ -1170,6 +1142,14 @@ cdef class ovrPosef:
 
 
 cdef class ovrMatrix4f:
+    """ovrMatrix4f
+
+    4x4 Matrix typically used for 3D transformations. By default, all matrices
+    are right handed. Values are stored in row-major order. Transformations
+    are applied left-to-right.
+
+    """
+
     cdef ovr_math.Matrix4f* c_data
     cdef ovr_math.Matrix4f  c_Matrix4f
 
@@ -1298,114 +1278,283 @@ cdef class ovrMatrix4f:
         return (<ovrMatrix4f>self).c_data[0] == b.c_data[0]
 
     def __ne__(self, ovrMatrix4f b):
-        return (<ovrMatrix4f>self).c_data[0] != b.c_data[0]
+        return not (<ovrMatrix4f>self).c_data[0] == b.c_data[0]
 
+    def __add__(ovrMatrix4f a, ovrMatrix4f b):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = a.c_data[0] + b.c_data[0]
 
-cdef class TextureSwapChain(object):
-    cdef ovr_capi.ovrTextureSwapChain texture_swap_chain
+        return to_return
 
-    def __init__(self, object size, **kwargs):
-        pass
+    def __iadd__(self, ovrMatrix4f b):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>self).c_data[0] = \
+            (<ovrMatrix4f>self).c_data[0] + b.c_data[0]
 
-    def __cinit__(self, object size, **kwargs):
+        return self
 
-        # get hmd descriptor
-        global _hmd_desc_, _ptr_session_
+    def __sub__(ovrMatrix4f a, ovrMatrix4f b):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = a.c_data[0] - b.c_data[0]
 
-        # initialize swap chain texture
-        cdef ovr_capi.ovrTextureSwapChainDesc swap_desc
-        swap_desc.Type = ovr_capi.ovrTexture_2D
-        swap_desc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
-        swap_desc.Width = <int>size[0]
-        swap_desc.Height = <int>size[1]
-        swap_desc.StaticImage = ovr_capi.ovrFalse
-        swap_desc.ArraySize = swap_desc.MipLevels = swap_desc.SampleCount = 1
-        swap_desc.MiscFlags = ovr_capi.ovrTextureMisc_None
-        swap_desc.BindFlags = ovr_capi.ovrTextureBind_None
+        return to_return
 
-        # create the texture swap chain
-        cdef ovr_capi.ovrResult result = 0
-        result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
-            _ptr_session_, &swap_desc, &self.texture_swap_chain)
+    def __isub__(self, ovrMatrix4f b):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>self).c_data[0] = \
+            (<ovrMatrix4f>self).c_data[0] - b.c_data[0]
 
-        if debug_mode:
-            check_result(result)
+        return self
 
-    def get_size(self):
-        global _ptr_session_
+    @staticmethod
+    def multiply(ovrMatrix4f d, ovrMatrix4f a, ovrMatrix4f b):
+        ovr_math.Matrix4f.Multiply(&d.c_data[0], a.c_data[0], b.c_data[0])
 
-        cdef ovr_capi.ovrTextureSwapChainDesc swap_desc
-        ovr_capi.ovr_GetTextureSwapChainDesc(
-            _ptr_session_,
-            self.texture_swap_chain,
-            &swap_desc)
+    def __mul__(ovrMatrix4f a, object b):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        if isinstance(b, ovrMatrix4f):
+            (<ovrMatrix4f>to_return).c_data[0] = \
+                (<ovrMatrix4f>a).c_data[0] * (<ovrMatrix4f>b).c_data[0]
+        elif isinstance(b, (int, float)):
+            (<ovrMatrix4f>to_return).c_data[0] = \
+                (<ovrMatrix4f>a).c_data[0] * <float>b
 
-        return swap_desc.Width, swap_desc.Height
+        return to_return
 
-    def get_buffer(self):
-        cdef int current_idx = 0
-        cdef unsigned int tex_id = 0
+    def __imul__(self, object b):
+        if isinstance(b, ovrMatrix4f):
+            (<ovrMatrix4f>self).c_data[0] = \
+                (<ovrMatrix4f>self).c_data[0] * (<ovrMatrix4f>b).c_data[0]
+        elif isinstance(b, (int, float)):
+            (<ovrMatrix4f>self).c_data[0] = \
+                (<ovrMatrix4f>self).c_data[0] * <float>b
 
-        global _ptr_session_
-        ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
-            _ptr_session_,
-            self.texture_swap_chain,
-            &current_idx)
+        return self
 
-        ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
-            _ptr_session_,
-            self.texture_swap_chain,
-            current_idx,
-            &tex_id)
+    def __truediv__(ovrMatrix4f a, float b):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = a.c_data[0] * <float>b
 
-        return tex_id
+        return to_return
 
-    def commit(self):
-        ovr_capi.ovr_CommitTextureSwapChain(
-            _ptr_session_,
-            self.texture_swap_chain)
+    def __itruediv__(self, float b):
+        (<ovrMatrix4f>self).c_data[0] = (<ovrMatrix4f>self).c_data[0] / <float>b
 
+        return self
 
-cdef class RenderLayer(object):
-    cdef ovr_capi.ovrLayerEyeFov _eye_layer
-    cdef TextureSwapChain swap_chain
+    def transform(self, ovrVector3f v):
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovr_math.Matrix4f>self.c_data[0]).Transform(v.c_data[0])
 
-    def __init__(self, *args, **kwargs):
-        pass
+        return to_return
 
-    def __cinit__(
-            self,
-            TextureSwapChain swap_chain,
-            bint high_quality = True,
-            bint head_locked = False,
-            float texels_per_pixel = 1.0,
-            **kwargs):
+    def transposed(self):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = \
+            (<ovr_math.Matrix4f>self.c_data[0]).Transposed()
 
-        # get hmd descriptor
-        global _hmd_desc_, _ptr_session_
+        return to_return
 
-        # configure render layer
-        # self._eye_layer.Header.Type = ovr_capi.ovrLayerType_EyeFov
-        # self._eye_layer.Header.Flags = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
-        # self._eye_layer.Fov[0] = _eye_render_desc_[0].Fov
-        # self._eye_layer.Fov[1] = _eye_render_desc_[1].Fov
-        # self._eye_layer.Viewport[0].Pos.x = 0
-        # self._eye_layer.Viewport[0].Pos.y = 0
-        # self._eye_layer.Viewport[0].Size.w = buffer_size[0] / 2
-        # self._eye_layer.Viewport[0].Size.h = buffer_size[1]
-        # self._eye_layer.Viewport[1].Pos.x = buffer_size[0] / 2
-        # self._eye_layer.Viewport[1].Pos.y = 0
-        # self._eye_layer.Viewport[1].Size.w = buffer_size[0] / 2
-        # self._eye_layer.Viewport[1].Size.h = buffer_size[1]
-        #
-        # self._eye_layer.ColorTexture[0] = self.texture_swap_chain
-        # self._eye_layer.ColorTexture[1] = NULL
+    def transpose(self):
+        (<ovr_math.Matrix4f>self.c_data[0]).Transpose()
+
+        return self
+
+    def determinant(self):
+        cdef float det = (<ovrMatrix4f>self).c_data[0].Determinant()
+        return det
+
+    def adjugated(self):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = \
+            (<ovr_math.Matrix4f>self.c_data[0]).Adjugated()
+
+        return to_return
+
+    def inverted(self):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = \
+            (<ovr_math.Matrix4f>self.c_data[0]).Inverted()
+
+        return to_return
+
+    def invert(self):
+        (<ovr_math.Matrix4f>self.c_data[0]).Transpose()
+
+        return self
+
+    def inverted_homogeneous_transform(self):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = \
+            (<ovr_math.Matrix4f>self.c_data[0]).InvertedHomogeneousTransform()
+
+        return to_return
+
+    def invert_homogeneous_transform(self):
+        (<ovr_math.Matrix4f>self.c_data[0]).InvertHomogeneousTransform()
+
+        return self
+
+    @staticmethod
+    def translation(object v):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        if isinstance(v, ovrVector3f):
+            (<ovrMatrix4f>to_return).c_data[0] = \
+                ovr_math.Matrix4f.Translation((<ovrVector3f>v).c_data[0])
+        elif isinstance(v, (list, tuple)):
+            (<ovrMatrix4f>to_return).c_data[0] = \
+                ovr_math.Matrix4f.Translation(
+                    ovrVector3f(<float>v[0], <float>v[1], <float>v[2]).c_data[0])
+
+        return to_return
+
+    def set_translation(self, ovrVector3f v):
+        (<ovr_math.Matrix4f>self.c_data[0]).SetTranslation(v.c_data[0])
+
+        return self
+
+    def get_translation(self):
+        cdef ovrVector3f to_return = ovrVector3f()
+        (<ovrVector3f>to_return).c_data[0] = \
+            (<ovr_math.Matrix4f>self.c_data[0]).GetTranslation()
+
+        return to_return
+
+    @staticmethod
+    def scaling(ovrVector3f v):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = \
+            ovr_math.Matrix4f.Scaling((<ovrVector3f>v).c_data[0])
+
+        return to_return
+
+    def distance(self, ovrMatrix4f m2):
+        cdef float distance = \
+            (<ovr_math.Matrix4f>self.c_data[0]).Distance(m2.c_data[0])
+
+        return distance
+
+    @staticmethod
+    def rotation_x(float angle=0.0):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = ovr_math.Matrix4f.RotationX(angle)
+
+        return to_return
+
+    @staticmethod
+    def rotation_y(float angle=0.0):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = ovr_math.Matrix4f.RotationY(angle)
+
+        return to_return
+
+    @staticmethod
+    def rotation_z(float angle=0.0):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = ovr_math.Matrix4f.RotationZ(angle)
+
+        return to_return
+
+    @staticmethod
+    def look_at(ovrVector3f eye, ovrVector3f at, ovrVector3f up):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = ovr_math.Matrix4f.LookAtRH(
+            eye.c_data[0], at.c_data[0], up.c_data[0])
+
+        return to_return
+
+    @staticmethod
+    def perspective(float yfov, float aspect, float znear, float zfar):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = ovr_math.Matrix4f.PerspectiveRH(
+            yfov, aspect, znear, zfar)
+
+        return to_return
+
+    @staticmethod
+    def ortho_2d(float w, float h):
+        cdef ovrMatrix4f to_return = ovrMatrix4f()
+        (<ovrMatrix4f>to_return).c_data[0] = ovr_math.Matrix4f.Ortho2D(w, h)
+
+        return to_return
+
+# Allocate a new swap chain handle. In Python, swap chains are specified using
+# the handle provided here. This prevents the user from directly managing swap
+# chain pointers; whose associated objects can be garbage collected. You can
+# allocate up to 32 swap chains, however you will likely run out of video memory
+# by then.
+#
+def alloc_swap_chain(int width, int height):
+    global _swap_chain_, _ptr_session_
+    # get the first available swap chain, unallocated chains will test as NULL
+    cdef int i, sc
+    for i in range(32):
+        if _swap_chain_[i] is NULL:
+            sc = i
+            break
+    else:
+        raise IndexError("Maximum number of swap chains initialized!")
+
+    # configure the swap chain
+    cdef ovr_capi.ovrTextureSwapChainDesc config
+    config.Type = ovr_capi.ovrTexture_2D
+    config.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+    config.Width = width
+    config.Height = height
+    config.StaticImage = ovr_capi.ovrFalse
+    config.ArraySize = config.MipLevels = config.SampleCount = 1
+    config.MiscFlags = ovr_capi.ovrTextureMisc_None
+    config.BindFlags = ovr_capi.ovrTextureBind_None
+
+    # create the swap chain
+    cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
+        _ptr_session_, &config, &_swap_chain_[sc])
+
+    if debug_mode:
+        check_result(result)
+
+    # return the handle
+    return sc
+
+# Free or destroy a swap chain. The handle will be made available after this
+# call.
+#
+def free_swap_chain(int sc):
+    global _swap_chain_, _ptr_session_
+    ovr_capi.ovr_DestroyTextureSwapChain(_ptr_session_, _swap_chain_[sc])
+    _swap_chain_[sc] = NULL
+
+# Get the next available texture in the specified swap chain. Use the returned
+# value as a frame buffer texture.
+#
+def get_swap_chain_buffer(int sc):
+    cdef int current_idx = 0
+    cdef unsigned int tex_id = 0
+    cdef ovr_capi.ovrResult result
+
+    # get the current texture index within the swap chain
+    result = ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
+        _ptr_session_, _swap_chain_[sc], &current_idx)
+
+    if debug_mode:
+        check_result(result)
+
+    # get the next available texture ID from the swap chain
+    result = ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
+        _ptr_session_, _swap_chain_[sc], current_idx, &tex_id)
+
+    if debug_mode:
+        check_result(result)
+
+    return tex_id
 
 # ----------------
 # Module Functions
 # ----------------
 #
 cpdef dict start_session():
+    global _ptr_session_
     cdef ovr_capi.ovrResult result = 0
     result = ovr_capi.ovr_Initialize(NULL)
     result = ovr_capi.ovr_Create(&_ptr_session_, &_ptr_luid_)
@@ -1438,48 +1587,91 @@ cpdef dict start_session():
 
     return hmd_info
 
+cpdef tuple get_buffer_size(fov_type='recommended'):
+        # get the buffer size for the specified FOV type and buffer layout
+        cdef ovr_capi.ovrSizei rec_tex0_size, rec_tex1_size, buffer_size
+        if fov_type == 'recommended':
+            rec_tex0_size = ovr_capi.ovr_GetFovTextureSize(
+                _ptr_session_,
+                ovr_capi.ovrEye_Left,
+                _hmd_desc_.DefaultEyeFov[0],
+                1.0)
+            rec_tex1_size = ovr_capi.ovr_GetFovTextureSize(
+                _ptr_session_,
+                ovr_capi.ovrEye_Right,
+                _hmd_desc_.DefaultEyeFov[1],
+                1.0)
+        elif fov_type == 'max':
+            rec_tex0_size = ovr_capi.ovr_GetFovTextureSize(
+                _ptr_session_,
+                ovr_capi.ovrEye_Left,
+                _hmd_desc_.MaxEyeFov[0],
+                1.0)
+            rec_tex1_size = ovr_capi.ovr_GetFovTextureSize(
+                _ptr_session_,
+                ovr_capi.ovrEye_Right,
+                _hmd_desc_.MaxEyeFov[1],
+                1.0)
+
+        buffer_size.w  = rec_tex0_size.w + rec_tex1_size.w
+        buffer_size.h = max(rec_tex0_size.h, rec_tex1_size.h)
+
+        return buffer_size.w, buffer_size.h
+
 cpdef void end_session():
-    ovr_capi.ovr_DestroyTextureSwapChain(_ptr_session_, _swap_chain_)
+    # free all swap chains
+    global _ptr_session_, _swap_chain_, _mirror_texture_
+    cdef int i = 0
+    for i in range(32):
+        if not _swap_chain_[i] is NULL:
+            ovr_capi.ovr_DestroyTextureSwapChain(
+                _ptr_session_, _swap_chain_[i])
+            _swap_chain_[i] = NULL
+
+    # destroy the mirror texture
+    ovr_capi.ovr_DestroyMirrorTexture(_ptr_session_, _mirror_texture_)
+
+    # destroy the current session and shutdown
     ovr_capi.ovr_Destroy(_ptr_session_)
     ovr_capi.ovr_Shutdown()
 
-cpdef tuple get_buffer_size(float texels_per_pixel=1.0):
-    cdef ovr_capi.ovrSizei rec_tex0_size, rec_tex1_size, buffer_size
-
-    rec_tex0_size = ovr_capi.ovr_GetFovTextureSize(
-        _ptr_session_,
-        ovr_capi.ovrEye_Left,
-        _hmd_desc_.DefaultEyeFov[0],
-        texels_per_pixel)
-    rec_tex1_size = ovr_capi.ovr_GetFovTextureSize(
-        _ptr_session_,
-        ovr_capi.ovrEye_Right,
-        _hmd_desc_.DefaultEyeFov[1],
-        texels_per_pixel)
-
-    buffer_size.w  = rec_tex0_size.w + rec_tex1_size.w
-    buffer_size.h = max(rec_tex0_size.h, rec_tex1_size.h)
-
-    return buffer_size.w, buffer_size.h
-
-cpdef void setup_render_layer(TextureSwapChain swap_chain):
-    buffer_size = swap_chain.get_size()
-
-    # setup the render layer
+cpdef void setup_render_layer(int width, int height, int sc):
+    global _ptr_session_, _eye_layer_
+    # configure render layer
     _eye_layer_.Header.Type = ovr_capi.ovrLayerType_EyeFov
     _eye_layer_.Header.Flags = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
-    _eye_layer_.ColorTexture[0] = swap_chain.texture_swap_chain
-    _eye_layer_.ColorTexture[1] = NULL
+
+    # setup layer FOV settings, these are computed earlier
     _eye_layer_.Fov[0] = _eye_render_desc_[0].Fov
     _eye_layer_.Fov[1] = _eye_render_desc_[1].Fov
+
+    # set the viewport
     _eye_layer_.Viewport[0].Pos.x = 0
     _eye_layer_.Viewport[0].Pos.y = 0
-    _eye_layer_.Viewport[0].Size.w = buffer_size[0] / 2
-    _eye_layer_.Viewport[0].Size.h = buffer_size[1]
-    _eye_layer_.Viewport[1].Pos.x = buffer_size[0] / 2
+    _eye_layer_.Viewport[0].Size.w = width / 2
+    _eye_layer_.Viewport[0].Size.h = height
+    _eye_layer_.Viewport[1].Pos.x = width / 2
     _eye_layer_.Viewport[1].Pos.y = 0
-    _eye_layer_.Viewport[1].Size.w = buffer_size[0] / 2
-    _eye_layer_.Viewport[1].Size.h = buffer_size[1]
+    _eye_layer_.Viewport[1].Size.w = width / 2
+    _eye_layer_.Viewport[1].Size.h = height
+
+    # set the swap chain textures
+    _eye_layer_.ColorTexture[0] = _swap_chain_[sc]
+    _eye_layer_.ColorTexture[1] = NULL  # NULL for now
+
+cpdef tuple get_render_layer_viewport(str eye='left'):
+    global _ptr_session_, _eye_layer_
+    if eye == 'left':
+        return (<int>_eye_layer_.Viewport[0].Pos.x,
+                <int>_eye_layer_.Viewport[0].Pos.y,
+                <int>_eye_layer_.Viewport[0].Size.w,
+                <int>_eye_layer_.Viewport[0].Size.h)
+    elif eye == 'right':
+        return (<int>_eye_layer_.Viewport[1].Pos.x,
+                <int>_eye_layer_.Viewport[1].Pos.y,
+                <int>_eye_layer_.Viewport[1].Size.w,
+                <int>_eye_layer_.Viewport[1].Size.h)
+
 
 cpdef void setup_mirror_texture(int width=800, int height=600):
     cdef ovr_capi.ovrMirrorTextureDesc mirror_desc
@@ -1513,7 +1705,6 @@ cpdef int wait_to_begin_frame(unsigned int frame_index=0):
     return <int>result
 
 cpdef void calc_eye_poses(double abs_time, bint time_stamp=True):
-
     cdef ovr_capi.ovrBool use_marker = 0
     if time_stamp:
         use_marker = ovr_capi.ovrTrue
@@ -1533,16 +1724,6 @@ cpdef int begin_frame(unsigned int frame_index=0):
 
     return <int>result
 
-cpdef unsigned int get_texture_swap_buffer():
-    cdef int current_idx = 0
-    cdef unsigned int tex_id = 0
-    ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
-        _ptr_session_, _swap_chain_, &current_idx)
-    ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
-        _ptr_session_, _swap_chain_, current_idx, &tex_id)
-
-    return tex_id
-
 cpdef unsigned int get_mirror_texture():
     cdef unsigned int out_tex_id
     cdef ovr_capi.ovrResult result = \
@@ -1553,7 +1734,17 @@ cpdef unsigned int get_mirror_texture():
 
     return <unsigned int>out_tex_id
 
+def commit_swap_chain(int sc):
+    global _ptr_session_, _swap_chain_
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_CommitTextureSwapChain(
+        _ptr_session_,
+        _swap_chain_[sc])
+
+    if debug_mode:
+        check_result(result)
+
 cpdef void end_frame(unsigned int frame_index=0):
+    global _eye_layer_
     cdef ovr_capi.ovrLayerHeader* layers = &_eye_layer_.Header
     result = ovr_capi.ovr_EndFrame(
         _ptr_session_,

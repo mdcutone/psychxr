@@ -57,16 +57,6 @@ ext_modules = [
               libraries=LIBRARIES,
               library_dirs=LIB_DIRS,
               language="c++",
-              extra_compile_args=['']),
-    Extension("psychxr.vrlinalg", ["psychxr/vrlinalg.pyx"],
-              include_dirs=[OCULUS_SDK_INCLUDE,
-                            OCULUS_SDK_INCLUDE_EXTRAS,
-                            "psychxr/ovr/",
-                            "include/vrlinalg/",
-                            "include/"],
-              libraries=LIBRARIES,
-              library_dirs=LIB_DIRS,
-              language="c++",
               extra_compile_args=[''])
 ]
 
