@@ -34,6 +34,9 @@ def main():
     # start an Oculus session
     rift.start_session()
 
+    # get general information about the HMD
+    print(rift.get_hmd_info())
+
     # get the buffer dimensions specified by the Rift SDK, we need them to
     # setup OpenGL frame buffers.
     buffer_size = rift.get_buffer_size()
@@ -124,6 +127,9 @@ def main():
                 GL.glClearColor(1.0, 0.2, 0.2, 1.0)  # red
             elif eye == 'right':
                 GL.glClearColor(0.2, 0.2, 1.0, 1.0)  # blue
+
+            view, proj = rift.get_eye_view_matrix(eye)
+            print(view.get_translation().as_tuple())
 
             GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 

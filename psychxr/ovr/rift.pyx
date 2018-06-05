@@ -1,8 +1,5 @@
 cimport ovr_capi, ovr_capi_gl, ovr_errorcode, ovr_capi_util
 cimport ovr_math
-from libc.stdint cimport uintptr_t, uint32_t, int32_t
-from libcpp cimport nullptr
-from libc.stdlib cimport malloc, free
 cimport libc.math as cmath
 
 # -----------------
@@ -1479,13 +1476,17 @@ cdef class ovrMatrix4f:
 
         return to_return
 
-# Allocate a new swap chain handle. In Python, swap chains are specified using
-# the handle provided here. This prevents the user from directly managing swap
-# chain pointers; whose associated objects can be garbage collected. You can
-# allocate up to 32 swap chains, however you will likely run out of video memory
-# by then.
-#
+
 def alloc_swap_chain(int width, int height):
+    """Allocate a new swap chain object with the specified parameters. If
+    successful, an integer is returned which is used to reference the swap
+    chain. You can allocate up-to 32 swap chains.
+
+    :param width: int
+    :param height: int
+    :return: int
+
+    """
     global _swap_chain_, _ptr_session_
     # get the first available swap chain, unallocated chains will test as NULL
     cdef int i, sc
@@ -1521,6 +1522,13 @@ def alloc_swap_chain(int width, int height):
 # call.
 #
 def free_swap_chain(int sc):
+    """Free or destroy a swap chain. The handle will be made available after
+    this call.
+
+    :param sc: int
+    :return:
+
+    """
     global _swap_chain_, _ptr_session_
     ovr_capi.ovr_DestroyTextureSwapChain(_ptr_session_, _swap_chain_[sc])
     _swap_chain_[sc] = NULL
@@ -1553,7 +1561,13 @@ def get_swap_chain_buffer(int sc):
 # Module Functions
 # ----------------
 #
-cpdef dict start_session():
+cpdef void start_session():
+    """Start a new session. Control is handed over to the application from
+    Oculus Home. 
+    
+    :return: None 
+    
+    """
     global _ptr_session_
     cdef ovr_capi.ovrResult result = 0
     result = ovr_capi.ovr_Initialize(NULL)
@@ -1574,7 +1588,16 @@ cpdef dict start_session():
     _hmd_to_eye_view_pose_[0] = _eye_render_desc_[0].HmdToEyePose
     _hmd_to_eye_view_pose_[1] = _eye_render_desc_[1].HmdToEyePose
 
-    # return HMD information from descriptor
+
+cpdef dict get_hmd_info():
+    """Get general information about the connected HMD. Information such as the
+    serial number can identify a specific unit, etc.
+    
+    :return: dict 
+    
+    """
+    global _hmd_desc_
+    # return general HMD information from descriptor
     cdef dict hmd_info = dict()
     hmd_info["ProductName"] = _hmd_desc_.ProductName.decode('utf-8')
     hmd_info["Manufacturer"] = _hmd_desc_.Manufacturer.decode('utf-8')
@@ -1587,38 +1610,58 @@ cpdef dict start_session():
 
     return hmd_info
 
-cpdef tuple get_buffer_size(fov_type='recommended'):
-        # get the buffer size for the specified FOV type and buffer layout
-        cdef ovr_capi.ovrSizei rec_tex0_size, rec_tex1_size, buffer_size
-        if fov_type == 'recommended':
-            rec_tex0_size = ovr_capi.ovr_GetFovTextureSize(
-                _ptr_session_,
-                ovr_capi.ovrEye_Left,
-                _hmd_desc_.DefaultEyeFov[0],
-                1.0)
-            rec_tex1_size = ovr_capi.ovr_GetFovTextureSize(
-                _ptr_session_,
-                ovr_capi.ovrEye_Right,
-                _hmd_desc_.DefaultEyeFov[1],
-                1.0)
-        elif fov_type == 'max':
-            rec_tex0_size = ovr_capi.ovr_GetFovTextureSize(
-                _ptr_session_,
-                ovr_capi.ovrEye_Left,
-                _hmd_desc_.MaxEyeFov[0],
-                1.0)
-            rec_tex1_size = ovr_capi.ovr_GetFovTextureSize(
-                _ptr_session_,
-                ovr_capi.ovrEye_Right,
-                _hmd_desc_.MaxEyeFov[1],
-                1.0)
+cpdef tuple get_buffer_size(str fov_type='recommended',
+                            float texel_per_pixel=1.0):
+    """Compute the recommended buffer (texture) size for a specified 
+    configuration.
+    
+    Returns a tuple with the dimensions of the required texture (w, h). The 
+    values can be used when configuring a render buffer which will ultimately
+    be used to draw to the HMD buffers.
+    
+    :return: None 
+    
+    """
+    # get the buffer size for the specified FOV type and buffer layout
+    cdef ovr_capi.ovrSizei rec_tex0_size, rec_tex1_size, buffer_size
+    if fov_type == 'recommended':
+        rec_tex0_size = ovr_capi.ovr_GetFovTextureSize(
+            _ptr_session_,
+            ovr_capi.ovrEye_Left,
+            _hmd_desc_.DefaultEyeFov[0],
+            texel_per_pixel)
+        rec_tex1_size = ovr_capi.ovr_GetFovTextureSize(
+            _ptr_session_,
+            ovr_capi.ovrEye_Right,
+            _hmd_desc_.DefaultEyeFov[1],
+            texel_per_pixel)
+    elif fov_type == 'max':
+        rec_tex0_size = ovr_capi.ovr_GetFovTextureSize(
+            _ptr_session_,
+            ovr_capi.ovrEye_Left,
+            _hmd_desc_.MaxEyeFov[0],
+            texel_per_pixel)
+        rec_tex1_size = ovr_capi.ovr_GetFovTextureSize(
+            _ptr_session_,
+            ovr_capi.ovrEye_Right,
+            _hmd_desc_.MaxEyeFov[1],
+            texel_per_pixel)
 
-        buffer_size.w  = rec_tex0_size.w + rec_tex1_size.w
-        buffer_size.h = max(rec_tex0_size.h, rec_tex1_size.h)
+    buffer_size.w  = rec_tex0_size.w + rec_tex1_size.w
+    buffer_size.h = max(rec_tex0_size.h, rec_tex1_size.h)
 
-        return buffer_size.w, buffer_size.h
+    return buffer_size.w, buffer_size.h
 
 cpdef void end_session():
+    """End the current session. 
+    
+    Clean-up routines are executed that destroy all swap chains and mirror 
+    texture buffers, afterwards control is returned to Oculus Home. This must be 
+    called after every successful 'create_session' call.
+    
+    :return: None 
+    
+    """
     # free all swap chains
     global _ptr_session_, _swap_chain_, _mirror_texture_
     cdef int i = 0
@@ -1672,7 +1715,6 @@ cpdef tuple get_render_layer_viewport(str eye='left'):
                 <int>_eye_layer_.Viewport[1].Size.w,
                 <int>_eye_layer_.Viewport[1].Size.h)
 
-
 cpdef void setup_mirror_texture(int width=800, int height=600):
     cdef ovr_capi.ovrMirrorTextureDesc mirror_desc
     mirror_desc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
@@ -1704,7 +1746,7 @@ cpdef int wait_to_begin_frame(unsigned int frame_index=0):
 
     return <int>result
 
-cpdef void calc_eye_poses(double abs_time, bint time_stamp=True):
+cpdef tuple calc_eye_poses(double abs_time, bint time_stamp=True):
     cdef ovr_capi.ovrBool use_marker = 0
     if time_stamp:
         use_marker = ovr_capi.ovrTrue
@@ -1718,6 +1760,29 @@ cpdef void calc_eye_poses(double abs_time, bint time_stamp=True):
         hmd_state.HeadPose.ThePose,
         _hmd_to_eye_view_pose_,
         _eye_layer_.RenderPose)
+
+cpdef tuple get_eye_view_matrix(str eye='left'):
+    cdef int buffer = 0 if eye == 'left' else 1
+    global _eye_layer_
+
+    cdef ovrVector3f pos = ovrVector3f()
+    pos.c_data[0] = <ovr_math.Vector3f>_eye_layer_.RenderPose[buffer].Position
+    cdef ovrMatrix4f rot = ovrMatrix4f()
+    rot.c_data[0] = ovr_math.Matrix4f(<ovr_math.Quatf>_eye_layer_.RenderPose[buffer].Orientation)
+
+    cdef ovrVector3f final_up = (<ovrVector3f>rot).transform(ovrVector3f(0, 1, 0))
+    cdef ovrVector3f final_forward = (<ovrVector3f>rot).transform(ovrVector3f(0, 0, -1))
+    cdef ovrMatrix4f view = ovrMatrix4f.look_at(pos, pos + final_forward, final_up)
+
+    cdef ovrMatrix4f proj = ovrMatrix4f()
+    (<ovrMatrix4f>proj).c_data[0] = \
+        <ovr_math.Matrix4f>ovr_capi_util.ovrMatrix4f_Projection(
+            _eye_layer_.Fov[buffer],
+            0.2,
+            1000.0,
+            ovr_capi_util.ovrProjection_ClipRangeOpenGL)
+
+    return view, proj
 
 cpdef int begin_frame(unsigned int frame_index=0):
     result = ovr_capi.ovr_BeginFrame(_ptr_session_, frame_index)
@@ -1734,7 +1799,7 @@ cpdef unsigned int get_mirror_texture():
 
     return <unsigned int>out_tex_id
 
-def commit_swap_chain(int sc):
+cpdef void commit_swap_chain(int sc):
     global _ptr_session_, _swap_chain_
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_CommitTextureSwapChain(
         _ptr_session_,
