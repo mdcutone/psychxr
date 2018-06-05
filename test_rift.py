@@ -124,12 +124,11 @@ def main():
             # example, I'm going to clear the eye buffer texture all some color,
             # with the colour determined by the active eye buffer.
             if eye == 'left':
-                GL.glClearColor(1.0, 0.2, 0.2, 1.0)  # red
+                GL.glClearColor(1.0, 0.5, 0.5, 1.0)  # red
             elif eye == 'right':
-                GL.glClearColor(0.2, 0.2, 1.0, 1.0)  # blue
+                GL.glClearColor(0.5, 0.5, 1.0, 1.0)  # blue
 
             view, proj = rift.get_eye_view_matrix(eye)
-            print(view.get_translation().as_tuple())
 
             GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 

@@ -1562,9 +1562,9 @@ def get_swap_chain_buffer(int sc):
 
     return tex_id
 
-# ----------------
-# Module Functions
-# ----------------
+# -----------------
+# Session Functions
+# -----------------
 #
 cpdef void start_session():
     """Start a new session. Control is handed over to the application from
@@ -1593,6 +1593,31 @@ cpdef void start_session():
     _hmd_to_eye_view_pose_[0] = _eye_render_desc_[0].HmdToEyePose
     _hmd_to_eye_view_pose_[1] = _eye_render_desc_[1].HmdToEyePose
 
+cpdef void end_session():
+    """End the current session. 
+    
+    Clean-up routines are executed that destroy all swap chains and mirror 
+    texture buffers, afterwards control is returned to Oculus Home. This must be 
+    called after every successful 'create_session' call.
+    
+    :return: None 
+    
+    """
+    # free all swap chains
+    global _ptr_session_, _swap_chain_, _mirror_texture_
+    cdef int i = 0
+    for i in range(32):
+        if not _swap_chain_[i] is NULL:
+            ovr_capi.ovr_DestroyTextureSwapChain(
+                _ptr_session_, _swap_chain_[i])
+            _swap_chain_[i] = NULL
+
+    # destroy the mirror texture
+    ovr_capi.ovr_DestroyMirrorTexture(_ptr_session_, _mirror_texture_)
+
+    # destroy the current session and shutdown
+    ovr_capi.ovr_Destroy(_ptr_session_)
+    ovr_capi.ovr_Shutdown()
 
 cpdef dict get_hmd_info():
     """Get general information about the connected HMD. Information such as the
@@ -1615,6 +1640,10 @@ cpdef dict get_hmd_info():
 
     return hmd_info
 
+# ---------------------------------
+# Rendering Configuration Functions
+# ---------------------------------
+#
 cpdef tuple get_buffer_size(str fov_type='recommended',
                             float texel_per_pixel=1.0):
     """Compute the recommended buffer (texture) size for a specified 
@@ -1657,32 +1686,6 @@ cpdef tuple get_buffer_size(str fov_type='recommended',
 
     return buffer_size.w, buffer_size.h
 
-cpdef void end_session():
-    """End the current session. 
-    
-    Clean-up routines are executed that destroy all swap chains and mirror 
-    texture buffers, afterwards control is returned to Oculus Home. This must be 
-    called after every successful 'create_session' call.
-    
-    :return: None 
-    
-    """
-    # free all swap chains
-    global _ptr_session_, _swap_chain_, _mirror_texture_
-    cdef int i = 0
-    for i in range(32):
-        if not _swap_chain_[i] is NULL:
-            ovr_capi.ovr_DestroyTextureSwapChain(
-                _ptr_session_, _swap_chain_[i])
-            _swap_chain_[i] = NULL
-
-    # destroy the mirror texture
-    ovr_capi.ovr_DestroyMirrorTexture(_ptr_session_, _mirror_texture_)
-
-    # destroy the current session and shutdown
-    ovr_capi.ovr_Destroy(_ptr_session_)
-    ovr_capi.ovr_Shutdown()
-
 cpdef void setup_render_layer(int width, int height, int sc):
     global _ptr_session_, _eye_layer_
     # configure render layer
@@ -1720,21 +1723,154 @@ cpdef tuple get_render_layer_viewport(str eye='left'):
                 <int>_eye_layer_.Viewport[1].Size.w,
                 <int>_eye_layer_.Viewport[1].Size.h)
 
-cpdef void setup_mirror_texture(int width=800, int height=600):
-    cdef ovr_capi.ovrMirrorTextureDesc mirror_desc
-    mirror_desc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
-    mirror_desc.Width = width
-    mirror_desc.Height = height
-    mirror_desc.MiscFlags = ovr_capi.ovrTextureMisc_None
-    mirror_desc.MirrorOptions = ovr_capi.ovrMirrorOption_PostDistortion
-
-    global _mirror_texture_
-    cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateMirrorTextureGL(
-        _ptr_session_, &mirror_desc, &_mirror_texture_)
+# ------------
+# VR Functions
+# ------------
+#
+cpdef void set_tracking_origin_type(str origin='floor'):
+    """Set the tracking origin type. Can either be 'floor' or 'eye'.
+    
+    :param origin: str
+    :return: 
+    """
+    global _ptr_session_
+    cdef ovr_capi.ovrResult result
+    if origin == 'floor':
+        result = ovr_capi.ovr_SetTrackingOriginType(
+            _ptr_session_, ovr_capi.ovrTrackingOrigin_FloorLevel)
+    elif origin == 'eye':
+        result = ovr_capi.ovr_SetTrackingOriginType(
+            _ptr_session_, ovr_capi.ovrTrackingOrigin_EyeLevel)
 
     if debug_mode:
         check_result(result)
 
+cpdef str get_tracking_origin_type():
+    """Get the current tracking origin type.
+    
+    :return: str
+    """
+    global _ptr_session_
+    cdef ovr_capi.ovrTrackingOrigin origin = ovr_capi.ovr_SetTrackingOriginType(
+        _ptr_session_)
+
+    if origin == ovr_capi.ovrTrackingOrigin_FloorLevel:
+        return 'floor'
+    elif origin == ovr_capi.ovrTrackingOrigin_EyeLevel:
+        return 'eye'
+
+cpdef void recenter_tracking_origin():
+    """Recenter the tracking origin.
+    
+    :return: None
+    
+    """
+    global _ptr_session_
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_RecenterTrackingOrigin(
+        _ptr_session_)
+
+    if debug_mode:
+        check_result(result)
+
+cpdef void specify_tracking_origin(ovrPosef origin_pose):
+    """Specify a custom tracking origin.
+    
+    :param origin: ovrVector3f
+    :return: 
+    """
+    global _ptr_session_
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_SpecifyTrackingOrigin(
+        _ptr_session_, <ovr_capi.ovrPosef>origin_pose.c_data[0])
+
+    if debug_mode:
+        check_result(result)
+
+
+cpdef void calc_eye_poses(double abs_time, bint time_stamp=True):
+    """Calculate eye poses. 
+    
+    Poses are stored internally for conversion to transformation matrices by 
+    calling 'get_eye_view_matrix'. Should be called at least once per frame 
+    after 'wait_to_begin_frame' but before 'begin_frame' to minimize 
+    motion-to-photon latency.
+    
+    :param abs_time: 
+    :param time_stamp: 
+    :return: 
+    """
+    cdef ovr_capi.ovrBool use_marker = 0
+    if time_stamp:
+        use_marker = ovr_capi.ovrTrue
+    else:
+        use_marker = ovr_capi.ovrFalse
+
+    cpdef ovr_capi.ovrTrackingState hmd_state = ovr_capi.ovr_GetTrackingState(
+        _ptr_session_, abs_time, use_marker)
+
+    ovr_capi_util.ovr_CalcEyePoses2(
+        hmd_state.HeadPose.ThePose,
+        _hmd_to_eye_view_pose_,
+        _eye_layer_.RenderPose)
+
+cpdef ovrMatrix4f get_eye_view_matrix(str eye='left'):
+    """Get the view matrix from the last calculated head pose. This should be
+    called once per frame if real-time head tracking is desired.
+    
+    :param eye: str
+    :return: 
+    
+    """
+    cdef int buffer = 0 if eye == 'left' else 1
+    global _eye_layer_
+
+    cdef ovrVector3f pos = ovrVector3f()
+    pos.c_data[0] = \
+        <ovr_math.Vector3f>_eye_layer_.RenderPose[buffer].Position
+    cdef ovrMatrix4f rot = ovrMatrix4f()
+    rot.c_data[0] = \
+        ovr_math.Matrix4f(
+            <ovr_math.Quatf>_eye_layer_.RenderPose[buffer].Orientation)
+
+    cdef ovrVector3f final_up = \
+        (<ovrVector3f>rot).transform(ovrVector3f(0, 1, 0))
+    cdef ovrVector3f final_forward = \
+        (<ovrVector3f>rot).transform(ovrVector3f(0, 0, -1))
+    cdef ovrMatrix4f view = \
+        ovrMatrix4f.look_at(pos, pos + final_forward, final_up)
+
+    return view
+
+cpdef ovrMatrix4f get_eye_projection_matrix(
+        str eye='left',
+        float near_clip=0.2,
+        float far_clip=1000.0):
+    """Get the projection matrix for a specified eye. These do not need to be
+    computed more than once per session unless the render layer descriptors are 
+    updated, or the clipping planes have been changed.
+    
+    :param eye: str 
+    :param near_clip: float
+    :param far_clip: float
+    :return: 
+    
+    """
+    cdef int buffer = 0 if eye == 'left' else 1
+    global _eye_layer_
+
+    cdef ovrMatrix4f proj = ovrMatrix4f()
+    (<ovrMatrix4f>proj).c_data[0] = \
+        <ovr_math.Matrix4f>ovr_capi_util.ovrMatrix4f_Projection(
+            _eye_layer_.Fov[buffer],
+            near_clip,
+            far_clip,
+            ovr_capi_util.ovrProjection_ClipRangeOpenGL)
+
+    return proj
+
+# -------------------------
+# Frame Rendering Functions
+# -------------------------
+#
 cpdef double get_display_time(unsigned int frame_index=0, bint predicted=True):
     cdef double t_secs
     if predicted:
@@ -1751,58 +1887,10 @@ cpdef int wait_to_begin_frame(unsigned int frame_index=0):
 
     return <int>result
 
-cpdef tuple calc_eye_poses(double abs_time, bint time_stamp=True):
-    cdef ovr_capi.ovrBool use_marker = 0
-    if time_stamp:
-        use_marker = ovr_capi.ovrTrue
-    else:
-        use_marker = ovr_capi.ovrFalse
-
-    cpdef ovr_capi.ovrTrackingState hmd_state = ovr_capi.ovr_GetTrackingState(
-        _ptr_session_, abs_time, use_marker)
-
-    ovr_capi_util.ovr_CalcEyePoses2(
-        hmd_state.HeadPose.ThePose,
-        _hmd_to_eye_view_pose_,
-        _eye_layer_.RenderPose)
-
-cpdef tuple get_eye_view_matrix(str eye='left'):
-    cdef int buffer = 0 if eye == 'left' else 1
-    global _eye_layer_
-
-    cdef ovrVector3f pos = ovrVector3f()
-    pos.c_data[0] = <ovr_math.Vector3f>_eye_layer_.RenderPose[buffer].Position
-    cdef ovrMatrix4f rot = ovrMatrix4f()
-    rot.c_data[0] = ovr_math.Matrix4f(<ovr_math.Quatf>_eye_layer_.RenderPose[buffer].Orientation)
-
-    cdef ovrVector3f final_up = (<ovrVector3f>rot).transform(ovrVector3f(0, 1, 0))
-    cdef ovrVector3f final_forward = (<ovrVector3f>rot).transform(ovrVector3f(0, 0, -1))
-    cdef ovrMatrix4f view = ovrMatrix4f.look_at(pos, pos + final_forward, final_up)
-
-    cdef ovrMatrix4f proj = ovrMatrix4f()
-    (<ovrMatrix4f>proj).c_data[0] = \
-        <ovr_math.Matrix4f>ovr_capi_util.ovrMatrix4f_Projection(
-            _eye_layer_.Fov[buffer],
-            0.2,
-            1000.0,
-            ovr_capi_util.ovrProjection_ClipRangeOpenGL)
-
-    return view, proj
-
 cpdef int begin_frame(unsigned int frame_index=0):
     result = ovr_capi.ovr_BeginFrame(_ptr_session_, frame_index)
 
     return <int>result
-
-cpdef unsigned int get_mirror_texture():
-    cdef unsigned int out_tex_id
-    cdef ovr_capi.ovrResult result = \
-        ovr_capi_gl.ovr_GetMirrorTextureBufferGL(
-            _ptr_session_,
-            _mirror_texture_,
-            &out_tex_id)
-
-    return <unsigned int>out_tex_id
 
 cpdef void commit_swap_chain(int sc):
     global _ptr_session_, _swap_chain_
@@ -1829,8 +1917,53 @@ cpdef void end_frame(unsigned int frame_index=0):
     global _frame_index_
     _frame_index_ += 1
 
+# ------------------------
+# Mirror Texture Functions
+# ------------------------
+#
+cpdef void setup_mirror_texture(int width=800, int height=600):
+    """Create a mirror texture buffer.
+    
+    :param width: int 
+    :param height: int 
+    :return: None
+    
+    """
+    cdef ovr_capi.ovrMirrorTextureDesc mirror_desc
+    mirror_desc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+    mirror_desc.Width = width
+    mirror_desc.Height = height
+    mirror_desc.MiscFlags = ovr_capi.ovrTextureMisc_None
+    mirror_desc.MirrorOptions = ovr_capi.ovrMirrorOption_PostDistortion
+
+    global _mirror_texture_
+    cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateMirrorTextureGL(
+        _ptr_session_, &mirror_desc, &_mirror_texture_)
+
+    if debug_mode:
+        check_result(result)
+
+cpdef unsigned int get_mirror_texture():
+    """Get the mirror texture handle.
+    
+    :return: 
+    """
+    cdef unsigned int out_tex_id
+    cdef ovr_capi.ovrResult result = \
+        ovr_capi_gl.ovr_GetMirrorTextureBufferGL(
+            _ptr_session_,
+            _mirror_texture_,
+            &out_tex_id)
+
+    return <unsigned int>out_tex_id
+
+# ------------------------
+# Session Status Functions
+# ------------------------
+#
 cpdef void update_session_status():
-    """Update session status information.
+    """Update session status information. Must be called at least once every 
+    render cycle.
     
     :return: None 
     
@@ -1870,3 +2003,11 @@ cpdef bint overlay_present():
 cpdef bint depth_requested():
     global _session_status_
     return (<ovr_capi.ovrSessionStatus>_session_status_).DepthRequested
+
+# -------------
+# HID Functions
+# -------------
+#
+cpdef get_input_state(controller='xbox'):
+    global _ptr_session_
+
