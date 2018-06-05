@@ -1824,11 +1824,8 @@ cpdef void calc_eye_poses(double abs_time, bint time_stamp=True):
     :param time_stamp: 
     :return: 
     """
-    cdef ovr_capi.ovrBool use_marker = 0
-    if time_stamp:
-        use_marker = ovr_capi.ovrTrue
-    else:
-        use_marker = ovr_capi.ovrFalse
+    cdef ovr_capi.ovrBool use_marker = \
+        ovr_capi.ovrTrue if time_stamp else ovr_capi.ovrFalse
 
     cpdef ovr_capi.ovrTrackingState hmd_state = ovr_capi.ovr_GetTrackingState(
         _ptr_session_, abs_time, use_marker)
