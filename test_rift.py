@@ -138,17 +138,17 @@ def main():
                 GL.glMultMatrixf(proj_left.ctypes)
                 GL.glMatrixMode(GL.GL_MODELVIEW)
                 GL.glLoadIdentity()
-                GL.glMultMatrixf(view_left.ctypes)
+                #GL.glMultMatrixf(view_left.ctypes)
 
                 GL.glClearColor(0.5, 0.5, 0.5, 1.0)  # red
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
                 GL.glColor3f(1.0, 1.0, 1.0)
                 GL.glBegin(GL.GL_QUADS)
-                GL.glVertex3f(-1.0, -1.0, 0.0)
-                GL.glVertex3f(-1.0, 1.0, 0.0)
-                GL.glVertex3f(1.0, 1.0, 0.0)
-                GL.glVertex3f(1.0, -1.0, 0.0)
+                GL.glVertex3f(-1.0, -1.0, -5.0)
+                GL.glVertex3f(-1.0, 1.0, -5.0)
+                GL.glVertex3f(1.0, 1.0, -5.0)
+                GL.glVertex3f(1.0, -1.0, -5.0)
                 GL.glEnd()
 
             elif eye == 'right':
@@ -157,17 +157,17 @@ def main():
                 GL.glMultMatrixf(proj_right.ctypes)
                 GL.glMatrixMode(GL.GL_MODELVIEW)
                 GL.glLoadIdentity()
-                GL.glMultMatrixf(view_right.ctypes)
+                #GL.glMultMatrixf(view_right.ctypes)
 
                 GL.glClearColor(0.5, 0.5, 0.5, 1.0)  # blue
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
                 GL.glColor3f(1.0, 1.0, 1.0)
                 GL.glBegin(GL.GL_QUADS)
-                GL.glVertex3f(-1.0, -1.0, 0.0)
-                GL.glVertex3f(-1.0, 1.0, 0.0)
-                GL.glVertex3f(1.0, 1.0, 0.0)
-                GL.glVertex3f(1.0, -1.0, 0.0)
+                GL.glVertex3f(-1.0, -1.0, -5.0)
+                GL.glVertex3f(-1.0, 1.0, -5.0)
+                GL.glVertex3f(1.0, 1.0, -5.0)
+                GL.glVertex3f(1.0, -1.0, -5.0)
                 GL.glEnd()
 
         GL.glDisable(GL.GL_DEPTH_TEST)

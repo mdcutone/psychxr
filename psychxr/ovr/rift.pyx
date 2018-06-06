@@ -2031,15 +2031,61 @@ cpdef bint depth_requested():
 # HID Functions
 # -------------
 #
-cpdef double poll_xbox_controller_state():
+cdef class ovrInputState(object):
+    cdef ovr_capi.ovrInputState* c_data
+    cdef ovr_capi.ovrInputState  c_ovrInputState
+
+    def __cinit_(self, *args, **kwargs):
+        self.c_data = &self.c_ovrInputState
+
+    @property
+    def time_in_seconds(self):
+        return <double>(<ovr_capi.ovrInputState>self).c_data[0].TimeInSeconds
+
+    @property
+    def buttons(self):
+        return <unsigned int>(<ovr_capi.ovrInputState>self).c_data[0].Buttons
+
+    @property
+    def touches(self):
+        return <unsigned int>(<ovr_capi.ovrInputState>self).c_data[0].Touches
+
+    @property
+    def index_trigger(self):
+        return (<float>(<ovr_capi.ovrInputState>self).c_data[0].IndexTrigger[0],
+                <float>(<ovr_capi.ovrInputState>self).c_data[0].IndexTrigger[1])
+
+    @property
+    def hand_trigger(self):
+        return (<float>(<ovr_capi.ovrInputState>self).c_data[0].HandTrigger[0],
+                <float>(<ovr_capi.ovrInputState>self).c_data[0].HandTrigger[1])
+
+    @property
+    def thumbstick(self):
+        cdef
+        return (
+            (<float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[0].x,
+             <float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[0].y),
+            (<float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[1].x,
+             <float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[1].y))
+
+cpdef ovrInputState get_input_state(str controller='xbox'):
     global _ptr_session_, _ctrl_state_
+
+    cdef ovr_capi.ovrControllerType ctrl_type
+    if controller == 'xbox':
+        ctrl_type = ovr_capi.ovrControllerType_XBox
+
+    cdef ovrInputState to_return = ovrInputState()
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
-        _ptr_session_, ovr_capi.ovrControllerType_XBox, &_ctrl_state_[0])
+        _ptr_session_,
+        ctrl_type,
+        (<ovrInputState>to_return).c_data)
 
     if debug_mode:
         check_result(result)
 
-    return (<ovr_capi.ovrInputState>_ctrl_state_[0]).TimeInSeconds
+    return to_return
 
 cpdef double poll_remote_controller_state():
     global _ptr_session_, _ctrl_state_
