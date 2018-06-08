@@ -2616,3 +2616,48 @@ cpdef void perf_hud_mode(str mode='Off'):
     cdef ovr_capi.ovrBool ret = ovr_capi.ovr_SetInt(
         _ptr_session_, b"PerfHudMode", perf_hud_mode)
 
+# -----------------------
+# Miscellaneous Functions
+# -----------------------
+#
+cpdef float get_player_height():
+    global _ptr_session_
+    cdef float to_return  = ovr_capi.ovr_GetFloat(
+        _ptr_session_,
+        b"PlayerHeight",
+        <float>1.778)
+
+    return to_return
+
+cpdef float get_eye_height():
+    global _ptr_session_
+    cdef float to_return  = ovr_capi.ovr_GetFloat(
+        _ptr_session_,
+        b"EyeHeight",
+        <float>1.675)
+
+    return to_return
+
+cpdef tuple get_neck_eye_distance():
+    global _ptr_session_
+    cdef float vals[2]
+
+    cdef unsigned int ret  = ovr_capi.ovr_GetFloatArray(
+        _ptr_session_,
+        b"NeckEyeDistance",
+        vals,
+        2)
+
+    return <float>vals[0], <float>vals[1]
+
+cpdef tuple get_eye_to_nose_distance():
+    global _ptr_session_
+    cdef float vals[2]
+
+    cdef unsigned int ret  = ovr_capi.ovr_GetFloatArray(
+        _ptr_session_,
+        b"EyeToNoseDist",
+        vals,
+        2)
+
+    return <float>vals[0], <float>vals[1]
