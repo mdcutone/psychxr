@@ -2577,10 +2577,24 @@ cpdef void reset_frame_stats():
     if debug_mode:
         check_result(result)
 
-# HUD mode
-hud_modes = []
+# List of available performance HUD modes.
+#
+available_hud_modes = [
+    'Off',
+    'PerfSummary',
+    'LatencyTiming',
+    'AppRenderTiming',
+    'CompRenderTiming',
+    'AswStats',
+    'VersionInfo']
 
 cpdef void perf_hud_mode(str mode='Off'):
+    """Display a performance HUD with a specified mode.
+    
+    :param mode: str 
+    :return: None
+    
+    """
     global _ptr_session_
     cdef int perf_hud_mode = 0
 
