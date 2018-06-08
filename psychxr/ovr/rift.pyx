@@ -46,10 +46,6 @@ cdef ovr_capi.ovrPoseStatef[9] _device_poses_
 #
 cdef ovr_capi.ovrSessionStatus _session_status_
 
-# Input states for supported HIDs
-#
-cdef ovr_capi.ovrInputState _ctrl_state_[2]
-
 # Function to check for errors returned by OVRLib functions
 #
 cdef ovr_errorcode.ovrErrorInfo _last_error_info_  # store our last error here
@@ -65,6 +61,39 @@ def check_result(result):
 # associated message passed from LibOVR.
 #
 debug_mode = False
+
+# Input states for supported HIDs
+#
+cdef ovr_capi.ovrInputState _xbox_ctrl_state_
+cdef ovr_capi.ovrInputState _remote_ctrl_state_
+cdef ovr_capi.ovrInputState _touch_ctrl_state_
+cdef ovr_capi.ovrInputState _touch_left_ctrl_state_
+cdef ovr_capi.ovrInputState _touch_right_ctrl_state_
+
+# Look-up table of button values to test which are pressed.
+#
+cdef dict ctrl_button_lut = {
+    "A": ovr_capi.ovrButton_A,
+    "B": ovr_capi.ovrButton_B,
+    "RThumb" : ovr_capi.ovrButton_RThumb,
+    "RShoulder": ovr_capi.ovrButton_RShoulder,
+    "X": ovr_capi.ovrButton_X,
+    "Y": ovr_capi.ovrButton_Y,
+    "LThumb": ovr_capi.ovrButton_LThumb,
+    "LShoulder": ovr_capi.ovrButton_LThumb,
+    "Up": ovr_capi.ovrButton_Up,
+    "Down": ovr_capi.ovrButton_Down,
+    "Left": ovr_capi.ovrButton_Left,
+    "Right": ovr_capi.ovrButton_Right,
+    "Enter": ovr_capi.ovrButton_Enter,
+    "Back": ovr_capi.ovrButton_Back,
+    "VolUp": ovr_capi.ovrButton_VolUp,
+    "VolDown": ovr_capi.ovrButton_VolDown,
+    "Home": ovr_capi.ovrButton_Home,
+    "Private": ovr_capi.ovrButton_Private,
+    "RMask": ovr_capi.ovrButton_RMask,
+    "LMask": ovr_capi.ovrButton_LMask}
+
 
 cdef class ovrColorf:
     cdef ovr_capi.ovrColorf* c_data
@@ -2211,6 +2240,12 @@ cdef class InputStateData(object):
         elif (<InputStateData>self).c_data[0].ControllerType == \
                 ovr_capi.ovrControllerType_Touch:
             return "touch"
+        elif (<InputStateData>self).c_data[0].ControllerType == \
+                ovr_capi.ovrControllerType_LTouch:
+            return "left_touch"
+        elif (<InputStateData>self).c_data[0].ControllerType == \
+                ovr_capi.ovrControllerType_RTouch:
+            return "right_touch"
 
     @property
     def index_trigger_no_deadzone(self):
@@ -2249,6 +2284,142 @@ cdef class InputStateData(object):
             (<float>(<InputStateData>self).c_data[0].ThumbstickRaw[1].x,
              <float>(<InputStateData>self).c_data[0].ThumbstickRaw[1].y))
 
+    @property
+    def button_a(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_A) == \
+            ovr_capi.ovrButton_A
+
+        return pressed
+
+    @property
+    def button_b(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_B) == \
+            ovr_capi.ovrButton_B
+
+        return pressed
+
+    @property
+    def button_rthumb(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_RThumb) == \
+            ovr_capi.ovrButton_RThumb
+
+        return pressed
+
+    @property
+    def button_rshoulder(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_RShoulder) == \
+            ovr_capi.ovrButton_RShoulder
+
+        return pressed
+
+    @property
+    def button_x(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_X) == \
+            ovr_capi.ovrButton_X
+
+        return pressed
+
+    @property
+    def button_y(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_Y) == \
+            ovr_capi.ovrButton_Y
+
+        return pressed
+
+    @property
+    def button_lthumb(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_LThumb) == \
+             ovr_capi.ovrButton_LThumb
+
+        return pressed
+
+    @property
+    def button_lshoulder(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_LShoulder) == \
+            ovr_capi.ovrButton_LShoulder
+
+        return pressed
+
+    @property
+    def button_up(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_Up) == \
+            ovr_capi.ovrButton_Up
+
+        return pressed
+
+    @property
+    def button_down(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_Down) == \
+            ovr_capi.ovrButton_Down
+
+        return pressed
+
+    @property
+    def button_left(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_Left) == \
+            ovr_capi.ovrButton_Left
+
+        return pressed
+
+    @property
+    def button_right(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_Right) == \
+            ovr_capi.ovrButton_Right
+
+        return pressed
+
+    @property
+    def button_enter(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_Enter) == \
+            ovr_capi.ovrButton_Enter
+
+        return pressed
+
+    @property
+    def button_back(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_Back) == \
+            ovr_capi.ovrButton_Back
+
+        return pressed
+
+    @property
+    def button_vol_up(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_VolUp) == \
+            ovr_capi.ovrButton_VolUp
+
+        return pressed
+
+    @property
+    def button_vol_down(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_VolDown) == \
+            ovr_capi.ovrButton_VolDown
+
+        return pressed
+
+    @property
+    def button_home(self):
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & ovr_capi.ovrButton_Home) == \
+            ovr_capi.ovrButton_Home
+
+        return pressed
+
 
 cpdef InputStateData get_input_state(str controller='xbox'):
     global _ptr_session_, _ctrl_state_
@@ -2260,6 +2431,10 @@ cpdef InputStateData get_input_state(str controller='xbox'):
         ctrl_type = ovr_capi.ovrControllerType_Remote
     elif controller == 'touch':
         ctrl_type = ovr_capi.ovrControllerType_Touch
+    elif controller == 'left_touch':
+        ctrl_type = ovr_capi.ovrControllerType_LTouch
+    elif controller == 'right_touch':
+        ctrl_type = ovr_capi.ovrControllerType_RTouch
 
     cdef InputStateData to_return = InputStateData()
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
@@ -2267,8 +2442,8 @@ cpdef InputStateData get_input_state(str controller='xbox'):
         ctrl_type,
         &(<InputStateData>to_return).c_data[0])
 
-    #if debug_mode:
-    #    check_result(result)
+    if debug_mode:
+        check_result(result)
 
     return to_return
 
@@ -2283,13 +2458,21 @@ cpdef list get_connected_controller_types():
     cdef unsigned int result = ovr_capi.ovr_GetConnectedControllerTypes(
         _ptr_session_)
 
-    # TODO - add independent left and right touch controllers
     cdef list ctrl_types = list()
-    if (result & ovr_capi.ovrControllerType_XBox) == ovr_capi.ovrControllerType_XBox:
+    if (result & ovr_capi.ovrControllerType_XBox) == \
+            ovr_capi.ovrControllerType_XBox:
         ctrl_types.append('xbox')
-    elif (result & ovr_capi.ovrControllerType_Remote) == ovr_capi.ovrControllerType_Remote:
+    elif (result & ovr_capi.ovrControllerType_Remote) == \
+            ovr_capi.ovrControllerType_Remote:
         ctrl_types.append('remote')
-    elif (result & ovr_capi.ovrControllerType_Touch) == ovr_capi.ovrControllerType_Touch:
+    elif (result & ovr_capi.ovrControllerType_Touch) == \
+            ovr_capi.ovrControllerType_Touch:
         ctrl_types.append('touch')
+    elif (result & ovr_capi.ovrControllerType_LTouch) == \
+            ovr_capi.ovrControllerType_LTouch:
+        ctrl_types.append('left_touch')
+    elif (result & ovr_capi.ovrControllerType_RTouch) == \
+            ovr_capi.ovrControllerType_RTouch:
+        ctrl_types.append('right_touch')
 
     return ctrl_types
