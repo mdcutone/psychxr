@@ -632,7 +632,6 @@ cdef class ovrVector3f(object):
     def __ne__(self, ovrVector3f b):
         return (<ovrVector3f>self).c_data[0] != b.c_data[0]
 
-
     def __add__(ovrVector3f a, ovrVector3f b):
         cdef ovrVector3f to_return = ovrVector3f()
         (<ovrVector3f>to_return).c_data[0] = a.c_data[0] + b.c_data[0]
@@ -1784,7 +1783,7 @@ cdef class PoseStateData(object):
     cdef ovrVector3f field_angular_acceleration
     cdef ovrVector3f field_linear_acceleration
 
-    def __cinit_(self, *args, **kwargs):
+    def __cinit__(self, *args, **kwargs):
         self.c_data = &self.c_ovrPoseStatef
 
         self.field_angular_velocity = ovrVector3f()
@@ -1840,7 +1839,7 @@ cdef class TrackingStateData(object):
     cdef ovr_capi.ovrTrackingState* c_data
     cdef ovr_capi.ovrTrackingState  c_ovrTrackingState
 
-    def __cinit_(self, *args, **kwargs):
+    def __cinit__(self, *args, **kwargs):
         self.c_data = &self.c_ovrTrackingState
 
     @property
@@ -2168,87 +2167,87 @@ cdef class InputStateData(object):
     cdef ovr_capi.ovrInputState* c_data
     cdef ovr_capi.ovrInputState  c_ovrInputState
 
-    def __cinit_(self, *args, **kwargs):
+    def __cinit__(self, *args, **kwargs):
         self.c_data = &self.c_ovrInputState
 
     @property
     def time_in_seconds(self):
-        return <double>(<ovr_capi.ovrInputState>self).c_data[0].TimeInSeconds
+        return <double>((<ovr_capi.ovrInputState>self.c_data[0]).TimeInSeconds)
 
     @property
     def buttons(self):
-        return <unsigned int>(<ovr_capi.ovrInputState>self).c_data[0].Buttons
+        return <unsigned int>(<InputStateData>self).c_data[0].Buttons
 
     @property
     def touches(self):
-        return <unsigned int>(<ovr_capi.ovrInputState>self).c_data[0].Touches
+        return <unsigned int>(<InputStateData>self).c_data[0].Touches
 
     @property
     def index_trigger(self):
-        return (<float>(<ovr_capi.ovrInputState>self).c_data[0].IndexTrigger[0],
-                <float>(<ovr_capi.ovrInputState>self).c_data[0].IndexTrigger[1])
+        return (<float>(<InputStateData>self).c_data[0].IndexTrigger[0],
+                <float>(<InputStateData>self).c_data[0].IndexTrigger[1])
 
     @property
     def hand_trigger(self):
-        return (<float>(<ovr_capi.ovrInputState>self).c_data[0].HandTrigger[0],
-                <float>(<ovr_capi.ovrInputState>self).c_data[0].HandTrigger[1])
+        return (<float>(<InputStateData>self).c_data[0].HandTrigger[0],
+                <float>(<InputStateData>self).c_data[0].HandTrigger[1])
 
     @property
     def thumbstick(self):
         return (
-            (<float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[0].x,
-             <float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[0].y),
-            (<float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[1].x,
-             <float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[1].y))
+            (<float>(<InputStateData>self).c_data[0].Thumbstick[0].x,
+             <float>(<InputStateData>self).c_data[0].Thumbstick[0].y),
+            (<float>(<InputStateData>self).c_data[0].Thumbstick[1].x,
+             <float>(<InputStateData>self).c_data[0].Thumbstick[1].y))
 
     @property
     def controller_type(self):
-        if (<ovr_capi.ovrInputState>self).c_data[0].ControllerType == \
+        if (<InputStateData>self).c_data[0].ControllerType == \
                 ovr_capi.ovrControllerType_XBox:
             return "xbox"
-        elif (<ovr_capi.ovrInputState>self).c_data[0].ControllerType == \
+        elif (<InputStateData>self).c_data[0].ControllerType == \
                 ovr_capi.ovrControllerType_Remote:
             return "remote"
-        elif (<ovr_capi.ovrInputState>self).c_data[0].ControllerType == \
+        elif (<InputStateData>self).c_data[0].ControllerType == \
                 ovr_capi.ovrControllerType_Touch:
             return "touch"
 
     @property
     def index_trigger_no_deadzone(self):
-        return (<float>(<ovr_capi.ovrInputState>self).c_data[0].IndexTriggerNoDeadzone[0],
-                <float>(<ovr_capi.ovrInputState>self).c_data[0].IndexTriggerNoDeadzone[1])
+        return (<float>(<InputStateData>self).c_data[0].IndexTriggerNoDeadzone[0],
+                <float>(<InputStateData>self).c_data[0].IndexTriggerNoDeadzone[1])
 
     @property
     def hand_trigger(self):
-        return (<float>(<ovr_capi.ovrInputState>self).c_data[0].HandTriggerNoDeadzone[0],
-                <float>(<ovr_capi.ovrInputState>self).c_data[0].HandTriggerNoDeadzone[1])
+        return (<float>(<InputStateData>self).c_data[0].HandTriggerNoDeadzone[0],
+                <float>(<InputStateData>self).c_data[0].HandTriggerNoDeadzone[1])
 
     @property
     def thumbstick_no_deadzone(self):
         return (
-            (<float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickNoDeadzone[0].x,
-             <float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickNoDeadzone[0].y),
-            (<float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickNoDeadzone[1].x,
-             <float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickNoDeadzone[1].y))
+            (<float>(<InputStateData>self).c_data[0].ThumbstickNoDeadzone[0].x,
+             <float>(<InputStateData>self).c_data[0].ThumbstickNoDeadzone[0].y),
+            (<float>(<InputStateData>self).c_data[0].ThumbstickNoDeadzone[1].x,
+             <float>(<InputStateData>self).c_data[0].ThumbstickNoDeadzone[1].y))
 
     @property
     def index_trigger_raw(self):
-        return (<float>(<ovr_capi.ovrInputState>self).c_data[0].IndexTriggerRaw[0],
-                <float>(<ovr_capi.ovrInputState>self).c_data[0].IndexTriggerRaw[1])
+        return (<float>(<InputStateData>self).c_data[0].IndexTriggerRaw[0],
+                <float>(<InputStateData>self).c_data[0].IndexTriggerRaw[1])
 
 
     @property
     def hand_trigger_raw(self):
-        return (<float>(<ovr_capi.ovrInputState>self).c_data[0].HandTriggerRaw[0],
-                <float>(<ovr_capi.ovrInputState>self).c_data[0].HandTriggerRaw[1])
+        return (<float>(<InputStateData>self).c_data[0].HandTriggerRaw[0],
+                <float>(<InputStateData>self).c_data[0].HandTriggerRaw[1])
 
     @property
     def thumbstick_raw(self):
         return (
-            (<float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickRaw[0].x,
-             <float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickRaw[0].y),
-            (<float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickRaw[1].x,
-             <float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickRaw[1].y))
+            (<float>(<InputStateData>self).c_data[0].ThumbstickRaw[0].x,
+             <float>(<InputStateData>self).c_data[0].ThumbstickRaw[0].y),
+            (<float>(<InputStateData>self).c_data[0].ThumbstickRaw[1].x,
+             <float>(<InputStateData>self).c_data[0].ThumbstickRaw[1].y))
 
 
 cpdef InputStateData get_input_state(str controller='xbox'):
@@ -2266,10 +2265,10 @@ cpdef InputStateData get_input_state(str controller='xbox'):
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
         _ptr_session_,
         ctrl_type,
-        (<InputStateData>to_return).c_data)
+        &(<InputStateData>to_return).c_data[0])
 
-    if debug_mode:
-        check_result(result)
+    #if debug_mode:
+    #    check_result(result)
 
     return to_return
 

@@ -8,7 +8,7 @@ import psychxr.ovr.rift as rift
 rift.debug_mode = True
 import sys
 
-HEAD_TRACKING = False
+HEAD_TRACKING = True
 
 def main():
     # start GLFW
@@ -210,6 +210,10 @@ def main():
                              GL.GL_NEAREST)
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+
+        # get remote state
+        remote_input_state = rift.get_input_state('remote')
+        print(remote_input_state.buttons)
 
         # flip the GLFW window and poll events
         glfw.swap_buffers(window)
