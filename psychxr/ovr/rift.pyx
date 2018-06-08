@@ -2153,11 +2153,11 @@ cpdef list get_connected_controller_types():
 
     # TODO - add independent left and right touch controllers
     cdef list ctrl_types = list()
-    if (result & ovr_capi.ovrControllerType_XBox) == 1:
+    if (result & ovr_capi.ovrControllerType_XBox) == ovr_capi.ovrControllerType_XBox:
         ctrl_types.append('xbox')
-    elif (result & ovr_capi.ovrControllerType_Remote) == 1:
+    elif (result & ovr_capi.ovrControllerType_Remote) == ovr_capi.ovrControllerType_Remote:
         ctrl_types.append('remote')
-    elif (result & ovr_capi.ovrControllerType_Touch) == 1:
+    elif (result & ovr_capi.ovrControllerType_Touch) == ovr_capi.ovrControllerType_Touch:
         ctrl_types.append('touch')
 
     return ctrl_types
