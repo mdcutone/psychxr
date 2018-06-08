@@ -2139,3 +2139,25 @@ cpdef InputStateData get_input_state(str controller='xbox'):
         check_result(result)
 
     return to_return
+
+cpdef list get_connected_controller_types():
+    """Get a list of currently connected controllers. You can check if a
+    controller is attached by testing for its membership in the list using its
+    name.
+    
+    :return: list  
+    
+    """
+    cdef unsigned int result = ovr_capi.ovr_GetConnectedControllerTypes(
+        _ptr_session_)
+
+    # TODO - add independent left and right touch controllers
+    cdef list ctrl_types = list()
+    if (result & ovr_capi.ovrControllerType_XBox) == 1:
+        ctrl_types.append('xbox')
+    elif (result & ovr_capi.ovrControllerType_Remote) == 1:
+        ctrl_types.append('remote')
+    elif (result & ovr_capi.ovrControllerType_Touch) == 1:
+        ctrl_types.append('touch')
+
+    return ctrl_types
