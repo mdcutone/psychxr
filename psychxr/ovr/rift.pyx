@@ -93,7 +93,7 @@ def check_result(result):
 #
 debug_mode = False
 
-# Input states for supported HIDs
+# Input states for LibOVR managed HIDs
 #
 cdef ovr_capi.ovrInputState _xbox_ctrl_state_
 cdef ovr_capi.ovrInputState _remote_ctrl_state_
@@ -1932,7 +1932,6 @@ cdef class TrackingStateData(object):
         return <unsigned int>self.c_data[0].HandStatusFlags[0], \
                <unsigned int>self.c_data[0].HandStatusFlags[1]
 
-
 cpdef TrackingStateData get_tracking_state(
         double abs_time,
         bint latency_marker=True):
@@ -1947,7 +1946,6 @@ cpdef TrackingStateData get_tracking_state(
     (<TrackingStateData>to_return).c_data[0] = ts
 
     return to_return
-
 
 cpdef void set_tracking_origin_type(str origin='floor'):
     """Set the tracking origin type. Can either be 'floor' or 'eye'.
@@ -1997,7 +1995,7 @@ cpdef void recenter_tracking_origin():
 cpdef void specify_tracking_origin(ovrPosef origin_pose):
     """Specify a custom tracking origin.
     
-    :param origin: ovrVector3f
+    :param origin_pose: ovrVector3f
     :return: 
     """
     global _ptr_session_
@@ -2016,8 +2014,8 @@ cpdef void calc_eye_poses(double abs_time, bint time_stamp=True):
     after 'wait_to_begin_frame' but before 'begin_frame' to minimize 
     motion-to-photon latency.
     
-    :param abs_time: 
-    :param time_stamp: 
+    :param abs_time: float
+    :param time_stamp: boolean
     :return: 
     """
     cdef ovr_capi.ovrBool use_marker = \
@@ -2455,8 +2453,19 @@ cdef class InputStateData(object):
 
         return pressed
 
+# List of controller names that are available to the user. These are handled by
+# the SDK, additional joysticks, keyboards and mice must be accessed by some
+# other method.
+#
+controller_names = ['xbox', 'remote', 'touch', 'left_touch', 'right_touch']
 
 cpdef InputStateData get_input_state(str controller='xbox'):
+    """Get the current input state of a controller specified by its name.
+    
+    :param controller: str
+    :return: 
+    
+    """
     global _ptr_session_, _ctrl_state_
 
     cdef ovr_capi.ovrControllerType ctrl_type
@@ -2646,7 +2655,7 @@ cpdef tuple get_neck_eye_distance():
         _ptr_session_,
         b"NeckEyeDistance",
         vals,
-        2)
+        <unsigned int>2)
 
     return <float>vals[0], <float>vals[1]
 
@@ -2658,6 +2667,6 @@ cpdef tuple get_eye_to_nose_distance():
         _ptr_session_,
         b"EyeToNoseDist",
         vals,
-        2)
+        <unsigned int>2)
 
     return <float>vals[0], <float>vals[1]
