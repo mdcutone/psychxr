@@ -611,6 +611,13 @@ cdef class ovrVector3f(object):
     def as_tuple(self):
         return self.c_data.x, self.c_data.y, self.c_data.z
 
+    @property
+    def ctypes(self):
+        return (GL.GLfloat * 3)(
+            self.c_data.x,
+            self.c_data.y,
+            self.c_data.z)
+
     def __len__(self):
         return 3
 
