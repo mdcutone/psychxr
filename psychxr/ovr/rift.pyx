@@ -1749,10 +1749,125 @@ cpdef tuple get_render_layer_viewport(str eye='left'):
                 <int>_eye_layer_.Viewport[1].Size.w,
                 <int>_eye_layer_.Viewport[1].Size.h)
 
-# ------------
-# VR Functions
-# ------------
+# ---------------------------------
+# VR Tracking Classes and Functions
+# ---------------------------------
 #
+cdef class PoseStateData(object):
+    """Pose state data.
+
+    """
+    cdef ovr_capi.ovrPoseStatef* c_data
+    cdef ovr_capi.ovrPoseStatef  c_ovrPoseStatef
+
+    cdef ovrPosef field_the_pose
+    cdef ovrVector3f field_angular_velocity
+    cdef ovrVector3f field_linear_velocity
+    cdef ovrVector3f field_angular_acceleration
+    cdef ovrVector3f field_linear_acceleration
+
+    def __cinit_(self, *args, **kwargs):
+        self.c_data = &self.c_ovrPoseStatef
+
+        self.field_angular_velocity = ovrVector3f()
+        self.field_linear_velocity = ovrVector3f()
+        self.field_angular_acceleration = ovrVector3f()
+        self.field_linear_acceleration = ovrVector3f()
+
+    @property
+    def the_pose(self):
+        cdef ovrPosef to_return = ovrPosef()
+        (<ovrPosef>to_return).c_data[0] = <ovr_math.Posef>self.c_data[0].ThePose
+
+        return to_return
+
+    @property
+    def angular_velocity(self):
+        self.field_angular_velocity.c_data[0] = \
+            (<ovr_math.Vector3f>self.c_data[0].AngularVelocity)
+
+        return self.field_angular_velocity
+
+    @property
+    def linear_velocity(self):
+        self.field_linear_velocity.c_data[0] = \
+            (<ovr_math.Vector3f>self.c_data[0].LinearVelocity)
+
+        return self.field_linear_velocity
+
+    @property
+    def angular_acceleration(self):
+        self.field_angular_acceleration.c_data[0] = \
+            (<ovr_math.Vector3f>self.c_data[0].AngularAcceleration)
+
+        return self.field_angular_acceleration
+
+    @property
+    def linear_acceleration(self):
+        self.field_linear_acceleration.c_data[0] = \
+            (<ovr_math.Vector3f>self.c_data[0].LinearAcceleration)
+
+        return self.field_linear_acceleration
+
+    @property
+    def time_in_seconds(self):
+        return <double>self.c_data[0].TimeInSeconds
+
+
+cdef class TrackingStateData(object):
+    """Structure which stores tracking state information. All attributes are
+    read-only, returning a copy of the data in the accessed field.
+
+    """
+    cdef ovr_capi.ovrTrackingState* c_data
+    cdef ovr_capi.ovrTrackingState  c_ovrTrackingState
+
+    def __cinit_(self, *args, **kwargs):
+        self.c_data = &self.c_ovrTrackingState
+
+    @property
+    def head_pose(self):
+        cdef PoseStateData to_return = PoseStateData()
+        (<PoseStateData>to_return).c_data[0] = self.c_data[0].HeadPose
+
+        return to_return
+
+    @property
+    def status_flags(self):
+        return <unsigned int>self.c_data[0].StatusFlags
+
+    @property
+    def hand_poses(self):
+        cdef PoseStateData left_hand_pose = PoseStateData()
+        (<PoseStateData>left_hand_pose).c_data[0] = self.c_data[0].HandPoses[0]
+
+        cdef PoseStateData right_hand_pose = PoseStateData()
+        (<PoseStateData>right_hand_pose).c_data[0] = self.c_data[0].HandPoses[1]
+
+        return left_hand_pose, right_hand_pose
+
+    @property
+    def hand_status_flags(self):
+        return <unsigned int>self.c_data[0].HandStatusFlags[1], \
+               <unsigned int>self.c_data[0].HandStatusFlags[1]
+
+
+cpdef TrackingStateData get_tracking_state(
+        double abs_time,
+        bint latency_marker=True):
+
+    cdef ovr_capi.ovrBool use_marker = \
+        ovr_capi.ovrTrue if latency_marker else ovr_capi.ovrFalse
+
+    cdef ovr_capi.ovrTrackingState ts = ovr_capi.ovr_GetTrackingState(
+        _ptr_session_, abs_time, use_marker)
+
+    cdef TrackingStateData to_return = TrackingStateData()
+    (<TrackingStateData>to_return).c_data[0] = ts
+
+    return to_return
+
+
 cpdef void set_tracking_origin_type(str origin='floor'):
     """Set the tracking origin type. Can either be 'floor' or 'eye'.
     
