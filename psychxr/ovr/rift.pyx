@@ -1,7 +1,6 @@
 cimport ovr_capi, ovr_capi_gl, ovr_errorcode, ovr_capi_util
 cimport ovr_math
 cimport libc.math as cmath
-
 import OpenGL.GL as GL
 
 # -----------------
@@ -1592,6 +1591,18 @@ def get_swap_chain_buffer(int sc):
 # Session Functions
 # -----------------
 #
+cpdef bint is_oculus_service_running(int timeout_milliseconds=100):
+    cdef ovr_capi_util.ovrDetectResult result = ovr_capi_util.ovr_Detect(
+        timeout_milliseconds)
+
+    return <bint>result.IsOculusServiceRunning
+
+cpdef bint is_hmd_connected(int timeout_milliseconds=100):
+    cdef ovr_capi_util.ovrDetectResult result = ovr_capi_util.ovr_Detect(
+        timeout_milliseconds)
+
+    return <bint>result.IsOculusHMDConnected
+
 cpdef void start_session():
     """Start a new session. Control is handed over to the application from
     Oculus Home. 
