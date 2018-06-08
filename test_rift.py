@@ -8,6 +8,7 @@ import psychxr.ovr.rift as rift
 rift.debug_mode = True
 import sys
 
+HEAD_TRACKING = False
 
 def main():
     # start GLFW
@@ -138,9 +139,10 @@ def main():
                 GL.glMultMatrixf(proj_left.ctypes)
                 GL.glMatrixMode(GL.GL_MODELVIEW)
                 GL.glLoadIdentity()
-                #GL.glMultMatrixf(view_left.ctypes)
+                if HEAD_TRACKING:
+                    GL.glMultMatrixf(view_left.ctypes)
 
-                GL.glClearColor(0.5, 0.5, 0.5, 1.0)  # red
+                GL.glClearColor(0.5, 0.5, 0.5, 1.0)
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
                 GL.glColor3f(1.0, 1.0, 1.0)
@@ -157,9 +159,10 @@ def main():
                 GL.glMultMatrixf(proj_right.ctypes)
                 GL.glMatrixMode(GL.GL_MODELVIEW)
                 GL.glLoadIdentity()
-                #GL.glMultMatrixf(view_right.ctypes)
+                if HEAD_TRACKING:
+                    GL.glMultMatrixf(view_right.ctypes)
 
-                GL.glClearColor(0.5, 0.5, 0.5, 1.0)  # blue
+                GL.glClearColor(0.5, 0.5, 0.5, 1.0)
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
                 GL.glColor3f(1.0, 1.0, 1.0)

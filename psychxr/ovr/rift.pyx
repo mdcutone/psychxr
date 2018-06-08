@@ -1848,7 +1848,7 @@ cdef class TrackingStateData(object):
 
     @property
     def hand_status_flags(self):
-        return <unsigned int>self.c_data[0].HandStatusFlags[1], \
+        return <unsigned int>self.c_data[0].HandStatusFlags[0], \
                <unsigned int>self.c_data[0].HandStatusFlags[1]
 
 
