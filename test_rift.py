@@ -38,6 +38,9 @@ def main():
     # get general information about the HMD
     print(rift.get_hmd_info())
 
+    # set the perf hud on
+    rift.perf_hud_mode("PerfSummary")
+
     # get the buffer dimensions specified by the Rift SDK, we need them to
     # setup OpenGL frame buffers.
     buffer_size = rift.get_buffer_size()
@@ -218,6 +221,9 @@ def main():
         # flip the GLFW window and poll events
         glfw.swap_buffers(window)
         glfw.poll_events()
+
+    # switch off the performance summary
+    rift.perf_hud_mode("Off")
 
     # end the rift session cleanly, all swap chains are destroyed here
     rift.end_session()

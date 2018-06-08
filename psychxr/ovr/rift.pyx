@@ -2573,3 +2573,32 @@ cpdef void reset_frame_stats():
     global _ptr_session_
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetPerfStats(
         _ptr_session_)
+
+    if debug_mode:
+        check_result(result)
+
+# HUD mode
+hud_modes = []
+
+cpdef void perf_hud_mode(str mode='Off'):
+    global _ptr_session_
+    cdef int perf_hud_mode = 0
+
+    if mode == 'Off':
+        perf_hud_mode = <int>ovr_capi.ovrPerfHud_Off
+    elif mode == 'PerfSummary':
+        perf_hud_mode = <int>ovr_capi.ovrPerfHud_PerfSummary
+    elif mode == 'LatencyTiming':
+        perf_hud_mode = <int>ovr_capi.ovrPerfHud_LatencyTiming
+    elif mode == 'AppRenderTiming':
+        perf_hud_mode = <int>ovr_capi.ovrPerfHud_AppRenderTiming
+    elif mode == 'CompRenderTiming':
+        perf_hud_mode = <int>ovr_capi.ovrPerfHud_CompRenderTiming
+    elif mode == 'AswStats':
+        perf_hud_mode = <int>ovr_capi.ovrPerfHud_AswStats
+    elif mode == 'VersionInfo':
+        perf_hud_mode = <int>ovr_capi.ovrPerfHud_VersionInfo
+
+    cdef ovr_capi.ovrBool ret = ovr_capi.ovr_SetInt(
+        _ptr_session_, b"PerfHudMode", perf_hud_mode)
+

@@ -52,7 +52,6 @@ ext_modules = [
               include_dirs=[OCULUS_SDK_INCLUDE,
                             OCULUS_SDK_INCLUDE_EXTRAS,
                             "psychxr/ovr/",
-                            "include/vrlinalg/",
                             "include/"],
               libraries=LIBRARIES,
               library_dirs=LIB_DIRS,
@@ -84,7 +83,7 @@ setup_pars = {
         'Programming Language :: Cython',
         'Intended Audience :: Science/Research'],
     "ext_modules" : cythonize(ext_modules),
-    "requires" : ["psychopy", "numpy", "pyglet", "Cython"],
+    "requires" : ["Cython"],
     'py_modules' : [],
     "cmdclass" : {"build_ext": build_ext}}
 
