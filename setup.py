@@ -64,16 +64,15 @@ setup_pars = {
     "name" : "psychxr",
     "author" : "Matthew D. Cutone",
     "author_email" : "cutonem@yorku.ca",
-    "packages" : ['psych_hmd',
-                  'psych_hmd.vrheadset',
-                  'psych_hmd.vrheadset.rift',
-                  'psych_hmd.vrheadset.rift.framebuffer',
-                  'psych_hmd.vrheadset.rift.ovrsdk',],
-    "package_data": {"psych_hmd.vrheadset.rift.ovrsdk": ["*.pyd"],
+    "packages" : ['psychxr',
+                  'psychxr.ovr',
+                  'psychxr.ovr.rift'],
+    "package_data": {"psychxr.vrheadset.rift.ovrsdk": ["*.pyd"],
                      "": ["*.md", "*.txt"]},
     "license" : "GPLv3",
     "description":
-        "PsychoPy support for the Oculus Rift CV1 head-mounted display.",
+        "API access from Python for eXended reality displays, used for "
+        "developing psychology experiments.",
     "long_description": "",
     "classifiers" : [
         'Development Status :: 3 - Alpha',

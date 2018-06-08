@@ -2027,11 +2027,11 @@ cpdef bint depth_requested():
     global _session_status_
     return (<ovr_capi.ovrSessionStatus>_session_status_).DepthRequested
 
-# -------------
-# HID Functions
-# -------------
+# -------------------------
+# HID Classes and Functions
+# -------------------------
 #
-cdef class ovrInputState(object):
+cdef class InputStateData(object):
     cdef ovr_capi.ovrInputState* c_data
     cdef ovr_capi.ovrInputState  c_ovrInputState
 
@@ -2062,25 +2062,26 @@ cdef class ovrInputState(object):
 
     @property
     def thumbstick(self):
-        cdef
         return (
             (<float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[0].x,
              <float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[0].y),
             (<float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[1].x,
              <float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[1].y))
 
-cpdef ovrInputState get_input_state(str controller='xbox'):
+cpdef InputStateData get_input_state(str controller='xbox'):
     global _ptr_session_, _ctrl_state_
 
     cdef ovr_capi.ovrControllerType ctrl_type
     if controller == 'xbox':
         ctrl_type = ovr_capi.ovrControllerType_XBox
+    elif controller == 'remote':
+        ctrl_type = ovr_capi.ovrControllerType_Remote
 
-    cdef ovrInputState to_return = ovrInputState()
+    cdef InputStateData to_return = InputStateData()
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
         _ptr_session_,
         ctrl_type,
-        (<ovrInputState>to_return).c_data)
+        (<InputStateData>to_return).c_data)
 
     if debug_mode:
         check_result(result)
