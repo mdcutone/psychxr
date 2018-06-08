@@ -94,6 +94,10 @@ cdef dict ctrl_button_lut = {
     "RMask": ovr_capi.ovrButton_RMask,
     "LMask": ovr_capi.ovrButton_LMask}
 
+# Performance information for profiling.
+#
+cdef ovr_capi.ovrPerfStats _perf_stats_
+
 
 cdef class ovrColorf:
     cdef ovr_capi.ovrColorf* c_data
@@ -2201,7 +2205,7 @@ cdef class InputStateData(object):
 
     @property
     def time_in_seconds(self):
-        return <double>((<ovr_capi.ovrInputState>self.c_data[0]).TimeInSeconds)
+        return <double>(<ovr_capi.ovrInputState>self.c_data[0]).TimeInSeconds
 
     @property
     def buttons(self):
@@ -2476,3 +2480,65 @@ cpdef list get_connected_controller_types():
         ctrl_types.append('right_touch')
 
     return ctrl_types
+
+# -------------------------------
+# Performance/Profiling Functions
+# -------------------------------
+#
+cpdef dict get_frame_stats():
+    """Get most recent performance stats, returns a dictionary with fields
+    corresponding to various performance stats reported by the SDK.
+    
+    :return: dict 
+    
+    """
+    global _ptr_session_, _perf_stats_
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetPerfStats(
+        _ptr_session_, &_perf_stats_)
+
+    cdef dict to_return = dict()
+
+    cdef int i, N
+    N = (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStatsCount
+    for i in range(N):
+        to_return[i] = \
+            {
+            "HmdVsyncIndex":
+                 (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].HmdVsyncIndex,
+            "AppFrameIndex":
+                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].AppFrameIndex,
+            "AppDroppedFrameCount":
+                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].AppDroppedFrameCount,
+            "AppMotionToPhotonLatency":
+                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].AppMotionToPhotonLatency,
+            "AppQueueAheadTime":
+                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].AppQueueAheadTime,
+            "AppCpuElapsedTime":
+                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].AppCpuElapsedTime,
+            "AppGpuElapsedTime":
+                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].AppGpuElapsedTime,
+            "CompositorFrameIndex":
+                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].CompositorFrameIndex,
+            "CompositorLatency":
+                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].CompositorLatency,
+            "CompositorCpuElapsedTime":
+                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].CompositorCpuElapsedTime,
+            "CompositorGpuElapsedTime":
+                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].CompositorGpuElapsedTime,
+            "CompositorCpuStartToGpuEndElapsedTime":
+                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].CompositorCpuStartToGpuEndElapsedTime,
+            "CompositorGpuEndToVsyncElapsedTime":
+                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].CompositorGpuEndToVsyncElapsedTime
+            }
+
+    return to_return
+
+cpdef void reset_frame_stats():
+    """Flushes backlog of  frame stats.
+    
+    :return: None 
+    
+    """
+    global _ptr_session_
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetPerfStats(
+        _ptr_session_)

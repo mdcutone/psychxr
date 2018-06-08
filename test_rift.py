@@ -212,8 +212,8 @@ def main():
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
         # get remote state
-        remote_input_state = rift.get_input_state('xbox')
-        print(remote_input_state.button_a)
+        remote_input_state = rift.get_frame_stats()
+        print(remote_input_state)
 
         # flip the GLFW window and poll events
         glfw.swap_buffers(window)
