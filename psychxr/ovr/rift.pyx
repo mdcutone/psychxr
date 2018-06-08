@@ -2068,6 +2068,56 @@ cdef class InputStateData(object):
             (<float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[1].x,
              <float>(<ovr_capi.ovrInputState>self).c_data[0].Thumbstick[1].y))
 
+    @property
+    def controller_type(self):
+        if (<ovr_capi.ovrInputState>self).c_data[0].ControllerType == \
+                ovr_capi.ovrControllerType_XBox:
+            return "xbox"
+        elif (<ovr_capi.ovrInputState>self).c_data[0].ControllerType == \
+                ovr_capi.ovrControllerType_Remote:
+            return "remote"
+        elif (<ovr_capi.ovrInputState>self).c_data[0].ControllerType == \
+                ovr_capi.ovrControllerType_Touch:
+            return "touch"
+
+    @property
+    def index_trigger_no_deadzone(self):
+        return (<float>(<ovr_capi.ovrInputState>self).c_data[0].IndexTriggerNoDeadzone[0],
+                <float>(<ovr_capi.ovrInputState>self).c_data[0].IndexTriggerNoDeadzone[1])
+
+    @property
+    def hand_trigger(self):
+        return (<float>(<ovr_capi.ovrInputState>self).c_data[0].HandTriggerNoDeadzone[0],
+                <float>(<ovr_capi.ovrInputState>self).c_data[0].HandTriggerNoDeadzone[1])
+
+    @property
+    def thumbstick_no_deadzone(self):
+        return (
+            (<float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickNoDeadzone[0].x,
+             <float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickNoDeadzone[0].y),
+            (<float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickNoDeadzone[1].x,
+             <float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickNoDeadzone[1].y))
+
+    @property
+    def index_trigger_raw(self):
+        return (<float>(<ovr_capi.ovrInputState>self).c_data[0].IndexTriggerRaw[0],
+                <float>(<ovr_capi.ovrInputState>self).c_data[0].IndexTriggerRaw[1])
+
+
+    @property
+    def hand_trigger_raw(self):
+        return (<float>(<ovr_capi.ovrInputState>self).c_data[0].HandTriggerRaw[0],
+                <float>(<ovr_capi.ovrInputState>self).c_data[0].HandTriggerRaw[1])
+
+    @property
+    def thumbstick_raw(self):
+        return (
+            (<float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickRaw[0].x,
+             <float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickRaw[0].y),
+            (<float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickRaw[1].x,
+             <float>(<ovr_capi.ovrInputState>self).c_data[0].ThumbstickRaw[1].y))
+
+
 cpdef InputStateData get_input_state(str controller='xbox'):
     global _ptr_session_, _ctrl_state_
 
@@ -2076,6 +2126,8 @@ cpdef InputStateData get_input_state(str controller='xbox'):
         ctrl_type = ovr_capi.ovrControllerType_XBox
     elif controller == 'remote':
         ctrl_type = ovr_capi.ovrControllerType_Remote
+    elif controller == 'touch':
+        ctrl_type = ovr_capi.ovrControllerType_Touch
 
     cdef InputStateData to_return = InputStateData()
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
@@ -2087,13 +2139,3 @@ cpdef InputStateData get_input_state(str controller='xbox'):
         check_result(result)
 
     return to_return
-
-cpdef double poll_remote_controller_state():
-    global _ptr_session_, _ctrl_state_
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
-        _ptr_session_, ovr_capi.ovrControllerType_Remote, &_ctrl_state_[1])
-
-    if debug_mode:
-        check_result(result)
-
-    return (<ovr_capi.ovrInputState>_ctrl_state_[1]).TimeInSeconds
