@@ -97,6 +97,8 @@ def main():
     proj_left = rift.get_eye_projection_matrix('left')
     proj_right = rift.get_eye_projection_matrix('right')
 
+    rift.show_boundry(True)
+
     # begin application loop
     while not glfw.window_should_close(window):
         # wait for the buffer to be freed by the compositor, this is like

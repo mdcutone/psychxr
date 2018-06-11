@@ -2800,6 +2800,53 @@ cpdef void perf_hud_mode(str mode='Off'):
     cdef ovr_capi.ovrBool ret = ovr_capi.ovr_SetInt(
         _ptr_session_, b"PerfHudMode", perf_hud_mode)
 
+# -----------------------------
+# Boundary and Safety Functions
+# -----------------------------
+#
+cdef ovr_capi.ovrBoundaryLookAndFeel _boundary_style_
+
+cpdef void set_boundry_color(float r, float g, float b):
+    global _ptr_session_, _boundary_style_
+
+    cdef ovr_capi.ovrColorf color
+    color.r = r
+    color.g = g
+    color.b = b
+
+    _boundary_style_.Color = color
+
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_SetBoundaryLookAndFeel(
+        _ptr_session_,
+        &_boundary_style_)
+
+    if debug_mode:
+        check_result(result)
+
+cpdef void reset_boundry_color():
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetBoundaryLookAndFeel(
+        _ptr_session_)
+
+    if debug_mode:
+        check_result(result)
+
+cpdef bint is_boundry_visible():
+    cdef ovr_capi.ovrBool is_visible
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetBoundaryVisible(
+        _ptr_session_, &is_visible)
+
+    if debug_mode:
+        check_result(result)
+
+    return <bint>is_visible
+
+cpdef void show_boundry(bint show=True):
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_RequestBoundaryVisible(
+        _ptr_session_, <ovr_capi.ovrBool>show)
+
+    if debug_mode:
+        check_result(result)
+
 # -----------------------
 # Miscellaneous Functions
 # -----------------------

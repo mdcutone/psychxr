@@ -501,7 +501,7 @@ cdef extern from "OVR_CAPI.h":
     cdef ovrResult ovr_GetBoundaryDimensions(ovrSession session, ovrBoundaryType boundaryType, ovrVector3f* outDimensions)
     cdef ovrResult ovr_GetBoundaryVisible(ovrSession session, ovrBool* outIsVisible)
     cdef ovrResult ovr_RequestBoundaryVisible(ovrSession session, ovrBool visible)
-    cdef ovrResultovr_GetExternalCameras(ovrSession session, ovrExternalCamera* cameras, unsigned int* inoutCameraCount)
+    cdef ovrResult ovr_GetExternalCameras(ovrSession session, ovrExternalCamera* cameras, unsigned int* inoutCameraCount)
     cdef ovrResult ovr_SetExternalCameraProperties(ovrSession session, const char* name, const ovrCameraIntrinsics* const intrinsics, const ovrCameraExtrinsics* const extrinsics)
 
     cdef int ovrMaxLayerCount = 16
