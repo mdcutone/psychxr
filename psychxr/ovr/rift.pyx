@@ -142,6 +142,9 @@ cdef dict ctrl_button_lut = {
     "RMask": ovr_capi.ovrButton_RMask,
     "LMask": ovr_capi.ovrButton_LMask}
 
+# Python accessible list of valid button names.
+button_names = list(ctrl_button_lut.keys())
+
 # Look-up table of controller touches.
 #
 cdef dict ctrl_touch_lut = {
@@ -159,6 +162,9 @@ cdef dict ctrl_touch_lut = {
     "RThumbUp": ovr_capi.ovrTouch_RThumbUp,
     "LIndexPointing": ovr_capi.ovrTouch_LIndexPointing,
     "LThumbUp": ovr_capi.ovrTouch_LThumbUp}
+
+# Python accessible list of valid touch names.
+touch_names = list(ctrl_touch_lut.keys())
 
 # Performance information for profiling.
 #
@@ -1986,6 +1992,28 @@ cdef class TrackingStateData(object):
         return <unsigned int>self.c_data[0].StatusFlags
 
     @property
+    def is_head_position_tracked(self):
+        cdef unsigned int status_flags = self.c_data[0].StatusFlags
+        cdef unsigned int status_bits = ovr_capi.ovrStatus_PositionTracked
+
+        return <bint>(status_flags & status_bits) == status_bits
+
+    @property
+    def is_head_orientation_tracked(self):
+        cdef unsigned int status_flags = self.c_data[0].StatusFlags
+        cdef unsigned int status_bits = ovr_capi.ovrStatus_OrientationTracked
+
+        return <bint>(status_flags & status_bits) == status_bits
+
+    @property
+    def is_head_tracked(self):
+        cdef unsigned int status_flags = self.c_data[0].StatusFlags
+        cdef unsigned int status_bits = ovr_capi.ovrStatus_OrientationTracked
+        status_bits |= ovr_capi.ovrStatus_PositionTracked
+
+        return <bint>(status_flags & status_bits) == status_bits
+
+    @property
     def hand_poses(self):
         cdef PoseStateData left_hand_pose = PoseStateData()
         (<PoseStateData>left_hand_pose).c_data[0] = self.c_data[0].HandPoses[0]
@@ -2721,7 +2749,7 @@ cpdef dict get_frame_stats():
     return to_return
 
 cpdef void reset_frame_stats():
-    """Flushes backlog of  frame stats.
+    """Flushes backlog of frame stats.
     
     :return: None 
     

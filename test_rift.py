@@ -38,6 +38,9 @@ def main():
     # get general information about the HMD
     print(rift.get_hmd_info())
 
+    # print out a list of button names we can access
+    print(rift.button_names)
+
     # set the perf hud on
     rift.perf_hud_mode("PerfSummary")
 
