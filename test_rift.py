@@ -115,6 +115,9 @@ def main():
         view_left = rift.get_eye_view_matrix(left_eye_pose)
         view_right = rift.get_eye_view_matrix(right_eye_pose)
 
+        # hand matrix
+        #touch_matrix = rift.ovrMatrix4f(tracking_state.hand_poses[1].the_pose)
+
         # start frame rendering
         rift.begin_frame(frame_index)
 
@@ -161,12 +164,15 @@ def main():
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
                 GL.glColor3f(1.0, 1.0, 1.0)
+                GL.glPushMatrix()
+                #GL.glMultMatrixf(touch_matrix.ctypes)
                 GL.glBegin(GL.GL_QUADS)
                 GL.glVertex3f(-1.0, -1.0, -5.0)
                 GL.glVertex3f(-1.0, 1.0, -5.0)
                 GL.glVertex3f(1.0, 1.0, -5.0)
                 GL.glVertex3f(1.0, -1.0, -5.0)
                 GL.glEnd()
+                GL.glPopMatrix()
 
             elif eye == 'right':
                 GL.glMatrixMode(GL.GL_PROJECTION)
@@ -181,12 +187,15 @@ def main():
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
                 GL.glColor3f(1.0, 1.0, 1.0)
+                GL.glPushMatrix()
+                #GL.glMultMatrixf(touch_matrix.ctypes)
                 GL.glBegin(GL.GL_QUADS)
                 GL.glVertex3f(-1.0, -1.0, -5.0)
                 GL.glVertex3f(-1.0, 1.0, -5.0)
                 GL.glVertex3f(1.0, 1.0, -5.0)
                 GL.glVertex3f(1.0, -1.0, -5.0)
                 GL.glEnd()
+                GL.glPopMatrix()
 
         GL.glDisable(GL.GL_DEPTH_TEST)
 
@@ -228,7 +237,7 @@ def main():
 
         # get remote state
         remote_input_state = rift.get_frame_stats()
-        print(remote_input_state)
+        #print(remote_input_state)
 
         # flip the GLFW window and poll events
         glfw.swap_buffers(window)
