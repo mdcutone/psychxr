@@ -65,6 +65,9 @@ def main():
     rift.set_render_swap_chain('left', swap_chain)
     rift.set_render_swap_chain('right', None)
 
+    # apply filtering to reduce peripheral artifacts
+    #rift.set_render_high_quality()
+
     # create a frame buffer object as a render target for the HMD textures
     fboId = GL.GLuint()
     GL.glGenFramebuffers(1, ctypes.byref(fboId))
@@ -250,6 +253,10 @@ def main():
         elif rift.get_buttons('touch', 'B', 'falling'):
             # exit if button 'B' is pressed
             break
+        elif rift.get_buttons('touch', 'X', 'falling'):
+            rift.set_render_high_quality(False)
+        elif rift.get_buttons('touch', 'Y', 'falling'):
+            rift.set_render_high_quality(True)
 
         # flip the GLFW window and poll events
         glfw.swap_buffers(window)

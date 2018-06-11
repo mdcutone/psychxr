@@ -1762,7 +1762,9 @@ cpdef void start_session():
     # prepare the render layer
     global _eye_layer_
     _eye_layer_.Header.Type = ovr_capi.ovrLayerType_EyeFov
-    _eye_layer_.Header.Flags = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
+    _eye_layer_.Header.Flags = \
+        ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft | \
+        ovr_capi.ovrLayerFlag_HighQuality
     _eye_layer_.ColorTexture[0] = NULL
     _eye_layer_.ColorTexture[1] = NULL
 
