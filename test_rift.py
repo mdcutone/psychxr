@@ -50,8 +50,17 @@ def main():
     # run out of video memory by then.
     swap_chain = rift.alloc_swap_chain(*buffer_size)
 
+    # since we are using a shared texture, each eye's viewport is half the width
+    # of the allocated buffer texture.
+    eye_w = int(buffer_size[0] / 2)
+    eye_h = buffer_size[1]
+
     # setup a the render layer
-    rift.setup_render_layer(buffer_size[0], buffer_size[1], swap_chain)
+    rift.set_render_viewport('left', 0, 0, eye_w, eye_h)
+    rift.set_render_viewport('right', eye_w, 0, eye_w, eye_h)
+
+    rift.set_render_swap_chain('left', swap_chain)
+    rift.set_render_swap_chain('right', None)
 
     # create a frame buffer object as a render target for the HMD textures
     fboId = GL.GLuint()
@@ -127,7 +136,7 @@ def main():
             # also need to enable scissor testings with the same rect as the
             # viewport. This constrains rendering operations to one partition of
             # of the buffer since we are using a 'packed' layout.
-            x, y, w, h = rift.get_render_layer_viewport(eye)
+            x, y, w, h = rift.get_render_viewport(eye)
             GL.glViewport(x, y, w, h)
             GL.glScissor(x, y, w, h)
             GL.glEnable(GL.GL_SCISSOR_TEST)  # enable scissor test

@@ -93,13 +93,30 @@ def check_result(result):
 #
 debug_mode = False
 
-# Input states for LibOVR managed HIDs
+# Controller indices in controller state array.
 #
-cdef ovr_capi.ovrInputState _xbox_ctrl_state_
-cdef ovr_capi.ovrInputState _remote_ctrl_state_
-cdef ovr_capi.ovrInputState _touch_ctrl_state_
-cdef ovr_capi.ovrInputState _touch_left_ctrl_state_
-cdef ovr_capi.ovrInputState _touch_right_ctrl_state_
+ctypedef enum LibOVRControllers:
+    xbox = 0
+    remote = 1
+    touch = 2
+    left_touch = 3
+    right_touch = 4
+    count = 5
+
+# Store controller states.
+#
+cdef ovr_capi.ovrInputState _ctrl_states_[5]
+cdef ovr_capi.ovrInputState _ctrl_states_prev_[5]  # previous controller states
+
+# Controller indices look-up table.
+#
+cdef dict ctrl_index_lut = {
+    "xbox": LibOVRControllers.xbox,
+    "remote": LibOVRControllers.remote,
+    "touch": LibOVRControllers.touch,
+    "left_touch": LibOVRControllers.left_touch,
+    "right_touch": LibOVRControllers.right_touch
+}
 
 # Look-up table of button values to test which are pressed.
 #
@@ -124,6 +141,24 @@ cdef dict ctrl_button_lut = {
     "Private": ovr_capi.ovrButton_Private,
     "RMask": ovr_capi.ovrButton_RMask,
     "LMask": ovr_capi.ovrButton_LMask}
+
+# Look-up table of controller touches.
+#
+cdef dict ctrl_touch_lut = {
+    "A": ovr_capi.ovrTouch_A,
+    "B": ovr_capi.ovrTouch_B,
+    "RThumb" : ovr_capi.ovrTouch_RThumb,
+    "RThumbRest": ovr_capi.ovrTouch_RThumbRest,
+    "RIndexTrigger" : ovr_capi.ovrTouch_RThumb,
+    "X": ovr_capi.ovrTouch_X,
+    "Y": ovr_capi.ovrTouch_Y,
+    "LThumb": ovr_capi.ovrTouch_LThumb,
+    "LThumbRest": ovr_capi.ovrTouch_LThumbRest,
+    "LIndexTrigger" : ovr_capi.ovrTouch_LIndexTrigger,
+    "RIndexPointing": ovr_capi.ovrTouch_RIndexPointing,
+    "RThumbUp": ovr_capi.ovrTouch_RThumbUp,
+    "LIndexPointing": ovr_capi.ovrTouch_LIndexPointing,
+    "LThumbUp": ovr_capi.ovrTouch_LThumbUp}
 
 # Performance information for profiling.
 #
@@ -1700,6 +1735,17 @@ cpdef void start_session():
     _hmd_to_eye_view_pose_[0] = _eye_render_desc_[0].HmdToEyePose
     _hmd_to_eye_view_pose_[1] = _eye_render_desc_[1].HmdToEyePose
 
+    # prepare the render layer
+    global _eye_layer_
+    _eye_layer_.Header.Type = ovr_capi.ovrLayerType_EyeFov
+    _eye_layer_.Header.Flags = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
+    _eye_layer_.ColorTexture[0] = NULL
+    _eye_layer_.ColorTexture[1] = NULL
+
+    # setup layer FOV settings, these are computed earlier
+    _eye_layer_.Fov[0] = _eye_render_desc_[0].Fov
+    _eye_layer_.Fov[1] = _eye_render_desc_[1].Fov
+
 cpdef void end_session():
     """End the current session. 
     
@@ -1793,31 +1839,53 @@ cpdef tuple get_buffer_size(str fov_type='recommended',
 
     return buffer_size.w, buffer_size.h
 
-cpdef void setup_render_layer(int width, int height, int sc):
-    global _ptr_session_, _eye_layer_
-    # configure render layer
-    _eye_layer_.Header.Type = ovr_capi.ovrLayerType_EyeFov
-    _eye_layer_.Header.Flags = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
+cpdef void set_render_viewport(str eye, int x, int y, int width, int height):
+    """
+    
+    :param x: int
+    :param y: int
+    :param width: int
+    :param height: int 
+    :param eye: str
+    :return: None
+    
+    """
+    cdef int buffer
+    if eye == 'left':
+        buffer = 0
+    elif eye == 'right':
+        buffer = 1
 
-    # setup layer FOV settings, these are computed earlier
-    _eye_layer_.Fov[0] = _eye_render_desc_[0].Fov
-    _eye_layer_.Fov[1] = _eye_render_desc_[1].Fov
+    global _eye_layer_
+    _eye_layer_.Viewport[buffer].Pos.x = x
+    _eye_layer_.Viewport[buffer].Pos.y = y
+    _eye_layer_.Viewport[buffer].Size.w = width
+    _eye_layer_.Viewport[buffer].Size.h = height
 
-    # set the viewport
-    _eye_layer_.Viewport[0].Pos.x = 0
-    _eye_layer_.Viewport[0].Pos.y = 0
-    _eye_layer_.Viewport[0].Size.w = width / 2
-    _eye_layer_.Viewport[0].Size.h = height
-    _eye_layer_.Viewport[1].Pos.x = width / 2
-    _eye_layer_.Viewport[1].Pos.y = 0
-    _eye_layer_.Viewport[1].Size.w = width / 2
-    _eye_layer_.Viewport[1].Size.h = height
+cpdef void set_render_swap_chain(str eye, object swap_chain):
+    """
+    
+    :param swap_chain: int
+    :param eye: str
+    :return: 
+    
+    """
+    cdef int buffer
+    if eye == 'left':
+        buffer = 0
+    elif eye == 'right':
+        buffer = 1
 
     # set the swap chain textures
-    _eye_layer_.ColorTexture[0] = _swap_chain_[sc]
-    _eye_layer_.ColorTexture[1] = NULL  # NULL for now
+    global _eye_layer_
 
-cpdef tuple get_render_layer_viewport(str eye='left'):
+    if not swap_chain is None:
+        _eye_layer_.ColorTexture[buffer] = _swap_chain_[<int>swap_chain]
+    else:
+        _eye_layer_.ColorTexture[buffer] = NULL
+
+
+cpdef tuple get_render_viewport(str eye='left'):
     global _ptr_session_, _eye_layer_
     if eye == 'left':
         return (<int>_eye_layer_.Viewport[0].Pos.x,
@@ -2225,271 +2293,293 @@ cpdef bint depth_requested():
 # HID Classes and Functions
 # -------------------------
 #
-cdef class InputStateData(object):
-    cdef ovr_capi.ovrInputState* c_data
-    cdef ovr_capi.ovrInputState  c_ovrInputState
+cpdef double poll_controller(str controller):
+    """Poll and update specified controller's state data. The time delta in 
+    seconds between the current and previous controller state is returned.
+    
+    :param controller: str or None
+    :return: double
+    
+    """
+    global _ptr_session_, _ctrl_states_, _ctrl_states_prev_
+    cdef ovr_capi.ovrInputState* ptr_ctrl = NULL
+    cdef ovr_capi.ovrInputState* ptr_ctrl_prev = NULL
 
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrInputState
+    cdef ovr_capi.ovrControllerType ctrl_type
+    if controller == 'xbox':
+        ctrl_type = ovr_capi.ovrControllerType_XBox
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.xbox]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.xbox]
+    elif controller == 'remote':
+        ctrl_type = ovr_capi.ovrControllerType_Remote
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.remote]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.remote]
+    elif controller == 'touch':
+        ctrl_type = ovr_capi.ovrControllerType_Touch
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.touch]
+    elif controller == 'left_touch':
+        ctrl_type = ovr_capi.ovrControllerType_LTouch
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.left_touch]
+    elif controller == 'right_touch':
+        ctrl_type = ovr_capi.ovrControllerType_RTouch
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.right_touch]
 
-    @property
-    def time_in_seconds(self):
-        return <double>(<ovr_capi.ovrInputState>self.c_data[0]).TimeInSeconds
+    # copy the previous control state
+    ptr_ctrl_prev[0] = ptr_ctrl[0]
 
-    @property
-    def buttons(self):
-        return <unsigned int>(<InputStateData>self).c_data[0].Buttons
+    # update the current controller state
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
+        _ptr_session_,
+        ctrl_type,
+        ptr_ctrl)
 
-    @property
-    def touches(self):
-        return <unsigned int>(<InputStateData>self).c_data[0].Touches
+    if debug_mode:
+        check_result(result)
 
-    @property
-    def index_trigger(self):
-        return (<float>(<InputStateData>self).c_data[0].IndexTrigger[0],
-                <float>(<InputStateData>self).c_data[0].IndexTrigger[1])
+    # return the time delta between the last time the controller was polled
+    return ptr_ctrl[0].TimeInSeconds - ptr_ctrl_prev[0].TimeInSeconds
 
-    @property
-    def hand_trigger(self):
-        return (<float>(<InputStateData>self).c_data[0].HandTrigger[0],
-                <float>(<InputStateData>self).c_data[0].HandTrigger[1])
+cpdef double get_controller_abs_time(str controller):
+    """Get the absolute time the state of the specified controller was last 
+    updated.
+    
+    :param controller: str or None
+    :return: float
+    
+    """
+    # get pointer to control state
+    global _ctrl_states_
+    cdef ovr_capi.ovrInputState* ptr_ctrl_state = NULL
+    if controller == 'xbox':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.xbox]
+    elif controller == 'remote':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.remote]
+    elif controller == 'touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.touch]
+    elif controller == 'left_touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+    elif controller == 'right_touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.right_touch]
 
-    @property
-    def thumbstick(self):
-        return (
-            (<float>(<InputStateData>self).c_data[0].Thumbstick[0].x,
-             <float>(<InputStateData>self).c_data[0].Thumbstick[0].y),
-            (<float>(<InputStateData>self).c_data[0].Thumbstick[1].x,
-             <float>(<InputStateData>self).c_data[0].Thumbstick[1].y))
+    return ptr_ctrl_state[0].TimeInSeconds
 
-    @property
-    def controller_type(self):
-        if (<InputStateData>self).c_data[0].ControllerType == \
-                ovr_capi.ovrControllerType_XBox:
-            return "xbox"
-        elif (<InputStateData>self).c_data[0].ControllerType == \
-                ovr_capi.ovrControllerType_Remote:
-            return "remote"
-        elif (<InputStateData>self).c_data[0].ControllerType == \
-                ovr_capi.ovrControllerType_Touch:
-            return "touch"
-        elif (<InputStateData>self).c_data[0].ControllerType == \
-                ovr_capi.ovrControllerType_LTouch:
-            return "left_touch"
-        elif (<InputStateData>self).c_data[0].ControllerType == \
-                ovr_capi.ovrControllerType_RTouch:
-            return "right_touch"
+cpdef tuple get_index_trigger_values(str controller, bint dead_zone=False):
+    """Get index trigger values for a specified controller.
+    
+    :param controller: str
+    :param deadzone: boolean
+    :return: tuple
+    
+    """
+    # get pointer to control state
+    global _ctrl_states_
+    cdef ovr_capi.ovrInputState* ptr_ctrl_state = NULL
+    if controller == 'xbox':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.xbox]
+    elif controller == 'remote':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.remote]
+    elif controller == 'touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.touch]
+    elif controller == 'left_touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+    elif controller == 'right_touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.right_touch]
 
-    @property
-    def index_trigger_no_deadzone(self):
-        return (<float>(<InputStateData>self).c_data[0].IndexTriggerNoDeadzone[0],
-                <float>(<InputStateData>self).c_data[0].IndexTriggerNoDeadzone[1])
+    cdef float index_trigger_left = 0.0
+    cdef float index_trigger_right = 0.0
 
-    @property
-    def hand_trigger(self):
-        return (<float>(<InputStateData>self).c_data[0].HandTriggerNoDeadzone[0],
-                <float>(<InputStateData>self).c_data[0].HandTriggerNoDeadzone[1])
+    # get the value with or without the deadzone
+    if not dead_zone:
+        index_trigger_left = ptr_ctrl_state[0].IndexTriggerNoDeadzone[0]
+        index_trigger_right = ptr_ctrl_state[0].IndexTriggerNoDeadzone[1]
+    else:
+        index_trigger_left = ptr_ctrl_state[0].IndexTrigger[0]
+        index_trigger_right = ptr_ctrl_state[0].IndexTrigger[1]
 
-    @property
-    def thumbstick_no_deadzone(self):
-        return (
-            (<float>(<InputStateData>self).c_data[0].ThumbstickNoDeadzone[0].x,
-             <float>(<InputStateData>self).c_data[0].ThumbstickNoDeadzone[0].y),
-            (<float>(<InputStateData>self).c_data[0].ThumbstickNoDeadzone[1].x,
-             <float>(<InputStateData>self).c_data[0].ThumbstickNoDeadzone[1].y))
+    return index_trigger_left, index_trigger_right
 
-    @property
-    def index_trigger_raw(self):
-        return (<float>(<InputStateData>self).c_data[0].IndexTriggerRaw[0],
-                <float>(<InputStateData>self).c_data[0].IndexTriggerRaw[1])
+cpdef tuple get_hand_trigger_values(str controller, bint dead_zone=False):
+    """Get hand trigger values for a specified controller.
+    
+    :param controller: str
+    :param deadzone: boolean
+    :return: tuple
+    
+    """
+    # get pointer to control state
+    global _ctrl_states_
+    cdef ovr_capi.ovrInputState* ptr_ctrl_state = NULL
+    if controller == 'xbox':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.xbox]
+    elif controller == 'remote':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.remote]
+    elif controller == 'touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.touch]
+    elif controller == 'left_touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+    elif controller == 'right_touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.right_touch]
 
+    cdef float hand_trigger_left = 0.0
+    cdef float hand_trigger_right = 0.0
 
-    @property
-    def hand_trigger_raw(self):
-        return (<float>(<InputStateData>self).c_data[0].HandTriggerRaw[0],
-                <float>(<InputStateData>self).c_data[0].HandTriggerRaw[1])
+    # get the value with or without the deadzone
+    if not dead_zone:
+        hand_trigger_left = ptr_ctrl_state[0].HandTriggerNoDeadzone[0]
+        hand_trigger_right = ptr_ctrl_state[0].HandTriggerNoDeadzone[1]
+    else:
+        hand_trigger_left = ptr_ctrl_state[0].HandTrigger[0]
+        hand_trigger_right = ptr_ctrl_state[0].HandTrigger[1]
 
-    @property
-    def thumbstick_raw(self):
-        return (
-            (<float>(<InputStateData>self).c_data[0].ThumbstickRaw[0].x,
-             <float>(<InputStateData>self).c_data[0].ThumbstickRaw[0].y),
-            (<float>(<InputStateData>self).c_data[0].ThumbstickRaw[1].x,
-             <float>(<InputStateData>self).c_data[0].ThumbstickRaw[1].y))
+    return hand_trigger_left, hand_trigger_right
 
-    @property
-    def button_a(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_A) == \
-            ovr_capi.ovrButton_A
+cdef float clip_input_range(float val):
+    """Constrain an analog input device's range between -1.0 and 1.0. This is 
+    only accessible from module functions.
+    
+    :param val: float
+    :return: float
+    
+    """
+    if val > 1.0:
+        val = 1.0
+    elif val < 1.0:
+        val = 1.0
 
-        return pressed
+    return val
 
-    @property
-    def button_b(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_B) == \
-            ovr_capi.ovrButton_B
+cpdef tuple get_thumbstick_values(str controller, bint dead_zone=False):
+    """Get thumbstick values for a specified controller.
+    
+    :param controller: 
+    :param dead_zone: 
+    :return: tuple
+    
+    """
+    # get pointer to control state
+    global _ctrl_states_
+    cdef ovr_capi.ovrInputState* ptr_ctrl_state = NULL
+    if controller == 'xbox':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.xbox]
+    elif controller == 'remote':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.remote]
+    elif controller == 'touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.touch]
+    elif controller == 'left_touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+    elif controller == 'right_touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.right_touch]
 
-        return pressed
+    cdef float thumbstick0_x = 0.0
+    cdef float thumbstick0_y = 0.0
+    cdef float thumbstick1_x = 0.0
+    cdef float thumbstick1_y = 0.0
 
-    @property
-    def button_rthumb(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_RThumb) == \
-            ovr_capi.ovrButton_RThumb
+    # get the value with or without the deadzone
+    if not dead_zone:
+        thumbstick0_x = ptr_ctrl_state[0].Thumbstick[0].x
+        thumbstick0_y = ptr_ctrl_state[0].Thumbstick[0].y
+        thumbstick1_x = ptr_ctrl_state[0].Thumbstick[1].x
+        thumbstick1_y = ptr_ctrl_state[0].Thumbstick[1].y
+    else:
+        thumbstick0_x = ptr_ctrl_state[0].ThumbstickNoDeadzone[0].x
+        thumbstick0_y = ptr_ctrl_state[0].ThumbstickNoDeadzone[0].y
+        thumbstick1_x = ptr_ctrl_state[0].ThumbstickNoDeadzone[1].x
+        thumbstick1_y = ptr_ctrl_state[0].ThumbstickNoDeadzone[1].y
 
-        return pressed
+    # clip range
+    thumbstick0_x = clip_input_range(thumbstick0_x)
+    thumbstick0_y = clip_input_range(thumbstick0_y)
+    thumbstick1_x = clip_input_range(thumbstick1_x)
+    thumbstick1_y = clip_input_range(thumbstick1_y)
 
-    @property
-    def button_rshoulder(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_RShoulder) == \
-            ovr_capi.ovrButton_RShoulder
+    return (thumbstick0_x, thumbstick0_y), (thumbstick1_x, thumbstick1_y)
 
-        return pressed
+cpdef bint get_buttons(str controller, object button_names):
+    """Get the state of a specified button for a given controller. Usually, True
+    is returned if the button was pressed down when polled. If a list of button 
+    names is given, True will be returned if an only if all of the buttons are 
+    active.
+    
+    :param controller: str
+    :param button_names: str, list or tuple
+    :return: boolean
+    
+    """
+    # get pointer to control state
+    global _ctrl_states_
+    cdef ovr_capi.ovrInputState* ptr_ctrl_state = NULL
+    if controller == 'xbox':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.xbox]
+    elif controller == 'remote':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.remote]
+    elif controller == 'touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.touch]
+    elif controller == 'left_touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+    elif controller == 'right_touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.right_touch]
 
-    @property
-    def button_x(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_X) == \
-            ovr_capi.ovrButton_X
+    cdef unsigned int button_bits = 0x00000000
+    cdef int i, N
+    if isinstance(button_names, str):  # don't loop if a string is specified
+        button_bits |= ctrl_button_lut[button_names]
+    elif isinstance(button_names, (tuple, list)):
+        # loop over all names and combine them
+        N = <int>len(button_names)
+        for i in range(N):
+            button_bits |= ctrl_button_lut[button_names[i]]
 
-        return pressed
+    # test if the button was pressed
+    cdef bint pressed = (ptr_ctrl_state.Buttons & button_bits) == button_bits
 
-    @property
-    def button_y(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_Y) == \
-            ovr_capi.ovrButton_Y
+    return pressed
 
-        return pressed
+cpdef bint get_touches(str controller, object touches):
+    """Get touches for a specified device.
+    
+    :param controller: 
+    :param touches: 
+    :return: boolean
+    
+    """
+    # get pointer to control state
+    global _ctrl_states_
+    cdef ovr_capi.ovrInputState* ptr_ctrl_state = NULL
+    if controller == 'xbox':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.xbox]
+    elif controller == 'remote':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.remote]
+    elif controller == 'touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.touch]
+    elif controller == 'left_touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+    elif controller == 'right_touch':
+        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.right_touch]
 
-    @property
-    def button_lthumb(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_LThumb) == \
-             ovr_capi.ovrButton_LThumb
+    cdef unsigned int touch_bits = 0x00000000
+    cdef int i, N
+    if isinstance(touches, str):  # don't loop if a string is specified
+        touch_bits |= ctrl_button_lut[touches]
+    elif isinstance(touches, (tuple, list)):
+        # loop over all names and combine them
+        N = <int>len(touches)
+        for i in range(N):
+            touch_bits |= ctrl_button_lut[touches[i]]
 
-        return pressed
+    # test for a given touch
+    cdef bint touched = (ptr_ctrl_state.Touches & touch_bits) == touch_bits
 
-    @property
-    def button_lshoulder(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_LShoulder) == \
-            ovr_capi.ovrButton_LShoulder
-
-        return pressed
-
-    @property
-    def button_up(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_Up) == \
-            ovr_capi.ovrButton_Up
-
-        return pressed
-
-    @property
-    def button_down(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_Down) == \
-            ovr_capi.ovrButton_Down
-
-        return pressed
-
-    @property
-    def button_left(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_Left) == \
-            ovr_capi.ovrButton_Left
-
-        return pressed
-
-    @property
-    def button_right(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_Right) == \
-            ovr_capi.ovrButton_Right
-
-        return pressed
-
-    @property
-    def button_enter(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_Enter) == \
-            ovr_capi.ovrButton_Enter
-
-        return pressed
-
-    @property
-    def button_back(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_Back) == \
-            ovr_capi.ovrButton_Back
-
-        return pressed
-
-    @property
-    def button_vol_up(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_VolUp) == \
-            ovr_capi.ovrButton_VolUp
-
-        return pressed
-
-    @property
-    def button_vol_down(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_VolDown) == \
-            ovr_capi.ovrButton_VolDown
-
-        return pressed
-
-    @property
-    def button_home(self):
-        cdef bint pressed = \
-            (self.c_data[0].Buttons & ovr_capi.ovrButton_Home) == \
-            ovr_capi.ovrButton_Home
-
-        return pressed
+    return touched
 
 # List of controller names that are available to the user. These are handled by
 # the SDK, additional joysticks, keyboards and mice must be accessed by some
 # other method.
 #
 controller_names = ['xbox', 'remote', 'touch', 'left_touch', 'right_touch']
-
-cpdef InputStateData get_input_state(str controller='xbox'):
-    """Get the current input state of a controller specified by its name.
-    
-    :param controller: str
-    :return: 
-    
-    """
-    global _ptr_session_, _ctrl_state_
-
-    cdef ovr_capi.ovrControllerType ctrl_type
-    if controller == 'xbox':
-        ctrl_type = ovr_capi.ovrControllerType_XBox
-    elif controller == 'remote':
-        ctrl_type = ovr_capi.ovrControllerType_Remote
-    elif controller == 'touch':
-        ctrl_type = ovr_capi.ovrControllerType_Touch
-    elif controller == 'left_touch':
-        ctrl_type = ovr_capi.ovrControllerType_LTouch
-    elif controller == 'right_touch':
-        ctrl_type = ovr_capi.ovrControllerType_RTouch
-
-    cdef InputStateData to_return = InputStateData()
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
-        _ptr_session_,
-        ctrl_type,
-        &(<InputStateData>to_return).c_data[0])
-
-    if debug_mode:
-        check_result(result)
-
-    return to_return
 
 cpdef list get_connected_controller_types():
     """Get a list of currently connected controllers. You can check if a
