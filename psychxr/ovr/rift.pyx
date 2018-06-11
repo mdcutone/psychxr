@@ -2457,17 +2457,23 @@ cpdef tuple get_thumbstick_values(str controller, bint dead_zone=False):
     """
     # get pointer to control state
     global _ctrl_states_
-    cdef ovr_capi.ovrInputState* ptr_ctrl_state = NULL
+    cdef ovr_capi.ovrInputState* ptr_ctrl = NULL
+    cdef ovr_capi.ovrInputState* ptr_ctrl_prev = NULL
     if controller == 'xbox':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.xbox]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.xbox]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.xbox]
     elif controller == 'remote':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.remote]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.remote]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.remote]
     elif controller == 'touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.touch]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.touch]
     elif controller == 'left_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.left_touch]
     elif controller == 'right_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.right_touch]
 
     cdef float thumbstick0_x = 0.0
     cdef float thumbstick0_y = 0.0
@@ -2476,15 +2482,15 @@ cpdef tuple get_thumbstick_values(str controller, bint dead_zone=False):
 
     # get the value with or without the deadzone
     if not dead_zone:
-        thumbstick0_x = ptr_ctrl_state[0].Thumbstick[0].x
-        thumbstick0_y = ptr_ctrl_state[0].Thumbstick[0].y
-        thumbstick1_x = ptr_ctrl_state[0].Thumbstick[1].x
-        thumbstick1_y = ptr_ctrl_state[0].Thumbstick[1].y
+        thumbstick0_x = ptr_ctrl[0].Thumbstick[0].x
+        thumbstick0_y = ptr_ctrl[0].Thumbstick[0].y
+        thumbstick1_x = ptr_ctrl[0].Thumbstick[1].x
+        thumbstick1_y = ptr_ctrl[0].Thumbstick[1].y
     else:
-        thumbstick0_x = ptr_ctrl_state[0].ThumbstickNoDeadzone[0].x
-        thumbstick0_y = ptr_ctrl_state[0].ThumbstickNoDeadzone[0].y
-        thumbstick1_x = ptr_ctrl_state[0].ThumbstickNoDeadzone[1].x
-        thumbstick1_y = ptr_ctrl_state[0].ThumbstickNoDeadzone[1].y
+        thumbstick0_x = ptr_ctrl[0].ThumbstickNoDeadzone[0].x
+        thumbstick0_y = ptr_ctrl[0].ThumbstickNoDeadzone[0].y
+        thumbstick1_x = ptr_ctrl[0].ThumbstickNoDeadzone[1].x
+        thumbstick1_y = ptr_ctrl[0].ThumbstickNoDeadzone[1].y
 
     # clip range
     thumbstick0_x = clip_input_range(thumbstick0_x)
@@ -2494,30 +2500,45 @@ cpdef tuple get_thumbstick_values(str controller, bint dead_zone=False):
 
     return (thumbstick0_x, thumbstick0_y), (thumbstick1_x, thumbstick1_y)
 
-cpdef bint get_buttons(str controller, object button_names):
-    """Get the state of a specified button for a given controller. Usually, True
-    is returned if the button was pressed down when polled. If a list of button 
-    names is given, True will be returned if an only if all of the buttons are 
-    active.
+cpdef bint get_buttons(str controller, object button_names, str trigger='continuous'):
+    """Get the state of a specified button for a given controller. 
+    
+    Buttons to test are specified using their string names. Argument
+    'button_names' accepts a single string or a list. If a list is specified,
+    the returned value will reflect whether all buttons were triggered at the
+    time the controller was polled last. 
+    
+    An optional trigger mode may be specified which defines the button's
+    activation criteria. Be default, trigger='continuous' which will return the
+    immediate state of the button is used. Using 'rising' will return True once 
+    when the button is first pressed, whereas 'falling' will return True once 
+    the button is released.
     
     :param controller: str
-    :param button_names: str, list or tuple
+    :param touch_names: str, tuple or list
+    :param trigger: str
     :return: boolean
     
     """
     # get pointer to control state
     global _ctrl_states_
-    cdef ovr_capi.ovrInputState* ptr_ctrl_state = NULL
+    cdef ovr_capi.ovrInputState* ptr_ctrl = NULL
+    cdef ovr_capi.ovrInputState* ptr_ctrl_prev = NULL
     if controller == 'xbox':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.xbox]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.xbox]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.xbox]
     elif controller == 'remote':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.remote]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.remote]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.remote]
     elif controller == 'touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.touch]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.touch]
     elif controller == 'left_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.left_touch]
     elif controller == 'right_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.right_touch]
 
     cdef unsigned int button_bits = 0x00000000
     cdef int i, N
@@ -2530,44 +2551,84 @@ cpdef bint get_buttons(str controller, object button_names):
             button_bits |= ctrl_button_lut[button_names[i]]
 
     # test if the button was pressed
-    cdef bint pressed = (ptr_ctrl_state.Buttons & button_bits) == button_bits
+    cdef bint pressed
+    if trigger == 'continuous':
+        pressed = (ptr_ctrl.Buttons & button_bits) == button_bits
+    elif trigger == 'rising' or trigger == 'pressed':
+        # rising edge, will trigger once when pressed
+        pressed = (ptr_ctrl.Buttons & button_bits) == button_bits and \
+            (ptr_ctrl_prev.Buttons & button_bits) != button_bits
+    elif trigger == 'falling' or trigger == 'released':
+        # falling edge, will trigger once when released
+        pressed = (ptr_ctrl.Buttons & button_bits) != button_bits and \
+            (ptr_ctrl_prev.Buttons & button_bits) == button_bits
+    else:
+        raise ValueError("Invalid trigger mode specified.")
 
     return pressed
 
-cpdef bint get_touches(str controller, object touches):
+cpdef bint get_touches(str controller, object touch_names, str trigger='continuous'):
     """Get touches for a specified device.
     
-    :param controller: 
-    :param touches: 
+    Touches reveal information about the user's hand pose, for instance, whether 
+    a pointing or pinching gesture is being made. Oculus Touch controllers are
+    required for this functionality.
+
+    Touch points to test are specified using their string names. Argument
+    'touch_names' accepts a single string or a list. If a list is specified,
+    the returned value will reflect whether all touches were triggered at the
+    time the controller was polled last. 
+    
+    :param controller: str
+    :param touch_names: str, tuple or list
+    :param trigger: str
     :return: boolean
     
     """
     # get pointer to control state
     global _ctrl_states_
-    cdef ovr_capi.ovrInputState* ptr_ctrl_state = NULL
+    cdef ovr_capi.ovrInputState* ptr_ctrl = NULL
+    cdef ovr_capi.ovrInputState* ptr_ctrl_prev = NULL
     if controller == 'xbox':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.xbox]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.xbox]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.xbox]
     elif controller == 'remote':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.remote]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.remote]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.remote]
     elif controller == 'touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.touch]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.touch]
     elif controller == 'left_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.left_touch]
     elif controller == 'right_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.right_touch]
 
     cdef unsigned int touch_bits = 0x00000000
     cdef int i, N
-    if isinstance(touches, str):  # don't loop if a string is specified
-        touch_bits |= ctrl_button_lut[touches]
-    elif isinstance(touches, (tuple, list)):
+    if isinstance(touch_names, str):  # don't loop if a string is specified
+        touch_bits |= ctrl_button_lut[touch_names]
+    elif isinstance(touch_names, (tuple, list)):
         # loop over all names and combine them
-        N = <int>len(touches)
+        N = <int>len(touch_names)
         for i in range(N):
-            touch_bits |= ctrl_button_lut[touches[i]]
+            touch_bits |= ctrl_button_lut[touch_names[i]]
 
-    # test for a given touch
-    cdef bint touched = (ptr_ctrl_state.Touches & touch_bits) == touch_bits
+    # test if the button was pressed
+    cdef bint touched
+    if trigger == 'continuous':
+        touched = (ptr_ctrl.Buttons & touch_bits) == touch_bits
+    elif trigger == 'rising' or trigger == 'pressed':
+        # rising edge, will trigger once when pressed
+        touched = (ptr_ctrl.Buttons & touch_bits) == touch_bits and \
+            (ptr_ctrl_prev.Buttons & touch_bits) != touch_bits
+    elif trigger == 'falling' or trigger == 'released':
+        # falling edge, will trigger once when released
+        touched = (ptr_ctrl.Buttons & touch_bits) != touch_bits and \
+            (ptr_ctrl_prev.Buttons & touch_bits) == touch_bits
+    else:
+        raise ValueError("Invalid trigger mode specified.")
 
     return touched
 
