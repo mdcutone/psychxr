@@ -1617,8 +1617,25 @@ cdef class ovrMatrix4f:
 
         return to_return
 
+# --------------------
+# Swap Chain Functions
+# --------------------
+#
+cdef dict texture_format_lut = {
+    'R8G8B8A8_UNORM': ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM,
+    'R8G8B8A8_UNORM_SRGB': ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
+    'B8G8R8A8_UNORM': ovr_capi.OVR_FORMAT_B8G8R8A8_UNORM,
+    'R16G16B16A16_FLOAT': ovr_capi.OVR_FORMAT_R16G16B16A16_FLOAT,
+    'R11G11B10_FLOAT': ovr_capi.OVR_FORMAT_R11G11B10_FLOAT,
+    'D16_UNORM': ovr_capi.OVR_FORMAT_D16_UNORM,
+    'D24_UNORM_S8_UINT': ovr_capi.OVR_FORMAT_D24_UNORM_S8_UINT,
+    'D32_FLOAT': ovr_capi.OVR_FORMAT_D32_FLOAT,
+    'D32_FLOAT_S8X24_UINT': ovr_capi.OVR_FORMAT_D32_FLOAT_S8X24_UINT
+}
 
-def alloc_swap_chain(int width, int height):
+texture_formats = list(texture_format_lut.keys())
+
+def alloc_swap_chain(int width, int height, str texture_format):
     """Allocate a new swap chain object with the specified parameters. If
     successful, an integer is returned which is used to reference the swap
     chain. You can allocate up-to 32 swap chains.
@@ -1641,7 +1658,8 @@ def alloc_swap_chain(int width, int height):
     # configure the swap chain
     cdef ovr_capi.ovrTextureSwapChainDesc config
     config.Type = ovr_capi.ovrTexture_2D
-    config.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+    config.Format = \
+        <ovr_capi.ovrTextureFormat>texture_format_lut[texture_format]
     config.Width = width
     config.Height = height
     config.StaticImage = ovr_capi.ovrFalse

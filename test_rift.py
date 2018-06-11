@@ -46,17 +46,17 @@ def main():
 
     # get the buffer dimensions specified by the Rift SDK, we need them to
     # setup OpenGL frame buffers.
-    buffer_size = rift.get_buffer_size()
+    buffer_w, buffer_h = rift.get_buffer_size()
 
     # Allocate a swap chain for render buffer textures, the handle used is an
     # integer. You can allocated up to 32 swap chains, however you will likely
     # run out of video memory by then.
-    swap_chain = rift.alloc_swap_chain(*buffer_size)
+    swap_chain = rift.alloc_swap_chain(buffer_w, buffer_h, 'R16G16B16A16_FLOAT')
 
     # since we are using a shared texture, each eye's viewport is half the width
     # of the allocated buffer texture.
-    eye_w = int(buffer_size[0] / 2)
-    eye_h = buffer_size[1]
+    eye_w = int(buffer_w / 2)
+    eye_h = buffer_h
 
     # setup a the render layer
     rift.set_render_viewport('left', 0, 0, eye_w, eye_h)
@@ -73,7 +73,7 @@ def main():
     GL.glGenRenderbuffers(1, ctypes.byref(depthRb_id))
     GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, depthRb_id)
     GL.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL.GL_DEPTH24_STENCIL8,
-        int(buffer_size[0]), int(buffer_size[1]))  # buffer size used here!
+        int(buffer_w), int(buffer_h))  # buffer size used here!
     GL.glFramebufferRenderbuffer(
         GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER,
         depthRb_id)
@@ -97,7 +97,8 @@ def main():
     proj_left = rift.get_eye_projection_matrix('left')
     proj_right = rift.get_eye_projection_matrix('right')
 
-    rift.show_boundry(True)
+    # get the player height
+    print(rift.get_player_height())
 
     # begin application loop
     while not glfw.window_should_close(window):
@@ -240,11 +241,15 @@ def main():
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
-        # get remote state
-        rift.poll_controller('touch')
-        input_state = rift.get_buttons('touch', ('A', 'B'), 'falling')
-        if input_state:
-            print('A pressed')
+        rift.poll_controller('touch')  # update touch controller state
+
+        # if button 'A' is released on the touch controller, recenter the
+        # viewer in the scene.
+        if rift.get_buttons('touch', 'A', 'falling'):
+            rift.recenter_tracking_origin()
+        elif rift.get_buttons('touch', 'B', 'falling'):
+            # exit if button 'B' is pressed
+            break
 
         # flip the GLFW window and poll events
         glfw.swap_buffers(window)
