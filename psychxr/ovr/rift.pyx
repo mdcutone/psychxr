@@ -2073,31 +2073,33 @@ cpdef void specify_tracking_origin(ovrPosef origin_pose):
     if debug_mode:
         check_result(result)
 
-
-cpdef void calc_eye_poses(double abs_time, bint time_stamp=True):
-    """Calculate eye poses. 
+cpdef tuple calc_eye_poses(TrackingStateData tracking_state):
+    """Calculate eye poses from tracking state data.
     
     Poses are stored internally for conversion to transformation matrices by 
     calling 'get_eye_view_matrix'. Should be called at least once per frame 
     after 'wait_to_begin_frame' but before 'begin_frame' to minimize 
     motion-to-photon latency.
     
-    :param abs_time: float
-    :param time_stamp: boolean
+    :param tracking_state: TrackingStateData
     :return: 
+    
     """
-    cdef ovr_capi.ovrBool use_marker = \
-        ovr_capi.ovrTrue if time_stamp else ovr_capi.ovrFalse
-
-    cpdef ovr_capi.ovrTrackingState hmd_state = ovr_capi.ovr_GetTrackingState(
-        _ptr_session_, abs_time, use_marker)
+    global _hmd_to_eye_view_pose_
 
     ovr_capi_util.ovr_CalcEyePoses2(
-        hmd_state.HeadPose.ThePose,
+        tracking_state.c_data[0].HeadPose.ThePose,
         _hmd_to_eye_view_pose_,
         _eye_layer_.RenderPose)
 
-cpdef ovrMatrix4f get_eye_view_matrix(str eye='left'):
+    cdef ovrPosef eye_pose0 = ovrPosef()
+    cdef ovrPosef eye_pose1 = ovrPosef()
+    (<ovrPosef>eye_pose0).c_data[0] = <ovr_math.Posef>_eye_layer_.RenderPose[0]
+    (<ovrPosef>eye_pose1).c_data[0] = <ovr_math.Posef>_eye_layer_.RenderPose[1]
+
+    return eye_pose0, eye_pose1
+
+cpdef ovrMatrix4f get_eye_view_matrix(ovrPosef eye_pose):
     """Get the view matrix from the last calculated head pose. This should be
     called once per frame if real-time head tracking is desired.
     
@@ -2105,16 +2107,10 @@ cpdef ovrMatrix4f get_eye_view_matrix(str eye='left'):
     :return: 
     
     """
-    cdef int buffer = 0 if eye == 'left' else 1
-    global _eye_layer_
-
     cdef ovrVector3f pos = ovrVector3f()
-    pos.c_data[0] = \
-        <ovr_math.Vector3f>_eye_layer_.RenderPose[buffer].Position
     cdef ovrMatrix4f rot = ovrMatrix4f()
-    rot.c_data[0] = \
-        ovr_math.Matrix4f(
-            <ovr_math.Quatf>_eye_layer_.RenderPose[buffer].Orientation)
+    pos.c_data[0] = <ovr_math.Vector3f>eye_pose.c_data.Translation
+    rot.c_data[0] = ovr_math.Matrix4f(<ovr_math.Quatf>eye_pose.c_data.Rotation)
 
     cdef ovrVector3f final_up = \
         (<ovrVector3f>rot).transform(ovrVector3f(0, 1, 0))

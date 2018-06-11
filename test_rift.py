@@ -103,14 +103,17 @@ def main():
         # get current display time + predicted mid-frame time
         abs_time = rift.get_display_time(frame_index)
 
+        # get the current tracking state
+        tracking_state = rift.get_tracking_state(abs_time)
+
         # Calculate eye poses, this needs to be called every frame, do this
         # after calling 'wait_to_begin_frame' to minimize the motion-to-photon
         # latency.
-        rift.calc_eye_poses(abs_time)
+        left_eye_pose, right_eye_pose = rift.calc_eye_poses(tracking_state)
 
         # get the view matrix from the HMD after calculating the pose
-        view_left = rift.get_eye_view_matrix('left')
-        view_right = rift.get_eye_view_matrix('right')
+        view_left = rift.get_eye_view_matrix(left_eye_pose)
+        view_right = rift.get_eye_view_matrix(right_eye_pose)
 
         # start frame rendering
         rift.begin_frame(frame_index)
