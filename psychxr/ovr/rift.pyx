@@ -1823,6 +1823,209 @@ cpdef dict get_hmd_info():
 # Rendering Configuration Functions
 # ---------------------------------
 #
+# layer header flags
+ovrLayerFlag_HighQuality = 0x01
+ovrLayerFlag_TextureOriginAtBottomLeft = 0x02
+ovrLayerFlag_HeadLocked = 0x04
+
+cdef class ovrTextureSwapChain:
+    """Texture swap chain.
+
+    """
+    cdef ovr_capi.ovrTextureSwapChain c_ovrTextureSwapChain
+
+    def __cinit__(self, *args, **kwargs):
+        pass
+
+# Texture types supported by the PC version of LibOVR
+#
+ovrTexture_2D = ovr_capi.ovrTexture_2D
+ovrTexture_Cube = ovr_capi.ovrTexture_Cube
+
+# Texture formats supported by OpenGL
+#
+OVR_FORMAT_R8G8B8A8_UNORM = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM
+OVR_FORMAT_R8G8B8A8_UNORM_SRGB = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+OVR_FORMAT_B8G8R8A8_UNORM = ovr_capi.OVR_FORMAT_B8G8R8A8_UNORM
+OVR_FORMAT_B8G8R8_UNORM = ovr_capi.OVR_FORMAT_B8G8R8_UNORM
+OVR_FORMAT_R16G16B16A16_FLOAT = ovr_capi.OVR_FORMAT_R16G16B16A16_FLOAT
+OVR_FORMAT_R11G11B10_FLOAT = ovr_capi.OVR_FORMAT_R11G11B10_FLOAT
+OVR_FORMAT_D16_UNORM = ovr_capi.OVR_FORMAT_D16_UNORM
+OVR_FORMAT_D24_UNORM_S8_UINT = ovr_capi.OVR_FORMAT_D24_UNORM_S8_UINT
+OVR_FORMAT_D32_FLOAT = ovr_capi.OVR_FORMAT_D32_FLOAT
+OVR_FORMAT_D32_FLOAT_S8X24_UINT = ovr_capi.OVR_FORMAT_D32_FLOAT_S8X24_UINT
+
+cdef class ovrTextureSwapChainDesc:
+    """ovrTextureSwapChainDesc
+
+    """
+    # no data pointer here
+    cdef ovr_capi.ovrTextureSwapChainDesc c_ovrTextureSwapChainDesc
+
+    def __init__(
+            self,
+            int type=ovrTexture_2D,
+            int _format=OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
+            int width=800,
+            int height=600,
+            int array_size=1,
+            int mip_levels=1,
+            int sample_count=1,
+            bint static_image=False):
+
+        # nop constructor
+        pass
+
+    def __cinit__(
+            self,
+            int type=ovrTexture_2D,
+            int _format=OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
+            int width=800,
+            int height=600,
+            int array_size=1,
+            int mip_levels=1,
+            int sample_count=1,
+            bint static_image=False):
+
+        self.c_ovrTextureSwapChainDesc.Type = <ovr_capi.ovrTextureType>type
+        self.c_ovrTextureSwapChainDesc.Format = <ovr_capi.ovrTextureFormat>_format
+        self.c_ovrTextureSwapChainDesc.ArraySize = array_size
+        self.c_ovrTextureSwapChainDesc.Width = width
+        self.c_ovrTextureSwapChainDesc.Height = height
+        self.c_ovrTextureSwapChainDesc.MipLevels = mip_levels
+        self.c_ovrTextureSwapChainDesc.SampleCount = sample_count
+        self.c_ovrTextureSwapChainDesc.StaticImage = <ovr_capi.ovrBool>static_image
+
+        # these can't be set right now
+        self.c_ovrTextureSwapChainDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
+        self.c_ovrTextureSwapChainDesc.BindFlags = ovr_capi.ovrTextureBind_None
+
+    @property
+    def type(self):
+        return <int>self.c_ovrTextureSwapChainDesc.Type
+
+    @type.setter
+    def type(self, int value):
+        self.c_ovrTextureSwapChainDesc.Type = <ovr_capi.ovrTextureType>value
+
+    @property
+    def format(self):
+        return <int>self.c_ovrTextureSwapChainDesc.Format
+
+    @format.setter
+    def format(self, int value):
+        self.c_ovrTextureSwapChainDesc.Format = <ovr_capi.ovrTextureFormat>value
+
+    @property
+    def array_size(self):
+        return <int>self.c_ovrTextureSwapChainDesc.ArraySize
+
+    @array_size.setter
+    def array_size(self, int value):
+        self.c_ovrTextureSwapChainDesc.ArraySize = value
+
+    @property
+    def width(self):
+        return <int>self.c_ovrTextureSwapChainDesc.Width
+
+    @width.setter
+    def width(self, int value):
+        self.c_ovrTextureSwapChainDesc.Width = value
+
+    @property
+    def height(self):
+        return <int>self.c_ovrTextureSwapChainDesc.Height
+
+    @height.setter
+    def height(self, int value):
+        self.c_ovrTextureSwapChainDesc.Height = value
+
+    @property
+    def mip_levels(self):
+        return <int>self.c_ovrTextureSwapChainDesc.MipLevels
+
+    @mip_levels.setter
+    def mip_levels(self, int value):
+        self.c_ovrTextureSwapChainDesc.MipLevels = value
+
+    @property
+    def sample_count(self):
+        return <int>self.c_ovrTextureSwapChainDesc.SampleCount
+
+    @sample_count.setter
+    def sample_count(self, int value):
+        self.c_ovrTextureSwapChainDesc.SampleCount = value
+
+    @property
+    def static_image(self):
+        return <bint>self.c_ovrTextureSwapChainDesc.StaticImage
+
+    @static_image.setter
+    def static_image(self, bint value):
+        self.c_ovrTextureSwapChainDesc.StaticImage = <ovr_capi.ovrBool>value
+
+cpdef void create_texture_swap_chain_gl(
+        ovrTextureSwapChain swap_chain,
+        ovrTextureSwapChainDesc swap_desc):
+
+    # create the swap chain
+    cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
+        _ptr_session_,
+        &swap_desc.c_ovrTextureSwapChainDesc,
+        &swap_chain.c_ovrTextureSwapChain)
+
+    if debug_mode:
+        check_result(result)
+
+cdef class ovrLayerHeader(object):
+    cdef ovr_capi.ovrLayerHeader* c_data
+    cdef ovr_capi.ovrLayerHeader  c_ovrLayerHeader
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data = &self.c_ovrLayerHeader
+
+    @property
+    def type(self):
+        return <int>self.c_data[0].Type
+
+    @type.setter
+    def type(self, int value):
+        self.c_data[0].Type = <ovr_capi.ovrLayerType>value
+
+    @property
+    def flags(self):
+        return <unsigned int>self.c_data[0].Flags
+
+    @flags.setter
+    def flags(self, unsigned int value):
+        self.c_data[0].Flags = value
+
+cdef class ovrLayerEyeFov(object):
+    cdef ovr_capi.ovrLayerEyeFov* c_data
+    cdef ovr_capi.ovrLayerEyeFov  c_ovrLayerEyeFov
+
+    # field access objects
+    cdef ovrLayerHeader prop_header
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data = &self.c_ovrLayerEyeFov
+
+        self.prop_header = ovrLayerHeader()
+        (<ovrLayerHeader>self.prop_header).c_data = &self.c_data[0].Header
+
+    @property
+    def header(self):
+        return self.prop_header
+
+    @header.setter
+    def header(self, ovrLayerHeader value):
+        (<ovrLayerHeader>self.prop_header).c_data[0] = value.c_data[0].Header
+
+    @property
+    def sensor_sample_time(self):
+        return self.c_data[0].SensorSampleTime
+
+
 cpdef tuple get_buffer_size(str fov_type='recommended',
                             float texel_per_pixel=1.0):
     """Compute the recommended buffer (texture) size for a specified 
@@ -1928,7 +2131,7 @@ cpdef tuple get_render_viewport(str eye='left'):
 # VR Tracking Classes and Functions
 # ---------------------------------
 #
-cdef class PoseStateData(object):
+cdef class ovrPoseStatef(object):
     """Pose state data.
 
     """
@@ -2002,8 +2205,8 @@ cdef class TrackingStateData(object):
 
     @property
     def head_pose(self):
-        cdef PoseStateData to_return = PoseStateData()
-        (<PoseStateData>to_return).c_data[0] = self.c_data[0].HeadPose
+        cdef ovrPoseStatef to_return = ovrPoseStatef()
+        (<ovrPoseStatef>to_return).c_data[0] = self.c_data[0].HeadPose
 
         return to_return
 
@@ -2035,11 +2238,11 @@ cdef class TrackingStateData(object):
 
     @property
     def hand_poses(self):
-        cdef PoseStateData left_hand_pose = PoseStateData()
-        (<PoseStateData>left_hand_pose).c_data[0] = self.c_data[0].HandPoses[0]
+        cdef ovrPoseStatef left_hand_pose = ovrPoseStatef()
+        (<ovrPoseStatef>left_hand_pose).c_data[0] = self.c_data[0].HandPoses[0]
 
-        cdef PoseStateData right_hand_pose = PoseStateData()
-        (<PoseStateData>right_hand_pose).c_data[0] = self.c_data[0].HandPoses[1]
+        cdef ovrPoseStatef right_hand_pose = ovrPoseStatef()
+        (<ovrPoseStatef>right_hand_pose).c_data[0] = self.c_data[0].HandPoses[1]
 
         return left_hand_pose, right_hand_pose
 
@@ -2337,7 +2540,7 @@ cpdef bint depth_requested():
 # HID Classes and Functions
 # -------------------------
 #
-cdef class InputStateData(object):
+cdef class ovrInputState(object):
     """Class storing the state of an input device. Fields can only be updated
     by calling 'get_input_state()'.
 
@@ -2470,12 +2673,12 @@ cpdef object get_input_state(str controller, object state_out=None):
     # create a controller state object and set its data
     global _ptr_session_
     cdef ovr_capi.ovrInputState* ptr_state
-    cdef InputStateData to_return = InputStateData()
+    cdef ovrInputState to_return = ovrInputState()
 
     if state_out is None:
-        ptr_state = &(<InputStateData>to_return).c_ovrInputState
+        ptr_state = &(<ovrInputState>to_return).c_ovrInputState
     else:
-        ptr_state = &(<InputStateData>state_out).c_ovrInputState
+        ptr_state = &(<ovrInputState>state_out).c_ovrInputState
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
         _ptr_session_,
