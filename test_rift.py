@@ -1,6 +1,7 @@
 # PsychXR Oculus Rift minimal example.
 #
 import OpenGL.GL as GL
+import pyglet.gl
 import ctypes
 import glfw
 
@@ -8,7 +9,45 @@ import psychxr.ovr.rift as rift
 rift.debug_mode = True
 import sys
 
-HEAD_TRACKING = True
+from PIL import Image
+import numpy as np
+
+HEAD_TRACKING = False
+
+def load_image(image_file):
+    # open image
+    im = Image.open(image_file)
+    im = im.transpose(Image.FLIP_TOP_BOTTOM)
+    im = im.rotate(-90)
+
+    im = im.convert("RGBA")
+    data = np.array(im)
+    texture_array = np.array(im)
+
+    texture_id = GL.GLuint()
+    GL.glGenTextures(1, ctypes.byref(texture_id))
+    GL.glBindTexture(GL.GL_TEXTURE_2D, texture_id)
+    GL.glTexParameteri(GL.GL_TEXTURE_2D,
+                       GL.GL_TEXTURE_MAG_FILTER,
+                       GL.GL_LINEAR)
+    GL.glTexParameteri(GL.GL_TEXTURE_2D,
+                       GL.GL_TEXTURE_MIN_FILTER,
+                       GL.GL_LINEAR)
+    GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+    pyglet.gl.glTexImage2D(GL.GL_TEXTURE_2D,
+                    0,
+                    GL.GL_RGBA,
+                    texture_array.shape[1],
+                    texture_array.shape[0],
+                    0,
+                    GL.GL_RGBA,
+                    GL.GL_UNSIGNED_BYTE,
+                    texture_array.ctypes)
+
+    GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+    return texture_id
+
 
 def main():
     # start GLFW
@@ -27,6 +66,12 @@ def main():
 
     # always call this before setting up render layers
     glfw.make_context_current(window)
+
+    # load textures from file
+    texture_ref_l = load_image(r"C:\Users\mdc\Desktop\test_images\original\left\Aryaa1.ppm")
+    texture_ref_r = load_image(r"C:\Users\mdc\Desktop\test_images\original\right\Aryaa1.ppm")
+    texture_cmp_l = load_image(r"C:\Users\mdc\Desktop\test_images\compressed\left\Aryaa1_dec.ppm")
+    texture_cmp_r = load_image(r"C:\Users\mdc\Desktop\test_images\compressed\right\Aryaa1_dec.ppm")
 
     # disable v-sync, we are syncing to the v-trace of head-set, leaving this on
     # will cause the HMD to lock to the frequency/phase of the display.
@@ -51,7 +96,7 @@ def main():
     # Allocate a swap chain for render buffer textures, the handle used is an
     # integer. You can allocated up to 32 swap chains, however you will likely
     # run out of video memory by then.
-    swap_chain = rift.alloc_swap_chain(buffer_w, buffer_h, 'R16G16B16A16_FLOAT')
+    swap_chain = rift.alloc_swap_chain(buffer_w, buffer_h, 'R8G8B8A8_UNORM_SRGB')
 
     # since we are using a shared texture, each eye's viewport is half the width
     # of the allocated buffer texture.
@@ -163,9 +208,11 @@ def main():
             if eye == 'left':
                 GL.glMatrixMode(GL.GL_PROJECTION)
                 GL.glLoadIdentity()
+                #GL.glOrtho(-1, 1, -1, 1, -1, 1)
                 GL.glMultMatrixf(proj_left.ctypes)
                 GL.glMatrixMode(GL.GL_MODELVIEW)
                 GL.glLoadIdentity()
+
                 if HEAD_TRACKING:
                     GL.glMultMatrixf(view_left.ctypes)
 
@@ -173,22 +220,35 @@ def main():
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
                 GL.glColor3f(1.0, 1.0, 1.0)
-                GL.glPushMatrix()
+                #GL.glPushMatrix()
                 #GL.glMultMatrixf(touch_matrix.ctypes)
+                GL.glActiveTexture(GL.GL_TEXTURE0)
+                GL.glBindTexture(GL.GL_TEXTURE_2D, texture_ref_r)
+                GL.glEnable(GL.GL_TEXTURE_2D)
                 GL.glBegin(GL.GL_QUADS)
-                GL.glVertex3f(-1.0, -1.0, -5.0)
-                GL.glVertex3f(-1.0, 1.0, -5.0)
-                GL.glVertex3f(1.0, 1.0, -5.0)
-                GL.glVertex3f(1.0, -1.0, -5.0)
+                GL.glVertex3f(-1.0, -1.0, -2.0)
+                GL.glTexCoord2f(0.0, 0.0)
+                GL.glVertex3f(-1.0, 1.0, -2.0)
+                GL.glTexCoord2f(0.0, 1.0)
+                GL.glVertex3f(1.0, 1.0, -2.0)
+                GL.glTexCoord2f(1.0, 1.0)
+                GL.glVertex3f(1.0, -1.0, -2.0)
+                GL.glTexCoord2f(1.0, 0.0)
                 GL.glEnd()
-                GL.glPopMatrix()
+                #GL.glPopMatrix()
+                #GL.glRotatef(0.0, 0.0, 1.0, 90.0)
+
+                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+                GL.glDisable(GL.GL_TEXTURE_2D)
 
             elif eye == 'right':
                 GL.glMatrixMode(GL.GL_PROJECTION)
                 GL.glLoadIdentity()
+                #GL.glOrtho(-1, 1, -1, 1, -10, 10)
                 GL.glMultMatrixf(proj_right.ctypes)
                 GL.glMatrixMode(GL.GL_MODELVIEW)
                 GL.glLoadIdentity()
+                #GL.glRotatef(0.0, 0.0, 1.0, 90.0)
                 if HEAD_TRACKING:
                     GL.glMultMatrixf(view_right.ctypes)
 
@@ -196,15 +256,27 @@ def main():
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
                 GL.glColor3f(1.0, 1.0, 1.0)
-                GL.glPushMatrix()
+                #GL.glPushMatrix()
+
                 #GL.glMultMatrixf(touch_matrix.ctypes)
+
+                GL.glActiveTexture(GL.GL_TEXTURE0)
+                GL.glBindTexture(GL.GL_TEXTURE_2D, texture_ref_l)
+                GL.glEnable(GL.GL_TEXTURE_2D)
                 GL.glBegin(GL.GL_QUADS)
-                GL.glVertex3f(-1.0, -1.0, -5.0)
-                GL.glVertex3f(-1.0, 1.0, -5.0)
-                GL.glVertex3f(1.0, 1.0, -5.0)
-                GL.glVertex3f(1.0, -1.0, -5.0)
+                GL.glVertex3f(-1.0, -1.0, -2.0)
+                GL.glTexCoord2f(0.0, 0.0)
+                GL.glVertex3f(-1.0, 1.0, -2.0)
+                GL.glTexCoord2f(0.0, 1.0)
+                GL.glVertex3f(1.0, 1.0, -2.0)
+                GL.glTexCoord2f(1.0, 1.0)
+                GL.glVertex3f(1.0, -1.0, -2.0)
+                GL.glTexCoord2f(1.0, 0.0)
                 GL.glEnd()
-                GL.glPopMatrix()
+
+                #GL.glPopMatrix()
+                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+                GL.glDisable(GL.GL_TEXTURE_2D)
 
         GL.glDisable(GL.GL_DEPTH_TEST)
 

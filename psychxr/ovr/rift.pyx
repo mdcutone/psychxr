@@ -2337,6 +2337,156 @@ cpdef bint depth_requested():
 # HID Classes and Functions
 # -------------------------
 #
+cdef class InputStateData(object):
+    """Class storing the state of an input device. Fields can only be updated
+    by calling 'get_input_state()'.
+
+    """
+    cdef ovr_capi.ovrInputState* c_data
+    cdef ovr_capi.ovrInputState c_ovrInputState
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data = &self.c_ovrInputState
+
+    @property
+    def time_in_seconds(self):
+        return <double>self.c_data.TimeInSeconds
+
+    @property
+    def buttons(self):
+        return self.c_data[0].Buttons
+
+    @property
+    def touches(self):
+        return self.c_data[0].Touches
+
+    @property
+    def index_trigger(self):
+        cdef float index_trigger_left = self.c_data[0].IndexTrigger[0]
+        cdef float index_trigger_right = self.c_data[0].IndexTrigger[1]
+
+        return index_trigger_left, index_trigger_right
+
+    @property
+    def hand_trigger(self):
+        cdef float hand_trigger_left = self.c_data[0].HandTrigger[0]
+        cdef float hand_trigger_right = self.c_data[0].HandTrigger[1]
+
+        return hand_trigger_left, hand_trigger_right
+
+    @property
+    def thumbstick(self):
+        cdef float thumbstick_x0 = self.c_data[0].Thumbstick[0].x
+        cdef float thumbstick_y0 = self.c_data[0].Thumbstick[0].y
+        cdef float thumbstick_x1 = self.c_data[0].Thumbstick[1].x
+        cdef float thumbstick_y1 = self.c_data[0].Thumbstick[1].y
+
+        return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
+
+    @property
+    def controller_type(self):
+        cdef int ctrl_type = <int>self.c_data[0].ControllerType
+        if ctrl_type == ovr_capi.ovrControllerType_XBox:
+            return 'xbox'
+        elif ctrl_type == ovr_capi.ovrControllerType_Remote:
+            return 'remote'
+        elif ctrl_type == ovr_capi.ovrControllerType_Touch:
+            return 'touch'
+        elif ctrl_type == ovr_capi.ovrControllerType_LTouch:
+            return 'ltouch'
+        elif ctrl_type == ovr_capi.ovrControllerType_RTouch:
+            return 'rtouch'
+        else:
+            return None
+
+    @property
+    def index_trigger_no_deadzone(self):
+        cdef float index_trigger_left = self.c_data[0].IndexTriggerNoDeadzone[0]
+        cdef float index_trigger_right = self.c_data[0].IndexTriggerNoDeadzone[1]
+
+        return index_trigger_left, index_trigger_right
+
+    @property
+    def hand_trigger_no_deadzone(self):
+        cdef float hand_trigger_left = self.c_data[0].HandTriggerNoDeadzone[0]
+        cdef float hand_trigger_right = self.c_data[0].HandTriggerNoDeadzone[1]
+
+        return hand_trigger_left, hand_trigger_right
+
+    @property
+    def thumbstick_no_deadzone(self):
+        cdef float thumbstick_x0 = self.c_data[0].ThumbstickNoDeadzone[0].x
+        cdef float thumbstick_y0 = self.c_data[0].ThumbstickNoDeadzone[0].y
+        cdef float thumbstick_x1 = self.c_data[0].ThumbstickNoDeadzone[1].x
+        cdef float thumbstick_y1 = self.c_data[0].ThumbstickNoDeadzone[1].y
+
+        return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
+
+    @property
+    def index_trigger_raw(self):
+        cdef float index_trigger_left = self.c_data[0].IndexTriggerRaw[0]
+        cdef float index_trigger_right = self.c_data[0].IndexTriggerRaw[1]
+
+        return index_trigger_left, index_trigger_right
+
+    @property
+    def hand_trigger_raw(self):
+        cdef float hand_trigger_left = self.c_data[0].HandTriggerRaw[0]
+        cdef float hand_trigger_right = self.c_data[0].HandTriggerRaw[1]
+
+        return hand_trigger_left, hand_trigger_right
+
+    @property
+    def thumbstick_no_raw(self):
+        cdef float thumbstick_x0 = self.c_data[0].ThumbstickRaw[0].x
+        cdef float thumbstick_y0 = self.c_data[0].ThumbstickRaw[0].y
+        cdef float thumbstick_x1 = self.c_data[0].ThumbstickRaw[1].x
+        cdef float thumbstick_y1 = self.c_data[0].ThumbstickRaw[1].y
+
+        return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
+
+
+cpdef object get_input_state(str controller, object state_out=None):
+    """Get a controller state as an object. If a 'InputStateData' object is
+    passed to 'state_out', that object will be updated.
+    
+    :param controller: str
+    :param state_out: InputStateData or None
+    :return: InputStateData or None
+    
+    """
+    cdef ovr_capi.ovrControllerType ctrl_type
+    if controller == 'xbox':
+        ctrl_type = ovr_capi.ovrControllerType_XBox
+    elif controller == 'remote':
+        ctrl_type = ovr_capi.ovrControllerType_Remote
+    elif controller == 'touch':
+        ctrl_type = ovr_capi.ovrControllerType_Touch
+    elif controller == 'left_touch':
+        ctrl_type = ovr_capi.ovrControllerType_LTouch
+    elif controller == 'right_touch':
+        ctrl_type = ovr_capi.ovrControllerType_RTouch
+
+    # create a controller state object and set its data
+    global _ptr_session_
+    cdef ovr_capi.ovrInputState* ptr_state
+    cdef InputStateData to_return = InputStateData()
+
+    if state_out is None:
+        ptr_state = &(<InputStateData>to_return).c_ovrInputState
+    else:
+        ptr_state = &(<InputStateData>state_out).c_ovrInputState
+
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
+        _ptr_session_,
+        ctrl_type,
+        ptr_state)
+
+    if state_out is None:
+        return None
+
+    return to_return
+
 cpdef double poll_controller(str controller):
     """Poll and update specified controller's state data. The time delta in 
     seconds between the current and previous controller state is returned.
@@ -2720,51 +2870,122 @@ cpdef list get_connected_controller_types():
 # Performance/Profiling Functions
 # -------------------------------
 #
-cpdef dict get_frame_stats():
-    """Get most recent performance stats, returns a dictionary with fields
+cdef class ovrPerfStatsPerCompositorFrame(object):
+    cdef ovr_capi.ovrPerfStatsPerCompositorFrame* c_data
+    cdef ovr_capi.ovrPerfStatsPerCompositorFrame  c_ovrPerfStatsPerCompositorFrame
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data = &self.c_ovrPerfStatsPerCompositorFrame
+
+    @property
+    def hmd_vsync_index(self):
+        return self.c_data[0].HmdVsyncIndex
+
+    @property
+    def app_frame_index(self):
+        return self.c_data[0].AppFrameIndex
+
+    @property
+    def app_dropped_frame_count(self):
+        return self.c_data[0].AppDroppedFrameCount
+
+    @property
+    def app_queue_ahead_time(self):
+        return self.c_data[0].AppQueueAheadTime
+
+    @property
+    def app_cpu_elapsed_time(self):
+        return self.c_data[0].AppCpuElapsedTime
+
+    @property
+    def app_gpu_elapsed_time(self):
+        return self.c_data[0].AppGpuElapsedTime
+
+    @property
+    def compositor_frame_index(self):
+        return self.c_data[0].CompositorFrameIndex
+
+    @property
+    def compositor_latency(self):
+        return self.c_data[0].CompositorLatency
+
+    @property
+    def compositor_cpu_elapsed_time(self):
+        return self.c_data[0].CompositorCpuElapsedTime
+
+    @property
+    def compositor_gpu_elapsed_time(self):
+        return self.c_data[0].CompositorGpuElapsedTime
+
+    @property
+    def compositor_cpu_start_to_gpu_end_elapsed_time(self):
+        return self.c_data[0].CompositorCpuStartToGpuEndElapsedTime
+
+    @property
+    def compositor_gpu_end_to_vsync_elapsed_time(self):
+        return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
+
+
+cdef class ovrPerfStats(object):
+    cdef ovr_capi.ovrPerfStats* c_data
+    cdef ovr_capi.ovrPerfStats  c_ovrPerfStats
+    cdef list perf_stats
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data = &self.c_ovrPerfStats
+
+        # initialize performance stats list
+        self.perf_stats = list()
+        cdef int i, N
+        N = <int>ovr_capi.ovrMaxProvidedFrameStats
+        for i in range(N):
+            self.perf_stats.append(ovrPerfStatsPerCompositorFrame())
+            (<ovrPerfStatsPerCompositorFrame>self.perf_stats[i]).c_data[0] = \
+                self.c_data[0].FrameStats[i]
+
+    @property
+    def frame_stats_count(self):
+        return self.c_data[0].FrameStatsCount
+
+    @property
+    def any_frame_stats_dropped(self):
+        return <bint>self.c_data[0].AnyFrameStatsDropped
+
+    @property
+    def frame_stats(self):
+        cdef int i, N
+        N = self.c_data[0].FrameStatsCount
+        for i in range(N):
+            (<ovrPerfStatsPerCompositorFrame>self.perf_stats[i]).c_data[0] = \
+                self.c_data[0].FrameStats[i]
+
+        return self.perf_stats
+
+    @property
+    def adaptive_gpu_performance_scale(self):
+        return <bint>self.c_data[0].AdaptiveGpuPerformanceScale
+
+    @property
+    def asw_is_available(self):
+        return <bint>self.c_data[0].AswIsAvailable
+
+
+cpdef ovrPerfStats get_frame_stats():
+    """Get most recent performance stats, returns an object with fields
     corresponding to various performance stats reported by the SDK.
     
     :return: dict 
     
     """
-    global _ptr_session_, _perf_stats_
+    global _ptr_session_
+
+    cdef ovrPerfStats to_return = ovrPerfStats()
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetPerfStats(
-        _ptr_session_, &_perf_stats_)
+        _ptr_session_,
+        &(<ovrPerfStats>to_return).c_data[0])
 
-    cdef dict to_return = dict()
-
-    cdef int i, N
-    N = (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStatsCount
-    for i in range(N):
-        to_return[i] = \
-            {
-            "HmdVsyncIndex":
-                 (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].HmdVsyncIndex,
-            "AppFrameIndex":
-                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].AppFrameIndex,
-            "AppDroppedFrameCount":
-                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].AppDroppedFrameCount,
-            "AppMotionToPhotonLatency":
-                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].AppMotionToPhotonLatency,
-            "AppQueueAheadTime":
-                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].AppQueueAheadTime,
-            "AppCpuElapsedTime":
-                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].AppCpuElapsedTime,
-            "AppGpuElapsedTime":
-                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].AppGpuElapsedTime,
-            "CompositorFrameIndex":
-                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].CompositorFrameIndex,
-            "CompositorLatency":
-                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].CompositorLatency,
-            "CompositorCpuElapsedTime":
-                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].CompositorCpuElapsedTime,
-            "CompositorGpuElapsedTime":
-                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].CompositorGpuElapsedTime,
-            "CompositorCpuStartToGpuEndElapsedTime":
-                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].CompositorCpuStartToGpuEndElapsedTime,
-            "CompositorGpuEndToVsyncElapsedTime":
-                (<ovr_capi.ovrPerfStats>_perf_stats_).FrameStats[i].CompositorGpuEndToVsyncElapsedTime
-            }
+    if debug_mode:
+        check_result(result)
 
     return to_return
 
