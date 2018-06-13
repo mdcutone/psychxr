@@ -2026,6 +2026,58 @@ cdef class ovrLayerEyeFov(object):
         return self.c_data[0].SensorSampleTime
 
 
+cdef class ovrFovPort(object):
+    cdef ovr_capi.ovrFovPort* c_data
+    cdef ovr_capi.ovrFovPort  c_ovrFovPort
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data = &self.c_ovrFovPort
+
+    @property
+    def up_tan(self):
+        return <float>self.c_data[0].UpTan
+
+    @up_tan.setter
+    def up_tan(self, float value):
+        self.c_data[0].UpTan = value
+
+    @property
+    def down_tan(self):
+        return <float>self.c_data[0].DownTan
+
+    @down_tan.setter
+    def down_tan(self, float value):
+        self.c_data[0].DownTan = value
+
+    @property
+    def left_tan(self):
+        return <float>self.c_data[0].LeftTan
+
+    @left_tan.setter
+    def left_tan(self, float value):
+        self.c_data[0].LeftTan = value
+
+    @property
+    def right_tan(self):
+        return <float>self.c_data[0].RightTan
+
+    @right_tan.setter
+    def right_tan(self, float value):
+        self.c_data[0].RightTan = value
+
+
+cdef class ovrEyeRenderDesc(object):
+    cdef ovr_capi.ovrEyeRenderDesc* c_data
+    cdef ovr_capi.ovrEyeRenderDesc  c_ovrEyeRenderDesc
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data = &self.c_ovrEyeRenderDesc
+
+    @property
+    def eye(self):
+        return <int>self.c_data[0].Eye
+
+
 cpdef tuple get_buffer_size(str fov_type='recommended',
                             float texel_per_pixel=1.0):
     """Compute the recommended buffer (texture) size for a specified 
