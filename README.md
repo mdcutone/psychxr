@@ -1,6 +1,11 @@
 # PsychXR
 
-Python extension library for interacting with eXtended reality displays, intended for research in neuroscience and psychology.
+Python extension library written in Cython for interacting with eXtended Reality displays, intended for research in neuroscience and psychology.
+
+## Built With
+
+* [Python](https://www.python.org/)
+* [Cython](http://cython.org/)
 
 ## Authors
 
