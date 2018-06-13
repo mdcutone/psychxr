@@ -2083,8 +2083,8 @@ cdef class ovrEyeRenderDesc(object):
 
     @property
     def fov(self):
-        cdef ovrPosef to_return = ovrPosef()
-        (<ovrPosef>to_return).c_data[0] = self.c_data[0].Fov
+        cdef ovrFovPort to_return = ovrFovPort()
+        (<ovrFovPort>to_return).c_data[0] = self.c_data[0].Fov
 
         return to_return
 
@@ -2096,17 +2096,31 @@ cdef class ovrEyeRenderDesc(object):
 
     @property
     def pixels_per_tan_angle_at_center(self):
-        cdef ovr_capi.ovrVector2f pix_per_tan = self.c_data[0].DistortedViewport
+        cdef ovr_capi.ovrVector2f pix_per_tan = \
+            self.c_data[0].PixelsPerTanAngleAtCenter
 
         return pix_per_tan.x, pix_per_tan.y
 
     @property
     def hmd_to_eye_pose(self):
         cdef ovrPosef to_return = ovrPosef()
-        (<ovrPosef>to_return).c_data[0] = <ovr_math.Posef>self.c_data[0]
+        (<ovrPosef>to_return).c_data[0] = \
+            <ovr_math.Posef>self.c_data[0].HmdToEyePose
 
         return to_return
 
+ovrEye_Left = ovr_capi.ovrEye_Left
+ovrEye_Right = ovr_capi.ovrEye_Right
+ovrEye_Count = ovr_capi.ovrEye_Count
+
+cpdef get_eye_render_desc(int eye_type, ovrFovPort fov):
+    cdef ovrEyeRenderDesc to_return = ovrEyeRenderDesc()
+    (<ovrEyeRenderDesc>to_return).c_data[0] = ovr_capi.ovr_GetRenderDesc(
+        _ptr_session_,
+        <ovr_capi.ovrEyeType>eye_type,
+        fov.c_data[0])
+
+    return to_return
 
 cpdef tuple get_buffer_size(str fov_type='recommended',
                             float texel_per_pixel=1.0):
