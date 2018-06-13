@@ -1815,13 +1815,13 @@ cpdef void start_session():
     _hmd_desc_ = ovr_capi.ovr_GetHmdDesc(_ptr_session_)
 
     # configure VR data with HMD descriptor information
-    global _eye_render_desc_, _hmd_to_eye_view_pose_
-    _eye_render_desc_[0] = ovr_capi.ovr_GetRenderDesc(
-        _ptr_session_, ovr_capi.ovrEye_Left, _hmd_desc_.DefaultEyeFov[0])
-    _eye_render_desc_[1] = ovr_capi.ovr_GetRenderDesc(
-        _ptr_session_, ovr_capi.ovrEye_Right, _hmd_desc_.DefaultEyeFov[1])
-    _hmd_to_eye_view_pose_[0] = _eye_render_desc_[0].HmdToEyePose
-    _hmd_to_eye_view_pose_[1] = _eye_render_desc_[1].HmdToEyePose
+    #global _eye_render_desc_, _hmd_to_eye_view_pose_
+    #_eye_render_desc_[0] = ovr_capi.ovr_GetRenderDesc(
+    #    _ptr_session_, ovr_capi.ovrEye_Left, _hmd_desc_.DefaultEyeFov[0])
+    #_eye_render_desc_[1] = ovr_capi.ovr_GetRenderDesc(
+    #    _ptr_session_, ovr_capi.ovrEye_Right, _hmd_desc_.DefaultEyeFov[1])
+    #_hmd_to_eye_view_pose_[0] = _eye_render_desc_[0].HmdToEyePose
+    #_hmd_to_eye_view_pose_[1] = _eye_render_desc_[1].HmdToEyePose
 
     # prepare the render layer
     global _eye_layer_
@@ -1833,8 +1833,8 @@ cpdef void start_session():
     _eye_layer_.ColorTexture[1] = NULL
 
     # setup layer FOV settings, these are computed earlier
-    _eye_layer_.Fov[0] = _eye_render_desc_[0].Fov
-    _eye_layer_.Fov[1] = _eye_render_desc_[1].Fov
+    #_eye_layer_.Fov[0] = _eye_render_desc_[0].Fov
+    #_eye_layer_.Fov[1] = _eye_render_desc_[1].Fov
 
 cpdef void end_session():
     """End the current session. 
@@ -2225,11 +2225,17 @@ cpdef void configure_eye_render_desc(int eye_type, ovrFovPort fov):
     :return: None
     
     """
-    global _eye_render_desc_
+    global _eye_render_desc_, _eye_layer_, _hmd_to_eye_view_pose_
     _eye_render_desc_[eye_type] = ovr_capi.ovr_GetRenderDesc(
         _ptr_session_,
         <ovr_capi.ovrEyeType>eye_type,
         fov.c_data[0])
+
+    # set the initial eye pose
+    _hmd_to_eye_view_pose_[eye_type] = _eye_render_desc_[eye_type].HmdToEyePose
+
+    # set the render layer FOV to what is computed
+    _eye_layer_.Fov[eye_type] = _eye_render_desc_[eye_type].Fov
 
 cpdef tuple get_buffer_size(str fov_type='recommended',
                             float texel_per_pixel=1.0):
