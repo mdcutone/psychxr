@@ -2030,7 +2030,11 @@ cdef class ovrFovPort(object):
     cdef ovr_capi.ovrFovPort* c_data
     cdef ovr_capi.ovrFovPort  c_ovrFovPort
 
-    def __cinit__(self, *args, **kwargs):
+    def __cinit__(self,
+                  float up_tan,
+                  float down_tan,
+                  float left_tan,
+                  float right_tan):
         self.c_data = &self.c_ovrFovPort
 
     @property
@@ -2076,6 +2080,32 @@ cdef class ovrEyeRenderDesc(object):
     @property
     def eye(self):
         return <int>self.c_data[0].Eye
+
+    @property
+    def fov(self):
+        cdef ovrPosef to_return = ovrPosef()
+        (<ovrPosef>to_return).c_data[0] = self.c_data[0].Fov
+
+        return to_return
+
+    @property
+    def distorted_viewport(self):
+        cdef ovr_capi.ovrRecti vp = self.c_data[0].DistortedViewport
+
+        return vp.x, vp.y, vp.w, vp.h
+
+    @property
+    def pixels_per_tan_angle_at_center(self):
+        cdef ovr_capi.ovrVector2f pix_per_tan = self.c_data[0].DistortedViewport
+
+        return pix_per_tan.x, pix_per_tan.y
+
+    @property
+    def hmd_to_eye_pose(self):
+        cdef ovrPosef to_return = ovrPosef()
+        (<ovrPosef>to_return).c_data[0] = <ovr_math.Posef>self.c_data[0]
+
+        return to_return
 
 
 cpdef tuple get_buffer_size(str fov_type='recommended',
