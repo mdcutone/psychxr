@@ -910,6 +910,77 @@ cdef class ovrVector3f(object):
         return to_return
 
 
+cdef class ovrFovPort(object):
+    cdef ovr_capi.ovrFovPort* c_data
+    cdef ovr_capi.ovrFovPort  c_ovrFovPort
+
+    def __cinit__(self,
+                  float up_tan=0.0,
+                  float down_tan=0.0,
+                  float left_tan=0.0,
+                  float right_tan=0.0):
+        self.c_data = &self.c_ovrFovPort
+
+    @property
+    def up_tan(self):
+        return <float>self.c_data[0].UpTan
+
+    @up_tan.setter
+    def up_tan(self, float value):
+        self.c_data[0].UpTan = value
+
+    @property
+    def down_tan(self):
+        return <float>self.c_data[0].DownTan
+
+    @down_tan.setter
+    def down_tan(self, float value):
+        self.c_data[0].DownTan = value
+
+    @property
+    def left_tan(self):
+        return <float>self.c_data[0].LeftTan
+
+    @left_tan.setter
+    def left_tan(self, float value):
+        self.c_data[0].LeftTan = value
+
+    @property
+    def right_tan(self):
+        return <float>self.c_data[0].RightTan
+
+    @right_tan.setter
+    def right_tan(self, float value):
+        self.c_data[0].RightTan = value
+
+    @staticmethod
+    def max(ovrFovPort a, ovrFovPort b):
+        cdef ovrFovPort to_return = ovrFovPort()
+        (<ovrFovPort>to_return).c_data[0].UpTan = cmath.fmax(
+            a.c_data[0].UpTan, b.c_data[0].UpTan)
+        (<ovrFovPort>to_return).c_data[0].DownTan = cmath.fmax(
+            a.c_data[0].DownTan, b.c_data[0].DownTan)
+        (<ovrFovPort>to_return).c_data[0].LeftTan = cmath.fmax(
+            a.c_data[0].LeftTan, b.c_data[0].LeftTan)
+        (<ovrFovPort>to_return).c_data[0].RightTan = cmath.fmax(
+            a.c_data[0].RightTan, b.c_data[0].RightTan)
+
+        return to_return
+
+    @staticmethod
+    def min(ovrFovPort a, ovrFovPort b):
+        cdef ovrFovPort to_return = ovrFovPort()
+        (<ovrFovPort>to_return).c_data[0].UpTan = cmath.fmin(
+            a.c_data[0].UpTan, b.c_data[0].UpTan)
+        (<ovrFovPort>to_return).c_data[0].DownTan = cmath.fmin(
+            a.c_data[0].DownTan, b.c_data[0].DownTan)
+        (<ovrFovPort>to_return).c_data[0].LeftTan = cmath.fmin(
+            a.c_data[0].LeftTan, b.c_data[0].LeftTan)
+        (<ovrFovPort>to_return).c_data[0].RightTan = cmath.fmin(
+            a.c_data[0].RightTan, b.c_data[0].RightTan)
+
+        return to_return
+
 cdef class ovrQuatf:
     cdef ovr_math.Quatf* c_data
     cdef ovr_math.Quatf  c_Quatf
@@ -1638,7 +1709,7 @@ cdef dict texture_format_lut = {
 
 texture_formats = list(texture_format_lut.keys())
 
-def alloc_swap_chain(int width, int height, str texture_format):
+def alloc_swap_chain(ovrTextureSwapChainDesc swap_desc):
     """Allocate a new swap chain object with the specified parameters. If
     successful, an integer is returned which is used to reference the swap
     chain. You can allocate up-to 32 swap chains.
@@ -1658,21 +1729,9 @@ def alloc_swap_chain(int width, int height, str texture_format):
     else:
         raise IndexError("Maximum number of swap chains initialized!")
 
-    # configure the swap chain
-    cdef ovr_capi.ovrTextureSwapChainDesc config
-    config.Type = ovr_capi.ovrTexture_2D
-    config.Format = \
-        <ovr_capi.ovrTextureFormat>texture_format_lut[texture_format]
-    config.Width = width
-    config.Height = height
-    config.StaticImage = ovr_capi.ovrFalse
-    config.ArraySize = config.MipLevels = config.SampleCount = 1
-    config.MiscFlags = ovr_capi.ovrTextureMisc_None
-    config.BindFlags = ovr_capi.ovrTextureBind_None
-
     # create the swap chain
     cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
-        _ptr_session_, &config, &_swap_chain_[sc])
+        _ptr_session_, &swap_desc.c_ovrTextureSwapChainDesc, &_swap_chain_[sc])
 
     if debug_mode:
         check_result(result)
@@ -1970,7 +2029,7 @@ cdef class ovrTextureSwapChainDesc:
         self.c_ovrTextureSwapChainDesc.Height = height
         self.c_ovrTextureSwapChainDesc.MipLevels = mip_levels
         self.c_ovrTextureSwapChainDesc.SampleCount = sample_count
-        self.c_ovrTextureSwapChainDesc.StaticImage = ovr_capi.ovrFalse
+        self.c_ovrTextureSwapChainDesc.StaticImage = <ovr_capi.ovrBool>static_image
 
         # these can't be set right now
         self.c_ovrTextureSwapChainDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
@@ -2040,8 +2099,19 @@ cdef class ovrTextureSwapChainDesc:
     def static_image(self, bint value):
         self.c_ovrTextureSwapChainDesc.StaticImage = <ovr_capi.ovrBool>value
 
-cpdef ovrTextureSwapChain create_texture_swap_chain_gl(
+cpdef int create_texture_swap_chain_gl(
         ovrTextureSwapChainDesc swap_desc):
+    """Allocate a new swap chain object with the specified parameters. If
+    successful, an integer is returned which is used to reference the swap
+    chain. You can allocate up-to 32 swap chains.
+    
+    The swap chain is configured by applying settings to a 
+    ovrTextureSwapChainDesc object and passing it as 'swap_desc'. 
+
+    :param swap_desc: ovrTextureSwapChainDesc
+    :return: int
+
+    """
     global _swap_chain_, _ptr_session_
     # get the first available swap chain, unallocated chains will test as NULL
     cdef int i, sc
@@ -2054,17 +2124,13 @@ cpdef ovrTextureSwapChain create_texture_swap_chain_gl(
 
     # create the swap chain
     cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
-        _ptr_session_,
-        &swap_desc.c_ovrTextureSwapChainDesc,
-        &_swap_chain_[sc])
+        _ptr_session_, &swap_desc.c_ovrTextureSwapChainDesc, &_swap_chain_[sc])
 
     if debug_mode:
         check_result(result)
 
-    cdef ovrTextureSwapChain to_return = ovrTextureSwapChain()
-    (<ovrTextureSwapChain>to_return).c_data[0] = sc
-
-    return to_return
+    # return the handle
+    return sc
 
 cpdef ovrTextureSwapChainDesc get_texture_swap_chain_desc(
         ovrTextureSwapChain swap_chain):
@@ -2090,119 +2156,39 @@ ovrLayerFlag_HighQuality = ovr_capi.ovrLayerFlag_HighQuality
 ovrLayerFlag_TextureOriginAtBottomLeft = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
 ovrLayerFlag_HeadLocked = ovr_capi.ovrLayerFlag_HeadLocked
 
-cdef class ovrFovPort(object):
-    cdef ovr_capi.ovrFovPort* c_data
-    cdef ovr_capi.ovrFovPort  c_ovrFovPort
-
-    def __cinit__(self,
-                  float up_tan=0.0,
-                  float down_tan=0.0,
-                  float left_tan=0.0,
-                  float right_tan=0.0):
-        self.c_data = &self.c_ovrFovPort
-
-    @property
-    def up_tan(self):
-        return <float>self.c_data[0].UpTan
-
-    @up_tan.setter
-    def up_tan(self, float value):
-        self.c_data[0].UpTan = value
-
-    @property
-    def down_tan(self):
-        return <float>self.c_data[0].DownTan
-
-    @down_tan.setter
-    def down_tan(self, float value):
-        self.c_data[0].DownTan = value
-
-    @property
-    def left_tan(self):
-        return <float>self.c_data[0].LeftTan
-
-    @left_tan.setter
-    def left_tan(self, float value):
-        self.c_data[0].LeftTan = value
-
-    @property
-    def right_tan(self):
-        return <float>self.c_data[0].RightTan
-
-    @right_tan.setter
-    def right_tan(self, float value):
-        self.c_data[0].RightTan = value
-
-    @staticmethod
-    def max(ovrFovPort a, ovrFovPort b):
-        cdef ovrFovPort to_return = ovrFovPort()
-        (<ovrFovPort>to_return).c_data[0].UpTan = cmath.fmax(
-            a.c_data[0].UpTan, b.c_data[0].UpTan)
-        (<ovrFovPort>to_return).c_data[0].DownTan = cmath.fmax(
-            a.c_data[0].DownTan, b.c_data[0].DownTan)
-        (<ovrFovPort>to_return).c_data[0].LeftTan = cmath.fmax(
-            a.c_data[0].LeftTan, b.c_data[0].LeftTan)
-        (<ovrFovPort>to_return).c_data[0].RightTan = cmath.fmax(
-            a.c_data[0].RightTan, b.c_data[0].RightTan)
-
-        return to_return
-
-    @staticmethod
-    def min(ovrFovPort a, ovrFovPort b):
-        cdef ovrFovPort to_return = ovrFovPort()
-        (<ovrFovPort>to_return).c_data[0].UpTan = cmath.fmin(
-            a.c_data[0].UpTan, b.c_data[0].UpTan)
-        (<ovrFovPort>to_return).c_data[0].DownTan = cmath.fmin(
-            a.c_data[0].DownTan, b.c_data[0].DownTan)
-        (<ovrFovPort>to_return).c_data[0].LeftTan = cmath.fmin(
-            a.c_data[0].LeftTan, b.c_data[0].LeftTan)
-        (<ovrFovPort>to_return).c_data[0].RightTan = cmath.fmin(
-            a.c_data[0].RightTan, b.c_data[0].RightTan)
-
-        return to_return
-
-cdef class ovrEyeRenderDesc(object):
-    cdef ovr_capi.ovrEyeRenderDesc* c_data
-    cdef ovr_capi.ovrEyeRenderDesc  c_ovrEyeRenderDesc
-
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrEyeRenderDesc
-
-    @property
-    def eye(self):
-        return <int>self.c_data[0].Eye
-
-    @property
-    def fov(self):
-        cdef ovrFovPort to_return = ovrFovPort()
-        (<ovrFovPort>to_return).c_data[0] = self.c_data[0].Fov
-
-        return to_return
-
-    @property
-    def distorted_viewport(self):
-        cdef ovr_capi.ovrRecti vp = self.c_data[0].DistortedViewport
-
-        return vp.x, vp.y, vp.w, vp.h
-
-    @property
-    def pixels_per_tan_angle_at_center(self):
-        cdef ovr_capi.ovrVector2f pix_per_tan = \
-            self.c_data[0].PixelsPerTanAngleAtCenter
-
-        return pix_per_tan.x, pix_per_tan.y
-
-    @property
-    def hmd_to_eye_pose(self):
-        cdef ovrPosef to_return = ovrPosef()
-        (<ovrPosef>to_return).c_data[0] = \
-            <ovr_math.Posef>self.c_data[0].HmdToEyePose
-
-        return to_return
-
 ovrEye_Left = ovr_capi.ovrEye_Left
 ovrEye_Right = ovr_capi.ovrEye_Right
 ovrEye_Count = ovr_capi.ovrEye_Count
+
+cpdef ovrFovPort get_symmetric_fov():
+    """Compute a symmetric field-of-view for the given headset.
+    
+    :return: tuple
+    
+    """
+    global _hmd_desc_
+    cdef ovr_capi.ovrFovPort fov_left = _hmd_desc_.DefaultEyeFov[0]
+    cdef ovr_capi.ovrFovPort fov_right = _hmd_desc_.DefaultEyeFov[1]
+
+    cdef ovr_capi.ovrFovPort fov_max
+    fov_max.UpTan = <float>cmath.fmax(
+        fov_left.c_data[0].UpTan, fov_right.c_data[0].UpTan)
+    fov_max.DownTan = <float>cmath.fmax(
+        fov_left.c_data[0].DownTan, fov_right.c_data[0].DownTan)
+    fov_max.LeftTan = <float>cmath.fmax(
+        fov_left.c_data[0].LeftTan, fov_right.c_data[0].LeftTan)
+    fov_max.RightTan = <float>cmath.fmax(
+        fov_left.c_data[0].RightTan, fov_right.c_data[0].RightTan)
+
+    cdef float combined_htan_horz = max(fov_max.LeftTan, fov_max.RightTan)
+    cdef float combined_htan_vert = max(fov_max.LeftTan, fov_max.RightTan)
+
+    cdef ovrFovPort to_return = ovrFovPort()
+    cdef ovr_capi.ovrFovPort* fov_both = (<ovrFovPort>to_return).c_data
+    fov_both.LeftTan = fov_both.RightTan = combined_htan_horz
+    fov_both.UpTan = fov_both.DownTan = combined_htan_vert
+
+    return to_return
 
 cpdef ovrSizei get_fov_texture_size(
         int eye_type,
@@ -2227,15 +2213,23 @@ cpdef ovrSizei get_fov_texture_size(
 
     return to_return
 
-cpdef get_eye_render_desc(int eye_type, ovrFovPort fov):
-    cdef ovrEyeRenderDesc to_return = ovrEyeRenderDesc()
-    (<ovrEyeRenderDesc>to_return).c_data[0] = ovr_capi.ovr_GetRenderDesc(
+cpdef void configure_eye_render_desc(int eye_type, ovrFovPort fov):
+    """Compute eye render descriptors for a given eye. 
+    
+    Each eye has an internal 'ovrEyeRenderDesc' structure which stores computed
+    information which is not accessible directly from Python. You must call this
+    function twice (for each eye) to fully configure the descriptors.
+
+    :param eye_type: int
+    :param fov: ovrFovPort
+    :return: None
+    
+    """
+    global _eye_render_desc_
+    _eye_render_desc_[eye_type] = ovr_capi.ovr_GetRenderDesc(
         _ptr_session_,
         <ovr_capi.ovrEyeType>eye_type,
         fov.c_data[0])
-
-    return to_return
-
 
 cpdef tuple get_buffer_size(str fov_type='recommended',
                             float texel_per_pixel=1.0):
