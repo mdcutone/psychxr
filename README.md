@@ -1,6 +1,6 @@
 # PsychXR
 
-Python extension library written in Cython for interacting with eXtended Reality displays, intended for research in neuroscience and psychology.
+Python extension library for interacting with eXtended Reality displays (HMDs), intended for research in neuroscience and psychology. Device API wrappers are written in Cython, providing low latency and overhead. Only OpenGL based applications are currently supported.
 
 ## Built With
 
