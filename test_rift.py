@@ -67,12 +67,6 @@ def main():
     # always call this before setting up render layers
     glfw.make_context_current(window)
 
-    # load textures from file
-    texture_ref_l = load_image(r"C:\Users\mdc\Desktop\test_images\original\left\Aryaa1.ppm")
-    texture_ref_r = load_image(r"C:\Users\mdc\Desktop\test_images\original\right\Aryaa1.ppm")
-    texture_cmp_l = load_image(r"C:\Users\mdc\Desktop\test_images\compressed\left\Aryaa1_dec.ppm")
-    texture_cmp_r = load_image(r"C:\Users\mdc\Desktop\test_images\compressed\right\Aryaa1_dec.ppm")
-
     # disable v-sync, we are syncing to the v-trace of head-set, leaving this on
     # will cause the HMD to lock to the frequency/phase of the display.
     glfw.swap_interval(0)
