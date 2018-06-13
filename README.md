@@ -2,7 +2,7 @@
 
 Python extension library for interacting with eXtended Reality displays (HMDs), intended for research in neuroscience and psychology.
 
-Device API wrappers are written in Cython, providing low latency and overhead. Only OpenGL based applications on Windows PCs are currently supported.
+Device API wrappers are written in Cython, providing low latency and overhead. Only OpenGL based applications on Windows PCs are currently supported. Additional support for other platforms (Mac OS and Linux) is contingent on support from the device manufacturer.
 
 ## Supported Devices
 
