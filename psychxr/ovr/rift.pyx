@@ -2069,6 +2069,33 @@ cdef class ovrFovPort(object):
     def right_tan(self, float value):
         self.c_data[0].RightTan = value
 
+    @staticmethod
+    def max(ovrFovPort a, ovrFovPort b):
+        cdef ovrFovPort to_return = ovrFovPort()
+        (<ovrFovPort>to_return).c_data[0].UpTan = cmath.fmax(
+            a.c_data[0].UpTan, b.c_data[0].UpTan)
+        (<ovrFovPort>to_return).c_data[0].DownTan = cmath.fmax(
+            a.c_data[0].DownTan, b.c_data[0].DownTan)
+        (<ovrFovPort>to_return).c_data[0].LeftTan = cmath.fmax(
+            a.c_data[0].LeftTan, b.c_data[0].LeftTan)
+        (<ovrFovPort>to_return).c_data[0].RightTan = cmath.fmax(
+            a.c_data[0].RightTan, b.c_data[0].RightTan)
+
+        return to_return
+
+    @staticmethod
+    def min(ovrFovPort a, ovrFovPort b):
+        cdef ovrFovPort to_return = ovrFovPort()
+        (<ovrFovPort>to_return).c_data[0].UpTan = cmath.fmin(
+            a.c_data[0].UpTan, b.c_data[0].UpTan)
+        (<ovrFovPort>to_return).c_data[0].DownTan = cmath.fmin(
+            a.c_data[0].DownTan, b.c_data[0].DownTan)
+        (<ovrFovPort>to_return).c_data[0].LeftTan = cmath.fmin(
+            a.c_data[0].LeftTan, b.c_data[0].LeftTan)
+        (<ovrFovPort>to_return).c_data[0].RightTan = cmath.fmin(
+            a.c_data[0].RightTan, b.c_data[0].RightTan)
+
+        return to_return
 
 cdef class ovrEyeRenderDesc(object):
     cdef ovr_capi.ovrEyeRenderDesc* c_data
@@ -2112,6 +2139,29 @@ cdef class ovrEyeRenderDesc(object):
 ovrEye_Left = ovr_capi.ovrEye_Left
 ovrEye_Right = ovr_capi.ovrEye_Right
 ovrEye_Count = ovr_capi.ovrEye_Count
+
+cpdef ovrSizei get_fov_texture_size(
+        int eye_type,
+        ovrFovPort fov,
+        float texels_per_pixel=1.0):
+    """Compute the recommended buffer (texture) size for a specified 
+    configuration.
+    
+    Returns a tuple with the dimensions of the required texture (w, h). The 
+    values can be used when configuring a render buffer which will ultimately
+    be used to draw to the HMD buffers.
+    
+    :return: None 
+    
+    """
+    cdef ovrSizei to_return = ovrSizei()
+    (<ovrSizei>to_return).c_data[0] = ovr_capi.ovr_GetFovTextureSize(
+        _ptr_session_,
+        <ovr_capi.ovrEyeType>eye_type,
+        fov.c_data[0],
+        texels_per_pixel)
+
+    return to_return
 
 cpdef get_eye_render_desc(int eye_type, ovrFovPort fov):
     cdef ovrEyeRenderDesc to_return = ovrEyeRenderDesc()
