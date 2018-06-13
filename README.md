@@ -10,7 +10,7 @@ Device API wrappers are written in Cython, providing low latency and overhead. O
 
 ## Getting Started
 
-The easiest way to get PsychXR is to use the [*.whl package](https://github.com/mdcutone/psychxr/releases) and installing it using the 'pip install' command. The pre-compiled binaries are built on Windows 10 64-bit using the MSVC 15.0 compiler against Python 3.6 64-bit.
+The easiest way to get PsychXR is to get the [*.whl package](https://github.com/mdcutone/psychxr/releases) and install it using the 'pip install' command. The pre-compiled binaries are built on Windows 10 64-bit using the MSVC 15.0 compiler against Python 3.6 64-bit.
 
 ## Authors
 
