@@ -8,6 +8,10 @@ Device API wrappers are written in Cython, providing low latency and overhead. O
 
 * Oculus Rift DK2 and CV1
 
+## Getting Started
+
+The easiest way to get PsychXR is to use the [*.whl package](https://github.com/mdcutone/psychxr/releases) and installing it using the 'pip install' command. The packages are built using on Windows 10 64-bit using the MSVC 15.0 compiler.
+
 ## Authors
 
 * **Matthew D. Cutone** - The Centre for Vision Research, York University - (https://github.com/mdcutone)
