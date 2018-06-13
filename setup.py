@@ -62,12 +62,12 @@ ext_modules = [
 setup_pars = {
     "name" : "psychxr",
     "author" : "Matthew D. Cutone",
-    "author_email" : "cutonem@yorku.ca",
+    "author_email" : "cutonem(at)yorku.ca",
     "packages" : ['psychxr',
                   'psychxr.ovr',
                   'psychxr.ovr.rift'],
-    "package_data": {"psychxr.vrheadset.rift.ovrsdk": ["*.pyd"],
-                     "": ["*.md", "*.txt"]},
+    #"package_data": {"psychxr.vrheadset.rift.ovrsdk": ["*.pyd"],
+    #                 "": ["*.md", "*.txt"]},
     "license" : "GPLv3",
     "description":
         "API access from Python for eXended reality displays, used for "
