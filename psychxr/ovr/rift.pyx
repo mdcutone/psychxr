@@ -66,6 +66,9 @@ cdef ovr_capi.ovrMirrorTexture _mirror_texture_ = NULL
 #
 cdef ovr_capi.ovrEyeRenderDesc[2] _eye_render_desc_
 cdef ovr_capi.ovrPosef[2] _hmd_to_eye_view_pose_
+
+# Render layer
+#
 cdef ovr_capi.ovrLayerEyeFov _eye_layer_
 
 # Arrays to store device poses.
@@ -1700,6 +1703,8 @@ def get_swap_chain_buffer(int sc):
     cdef unsigned int tex_id = 0
     cdef ovr_capi.ovrResult result
 
+    global _swap_chain_
+
     # get the current texture index within the swap chain
     result = ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
         _ptr_session_, _swap_chain_[sc], &current_idx)
@@ -1798,26 +1803,106 @@ cpdef void end_session():
     ovr_capi.ovr_Destroy(_ptr_session_)
     ovr_capi.ovr_Shutdown()
 
-cpdef dict get_hmd_info():
+cdef class ovrHmdDesc(object):
+    cdef ovr_capi.ovrHmdDesc c_ovrHmdDesc
+
+    def __cinit__(self, *args, **kwargs):
+        pass
+
+    @property
+    def type(self):
+        return <int>self.c_data[0].Type
+
+    @property
+    def product_name(self):
+        return self.c_ovrHmdDesc.ProductName.decode('utf-8')
+
+    @property
+    def manufacturer(self):
+        return self.c_ovrHmdDesc.Manufacturer.decode('utf-8')
+
+    @property
+    def vendor_id(self):
+        return <int>self.c_ovrHmdDesc.VendorId
+
+    @property
+    def product_id(self):
+        return <int>self.c_ovrHmdDesc.ProductId
+
+    @property
+    def serial_number(self):
+        return self.c_ovrHmdDesc.SerialNumber.decode('utf-8')
+
+    @property
+    def firmware_major(self):
+        return <int>self.c_ovrHmdDesc.FirmwareMajor
+
+    @property
+    def firmware_minor(self):
+        return <int>self.c_ovrHmdDesc.FirmwareMinor
+
+    @property
+    def available_hmd_caps(self):
+        return <int>self.c_ovrHmdDesc.AvailableHmdCaps
+
+    @property
+    def default_hmd_caps(self):
+        return <int>self.c_ovrHmdDesc.DefaultHmdCaps
+
+    @property
+    def available_tracking_caps(self):
+        return <int>self.c_ovrHmdDesc.AvailableTrackingCaps
+
+    @property
+    def default_tracking_caps(self):
+        return <int>self.c_ovrHmdDesc.DefaultTrackingCaps
+
+    @property
+    def default_eye_fov(self):
+        cdef ovrFovPort default_fov_left = ovrFovPort()
+        cdef ovrFovPort default_fov_right = ovrFovPort()
+
+        (<ovrFovPort>default_fov_left).c_data[0] = \
+            self.c_ovrHmdDesc.DefaultEyeFov[0]
+        (<ovrFovPort>default_fov_right).c_data[0] = \
+            self.c_ovrHmdDesc.DefaultEyeFov[1]
+
+        return default_fov_left, default_fov_right
+
+    @property
+    def max_eye_fov(self):
+        cdef ovrFovPort max_fov_left = ovrFovPort()
+        cdef ovrFovPort max_fov_right = ovrFovPort()
+
+        (<ovrFovPort>max_fov_left).c_data[0] = self.c_ovrHmdDesc.MaxEyeFov[0]
+        (<ovrFovPort>max_fov_right).c_data[0] = self.c_ovrHmdDesc.MaxEyeFov[1]
+
+        return max_fov_left, max_fov_right
+
+    @property
+    def resolution(self):
+        cdef ovr_capi.ovrSizei resolution = self.c_ovrHmdDesc.Resolution
+
+        return resolution.x, resolution.y
+
+    @property
+    def display_refresh_rate(self):
+        return self.c_ovrHmdDesc.DisplayRefreshRate
+
+
+cpdef ovrHmdDesc get_hmd_desc():
     """Get general information about the connected HMD. Information such as the
     serial number can identify a specific unit, etc.
     
     :return: dict 
     
     """
-    global _hmd_desc_
-    # return general HMD information from descriptor
-    cdef dict hmd_info = dict()
-    hmd_info["ProductName"] = _hmd_desc_.ProductName.decode('utf-8')
-    hmd_info["Manufacturer"] = _hmd_desc_.Manufacturer.decode('utf-8')
-    hmd_info["VendorId"] = <int>_hmd_desc_.VendorId
-    hmd_info["ProductId"] = <int>_hmd_desc_.ProductId
-    hmd_info["SerialNumber"] = _hmd_desc_.SerialNumber.decode('utf-8')
-    hmd_info["FirmwareMajor"] = <int>_hmd_desc_.FirmwareMajor
-    hmd_info["FirmwareMinor"] = <int>_hmd_desc_.FirmwareMinor
-    hmd_info["DisplayRefreshRate"] = <float>_hmd_desc_.DisplayRefreshRate
+    global _ptr_session_
+    cdef ovrHmdDesc to_return = ovrHmdDesc()
+    (<ovrHmdDesc>to_return).c_ovrHmdDesc = ovr_capi.ovr_GetHmdDesc(
+        _ptr_session_)
 
-    return hmd_info
+    return to_return
 
 # ---------------------------------
 # Rendering Configuration Functions
@@ -1832,10 +1917,15 @@ cdef class ovrTextureSwapChain:
     """Texture swap chain.
 
     """
-    cdef ovr_capi.ovrTextureSwapChain c_ovrTextureSwapChain
+    cdef int* c_data
+    cdef int  c_swap_id
 
     def __cinit__(self, *args, **kwargs):
-        pass
+        self.c_data = &self.c_swap_id
+
+    @property
+    def index(self):
+        return <int>self.c_data[0]
 
 # Texture types supported by the PC version of LibOVR
 #
@@ -1862,20 +1952,6 @@ cdef class ovrTextureSwapChainDesc:
     # no data pointer here
     cdef ovr_capi.ovrTextureSwapChainDesc c_ovrTextureSwapChainDesc
 
-    def __init__(
-            self,
-            int type=ovrTexture_2D,
-            int _format=OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
-            int width=800,
-            int height=600,
-            int array_size=1,
-            int mip_levels=1,
-            int sample_count=1,
-            bint static_image=False):
-
-        # nop constructor
-        pass
-
     def __cinit__(
             self,
             int type=ovrTexture_2D,
@@ -1894,7 +1970,7 @@ cdef class ovrTextureSwapChainDesc:
         self.c_ovrTextureSwapChainDesc.Height = height
         self.c_ovrTextureSwapChainDesc.MipLevels = mip_levels
         self.c_ovrTextureSwapChainDesc.SampleCount = sample_count
-        self.c_ovrTextureSwapChainDesc.StaticImage = <ovr_capi.ovrBool>static_image
+        self.c_ovrTextureSwapChainDesc.StaticImage = ovr_capi.ovrFalse
 
         # these can't be set right now
         self.c_ovrTextureSwapChainDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
@@ -1964,77 +2040,65 @@ cdef class ovrTextureSwapChainDesc:
     def static_image(self, bint value):
         self.c_ovrTextureSwapChainDesc.StaticImage = <ovr_capi.ovrBool>value
 
-cpdef void create_texture_swap_chain_gl(
-        ovrTextureSwapChain swap_chain,
+cpdef ovrTextureSwapChain create_texture_swap_chain_gl(
         ovrTextureSwapChainDesc swap_desc):
+    global _swap_chain_, _ptr_session_
+    # get the first available swap chain, unallocated chains will test as NULL
+    cdef int i, sc
+    for i in range(32):
+        if _swap_chain_[i] is NULL:
+            sc = i
+            break
+    else:
+        raise IndexError("Maximum number of swap chains initialized!")
 
     # create the swap chain
     cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
         _ptr_session_,
         &swap_desc.c_ovrTextureSwapChainDesc,
-        &swap_chain.c_ovrTextureSwapChain)
+        &_swap_chain_[sc])
 
     if debug_mode:
         check_result(result)
 
-cdef class ovrLayerHeader(object):
-    cdef ovr_capi.ovrLayerHeader* c_data
-    cdef ovr_capi.ovrLayerHeader  c_ovrLayerHeader
+    cdef ovrTextureSwapChain to_return = ovrTextureSwapChain()
+    (<ovrTextureSwapChain>to_return).c_data[0] = sc
 
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrLayerHeader
+    return to_return
 
-    @property
-    def type(self):
-        return <int>self.c_data[0].Type
+cpdef ovrTextureSwapChainDesc get_texture_swap_chain_desc(
+        ovrTextureSwapChain swap_chain):
+    global _swap_chain_
+    cdef ovrTextureSwapChainDesc to_return = ovrTextureSwapChainDesc()
 
-    @type.setter
-    def type(self, int value):
-        self.c_data[0].Type = <ovr_capi.ovrLayerType>value
+    # create the swap chain
+    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetTextureSwapChainDesc(
+        _ptr_session_,
+        _swap_chain_[swap_chain.c_data[0]],
+        &to_return.c_ovrTextureSwapChainDesc)
 
-    @property
-    def flags(self):
-        return <unsigned int>self.c_data[0].Flags
+    if debug_mode:
+        check_result(result)
 
-    @flags.setter
-    def flags(self, unsigned int value):
-        self.c_data[0].Flags = value
+    return to_return
 
-cdef class ovrLayerEyeFov(object):
-    cdef ovr_capi.ovrLayerEyeFov* c_data
-    cdef ovr_capi.ovrLayerEyeFov  c_ovrLayerEyeFov
+# types
+ovrLayerType_EyeFov = ovr_capi.ovrLayerType_EyeFov
 
-    # field access objects
-    cdef ovrLayerHeader prop_header
-
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrLayerEyeFov
-
-        self.prop_header = ovrLayerHeader()
-        (<ovrLayerHeader>self.prop_header).c_data = &self.c_data[0].Header
-
-    @property
-    def header(self):
-        return self.prop_header
-
-    @header.setter
-    def header(self, ovrLayerHeader value):
-        (<ovrLayerHeader>self.prop_header).c_data[0] = value.c_data[0].Header
-
-    @property
-    def sensor_sample_time(self):
-        return self.c_data[0].SensorSampleTime
-
+# layer header flags
+ovrLayerFlag_HighQuality = ovr_capi.ovrLayerFlag_HighQuality
+ovrLayerFlag_TextureOriginAtBottomLeft = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
+ovrLayerFlag_HeadLocked = ovr_capi.ovrLayerFlag_HeadLocked
 
 cdef class ovrFovPort(object):
     cdef ovr_capi.ovrFovPort* c_data
     cdef ovr_capi.ovrFovPort  c_ovrFovPort
 
     def __cinit__(self,
-                  float up_tan,
-                  float down_tan,
-                  float left_tan,
-                  float right_tan):
+                  float up_tan=0.0,
+                  float down_tan=0.0,
+                  float left_tan=0.0,
+                  float right_tan=0.0):
         self.c_data = &self.c_ovrFovPort
 
     @property
@@ -2171,6 +2235,7 @@ cpdef get_eye_render_desc(int eye_type, ovrFovPort fov):
         fov.c_data[0])
 
     return to_return
+
 
 cpdef tuple get_buffer_size(str fov_type='recommended',
                             float texel_per_pixel=1.0):
@@ -2559,13 +2624,13 @@ cpdef double get_display_time(unsigned int frame_index=0, bint predicted=True):
 
     return t_secs
 
-cpdef int wait_to_begin_frame(unsigned int frame_index=0):
+cpdef int wait_to_begin_frame(unsigned int frame_index):
     cdef ovr_capi.ovrResult result = 0
     result = ovr_capi.ovr_WaitToBeginFrame(_ptr_session_, frame_index)
 
     return <int>result
 
-cpdef int begin_frame(unsigned int frame_index=0):
+cpdef int begin_frame(unsigned int frame_index):
     result = ovr_capi.ovr_BeginFrame(_ptr_session_, frame_index)
 
     return <int>result
