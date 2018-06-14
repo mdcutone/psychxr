@@ -71,7 +71,7 @@ setup_pars = {
     "package_data": {"psychxr": ["*.pxd"],
                      "psychxr.ovr": ["*.pxd"]},
     "version": "0.1.2",
-    "license" : "GPLv3",
+    "license" : "MIT",
     "description":
         "API access from Python for eXended reality displays, used for "
         "developing psychology experiments.",
