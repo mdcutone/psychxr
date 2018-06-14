@@ -1,0 +1,3 @@
+include *.rst *.txt LICENSE *.md
+recursive-include demo/rift/ *.py
+recursive-include psychxr/ovr/ *.pxd *.pyd

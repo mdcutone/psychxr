@@ -68,8 +68,9 @@ setup_pars = {
     "author_email" : "cutonem(at)yorku.ca",
     "packages" : ['psychxr',
                   'psychxr.ovr'],
-    #"package_data": {"psychxr.vrheadset.rift.ovrsdk": ["*.pyd"],
+    #"package_data": {"": ["*.md", "*.txt"],
     #                 "": ["*.md", "*.txt"]},
+    "version": "0.1.2",
     "license" : "GPLv3",
     "description":
         "API access from Python for eXended reality displays, used for "
@@ -90,3 +91,30 @@ setup_pars = {
     "cmdclass" : {"build_ext": build_ext}}
 
 setup(**setup_pars)
+
+
+NAME = "attrs"
+PACKAGES = find_packages(where="src")
+META_PATH = os.path.join("src", "attr", "__init__.py")
+KEYWORDS = ["class", "attribute", "boilerplate"]
+
+
+if __name__ == "__main__":
+    setup(
+        name=NAME,
+        description=find_meta("description"),
+        license=find_meta("license"),
+        url=find_meta("uri"),
+        version=find_meta("version"),
+        author=find_meta("author"),
+        author_email=find_meta("email"),
+        maintainer=find_meta("author"),
+        maintainer_email=find_meta("email"),
+        keywords=KEYWORDS,
+        long_description=read("README.rst"),
+        packages=PACKAGES,
+        package_dir={"": "src"},
+        zip_safe=False,
+        classifiers=CLASSIFIERS,
+        install_requires=INSTALL_REQUIRES,
+    )
