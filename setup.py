@@ -70,6 +70,7 @@ setup_pars = {
                   'psychxr.ovr'],
     "package_data": {"psychxr": ["*.pxd"],
                      "psychxr.ovr": ["*.pxd"]},
+    "include_package_data": True,
     "version": "0.1.2",
     "license" : "MIT",
     "description":
