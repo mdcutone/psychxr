@@ -1,3 +1,4 @@
-include *.rst *.txt LICENSE *.md
+include LICENSE MANIFEST.in README.md
+recursive-include Cython *.pyx *.pxd
 recursive-include demo/rift/ *.py
 recursive-include psychxr/ovr/ *.pxd *.pyd
