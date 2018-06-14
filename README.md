@@ -12,6 +12,14 @@ Device API wrappers are written in Cython, providing low latency and overhead. O
 
 The easiest way to get PsychXR is to get the [*.whl package](https://github.com/mdcutone/psychxr/releases) and install it using the 'pip install' command. The pre-compiled binaries are built on Windows 10 64-bit using the MSVC 15.0 compiler against Python 3.6 64-bit.
 
+## Limitations
+
+There are several limitations to the current version of PsychXR which may make it unsuitable for certain applications.
+
+* Only Oculus VR HMDs which use the PC SDK (Rift CV2 and DK2) are supported, the CV1 is recommended. There are currently no plans to support the mobile SDK.
+* You can only use one render layer.
+* OpenGL is required for rendering, no other graphics API (i.e. Vulkan and DirectX) is available at this time.
+
 ## Authors
 
 * **Matthew D. Cutone** - The Centre for Vision Research, York University - (https://github.com/mdcutone)
