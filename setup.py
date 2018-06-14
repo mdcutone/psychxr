@@ -82,7 +82,7 @@ setup_pars = {
         'Operating System :: Microsoft :: Windows :: Windows 10',
         'Operating System :: Microsoft :: Windows :: Windows 8.1',
         'Operating System :: Microsoft :: Windows :: Windows 7',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Cython',
         'Intended Audience :: Science/Research'],
