@@ -28,6 +28,7 @@ from setuptools.extension import Extension
 from Cython.Build import cythonize, build_ext
 import Cython
 
+# this is a mess right now but it works okay, needs to be improved soon.
 if platform.system() == 'Windows':
     # set enviornment variables for build
     os.environ["MSSdk"] = "1"
@@ -40,7 +41,7 @@ if platform.system() == 'Windows':
         OCULUS_SDK_PATH, 'LibOVR', 'Lib', 'Windows', 'x64', 'Release', 'VS2015')
     # set enviornment variables for build
     LIBRARIES = ['opengl32', 'User32', "LibOVR"]
-    LIB_DIRS = ['lib/win64/', OCULUS_SDK_LIB]
+    LIB_DIRS = [OCULUS_SDK_LIB]
 else:
     raise Exception('Trying to install PsychHMD on an unsupported '
         'operating system. Exiting.')
@@ -64,8 +65,7 @@ setup_pars = {
     "author" : "Matthew D. Cutone",
     "author_email" : "cutonem(at)yorku.ca",
     "packages" : ['psychxr',
-                  'psychxr.ovr',
-                  'psychxr.ovr.rift'],
+                  'psychxr.ovr'],
     #"package_data": {"psychxr.vrheadset.rift.ovrsdk": ["*.pyd"],
     #                 "": ["*.md", "*.txt"]},
     "license" : "GPLv3",
