@@ -2859,7 +2859,6 @@ cdef class ovrInputState(object):
 
         return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
 
-
 cpdef object get_input_state(str controller, object state_out=None):
     """Get a controller state as an object. If a 'InputStateData' object is
     passed to 'state_out', that object will be updated.
