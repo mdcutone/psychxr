@@ -1953,13 +1953,13 @@ cpdef ovrHmdDesc get_hmd_desc():
     """Get general information about the connected HMD. Information such as the
     serial number can identify a specific unit, etc.
     
-    :return: dict 
+    :return: ovrHmdDesc 
     
     """
-    global _ptr_session_
+    global _ptr_session_, _hmd_desc_
     cdef ovrHmdDesc to_return = ovrHmdDesc()
-    (<ovrHmdDesc>to_return).c_ovrHmdDesc = ovr_capi.ovr_GetHmdDesc(
-        _ptr_session_)
+    _hmd_desc_ = ovr_capi.ovr_GetHmdDesc(_ptr_session_)
+    (<ovrHmdDesc>to_return).c_ovrHmdDesc = _hmd_desc_
 
     return to_return
 
@@ -2482,6 +2482,7 @@ cpdef void set_tracking_origin_type(str origin='floor'):
     
     :param origin: str
     :return: 
+    
     """
     global _ptr_session_
     cdef ovr_capi.ovrResult result
@@ -2499,6 +2500,7 @@ cpdef str get_tracking_origin_type():
     """Get the current tracking origin type.
     
     :return: str
+    
     """
     global _ptr_session_
     cdef ovr_capi.ovrTrackingOrigin origin = ovr_capi.ovr_GetTrackingOriginType(
