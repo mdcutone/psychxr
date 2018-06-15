@@ -32,6 +32,7 @@
 cimport ovr_capi, ovr_capi_gl, ovr_errorcode, ovr_capi_util
 cimport ovr_math
 cimport libc.math as cmath
+from libc.stdint cimport int32_t
 import OpenGL.GL as GL
 
 # -----------------
@@ -2148,6 +2149,69 @@ cpdef ovrTextureSwapChainDesc get_texture_swap_chain_desc(
 
     return to_return
 
+ovrMirrorOption_Default = ovr_capi.ovrMirrorOption_Default
+ovrMirrorOption_PostDistortion = ovr_capi.ovrMirrorOption_PostDistortion
+ovrMirrorOption_LeftEyeOnly = ovr_capi.ovrMirrorOption_LeftEyeOnly
+ovrMirrorOption_RightEyeOnly = ovr_capi.ovrMirrorOption_RightEyeOnly
+ovrMirrorOption_IncludeGuardian = ovr_capi.ovrMirrorOption_IncludeGuardian
+ovrMirrorOption_IncludeNotifications = ovr_capi.ovrMirrorOption_IncludeNotifications
+ovrMirrorOption_IncludeSystemGui = ovr_capi.ovrMirrorOption_IncludeSystemGui
+
+cdef class ovrMirrorTextureDesc:
+    """ovrTextureSwapChainDesc
+
+    """
+    # no data pointer here
+    cdef ovr_capi.ovrMirrorTextureDesc c_ovrMirrorTextureDesc
+
+    def __cinit__(
+            self,
+            int _format=OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
+            int width=800,
+            int height=600,
+            int mirror_options=ovrMirrorOption_Default):
+
+        self.c_ovrMirrorTextureDesc.Type = <ovr_capi.ovrTextureType>type
+        self.c_ovrMirrorTextureDesc.Format = <ovr_capi.ovrTextureFormat>_format
+        self.c_ovrMirrorTextureDesc.Width = width
+        self.c_ovrMirrorTextureDesc.Height = height
+
+        self.c_ovrMirrorTextureDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
+
+        self.c_ovrMirrorTextureDesc.MirrorOptions = <int32_t>mirror_options
+
+    @property
+    def format(self):
+        return <int>self.c_ovrMirrorTextureDesc.Format
+
+    @format.setter
+    def format(self, int value):
+        self.c_ovrMirrorTextureDesc.Format = <ovr_capi.ovrTextureFormat>value
+
+    @property
+    def width(self):
+        return <int>self.c_ovrMirrorTextureDesc.Width
+
+    @width.setter
+    def width(self, int value):
+        self.c_ovrMirrorTextureDesc.Width = value
+
+    @property
+    def height(self):
+        return <int>self.c_ovrMirrorTextureDesc.Height
+
+    @height.setter
+    def height(self, int value):
+        self.c_ovrMirrorTextureDesc.Height = value
+
+    @property
+    def mirror_options(self):
+        return <int>self.c_ovrMirrorTextureDesc.MirrorOptions
+
+    @mirror_options.setter
+    def mirror_options(self, int value):
+        self.c_ovrMirrorTextureDesc.Height = <int32_t>value
+
 # types
 ovrLayerType_EyeFov = ovr_capi.ovrLayerType_EyeFov
 
@@ -2666,7 +2730,7 @@ cpdef void end_frame(unsigned int frame_index=0):
 # Mirror Texture Functions
 # ------------------------
 #
-cpdef void setup_mirror_texture(int width=800, int height=600):
+cpdef void create_mirror_texture(ovrMirrorTextureDesc mirror_desc):
     """Create a mirror texture buffer.
     
     :param width: int 
@@ -2674,16 +2738,9 @@ cpdef void setup_mirror_texture(int width=800, int height=600):
     :return: None
     
     """
-    cdef ovr_capi.ovrMirrorTextureDesc mirror_desc
-    mirror_desc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
-    mirror_desc.Width = width
-    mirror_desc.Height = height
-    mirror_desc.MiscFlags = ovr_capi.ovrTextureMisc_None
-    mirror_desc.MirrorOptions = ovr_capi.ovrMirrorOption_PostDistortion
-
     global _mirror_texture_
     cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateMirrorTextureGL(
-        _ptr_session_, &mirror_desc, &_mirror_texture_)
+        _ptr_session_, &mirror_desc.c_ovrMirrorTextureDesc, &_mirror_texture_)
 
     if debug_mode:
         check_result(result)
