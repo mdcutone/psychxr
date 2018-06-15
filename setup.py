@@ -48,20 +48,20 @@ else:
     raise Exception('Trying to install PsychHMD on an unsupported '
         'operating system. Exiting.')
 
-
 # extensions to build
 ext_modules = [
-    Extension("psychxr.ovr.rift", ["psychxr/ovr/rift.pyx"],
-              include_dirs=[OCULUS_SDK_INCLUDE,
-                            OCULUS_SDK_INCLUDE_EXTRAS,
-                            "psychxr/ovr/",
-                            "include/"],
-              libraries=LIBRARIES,
-              library_dirs=LIB_DIRS,
-              language="c++",
-              extra_compile_args=[''])
+    Extension(
+        "psychxr.ovr.rift",
+        ["psychxr/ovr/rift.pyx"],
+        include_dirs=[OCULUS_SDK_INCLUDE,
+                      OCULUS_SDK_INCLUDE_EXTRAS,
+                      "psychxr/ovr/",
+                      "include/"],
+        libraries=LIBRARIES,
+        library_dirs=LIB_DIRS,
+        language="c++",
+        extra_compile_args=[''])
 ]
-
 setup_pars = {
     "name" : "psychxr",
     "author" : "Matthew D. Cutone",
@@ -70,6 +70,7 @@ setup_pars = {
                   'psychxr.ovr'],
     "package_data": {"psychxr": ["*.pxd"],
                      "psychxr.ovr": ["*.pxd"]},
+    "include_package_data": True,
     "version": "0.1.2",
     "license" : "MIT",
     "description":
@@ -81,7 +82,7 @@ setup_pars = {
         'Operating System :: Microsoft :: Windows :: Windows 10',
         'Operating System :: Microsoft :: Windows :: Windows 8.1',
         'Operating System :: Microsoft :: Windows :: Windows 7',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Cython',
         'Intended Audience :: Science/Research'],

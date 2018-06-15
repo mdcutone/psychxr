@@ -2224,36 +2224,6 @@ ovrEye_Left = ovr_capi.ovrEye_Left
 ovrEye_Right = ovr_capi.ovrEye_Right
 ovrEye_Count = ovr_capi.ovrEye_Count
 
-cpdef ovrFovPort get_symmetric_fov():
-    """Compute a symmetric field-of-view for the given headset.
-    
-    :return: tuple
-    
-    """
-    global _hmd_desc_
-    cdef ovr_capi.ovrFovPort fov_left = _hmd_desc_.DefaultEyeFov[0]
-    cdef ovr_capi.ovrFovPort fov_right = _hmd_desc_.DefaultEyeFov[1]
-
-    cdef ovr_capi.ovrFovPort fov_max
-    fov_max.UpTan = <float>cmath.fmax(
-        fov_left.c_data[0].UpTan, fov_right.c_data[0].UpTan)
-    fov_max.DownTan = <float>cmath.fmax(
-        fov_left.c_data[0].DownTan, fov_right.c_data[0].DownTan)
-    fov_max.LeftTan = <float>cmath.fmax(
-        fov_left.c_data[0].LeftTan, fov_right.c_data[0].LeftTan)
-    fov_max.RightTan = <float>cmath.fmax(
-        fov_left.c_data[0].RightTan, fov_right.c_data[0].RightTan)
-
-    cdef float combined_htan_horz = max(fov_max.LeftTan, fov_max.RightTan)
-    cdef float combined_htan_vert = max(fov_max.LeftTan, fov_max.RightTan)
-
-    cdef ovrFovPort to_return = ovrFovPort()
-    cdef ovr_capi.ovrFovPort* fov_both = (<ovrFovPort>to_return).c_data
-    fov_both.LeftTan = fov_both.RightTan = combined_htan_horz
-    fov_both.UpTan = fov_both.DownTan = combined_htan_vert
-
-    return to_return
-
 cpdef ovrSizei get_fov_texture_size(
         int eye_type,
         ovrFovPort fov,
