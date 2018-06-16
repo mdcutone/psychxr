@@ -76,10 +76,14 @@ def main():
     eye_h = buffer_h
 
     # setup the render layer
-    rift.setRenderViewport('left', 0, 0, eye_w, eye_h)
-    rift.setRenderViewport('right', eye_w, 0, eye_w, eye_h)
-    rift.setRenderSwapChain('left', swap_chain)
-    rift.setRenderSwapChain('right', None)
+    viewports = (rift.ovrRecti(0, 0, eye_w, eye_h),
+                 rift.ovrRecti(eye_w, 0, eye_w, eye_h))
+
+    for eye in range(rift.ovrEye_Count):
+        rift.setRenderViewport(eye, viewports[eye])
+
+    rift.setRenderSwapChain(0, swap_chain)  # set the swap chain
+    #rift.setRenderSwapChain(1, None)
 
     # create a frame buffer object as a render target for the HMD textures
     fboId = GL.GLuint()
@@ -164,14 +168,14 @@ def main():
             GL.GL_TEXTURE_2D, tex_id, 0)
 
         # for each eye, do some rendering
-        for eye in ('left', 'right'):
+        for eye in range(rift.ovrEye_Count):
             # Set the viewport as what was configured for the render layer. We
             # also need to enable scissor testings with the same rect as the
             # viewport. This constrains rendering operations to one partition of
             # of the buffer since we are using a 'packed' layout.
             vp = rift.getRenderViewport(eye)
-            GL.glViewport(*vp)
-            GL.glScissor(*vp)
+            GL.glViewport(*vp.asTuple())
+            GL.glScissor(*vp.asTuple())
 
             GL.glEnable(GL.GL_SCISSOR_TEST)  # enable scissor test
             GL.glEnable(GL.GL_DEPTH_TEST)
@@ -179,7 +183,7 @@ def main():
             # Here we can make whatever OpenGL we wish to draw our image. As an
             # example, I'm going to clear the eye buffer texture all some color,
             # with the colour determined by the active eye buffer.
-            if eye == 'left':
+            if eye == rift.ovrEye_Left:
                 GL.glMatrixMode(GL.GL_PROJECTION)
                 GL.glLoadIdentity()
                 GL.glMultMatrixf(proj_left.ctypes)
@@ -202,7 +206,7 @@ def main():
                 GL.glEnd()
                 GL.glPopMatrix()
 
-            elif eye == 'right':
+            elif eye == rift.ovrEye_Right:
                 GL.glMatrixMode(GL.GL_PROJECTION)
                 GL.glLoadIdentity()
                 GL.glMultMatrixf(proj_right.ctypes)

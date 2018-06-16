@@ -2230,64 +2230,65 @@ cpdef tuple getBufferSize(str fov_type='recommended',
 
     return buffer_size.w, buffer_size.h
 
-cpdef void setRenderViewport(str eye, int x, int y, int width, int height):
-    """
-    
-    :param x: int
-    :param y: int
-    :param width: int
-    :param height: int 
+cpdef void setRenderSwapChain(int eye, object swap_chain):
+    """Set the swap chain for the render layer.
+
     :param eye: str
+    :param swap_chain: int or None
     :return: None
     
     """
-    cdef int buffer
-    if eye == 'left':
-        buffer = 0
-    elif eye == 'right':
-        buffer = 1
-
-    global _eye_layer_
-    _eye_layer_.Viewport[buffer].Pos.x = x
-    _eye_layer_.Viewport[buffer].Pos.y = y
-    _eye_layer_.Viewport[buffer].Size.w = width
-    _eye_layer_.Viewport[buffer].Size.h = height
-
-cpdef void setRenderSwapChain(str eye, object swap_chain):
-    """
-    
-    :param swap_chain: int
-    :param eye: str
-    :return: 
-    
-    """
-    cdef int buffer
-    if eye == 'left':
-        buffer = 0
-    elif eye == 'right':
-        buffer = 1
-
     # set the swap chain textures
     global _eye_layer_
-
     if not swap_chain is None:
-        _eye_layer_.ColorTexture[buffer] = _swap_chain_[<int>swap_chain]
+        _eye_layer_.ColorTexture[eye] = _swap_chain_[<int>swap_chain]
     else:
-        _eye_layer_.ColorTexture[buffer] = NULL
+        _eye_layer_.ColorTexture[eye] = NULL
 
-
-cpdef tuple getRenderViewport(str eye='left'):
+cpdef ovrRecti getRenderViewport(int eye):
+    """Get the viewport rectangle for a given eye view. These will return the
+    viewports set by the previous 'setRenderViewport' call.
+    
+    :param eye: int
+    :return: None
+    
+    """
     global _ptr_session_, _eye_layer_
-    if eye == 'left':
-        return (<int>_eye_layer_.Viewport[0].Pos.x,
-                <int>_eye_layer_.Viewport[0].Pos.y,
-                <int>_eye_layer_.Viewport[0].Size.w,
-                <int>_eye_layer_.Viewport[0].Size.h)
-    elif eye == 'right':
-        return (<int>_eye_layer_.Viewport[1].Pos.x,
-                <int>_eye_layer_.Viewport[1].Pos.y,
-                <int>_eye_layer_.Viewport[1].Size.w,
-                <int>_eye_layer_.Viewport[1].Size.h)
+    cdef ovrRecti to_return = ovrRecti()
+    (<ovrRecti>to_return).c_data[0] = _eye_layer_.Viewport[eye]
+
+    return to_return
+
+cpdef void setRenderViewport(int eye, ovrRecti viewPortRect):
+    """Set the viewport rectangle for a specified eye view. This defines where
+    on the swap texture the eye view is to be drawn/retrieved.
+    
+    :param eye: int
+    :param viewPortRect: ovrRecti
+    :return: None
+    
+    """
+    global _eye_layer_
+    _eye_layer_.Viewport[eye] = viewPortRect.c_data[0]
+
+cpdef int getRenderLayerFlags():
+    """Get the render layer's header flags.
+    
+    :return: int
+    
+    """
+    global _eye_layer_
+    return <int>_eye_layer_.Header.Flags
+
+cpdef void setRenderLayerFlags(int layerHeaderFlags):
+    """Set the render layer's header flags.
+    
+    :param layerHeaderFlags: 
+    :return: None
+    
+    """
+    global _eye_layer_
+    _eye_layer_.Header.Flags = layerHeaderFlags
 
 # ---------------------------------
 # VR Tracking Classes and Functions
