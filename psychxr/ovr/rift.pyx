@@ -77,10 +77,6 @@ cdef ovr_capi.ovrLayerEyeFov _eye_layer_
 cdef ovr_capi.ovrTrackedDeviceType[9] _device_types_
 cdef ovr_capi.ovrPoseStatef[9] _device_poses_
 
-# Session status
-#
-cdef ovr_capi.ovrSessionStatus _session_status_
-
 # Function to check for errors returned by OVRLib functions
 #
 cdef ovr_errorcode.ovrErrorInfo _last_error_info_  # store our last error here
@@ -252,10 +248,10 @@ cdef class ovrVector2i:
     def y(self, int value):
         self.c_data.y = value
 
-    def as_tuple(self):
+    def asTuple(self):
         return self.c_data.x, self.c_data.y
 
-    def as_list(self):
+    def asList(self):
         return list(self.c_data.x, self.c_data.y)
 
     def __eq__(self, ovrVector2i b):
@@ -355,7 +351,7 @@ cdef class ovrVector2i:
 
         return self
 
-    def is_equal(self, ovrVector2i b, int tolerance = 0):
+    def isEqual(self, ovrVector2i b, int tolerance = 0):
         return cmath.fabs(b.c_data.x - self.c_data.x) <= tolerance and \
             cmath.fabs(b.c_data.y - self.c_data.y) <= tolerance
 
@@ -373,7 +369,7 @@ cdef class ovrVector2i:
         cdef int* ptr_val = &self.c_data.x + idx
         ptr_val[0] = val
 
-    def entrywise_multiply(self, ovrVector2i b):
+    def entrywiseMultiply(self, ovrVector2i b):
         cdef ovrVector2i to_return = ovrVector2i(
             self.c_data.x * b.c_data.x,
             self.c_data.y * b.c_data.y)
@@ -393,20 +389,20 @@ cdef class ovrVector2i:
 
         return to_return
 
-    def length_sq(self):
+    def lengthSq(self):
         return \
             <int>(self.c_data.x * self.c_data.x + self.c_data.y * self.c_data.y)
 
     def length(self):
         return <int>cmath.sqrt(self.length_sq())
 
-    def distance_sq(self, ovrVector2i b):
+    def distanceSq(self, ovrVector2i b):
         return (self - b).length_sq()
 
     def distance(self, ovrVector2i b):
         return (self - b).length()
 
-    def is_normalized(self):
+    def isNormalized(self):
         return cmath.fabs(self.length_sq() - <int>1) < 0
 
     def normalize(self):
@@ -426,13 +422,13 @@ cdef class ovrVector2i:
     def lerp(self, ovrVector2i b, int f):
         return self * (<int>1 - f) + b * f
 
-    def project_to(self, ovrVector2i b):
+    def projectTo(self, ovrVector2i b):
         cdef int l2 = self.length_sq()
         assert l2 != <int>0
 
         return b * (self.dot(b) / l2)
 
-    def is_clockwise(self, ovrVector2i b):
+    def isClockwise(self, ovrVector2i b):
         return (self.c_data.x * b.c_data.y - self.c_data.y * b.c_data.x) < 0
 
 
@@ -462,10 +458,10 @@ cdef class ovrSizei:
     def h(self, int value):
         self.c_data.h = value
 
-    def as_tuple(self):
+    def asTuple(self):
         return self.c_data.w, self.c_data.h
 
-    def as_list(self):
+    def asList(self):
         return [self.c_data.w, self.c_data.h]
 
     def __eq__(self, ovrSizei b):
@@ -561,12 +557,12 @@ cdef class ovrSizei:
     def area(self):
         return self.c_data.w * self.c_data.h
 
-    def to_vector(self):
+    def toVector(self):
         cdef ovrVector2i to_return = ovrVector2i(self.c_data.w, self.c_data.h)
 
         return to_return
 
-    def as_vector(self):
+    def asVector(self):
         return self.to_vector()
 
 
@@ -635,34 +631,34 @@ cdef class ovrRecti:
     def h(self, int value):
         self.c_data.Size.h = value
 
-    def as_tuple(self):
+    def asTuple(self):
         return self.c_data.Pos.x, self.c_data.Pos.y, \
                self.c_data.Size.w, self.c_data.Size.h
 
-    def as_list(self):
+    def asList(self):
         return [self.c_data.Pos.x, self.c_data.Pos.y,
                 self.c_data.Size.w, self.c_data.Size.h]
 
     def __len__(self):
         return 4
 
-    def get_pos(self):
+    def getPos(self):
         cdef ovrVector2i to_return = ovrVector2i(self.c_data.Pos.x,
                                                  self.c_data.Pos.y)
 
         return to_return
 
-    def get_size(self):
+    def getSize(self):
         cdef ovrSizei to_return = ovrSizei(self.c_data.Size.w,
                                            self.c_data.Size.h)
 
         return to_return
 
-    def set_pos(self, ovrVector2i pos):
+    def setPos(self, ovrVector2i pos):
         self.c_data.Pos.x = pos.c_data.x
         self.c_data.Pos.y = pos.c_data.y
 
-    def set_size(self, ovrSizei size):
+    def setSize(self, ovrSizei size):
         self.c_data.Size.w = size.c_data.w
         self.c_data.Size.h = size.c_data.h
 
@@ -824,7 +820,7 @@ cdef class ovrVector3f(object):
 
         return to_return
 
-    def is_equal(self, ovrVector3f b, float tolerance = 0.0):
+    def isEqual(self, ovrVector3f b, float tolerance = 0.0):
         return (<ovrVector3f>self).c_data[0].IsEqual(b.c_data[0], tolerance)
 
     def compare(self, ovrVector3f b, float tolerance = 0.0):
@@ -841,7 +837,7 @@ cdef class ovrVector3f(object):
         cdef float* ptr_val = &self.c_data.x + idx
         ptr_val[0] = val
 
-    def entrywise_multiply(self, ovrVector3f b):
+    def entrywiseMultiply(self, ovrVector3f b):
         cdef ovrVector3f to_return = ovrVector3f()
         (<ovrVector3f>to_return).c_data[0] = \
             (<ovrVector3f>self).c_data[0].EntrywiseMultiply(
@@ -862,19 +858,19 @@ cdef class ovrVector3f(object):
     def angle(self, ovrVector3f b):
         return <float>(<ovrVector3f>self).c_data[0].Angle(b.c_data[0])
 
-    def length_sq(self):
+    def lengthSq(self):
         return <float>(<ovrVector3f>self).c_data[0].LengthSq()
 
     def length(self):
         return <float>(<ovrVector3f>self).c_data[0].Length()
 
-    def distance_sq(self, ovrVector3f b):
+    def distanceSq(self, ovrVector3f b):
         return <float>(<ovrVector3f>self).c_data[0].DistanceSq(b.c_data[0])
 
     def distance(self, ovrVector3f b):
         return <float>(<ovrVector3f>self).c_data[0].Distance(b.c_data[0])
 
-    def is_normalized(self):
+    def isNormalized(self):
         return <bint>(<ovrVector3f>self).c_data[0].IsNormalized()
 
     def normalize(self):
@@ -894,7 +890,7 @@ cdef class ovrVector3f(object):
 
         return to_return
 
-    def project_to(self, ovrVector3f b):
+    def projectTo(self, ovrVector3f b):
         cdef ovrVector3f to_return = ovrVector3f()
         (<ovrVector3f>to_return).c_data[0] = \
             (<ovrVector3f>self).c_data[0].ProjectTo(
@@ -902,7 +898,7 @@ cdef class ovrVector3f(object):
 
         return to_return
 
-    def project_to_plane(self, ovrVector3f normal):
+    def projectToPlane(self, ovrVector3f normal):
         cdef ovrVector3f to_return = ovrVector3f()
         (<ovrVector3f>to_return).c_data[0] = \
             (<ovrVector3f>self).c_data[0].ProjectToPlane(
@@ -923,35 +919,35 @@ cdef class ovrFovPort(object):
         self.c_data = &self.c_ovrFovPort
 
     @property
-    def up_tan(self):
+    def UpTan(self):
         return <float>self.c_data[0].UpTan
 
-    @up_tan.setter
-    def up_tan(self, float value):
+    @UpTan.setter
+    def UpTan(self, float value):
         self.c_data[0].UpTan = value
 
     @property
-    def down_tan(self):
+    def DownTan(self):
         return <float>self.c_data[0].DownTan
 
-    @down_tan.setter
-    def down_tan(self, float value):
+    @DownTan.setter
+    def DownTan(self, float value):
         self.c_data[0].DownTan = value
 
     @property
-    def left_tan(self):
+    def LeftTan(self):
         return <float>self.c_data[0].LeftTan
 
-    @left_tan.setter
-    def left_tan(self, float value):
+    @LeftTan.setter
+    def LeftTan(self, float value):
         self.c_data[0].LeftTan = value
 
     @property
-    def right_tan(self):
+    def RightTan(self):
         return <float>self.c_data[0].RightTan
 
-    @right_tan.setter
-    def right_tan(self, float value):
+    @RightTan.setter
+    def RightTan(self, float value):
         self.c_data[0].RightTan = value
 
     @staticmethod
@@ -1044,10 +1040,10 @@ cdef class ovrQuatf:
     def w(self, float value):
         self.c_data.w = value
 
-    def as_tuple(self):
+    def asTuple(self):
         return self.c_data.x, self.c_data.y, self.c_data.z, self.c_data.w
 
-    def as_list(self):
+    def asList(self):
         return [self.c_data.x, self.c_data.y, self.c_data.z, self.c_data.w]
 
     def __len__(self):
@@ -1152,7 +1148,7 @@ cdef class ovrQuatf:
 
         return self
 
-    def is_equal(self, ovrQuatf b, float tolerance = 0.0):
+    def isEqual(self, ovrQuatf b, float tolerance = 0.0):
         return  self.abs(self.dot(b)) >= <float>1 - tolerance
 
     def abs(self, float v):
@@ -1165,7 +1161,7 @@ cdef class ovrQuatf:
 
         return to_return
 
-    def length_sq(self):
+    def lengthSq(self):
         return <float>(<ovrQuatf>self).c_data[0].LengthSq()
 
     def length(self):
@@ -1174,7 +1170,7 @@ cdef class ovrQuatf:
     def distance(self, ovrQuatf q):
         return <float>(<ovrQuatf>self).c_data[0].Distance(q.c_data[0])
 
-    def distance_sq(self, ovrQuatf q):
+    def distanceSq(self, ovrQuatf q):
         return <float>(<ovrQuatf>self).c_data[0].DistanceSq(q.c_data[0])
 
     def dot(self, ovrQuatf q):
@@ -1183,7 +1179,7 @@ cdef class ovrQuatf:
     def angle(self, ovrQuatf q):
         return <float>(<ovrQuatf>self).c_data[0].Angle(q.c_data[0])
 
-    def is_normalized(self):
+    def isNormalized(self):
         return <bint>(<ovrQuatf>self).c_data[0].IsNormalized()
 
     def normalize(self):
@@ -1219,7 +1215,7 @@ cdef class ovrQuatf:
 
         return to_return
 
-    def inverse_rotate(self, ovrVector3f v):
+    def inverseRotate(self, ovrVector3f v):
         cdef ovrVector3f to_return = ovrVector3f()
         (<ovrVector3f>to_return).c_data[0] = \
             (<ovrQuatf>self).c_data[0].InverseRotate(v.c_data[0])
@@ -1291,8 +1287,8 @@ cdef class ovrPosef:
     def rotate(self, ovrVector3f v):
         return self.rotation.rotate(v)
 
-    def inverse_rotate(self, ovrVector3f v):
-        return self.inverse_rotate(v)
+    def inverseRotate(self, ovrVector3f v):
+        return self.rotation.inverseRotate(v)
 
     def translate(self, ovrVector3f v):
         return v + self.translation
@@ -1307,7 +1303,7 @@ cdef class ovrPosef:
         return self.rotate(v)
 
     def inverse_transform_normal(self, ovrVector3f v):
-        return self.inverse_rotate(v)
+        return self.inverseRotate(v)
 
     def apply(self, ovrVector3f v):
         return self.transform(v)
@@ -1401,13 +1397,13 @@ cdef class ovrMatrix4f:
         cdef ovrMatrix4f to_return = ovrMatrix4f()
         return to_return
 
-    def set_identity(self):
+    def setIdentity(self):
         self.c_data[0] = ovr_math.Matrix4f()
 
-    def set_x_basis(self, ovrVector3f v):
+    def setXBasis(self, ovrVector3f v):
         (<ovrMatrix4f>self).c_data[0].SetXBasis(v.c_data[0])
 
-    def get_x_basis(self):
+    def getXBasis(self):
         cdef ovrVector3f to_return = ovrVector3f()
         (<ovrVector3f>to_return).c_data[0] = \
             (<ovr_math.Matrix4f>self.c_data[0]).GetXBasis()
@@ -1415,20 +1411,20 @@ cdef class ovrMatrix4f:
         return to_return
 
     @property
-    def x_basis(self):
-        return self.get_x_basis()
+    def xBasis(self):
+        return self.getXBasis()
 
-    @x_basis.setter
-    def x_basis(self, object v):
+    @xBasis.setter
+    def xBasis(self, object v):
         if isinstance(v, ovrVector3f):
-            self.set_x_basis(<ovrVector3f>v)
+            self.setXBasis(<ovrVector3f>v)
         elif isinstance(v, (list, tuple)):
-            self.set_x_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
+            self.setXBasis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
 
-    def set_y_basis(self, ovrVector3f v):
+    def setYBasis(self, ovrVector3f v):
         (<ovrMatrix4f>self).c_data[0].SetYBasis(v.c_data[0])
 
-    def get_y_basis(self):
+    def getYBasis(self):
         cdef ovrVector3f to_return = ovrVector3f()
         (<ovrVector3f>to_return).c_data[0] = \
             (<ovr_math.Matrix4f>self.c_data[0]).GetYBasis()
@@ -1436,20 +1432,20 @@ cdef class ovrMatrix4f:
         return to_return
 
     @property
-    def y_basis(self):
-        return self.get_y_basis()
+    def yBasis(self):
+        return self.getYBasis()
 
-    @y_basis.setter
-    def y_basis(self, object v):
+    @yBasis.setter
+    def yBasis(self, object v):
         if isinstance(v, ovrVector3f):
-            self.set_y_basis(<ovrVector3f>v)
+            self.setYBasis(<ovrVector3f>v)
         elif isinstance(v, (list, tuple)):
-            self.set_y_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
+            self.setYBasis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
 
-    def set_z_basis(self, ovrVector3f v):
+    def setZBasis(self, ovrVector3f v):
         (<ovrMatrix4f>self).c_data[0].SetZBasis(v.c_data[0])
 
-    def get_z_basis(self):
+    def getZBasis(self):
         cdef ovrVector3f to_return = ovrVector3f()
         (<ovrVector3f>to_return).c_data[0] = \
             (<ovr_math.Matrix4f>self.c_data[0]).GetZBasis()
@@ -1457,15 +1453,15 @@ cdef class ovrMatrix4f:
         return to_return
 
     @property
-    def z_basis(self):
-        return self.get_y_basis()
+    def zBasis(self):
+        return self.getZBasis()
 
-    @z_basis.setter
-    def z_basis(self, object v):
+    @zBasis.setter
+    def zBasis(self, object v):
         if isinstance(v, ovrVector3f):
-            self.set_z_basis(<ovrVector3f>v)
+            self.setZBasis(<ovrVector3f>v)
         elif isinstance(v, (list, tuple)):
-            self.set_z_basis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
+            self.setZBasis(ovrVector3f(<float>v[0], <float>v[1], <float>v[2]))
 
     @property
     def ctypes(self):
@@ -1597,14 +1593,14 @@ cdef class ovrMatrix4f:
 
         return self
 
-    def inverted_homogeneous_transform(self):
+    def invertedHomogeneousTransform(self):
         cdef ovrMatrix4f to_return = ovrMatrix4f()
         (<ovrMatrix4f>to_return).c_data[0] = \
             (<ovr_math.Matrix4f>self.c_data[0]).InvertedHomogeneousTransform()
 
         return to_return
 
-    def invert_homogeneous_transform(self):
+    def invertHomogeneousTransform(self):
         (<ovr_math.Matrix4f>self.c_data[0]).InvertHomogeneousTransform()
 
         return self
@@ -1622,12 +1618,12 @@ cdef class ovrMatrix4f:
 
         return to_return
 
-    def set_translation(self, ovrVector3f v):
+    def setTranslation(self, ovrVector3f v):
         (<ovr_math.Matrix4f>self.c_data[0]).SetTranslation(v.c_data[0])
 
         return self
 
-    def get_translation(self):
+    def getTranslation(self):
         cdef ovrVector3f to_return = ovrVector3f()
         (<ovrVector3f>to_return).c_data[0] = \
             (<ovr_math.Matrix4f>self.c_data[0]).GetTranslation()
@@ -1649,28 +1645,28 @@ cdef class ovrMatrix4f:
         return distance
 
     @staticmethod
-    def rotation_x(float angle=0.0):
+    def rotationX(float angle=0.0):
         cdef ovrMatrix4f to_return = ovrMatrix4f()
         (<ovrMatrix4f>to_return).c_data[0] = ovr_math.Matrix4f.RotationX(angle)
 
         return to_return
 
     @staticmethod
-    def rotation_y(float angle=0.0):
+    def rotationY(float angle=0.0):
         cdef ovrMatrix4f to_return = ovrMatrix4f()
         (<ovrMatrix4f>to_return).c_data[0] = ovr_math.Matrix4f.RotationY(angle)
 
         return to_return
 
     @staticmethod
-    def rotation_z(float angle=0.0):
+    def rotationZ(float angle=0.0):
         cdef ovrMatrix4f to_return = ovrMatrix4f()
         (<ovrMatrix4f>to_return).c_data[0] = ovr_math.Matrix4f.RotationZ(angle)
 
         return to_return
 
     @staticmethod
-    def look_at(ovrVector3f eye, ovrVector3f at, ovrVector3f up):
+    def lookAt(ovrVector3f eye, ovrVector3f at, ovrVector3f up):
         cdef ovrMatrix4f to_return = ovrMatrix4f()
         (<ovrMatrix4f>to_return).c_data[0] = ovr_math.Matrix4f.LookAtRH(
             eye.c_data[0], at.c_data[0], up.c_data[0])
@@ -1686,7 +1682,7 @@ cdef class ovrMatrix4f:
         return to_return
 
     @staticmethod
-    def ortho_2d(float w, float h):
+    def ortho2d(float w, float h):
         cdef ovrMatrix4f to_return = ovrMatrix4f()
         (<ovrMatrix4f>to_return).c_data[0] = ovr_math.Matrix4f.Ortho2D(w, h)
 
@@ -1710,7 +1706,7 @@ cdef dict texture_format_lut = {
 
 texture_formats = list(texture_format_lut.keys())
 
-def alloc_swap_chain(ovrTextureSwapChainDesc swap_desc):
+def allocSwapChain(ovrTextureSwapChainDesc swap_desc):
     """Allocate a new swap chain object with the specified parameters. If
     successful, an integer is returned which is used to reference the swap
     chain. You can allocate up-to 32 swap chains.
@@ -1743,7 +1739,7 @@ def alloc_swap_chain(ovrTextureSwapChainDesc swap_desc):
 # Free or destroy a swap chain. The handle will be made available after this
 # call.
 #
-def free_swap_chain(int sc):
+def freeSwapChain(int sc):
     """Free or destroy a swap chain. The handle will be made available after
     this call.
 
@@ -1758,7 +1754,7 @@ def free_swap_chain(int sc):
 # Get the next available texture in the specified swap chain. Use the returned
 # value as a frame buffer texture.
 #
-def get_swap_chain_buffer(int sc):
+def getTextureSwapChainBufferGL(int sc):
     cdef int current_idx = 0
     cdef unsigned int tex_id = 0
     cdef ovr_capi.ovrResult result
@@ -1785,19 +1781,19 @@ def get_swap_chain_buffer(int sc):
 # Session Functions
 # -----------------
 #
-cpdef bint is_oculus_service_running(int timeout_milliseconds=100):
+cpdef bint isOculusServiceRunning(int timeout_milliseconds=100):
     cdef ovr_capi_util.ovrDetectResult result = ovr_capi_util.ovr_Detect(
         timeout_milliseconds)
 
     return <bint>result.IsOculusServiceRunning
 
-cpdef bint is_hmd_connected(int timeout_milliseconds=100):
+cpdef bint isHmdConnected(int timeout_milliseconds=100):
     cdef ovr_capi_util.ovrDetectResult result = ovr_capi_util.ovr_Detect(
         timeout_milliseconds)
 
     return <bint>result.IsOculusHMDConnected
 
-cpdef void start_session():
+cpdef void startSession():
     """Start a new session. Control is handed over to the application from
     Oculus Home. 
     
@@ -1837,7 +1833,7 @@ cpdef void start_session():
     #_eye_layer_.Fov[0] = _eye_render_desc_[0].Fov
     #_eye_layer_.Fov[1] = _eye_render_desc_[1].Fov
 
-cpdef void end_session():
+cpdef void endSession():
     """End the current session. 
     
     Clean-up routines are executed that destroy all swap chains and mirror 
@@ -1874,51 +1870,51 @@ cdef class ovrHmdDesc(object):
         return <int>self.c_data[0].Type
 
     @property
-    def product_name(self):
+    def ProductName(self):
         return self.c_ovrHmdDesc.ProductName.decode('utf-8')
 
     @property
-    def manufacturer(self):
+    def Manufacturer(self):
         return self.c_ovrHmdDesc.Manufacturer.decode('utf-8')
 
     @property
-    def vendor_id(self):
+    def VendorId(self):
         return <int>self.c_ovrHmdDesc.VendorId
 
     @property
-    def product_id(self):
+    def ProductId(self):
         return <int>self.c_ovrHmdDesc.ProductId
 
     @property
-    def serial_number(self):
+    def SerialNumber(self):
         return self.c_ovrHmdDesc.SerialNumber.decode('utf-8')
 
     @property
-    def firmware_major(self):
+    def FirmwareMajor(self):
         return <int>self.c_ovrHmdDesc.FirmwareMajor
 
     @property
-    def firmware_minor(self):
+    def FirmwareMinor(self):
         return <int>self.c_ovrHmdDesc.FirmwareMinor
 
     @property
-    def available_hmd_caps(self):
+    def AvailableHmdCaps(self):
         return <int>self.c_ovrHmdDesc.AvailableHmdCaps
 
     @property
-    def default_hmd_caps(self):
+    def DefaultHmdCaps(self):
         return <int>self.c_ovrHmdDesc.DefaultHmdCaps
 
     @property
-    def available_tracking_caps(self):
+    def AvailableTrackingCaps(self):
         return <int>self.c_ovrHmdDesc.AvailableTrackingCaps
 
     @property
-    def default_tracking_caps(self):
+    def DefaultTrackingCaps(self):
         return <int>self.c_ovrHmdDesc.DefaultTrackingCaps
 
     @property
-    def default_eye_fov(self):
+    def DefaultEyeFov(self):
         cdef ovrFovPort default_fov_left = ovrFovPort()
         cdef ovrFovPort default_fov_right = ovrFovPort()
 
@@ -1930,7 +1926,7 @@ cdef class ovrHmdDesc(object):
         return default_fov_left, default_fov_right
 
     @property
-    def max_eye_fov(self):
+    def MaxEyeFov(self):
         cdef ovrFovPort max_fov_left = ovrFovPort()
         cdef ovrFovPort max_fov_right = ovrFovPort()
 
@@ -1940,27 +1936,27 @@ cdef class ovrHmdDesc(object):
         return max_fov_left, max_fov_right
 
     @property
-    def resolution(self):
+    def Resolution(self):
         cdef ovr_capi.ovrSizei resolution = self.c_ovrHmdDesc.Resolution
 
         return resolution.x, resolution.y
 
     @property
-    def display_refresh_rate(self):
+    def DisplayRefreshRate(self):
         return self.c_ovrHmdDesc.DisplayRefreshRate
 
 
-cpdef ovrHmdDesc get_hmd_desc():
+cpdef ovrHmdDesc getHmdDesc():
     """Get general information about the connected HMD. Information such as the
     serial number can identify a specific unit, etc.
     
-    :return: ovrHmdDesc 
+    :return: dict 
     
     """
-    global _ptr_session_, _hmd_desc_
+    global _ptr_session_
     cdef ovrHmdDesc to_return = ovrHmdDesc()
-    _hmd_desc_ = ovr_capi.ovr_GetHmdDesc(_ptr_session_)
-    (<ovrHmdDesc>to_return).c_ovrHmdDesc = _hmd_desc_
+    (<ovrHmdDesc>to_return).c_ovrHmdDesc = ovr_capi.ovr_GetHmdDesc(
+        _ptr_session_)
 
     return to_return
 
@@ -2037,70 +2033,70 @@ cdef class ovrTextureSwapChainDesc:
         self.c_ovrTextureSwapChainDesc.BindFlags = ovr_capi.ovrTextureBind_None
 
     @property
-    def type(self):
+    def Type(self):
         return <int>self.c_ovrTextureSwapChainDesc.Type
 
-    @type.setter
-    def type(self, int value):
+    @Type.setter
+    def Type(self, int value):
         self.c_ovrTextureSwapChainDesc.Type = <ovr_capi.ovrTextureType>value
 
     @property
-    def format(self):
+    def Format(self):
         return <int>self.c_ovrTextureSwapChainDesc.Format
 
-    @format.setter
-    def format(self, int value):
+    @Format.setter
+    def Format(self, int value):
         self.c_ovrTextureSwapChainDesc.Format = <ovr_capi.ovrTextureFormat>value
 
     @property
-    def array_size(self):
+    def ArraySize(self):
         return <int>self.c_ovrTextureSwapChainDesc.ArraySize
 
-    @array_size.setter
-    def array_size(self, int value):
+    @ArraySize.setter
+    def ArraySize(self, int value):
         self.c_ovrTextureSwapChainDesc.ArraySize = value
 
     @property
-    def width(self):
+    def Width(self):
         return <int>self.c_ovrTextureSwapChainDesc.Width
 
-    @width.setter
-    def width(self, int value):
+    @Width.setter
+    def Width(self, int value):
         self.c_ovrTextureSwapChainDesc.Width = value
 
     @property
-    def height(self):
+    def Height(self):
         return <int>self.c_ovrTextureSwapChainDesc.Height
 
-    @height.setter
-    def height(self, int value):
+    @Height.setter
+    def Height(self, int value):
         self.c_ovrTextureSwapChainDesc.Height = value
 
     @property
-    def mip_levels(self):
+    def MipLevels(self):
         return <int>self.c_ovrTextureSwapChainDesc.MipLevels
 
-    @mip_levels.setter
-    def mip_levels(self, int value):
+    @MipLevels.setter
+    def MipLevels(self, int value):
         self.c_ovrTextureSwapChainDesc.MipLevels = value
 
     @property
-    def sample_count(self):
+    def SampleCount(self):
         return <int>self.c_ovrTextureSwapChainDesc.SampleCount
 
-    @sample_count.setter
-    def sample_count(self, int value):
+    @SampleCount.setter
+    def SampleCount(self, int value):
         self.c_ovrTextureSwapChainDesc.SampleCount = value
 
     @property
-    def static_image(self):
+    def StaticImage(self):
         return <bint>self.c_ovrTextureSwapChainDesc.StaticImage
 
-    @static_image.setter
-    def static_image(self, bint value):
+    @StaticImage.setter
+    def StaticImage(self, bint value):
         self.c_ovrTextureSwapChainDesc.StaticImage = <ovr_capi.ovrBool>value
 
-cpdef int create_texture_swap_chain_gl(
+cpdef int createTextureSwapChainGL(
         ovrTextureSwapChainDesc swap_desc):
     """Allocate a new swap chain object with the specified parameters. If
     successful, an integer is returned which is used to reference the swap
@@ -2133,85 +2129,6 @@ cpdef int create_texture_swap_chain_gl(
     # return the handle
     return sc
 
-cpdef ovrTextureSwapChainDesc get_texture_swap_chain_desc(
-        ovrTextureSwapChain swap_chain):
-    global _swap_chain_
-    cdef ovrTextureSwapChainDesc to_return = ovrTextureSwapChainDesc()
-
-    # create the swap chain
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetTextureSwapChainDesc(
-        _ptr_session_,
-        _swap_chain_[swap_chain.c_data[0]],
-        &to_return.c_ovrTextureSwapChainDesc)
-
-    if debug_mode:
-        check_result(result)
-
-    return to_return
-
-ovrMirrorOption_Default = ovr_capi.ovrMirrorOption_Default
-ovrMirrorOption_PostDistortion = ovr_capi.ovrMirrorOption_PostDistortion
-ovrMirrorOption_LeftEyeOnly = ovr_capi.ovrMirrorOption_LeftEyeOnly
-ovrMirrorOption_RightEyeOnly = ovr_capi.ovrMirrorOption_RightEyeOnly
-ovrMirrorOption_IncludeGuardian = ovr_capi.ovrMirrorOption_IncludeGuardian
-ovrMirrorOption_IncludeNotifications = ovr_capi.ovrMirrorOption_IncludeNotifications
-ovrMirrorOption_IncludeSystemGui = ovr_capi.ovrMirrorOption_IncludeSystemGui
-
-cdef class ovrMirrorTextureDesc:
-    """ovrTextureSwapChainDesc
-
-    """
-    # no data pointer here
-    cdef ovr_capi.ovrMirrorTextureDesc c_ovrMirrorTextureDesc
-
-    def __cinit__(
-            self,
-            int _format=OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
-            int width=800,
-            int height=600,
-            int mirror_options=ovrMirrorOption_Default):
-
-        self.c_ovrMirrorTextureDesc.Type = <ovr_capi.ovrTextureType>type
-        self.c_ovrMirrorTextureDesc.Format = <ovr_capi.ovrTextureFormat>_format
-        self.c_ovrMirrorTextureDesc.Width = width
-        self.c_ovrMirrorTextureDesc.Height = height
-
-        self.c_ovrMirrorTextureDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
-
-        self.c_ovrMirrorTextureDesc.MirrorOptions = <int32_t>mirror_options
-
-    @property
-    def format(self):
-        return <int>self.c_ovrMirrorTextureDesc.Format
-
-    @format.setter
-    def format(self, int value):
-        self.c_ovrMirrorTextureDesc.Format = <ovr_capi.ovrTextureFormat>value
-
-    @property
-    def width(self):
-        return <int>self.c_ovrMirrorTextureDesc.Width
-
-    @width.setter
-    def width(self, int value):
-        self.c_ovrMirrorTextureDesc.Width = value
-
-    @property
-    def height(self):
-        return <int>self.c_ovrMirrorTextureDesc.Height
-
-    @height.setter
-    def height(self, int value):
-        self.c_ovrMirrorTextureDesc.Height = value
-
-    @property
-    def mirror_options(self):
-        return <int>self.c_ovrMirrorTextureDesc.MirrorOptions
-
-    @mirror_options.setter
-    def mirror_options(self, int value):
-        self.c_ovrMirrorTextureDesc.Height = <int32_t>value
-
 # types
 ovrLayerType_EyeFov = ovr_capi.ovrLayerType_EyeFov
 
@@ -2224,7 +2141,7 @@ ovrEye_Left = ovr_capi.ovrEye_Left
 ovrEye_Right = ovr_capi.ovrEye_Right
 ovrEye_Count = ovr_capi.ovrEye_Count
 
-cpdef ovrSizei get_fov_texture_size(
+cpdef ovrSizei getFovTextureSize(
         int eye_type,
         ovrFovPort fov,
         float texels_per_pixel=1.0):
@@ -2247,7 +2164,7 @@ cpdef ovrSizei get_fov_texture_size(
 
     return to_return
 
-cpdef void configure_eye_render_desc(int eye_type, ovrFovPort fov):
+cpdef void configEyeRenderDesc(int eye_type, ovrFovPort fov):
     """Compute eye render descriptors for a given eye. 
     
     Each eye has an internal 'ovrEyeRenderDesc' structure which stores computed
@@ -2271,8 +2188,8 @@ cpdef void configure_eye_render_desc(int eye_type, ovrFovPort fov):
     # set the render layer FOV to what is computed
     _eye_layer_.Fov[eye_type] = _eye_render_desc_[eye_type].Fov
 
-cpdef tuple get_buffer_size(str fov_type='recommended',
-                            float texel_per_pixel=1.0):
+cpdef tuple getBufferSize(str fov_type='recommended',
+                          float texel_per_pixel=1.0):
     """Compute the recommended buffer (texture) size for a specified 
     configuration.
     
@@ -2313,7 +2230,7 @@ cpdef tuple get_buffer_size(str fov_type='recommended',
 
     return buffer_size.w, buffer_size.h
 
-cpdef void set_render_viewport(str eye, int x, int y, int width, int height):
+cpdef void setRenderViewport(str eye, int x, int y, int width, int height):
     """
     
     :param x: int
@@ -2336,7 +2253,7 @@ cpdef void set_render_viewport(str eye, int x, int y, int width, int height):
     _eye_layer_.Viewport[buffer].Size.w = width
     _eye_layer_.Viewport[buffer].Size.h = height
 
-cpdef void set_render_swap_chain(str eye, object swap_chain):
+cpdef void setRenderSwapChain(str eye, object swap_chain):
     """
     
     :param swap_chain: int
@@ -2359,7 +2276,7 @@ cpdef void set_render_swap_chain(str eye, object swap_chain):
         _eye_layer_.ColorTexture[buffer] = NULL
 
 
-cpdef tuple get_render_viewport(str eye='left'):
+cpdef tuple getRenderViewport(str eye='left'):
     global _ptr_session_, _eye_layer_
     if eye == 'left':
         return (<int>_eye_layer_.Viewport[0].Pos.x,
@@ -2398,44 +2315,47 @@ cdef class ovrPoseStatef(object):
         self.field_linear_acceleration = ovrVector3f()
 
     @property
-    def the_pose(self):
+    def ThePose(self):
         cdef ovrPosef to_return = ovrPosef()
         (<ovrPosef>to_return).c_data[0] = <ovr_math.Posef>self.c_data[0].ThePose
 
         return to_return
 
     @property
-    def angular_velocity(self):
+    def AngularVelocity(self):
         self.field_angular_velocity.c_data[0] = \
             (<ovr_math.Vector3f>self.c_data[0].AngularVelocity)
 
         return self.field_angular_velocity
 
     @property
-    def linear_velocity(self):
+    def LinearVelocity(self):
         self.field_linear_velocity.c_data[0] = \
             (<ovr_math.Vector3f>self.c_data[0].LinearVelocity)
 
         return self.field_linear_velocity
 
     @property
-    def angular_acceleration(self):
+    def AngularAcceleration(self):
         self.field_angular_acceleration.c_data[0] = \
             (<ovr_math.Vector3f>self.c_data[0].AngularAcceleration)
 
         return self.field_angular_acceleration
 
     @property
-    def linear_acceleration(self):
+    def LinearAcceleration(self):
         self.field_linear_acceleration.c_data[0] = \
             (<ovr_math.Vector3f>self.c_data[0].LinearAcceleration)
 
         return self.field_linear_acceleration
 
     @property
-    def time_in_seconds(self):
+    def TimeInSeconds(self):
         return <double>self.c_data[0].TimeInSeconds
 
+
+ovrStatus_OrientationTracked = ovr_capi.ovrStatus_OrientationTracked
+ovrStatus_PositionTracked = ovr_capi.ovrStatus_PositionTracked
 
 cdef class TrackingStateData(object):
     """Structure which stores tracking state information. All attributes are
@@ -2449,40 +2369,18 @@ cdef class TrackingStateData(object):
         self.c_data = &self.c_ovrTrackingState
 
     @property
-    def head_pose(self):
+    def HeadPose(self):
         cdef ovrPoseStatef to_return = ovrPoseStatef()
         (<ovrPoseStatef>to_return).c_data[0] = self.c_data[0].HeadPose
 
         return to_return
 
     @property
-    def status_flags(self):
+    def StatusFlags(self):
         return <unsigned int>self.c_data[0].StatusFlags
 
     @property
-    def is_head_position_tracked(self):
-        cdef unsigned int status_flags = self.c_data[0].StatusFlags
-        cdef unsigned int status_bits = ovr_capi.ovrStatus_PositionTracked
-
-        return <bint>(status_flags & status_bits) == status_bits
-
-    @property
-    def is_head_orientation_tracked(self):
-        cdef unsigned int status_flags = self.c_data[0].StatusFlags
-        cdef unsigned int status_bits = ovr_capi.ovrStatus_OrientationTracked
-
-        return <bint>(status_flags & status_bits) == status_bits
-
-    @property
-    def is_head_tracked(self):
-        cdef unsigned int status_flags = self.c_data[0].StatusFlags
-        cdef unsigned int status_bits = ovr_capi.ovrStatus_OrientationTracked
-        status_bits |= ovr_capi.ovrStatus_PositionTracked
-
-        return <bint>(status_flags & status_bits) == status_bits
-
-    @property
-    def hand_poses(self):
+    def HandPoses(self):
         cdef ovrPoseStatef left_hand_pose = ovrPoseStatef()
         (<ovrPoseStatef>left_hand_pose).c_data[0] = self.c_data[0].HandPoses[0]
 
@@ -2492,11 +2390,11 @@ cdef class TrackingStateData(object):
         return left_hand_pose, right_hand_pose
 
     @property
-    def hand_status_flags(self):
+    def HandStatusFlags(self):
         return <unsigned int>self.c_data[0].HandStatusFlags[0], \
                <unsigned int>self.c_data[0].HandStatusFlags[1]
 
-cpdef TrackingStateData get_tracking_state(
+cpdef TrackingStateData getTrackingState(
         double abs_time,
         bint latency_marker=True):
 
@@ -2511,12 +2409,11 @@ cpdef TrackingStateData get_tracking_state(
 
     return to_return
 
-cpdef void set_tracking_origin_type(str origin='floor'):
+cpdef void setTrackingOriginType(str origin='floor'):
     """Set the tracking origin type. Can either be 'floor' or 'eye'.
     
     :param origin: str
     :return: 
-    
     """
     global _ptr_session_
     cdef ovr_capi.ovrResult result
@@ -2530,11 +2427,10 @@ cpdef void set_tracking_origin_type(str origin='floor'):
     if debug_mode:
         check_result(result)
 
-cpdef str get_tracking_origin_type():
+cpdef str getTrackingOriginType():
     """Get the current tracking origin type.
     
     :return: str
-    
     """
     global _ptr_session_
     cdef ovr_capi.ovrTrackingOrigin origin = ovr_capi.ovr_GetTrackingOriginType(
@@ -2545,7 +2441,7 @@ cpdef str get_tracking_origin_type():
     elif origin == ovr_capi.ovrTrackingOrigin_EyeLevel:
         return 'eye'
 
-cpdef void recenter_tracking_origin():
+cpdef void recenterTrackingOrigin():
     """Recenter the tracking origin.
     
     :return: None
@@ -2558,7 +2454,7 @@ cpdef void recenter_tracking_origin():
     if debug_mode:
         check_result(result)
 
-cpdef void specify_tracking_origin(ovrPosef origin_pose):
+cpdef void specifyTrackingOrigin(ovrPosef originPose):
     """Specify a custom tracking origin.
     
     :param origin_pose: ovrVector3f
@@ -2566,12 +2462,12 @@ cpdef void specify_tracking_origin(ovrPosef origin_pose):
     """
     global _ptr_session_
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_SpecifyTrackingOrigin(
-        _ptr_session_, <ovr_capi.ovrPosef>origin_pose.c_data[0])
+        _ptr_session_, <ovr_capi.ovrPosef>originPose.c_data[0])
 
     if debug_mode:
         check_result(result)
 
-cpdef tuple calc_eye_poses(TrackingStateData tracking_state):
+cpdef tuple calcEyePoses(TrackingStateData trackingState):
     """Calculate eye poses from tracking state data.
     
     Poses are stored internally for conversion to transformation matrices by 
@@ -2583,10 +2479,10 @@ cpdef tuple calc_eye_poses(TrackingStateData tracking_state):
     :return: 
     
     """
-    global _hmd_to_eye_view_pose_
+    global _hmd_to_eye_view_pose_, _eye_layer_
 
     ovr_capi_util.ovr_CalcEyePoses2(
-        tracking_state.c_data[0].HeadPose.ThePose,
+        trackingState.c_data[0].HeadPose.ThePose,
         _hmd_to_eye_view_pose_,
         _eye_layer_.RenderPose)
 
@@ -2597,7 +2493,7 @@ cpdef tuple calc_eye_poses(TrackingStateData tracking_state):
 
     return eye_pose0, eye_pose1
 
-cpdef ovrMatrix4f get_eye_view_matrix(ovrPosef eye_pose):
+cpdef ovrMatrix4f getEyeViewMatrix(ovrPosef eyePose):
     """Get the view matrix from the last calculated head pose. This should be
     called once per frame if real-time head tracking is desired.
     
@@ -2607,20 +2503,20 @@ cpdef ovrMatrix4f get_eye_view_matrix(ovrPosef eye_pose):
     """
     cdef ovrVector3f pos = ovrVector3f()
     cdef ovrMatrix4f rot = ovrMatrix4f()
-    pos.c_data[0] = <ovr_math.Vector3f>eye_pose.c_data.Translation
-    rot.c_data[0] = ovr_math.Matrix4f(<ovr_math.Quatf>eye_pose.c_data.Rotation)
+    pos.c_data[0] = <ovr_math.Vector3f>eyePose.c_data.Translation
+    rot.c_data[0] = ovr_math.Matrix4f(<ovr_math.Quatf>eyePose.c_data.Rotation)
 
     cdef ovrVector3f final_up = \
         (<ovrVector3f>rot).transform(ovrVector3f(0, 1, 0))
     cdef ovrVector3f final_forward = \
         (<ovrVector3f>rot).transform(ovrVector3f(0, 0, -1))
-    cdef ovrMatrix4f view = \
-        ovrMatrix4f.look_at(pos, pos + final_forward, final_up)
+    cdef ovrMatrix4f viewMatrix = \
+        ovrMatrix4f.lookAt(pos, pos + final_forward, final_up)
 
-    return view
+    return viewMatrix
 
-cpdef ovrMatrix4f get_eye_projection_matrix(
-        str eye='left',
+cpdef ovrMatrix4f getEyeProjectionMatrix(
+        int eye,
         float near_clip=0.2,
         float far_clip=1000.0):
     """Get the projection matrix for a specified eye. These do not need to be
@@ -2633,45 +2529,52 @@ cpdef ovrMatrix4f get_eye_projection_matrix(
     :return: 
     
     """
-    cdef int buffer = 0 if eye == 'left' else 1
     global _eye_layer_
 
-    cdef ovrMatrix4f proj = ovrMatrix4f()
-    (<ovrMatrix4f>proj).c_data[0] = \
+    cdef ovrMatrix4f projectionMatrix = ovrMatrix4f()
+    (<ovrMatrix4f>projectionMatrix).c_data[0] = \
         <ovr_math.Matrix4f>ovr_capi_util.ovrMatrix4f_Projection(
-            _eye_layer_.Fov[buffer],
+            _eye_layer_.Fov[eye],
             near_clip,
             far_clip,
             ovr_capi_util.ovrProjection_ClipRangeOpenGL)
 
-    return proj
+    return projectionMatrix
 
 # -------------------------
 # Frame Rendering Functions
 # -------------------------
 #
-cpdef double get_display_time(unsigned int frame_index=0, bint predicted=True):
+cpdef double getDisplayTime(unsigned int frameIndex=0, bint predicted=True):
+    """Get the current display time. If 'predicted=True', the predicted 
+    mid-frame time is returned.
+    
+    :param frameIndex: int
+    :param predicted: boolean
+    :return: float
+    
+    """
     cdef double t_secs
     if predicted:
         t_secs = ovr_capi.ovr_GetPredictedDisplayTime(
-            _ptr_session_, frame_index)
+            _ptr_session_, frameIndex)
     else:
         t_secs = ovr_capi.ovr_GetTimeInSeconds()
 
     return t_secs
 
-cpdef int wait_to_begin_frame(unsigned int frame_index):
+cpdef int waitToBeginFrame(unsigned int frameIndex=0):
     cdef ovr_capi.ovrResult result = 0
-    result = ovr_capi.ovr_WaitToBeginFrame(_ptr_session_, frame_index)
+    result = ovr_capi.ovr_WaitToBeginFrame(_ptr_session_, frameIndex)
 
     return <int>result
 
-cpdef int begin_frame(unsigned int frame_index):
-    result = ovr_capi.ovr_BeginFrame(_ptr_session_, frame_index)
+cpdef int beginFrame(unsigned int frameIndex=0):
+    result = ovr_capi.ovr_BeginFrame(_ptr_session_, frameIndex)
 
     return <int>result
 
-cpdef void commit_swap_chain(int sc):
+cpdef void commitSwapChain(int sc):
     global _ptr_session_, _swap_chain_
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_CommitTextureSwapChain(
         _ptr_session_,
@@ -2680,12 +2583,12 @@ cpdef void commit_swap_chain(int sc):
     if debug_mode:
         check_result(result)
 
-cpdef void end_frame(unsigned int frame_index=0):
+cpdef void endFrame(unsigned int frameIndex=0):
     global _eye_layer_
     cdef ovr_capi.ovrLayerHeader* layers = &_eye_layer_.Header
     result = ovr_capi.ovr_EndFrame(
         _ptr_session_,
-        frame_index,
+        frameIndex,
         NULL,
         &layers,
         <unsigned int>1)
@@ -2700,7 +2603,67 @@ cpdef void end_frame(unsigned int frame_index=0):
 # Mirror Texture Functions
 # ------------------------
 #
-cpdef void create_mirror_texture(ovrMirrorTextureDesc mirror_desc):
+ovrMirrorOption_Default = ovr_capi.ovrMirrorOption_Default
+ovrMirrorOption_PostDistortion = ovr_capi.ovrMirrorOption_PostDistortion
+ovrMirrorOption_LeftEyeOnly = ovr_capi.ovrMirrorOption_LeftEyeOnly
+ovrMirrorOption_RightEyeOnly = ovr_capi.ovrMirrorOption_RightEyeOnly
+ovrMirrorOption_IncludeGuardian = ovr_capi.ovrMirrorOption_IncludeGuardian
+ovrMirrorOption_IncludeNotifications = ovr_capi.ovrMirrorOption_IncludeNotifications
+ovrMirrorOption_IncludeSystemGui = ovr_capi.ovrMirrorOption_IncludeSystemGui
+
+cdef class ovrMirrorTextureDesc:
+    """ovrTextureSwapChainDesc
+    """
+    # no data pointer here
+    cdef ovr_capi.ovrMirrorTextureDesc c_ovrMirrorTextureDesc
+
+    def __cinit__(
+            self,
+            int _format=OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
+            int width=800,
+            int height=600,
+            int mirrorOptions=ovrMirrorOption_Default):
+
+        self.c_ovrMirrorTextureDesc.Format = <ovr_capi.ovrTextureFormat>_format
+        self.c_ovrMirrorTextureDesc.Width = width
+        self.c_ovrMirrorTextureDesc.Height = height
+        self.c_ovrMirrorTextureDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
+        self.c_ovrMirrorTextureDesc.MirrorOptions = <int32_t>mirrorOptions
+
+    @property
+    def Format(self):
+        return <int>self.c_ovrMirrorTextureDesc.Format
+
+    @Format.setter
+    def Format(self, int value):
+        self.c_ovrMirrorTextureDesc.Format = <ovr_capi.ovrTextureFormat>value
+
+    @property
+    def Width(self):
+        return <int>self.c_ovrMirrorTextureDesc.Width
+
+    @Width.setter
+    def Width(self, int value):
+        self.c_ovrMirrorTextureDesc.Width = value
+
+    @property
+    def Height(self):
+        return <int>self.c_ovrMirrorTextureDesc.Height
+
+    @Height.setter
+    def Height(self, int value):
+        self.c_ovrMirrorTextureDesc.Height = value
+
+    @property
+    def MirrorOptions(self):
+        return <int>self.c_ovrMirrorTextureDesc.MirrorOptions
+
+    @MirrorOptions.setter
+    def MirrorOptions(self, int value):
+        self.c_ovrMirrorTextureDesc.MirrorOptions = <int32_t>value
+
+
+cpdef void setupMirrorTexture(ovrMirrorTextureDesc mirrorDesc):
     """Create a mirror texture buffer.
     
     :param width: int 
@@ -2710,12 +2673,12 @@ cpdef void create_mirror_texture(ovrMirrorTextureDesc mirror_desc):
     """
     global _mirror_texture_
     cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateMirrorTextureGL(
-        _ptr_session_, &mirror_desc.c_ovrMirrorTextureDesc, &_mirror_texture_)
+        _ptr_session_, &mirrorDesc.c_ovrMirrorTextureDesc, &_mirror_texture_)
 
     if debug_mode:
         check_result(result)
 
-cpdef unsigned int get_mirror_texture():
+cpdef unsigned int getMirrorTexture():
     """Get the mirror texture handle.
     
     :return: 
@@ -2729,52 +2692,65 @@ cpdef unsigned int get_mirror_texture():
 
     return <unsigned int>out_tex_id
 
+# types
+ovrLayerType_EyeFov = ovr_capi.ovrLayerType_EyeFov
+
+# layer header flags
+ovrLayerFlag_HighQuality = ovr_capi.ovrLayerFlag_HighQuality
+ovrLayerFlag_TextureOriginAtBottomLeft = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
+ovrLayerFlag_HeadLocked = ovr_capi.ovrLayerFlag_HeadLocked
+
 # ------------------------
 # Session Status Functions
 # ------------------------
 #
-cpdef void update_session_status():
-    """Update session status information. Must be called at least once every 
-    render cycle.
+cdef class ovrSessionStatus(object):
+    cdef ovr_capi.ovrSessionStatus* c_data
+    cdef ovr_capi.ovrSessionStatus  c_ovrSessionStatus
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data = &self.c_ovrSessionStatus
+
+    def IsVisible(self):
+        return <bint>self.c_data.IsVisible
+
+    def HmdPresent(self):
+        return <bint>self.c_data.HmdPresent
+
+    def DisplayLost(self):
+        return <bint>self.c_data.DisplayLost
+
+    def ShouldQuit(self):
+        return <bint>self.c_data.ShouldQuit
+
+    def ShouldRecenter(self):
+        return <bint>self.c_data.ShouldRecenter
+
+    def HasInputFocus(self):
+        return <bint>self.c_data.HasInputFocus
+
+    def OverlayPresent(self):
+        return <bint>self.c_data.OverlayPresent
+
+    def DepthRequested(self):
+        return <bint>self.c_data.DepthRequested
+
+
+cpdef ovrSessionStatus getSessionStatus():
+    """Get the current session status.
     
-    :return: None 
+    :return: ovrSessionStatus
     
     """
-    global _ptr_session_, _session_status_
+    global _ptr_session_
+    cdef ovrSessionStatus to_return = ovrSessionStatus()
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetSessionStatus(
-        _ptr_session_, &_session_status_)
+        _ptr_session_, &(<ovrSessionStatus>to_return).c_data[0])
 
-cpdef bint is_visible():
-    global _session_status_
-    return (<ovr_capi.ovrSessionStatus>_session_status_).IsVisible
+    if debug_mode:
+        check_result(result)
 
-cpdef bint hmd_present():
-    global _session_status_
-    return (<ovr_capi.ovrSessionStatus>_session_status_).HmdPresent
-
-cpdef bint display_lost():
-    global _session_status_
-    return (<ovr_capi.ovrSessionStatus>_session_status_).DisplayLost
-
-cpdef bint should_quit():
-    global _session_status_
-    return (<ovr_capi.ovrSessionStatus>_session_status_).ShouldQuit
-
-cpdef bint should_recenter():
-    global _session_status_
-    return (<ovr_capi.ovrSessionStatus>_session_status_).ShouldRecenter
-
-cpdef bint has_input_focus():
-    global _session_status_
-    return (<ovr_capi.ovrSessionStatus>_session_status_).HasInputFocus
-
-cpdef bint overlay_present():
-    global _session_status_
-    return (<ovr_capi.ovrSessionStatus>_session_status_).OverlayPresent
-
-cpdef bint depth_requested():
-    global _session_status_
-    return (<ovr_capi.ovrSessionStatus>_session_status_).DepthRequested
+    return to_return
 
 # -------------------------
 # HID Classes and Functions
@@ -2792,33 +2768,33 @@ cdef class ovrInputState(object):
         self.c_data = &self.c_ovrInputState
 
     @property
-    def time_in_seconds(self):
+    def TimeInSeconds(self):
         return <double>self.c_data.TimeInSeconds
 
     @property
-    def buttons(self):
+    def Buttons(self):
         return self.c_data[0].Buttons
 
     @property
-    def touches(self):
+    def Touches(self):
         return self.c_data[0].Touches
 
     @property
-    def index_trigger(self):
+    def IndexTrigger(self):
         cdef float index_trigger_left = self.c_data[0].IndexTrigger[0]
         cdef float index_trigger_right = self.c_data[0].IndexTrigger[1]
 
         return index_trigger_left, index_trigger_right
 
     @property
-    def hand_trigger(self):
+    def HandTrigger(self):
         cdef float hand_trigger_left = self.c_data[0].HandTrigger[0]
         cdef float hand_trigger_right = self.c_data[0].HandTrigger[1]
 
         return hand_trigger_left, hand_trigger_right
 
     @property
-    def thumbstick(self):
+    def Thumbstick(self):
         cdef float thumbstick_x0 = self.c_data[0].Thumbstick[0].x
         cdef float thumbstick_y0 = self.c_data[0].Thumbstick[0].y
         cdef float thumbstick_x1 = self.c_data[0].Thumbstick[1].x
@@ -2827,7 +2803,7 @@ cdef class ovrInputState(object):
         return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
 
     @property
-    def controller_type(self):
+    def ControllerType(self):
         cdef int ctrl_type = <int>self.c_data[0].ControllerType
         if ctrl_type == ovr_capi.ovrControllerType_XBox:
             return 'xbox'
@@ -2843,21 +2819,21 @@ cdef class ovrInputState(object):
             return None
 
     @property
-    def index_trigger_no_deadzone(self):
+    def IndexTriggerNoDeadzone(self):
         cdef float index_trigger_left = self.c_data[0].IndexTriggerNoDeadzone[0]
         cdef float index_trigger_right = self.c_data[0].IndexTriggerNoDeadzone[1]
 
         return index_trigger_left, index_trigger_right
 
     @property
-    def hand_trigger_no_deadzone(self):
+    def HandTriggerNoDeadzone(self):
         cdef float hand_trigger_left = self.c_data[0].HandTriggerNoDeadzone[0]
         cdef float hand_trigger_right = self.c_data[0].HandTriggerNoDeadzone[1]
 
         return hand_trigger_left, hand_trigger_right
 
     @property
-    def thumbstick_no_deadzone(self):
+    def ThumbstickNoDeadzone(self):
         cdef float thumbstick_x0 = self.c_data[0].ThumbstickNoDeadzone[0].x
         cdef float thumbstick_y0 = self.c_data[0].ThumbstickNoDeadzone[0].y
         cdef float thumbstick_x1 = self.c_data[0].ThumbstickNoDeadzone[1].x
@@ -2866,21 +2842,21 @@ cdef class ovrInputState(object):
         return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
 
     @property
-    def index_trigger_raw(self):
+    def IndexTriggerRaw(self):
         cdef float index_trigger_left = self.c_data[0].IndexTriggerRaw[0]
         cdef float index_trigger_right = self.c_data[0].IndexTriggerRaw[1]
 
         return index_trigger_left, index_trigger_right
 
     @property
-    def hand_trigger_raw(self):
+    def HandTriggerRaw(self):
         cdef float hand_trigger_left = self.c_data[0].HandTriggerRaw[0]
         cdef float hand_trigger_right = self.c_data[0].HandTriggerRaw[1]
 
         return hand_trigger_left, hand_trigger_right
 
     @property
-    def thumbstick_no_raw(self):
+    def ThumbstickRaw(self):
         cdef float thumbstick_x0 = self.c_data[0].ThumbstickRaw[0].x
         cdef float thumbstick_y0 = self.c_data[0].ThumbstickRaw[0].y
         cdef float thumbstick_x1 = self.c_data[0].ThumbstickRaw[1].x
@@ -2888,7 +2864,7 @@ cdef class ovrInputState(object):
 
         return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
 
-cpdef object get_input_state(str controller, object state_out=None):
+cpdef object getInputState(str controller, object stateOut=None):
     """Get a controller state as an object. If a 'InputStateData' object is
     passed to 'state_out', that object will be updated.
     
@@ -2914,22 +2890,22 @@ cpdef object get_input_state(str controller, object state_out=None):
     cdef ovr_capi.ovrInputState* ptr_state
     cdef ovrInputState to_return = ovrInputState()
 
-    if state_out is None:
+    if stateOut is None:
         ptr_state = &(<ovrInputState>to_return).c_ovrInputState
     else:
-        ptr_state = &(<ovrInputState>state_out).c_ovrInputState
+        ptr_state = &(<ovrInputState>stateOut).c_ovrInputState
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
         _ptr_session_,
         ctrl_type,
         ptr_state)
 
-    if state_out is None:
+    if stateOut is None:
         return None
 
     return to_return
 
-cpdef double poll_controller(str controller):
+cpdef double pollController(str controller):
     """Poll and update specified controller's state data. The time delta in 
     seconds between the current and previous controller state is returned.
     
@@ -2978,7 +2954,7 @@ cpdef double poll_controller(str controller):
     # return the time delta between the last time the controller was polled
     return ptr_ctrl[0].TimeInSeconds - ptr_ctrl_prev[0].TimeInSeconds
 
-cpdef double get_controller_abs_time(str controller):
+cpdef double getControllerAbsTime(str controller):
     """Get the absolute time the state of the specified controller was last 
     updated.
     
@@ -3002,11 +2978,11 @@ cpdef double get_controller_abs_time(str controller):
 
     return ptr_ctrl_state[0].TimeInSeconds
 
-cpdef tuple get_index_trigger_values(str controller, bint dead_zone=False):
+cpdef tuple getIndexTriggerValues(str controller, bint deadZone=False):
     """Get index trigger values for a specified controller.
     
     :param controller: str
-    :param deadzone: boolean
+    :param deadZone: boolean
     :return: tuple
     
     """
@@ -3028,7 +3004,7 @@ cpdef tuple get_index_trigger_values(str controller, bint dead_zone=False):
     cdef float index_trigger_right = 0.0
 
     # get the value with or without the deadzone
-    if not dead_zone:
+    if not deadZone:
         index_trigger_left = ptr_ctrl_state[0].IndexTriggerNoDeadzone[0]
         index_trigger_right = ptr_ctrl_state[0].IndexTriggerNoDeadzone[1]
     else:
@@ -3037,7 +3013,7 @@ cpdef tuple get_index_trigger_values(str controller, bint dead_zone=False):
 
     return index_trigger_left, index_trigger_right
 
-cpdef tuple get_hand_trigger_values(str controller, bint dead_zone=False):
+cpdef tuple getHandTriggerValues(str controller, bint deadZone=False):
     """Get hand trigger values for a specified controller.
     
     :param controller: str
@@ -3063,7 +3039,7 @@ cpdef tuple get_hand_trigger_values(str controller, bint dead_zone=False):
     cdef float hand_trigger_right = 0.0
 
     # get the value with or without the deadzone
-    if not dead_zone:
+    if not deadZone:
         hand_trigger_left = ptr_ctrl_state[0].HandTriggerNoDeadzone[0]
         hand_trigger_right = ptr_ctrl_state[0].HandTriggerNoDeadzone[1]
     else:
@@ -3087,7 +3063,7 @@ cdef float clip_input_range(float val):
 
     return val
 
-cpdef tuple get_thumbstick_values(str controller, bint dead_zone=False):
+cpdef tuple getThumbstickValues(str controller, bint deadZone=False):
     """Get thumbstick values for a specified controller.
     
     :param controller: 
@@ -3121,7 +3097,7 @@ cpdef tuple get_thumbstick_values(str controller, bint dead_zone=False):
     cdef float thumbstick1_y = 0.0
 
     # get the value with or without the deadzone
-    if not dead_zone:
+    if not deadZone:
         thumbstick0_x = ptr_ctrl[0].Thumbstick[0].x
         thumbstick0_y = ptr_ctrl[0].Thumbstick[0].y
         thumbstick1_x = ptr_ctrl[0].Thumbstick[1].x
@@ -3140,7 +3116,7 @@ cpdef tuple get_thumbstick_values(str controller, bint dead_zone=False):
 
     return (thumbstick0_x, thumbstick0_y), (thumbstick1_x, thumbstick1_y)
 
-cpdef bint get_buttons(str controller, object button_names, str trigger='continuous'):
+cpdef bint getButtons(str controller, object buttonNames, str trigger='continuous'):
     """Get the state of a specified button for a given controller. 
     
     Buttons to test are specified using their string names. Argument
@@ -3155,7 +3131,7 @@ cpdef bint get_buttons(str controller, object button_names, str trigger='continu
     the button is released.
     
     :param controller: str
-    :param touch_names: str, tuple or list
+    :param buttonNames: str, tuple or list
     :param trigger: str
     :return: boolean
     
@@ -3182,13 +3158,13 @@ cpdef bint get_buttons(str controller, object button_names, str trigger='continu
 
     cdef unsigned int button_bits = 0x00000000
     cdef int i, N
-    if isinstance(button_names, str):  # don't loop if a string is specified
-        button_bits |= ctrl_button_lut[button_names]
-    elif isinstance(button_names, (tuple, list)):
+    if isinstance(buttonNames, str):  # don't loop if a string is specified
+        button_bits |= ctrl_button_lut[buttonNames]
+    elif isinstance(buttonNames, (tuple, list)):
         # loop over all names and combine them
-        N = <int>len(button_names)
+        N = <int>len(buttonNames)
         for i in range(N):
-            button_bits |= ctrl_button_lut[button_names[i]]
+            button_bits |= ctrl_button_lut[buttonNames[i]]
 
     # test if the button was pressed
     cdef bint pressed
@@ -3207,7 +3183,7 @@ cpdef bint get_buttons(str controller, object button_names, str trigger='continu
 
     return pressed
 
-cpdef bint get_touches(str controller, object touch_names, str trigger='continuous'):
+cpdef bint getTouches(str controller, object touchNames, str trigger='continuous'):
     """Get touches for a specified device.
     
     Touches reveal information about the user's hand pose, for instance, whether 
@@ -3220,7 +3196,7 @@ cpdef bint get_touches(str controller, object touch_names, str trigger='continuo
     time the controller was polled last. 
     
     :param controller: str
-    :param touch_names: str, tuple or list
+    :param touchNames: str, tuple or list
     :param trigger: str
     :return: boolean
     
@@ -3247,26 +3223,26 @@ cpdef bint get_touches(str controller, object touch_names, str trigger='continuo
 
     cdef unsigned int touch_bits = 0x00000000
     cdef int i, N
-    if isinstance(touch_names, str):  # don't loop if a string is specified
-        touch_bits |= ctrl_button_lut[touch_names]
-    elif isinstance(touch_names, (tuple, list)):
+    if isinstance(touchNames, str):  # don't loop if a string is specified
+        touch_bits |= ctrl_button_lut[touchNames]
+    elif isinstance(touchNames, (tuple, list)):
         # loop over all names and combine them
-        N = <int>len(touch_names)
+        N = <int>len(touchNames)
         for i in range(N):
-            touch_bits |= ctrl_button_lut[touch_names[i]]
+            touch_bits |= ctrl_button_lut[touchNames[i]]
 
     # test if the button was pressed
     cdef bint touched
     if trigger == 'continuous':
-        touched = (ptr_ctrl.Buttons & touch_bits) == touch_bits
+        touched = (ptr_ctrl.Touches & touch_bits) == touch_bits
     elif trigger == 'rising' or trigger == 'pressed':
         # rising edge, will trigger once when pressed
-        touched = (ptr_ctrl.Buttons & touch_bits) == touch_bits and \
-            (ptr_ctrl_prev.Buttons & touch_bits) != touch_bits
+        touched = (ptr_ctrl.Touches & touch_bits) == touch_bits and \
+            (ptr_ctrl_prev.Touches & touch_bits) != touch_bits
     elif trigger == 'falling' or trigger == 'released':
         # falling edge, will trigger once when released
-        touched = (ptr_ctrl.Buttons & touch_bits) != touch_bits and \
-            (ptr_ctrl_prev.Buttons & touch_bits) == touch_bits
+        touched = (ptr_ctrl.Touches & touch_bits) != touch_bits and \
+            (ptr_ctrl_prev.Touches & touch_bits) == touch_bits
     else:
         raise ValueError("Invalid trigger mode specified.")
 
@@ -3278,7 +3254,7 @@ cpdef bint get_touches(str controller, object touch_names, str trigger='continuo
 #
 controller_names = ['xbox', 'remote', 'touch', 'left_touch', 'right_touch']
 
-cpdef list get_connected_controller_types():
+cpdef list getConnectedControllerTypes():
     """Get a list of currently connected controllers. You can check if a
     controller is attached by testing for its membership in the list using its
     name.
@@ -3320,51 +3296,51 @@ cdef class ovrPerfStatsPerCompositorFrame(object):
         self.c_data = &self.c_ovrPerfStatsPerCompositorFrame
 
     @property
-    def hmd_vsync_index(self):
+    def HmdVsyncIndex(self):
         return self.c_data[0].HmdVsyncIndex
 
     @property
-    def app_frame_index(self):
+    def AppFrameIndex(self):
         return self.c_data[0].AppFrameIndex
 
     @property
-    def app_dropped_frame_count(self):
+    def AppDroppedFrameCount(self):
         return self.c_data[0].AppDroppedFrameCount
 
     @property
-    def app_queue_ahead_time(self):
+    def AppQueueAheadTime(self):
         return self.c_data[0].AppQueueAheadTime
 
     @property
-    def app_cpu_elapsed_time(self):
+    def AppCpuElapsedTime(self):
         return self.c_data[0].AppCpuElapsedTime
 
     @property
-    def app_gpu_elapsed_time(self):
+    def AppGpuElapsedTime(self):
         return self.c_data[0].AppGpuElapsedTime
 
     @property
-    def compositor_frame_index(self):
+    def CompositorFrameIndex(self):
         return self.c_data[0].CompositorFrameIndex
 
     @property
-    def compositor_latency(self):
+    def CompositorLatency(self):
         return self.c_data[0].CompositorLatency
 
     @property
-    def compositor_cpu_elapsed_time(self):
+    def CompositorCpuElapsedTime(self):
         return self.c_data[0].CompositorCpuElapsedTime
 
     @property
-    def compositor_gpu_elapsed_time(self):
+    def CompositorGpuElapsedTime(self):
         return self.c_data[0].CompositorGpuElapsedTime
 
     @property
-    def compositor_cpu_start_to_gpu_end_elapsed_time(self):
+    def CompositorCpuStartToGpuEndElapsedTime(self):
         return self.c_data[0].CompositorCpuStartToGpuEndElapsedTime
 
     @property
-    def compositor_gpu_end_to_vsync_elapsed_time(self):
+    def CompositorGpuEndToVsyncElapsedTime(self):
         return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
 
 
@@ -3386,15 +3362,15 @@ cdef class ovrPerfStats(object):
                 self.c_data[0].FrameStats[i]
 
     @property
-    def frame_stats_count(self):
+    def FrameStatsCount(self):
         return self.c_data[0].FrameStatsCount
 
     @property
-    def any_frame_stats_dropped(self):
+    def AnyFrameStatsDropped(self):
         return <bint>self.c_data[0].AnyFrameStatsDropped
 
     @property
-    def frame_stats(self):
+    def FrameStats(self):
         cdef int i, N
         N = self.c_data[0].FrameStatsCount
         for i in range(N):
@@ -3404,15 +3380,15 @@ cdef class ovrPerfStats(object):
         return self.perf_stats
 
     @property
-    def adaptive_gpu_performance_scale(self):
+    def AdaptiveGpuPerformanceScale(self):
         return <bint>self.c_data[0].AdaptiveGpuPerformanceScale
 
     @property
-    def asw_is_available(self):
+    def AswIsAvailable(self):
         return <bint>self.c_data[0].AswIsAvailable
 
 
-cpdef ovrPerfStats get_frame_stats():
+cpdef ovrPerfStats getFrameStats():
     """Get most recent performance stats, returns an object with fields
     corresponding to various performance stats reported by the SDK.
     
@@ -3431,7 +3407,7 @@ cpdef ovrPerfStats get_frame_stats():
 
     return to_return
 
-cpdef void reset_frame_stats():
+cpdef void resetFrameStats():
     """Flushes backlog of frame stats.
     
     :return: None 
@@ -3455,7 +3431,7 @@ available_hud_modes = [
     'AswStats',
     'VersionInfo']
 
-cpdef void perf_hud_mode(str mode='Off'):
+cpdef void perfHudMode(str mode='Off'):
     """Display a performance HUD with a specified mode.
     
     :param mode: str 
@@ -3489,7 +3465,7 @@ cpdef void perf_hud_mode(str mode='Off'):
 #
 cdef ovr_capi.ovrBoundaryLookAndFeel _boundary_style_
 
-cpdef void set_boundry_color(float r, float g, float b):
+cpdef void setBoundryColor(float r, float g, float b):
     global _ptr_session_, _boundary_style_
 
     cdef ovr_capi.ovrColorf color
@@ -3506,14 +3482,14 @@ cpdef void set_boundry_color(float r, float g, float b):
     if debug_mode:
         check_result(result)
 
-cpdef void reset_boundry_color():
+cpdef void resetBoundryColor():
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetBoundaryLookAndFeel(
         _ptr_session_)
 
     if debug_mode:
         check_result(result)
 
-cpdef bint is_boundry_visible():
+cpdef bint isBoundryVisible():
     cdef ovr_capi.ovrBool is_visible
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetBoundaryVisible(
         _ptr_session_, &is_visible)
@@ -3523,7 +3499,7 @@ cpdef bint is_boundry_visible():
 
     return <bint>is_visible
 
-cpdef void show_boundry(bint show=True):
+cpdef void showBoundry(bint show=True):
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_RequestBoundaryVisible(
         _ptr_session_, <ovr_capi.ovrBool>show)
 
@@ -3534,7 +3510,7 @@ cpdef void show_boundry(bint show=True):
 # Miscellaneous Functions
 # -----------------------
 #
-cpdef float get_player_height():
+cpdef float getPlayerHeight():
     global _ptr_session_
     cdef float to_return  = ovr_capi.ovr_GetFloat(
         _ptr_session_,
@@ -3543,7 +3519,7 @@ cpdef float get_player_height():
 
     return to_return
 
-cpdef float get_eye_height():
+cpdef float getEyeHeight():
     global _ptr_session_
     cdef float to_return  = ovr_capi.ovr_GetFloat(
         _ptr_session_,
@@ -3552,7 +3528,7 @@ cpdef float get_eye_height():
 
     return to_return
 
-cpdef tuple get_neck_eye_distance():
+cpdef tuple getNeckEyeDistance():
     global _ptr_session_
     cdef float vals[2]
 
@@ -3564,7 +3540,7 @@ cpdef tuple get_neck_eye_distance():
 
     return <float>vals[0], <float>vals[1]
 
-cpdef tuple get_eye_to_nose_distance():
+cpdef tuple getEyeToNoseDist():
     global _ptr_session_
     cdef float vals[2]
 
