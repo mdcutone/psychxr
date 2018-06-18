@@ -51,8 +51,19 @@ else:
 # extensions to build
 ext_modules = [
     Extension(
-        "psychxr.ovr.rift",
-        ["psychxr/ovr/rift.pyx"],
+        "psychxr.ovr.capi",
+        ["psychxr/ovr/capi.pyx"],
+        include_dirs=[OCULUS_SDK_INCLUDE,
+                      OCULUS_SDK_INCLUDE_EXTRAS,
+                      "psychxr/ovr/",
+                      "include/"],
+        libraries=LIBRARIES,
+        library_dirs=LIB_DIRS,
+        language="c++",
+        extra_compile_args=['']),
+    Extension(
+        "psychxr.ovr.math",
+        ["psychxr/ovr/math.pyx"],
         include_dirs=[OCULUS_SDK_INCLUDE,
                       OCULUS_SDK_INCLUDE_EXTRAS,
                       "psychxr/ovr/",
