@@ -18,7 +18,7 @@ There are several limitations to the current version of PsychXR which may make i
 
 * Only Oculus VR HMDs which use the PC SDK (Rift CV2 and DK2) are supported, the CV1 is recommended. There are currently no plans to support the mobile SDK.
 * You can only use one render layer.
-* OpenGL is required for rendering, no other graphics API (i.e. Vulkan and DirectX) is available at this time.
+* OpenGL is required for rendering, no other graphics API (i.e. Vulkan and DirectX) is available at this time. You must use some OpenGL framework such as Pyglet, GLFW ([example](https://github.com/mdcutone/psychxr/blob/master/demo/rift/oculus_glfw.py)) or PyOpenGL with PsychXR to create visual stimuli.
 
 ## Authors
 
@@ -27,5 +27,11 @@ There are several limitations to the current version of PsychXR which may make i
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## How To Cite PsychXR
+
+If you use PsychXR for your research, please use the following citation:
+
+`Cutone, M. D. & Wilcox, L. M. (2018). PsychXR (Version X.X) [Software]. Available from https://github.com/mdcutone/psychxr.`
 
