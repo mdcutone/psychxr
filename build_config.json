@@ -1,0 +1,24 @@
+{
+    "libovr": {
+        "include": [
+            "C:\\\\OculusSDK\\\\LibOVR\\\\Include",
+            "C:\\\\OculusSDK\\\\LibOVR\\\\Include\\Extras",
+            "psychxr/ovr/"
+        ],
+        "lib_dir": [
+            "C:\\\\OculusSDK\\\\LibOVR\\\\Lib\\\\Windows\\\\x64\\\\Release\\\\VS2015"
+        ],
+        "libs": [
+            "LibOVR"
+        ],
+        "package_data": {
+            "psychxr.ovr": [
+                "*.pxd",
+                "*.pyd"
+            ]
+        },
+        "packages": [
+            "psychxr.ovr"
+        ]
+    }
+}

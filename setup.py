@@ -176,6 +176,8 @@ setup_pars = {
     "name" : "psychxr",
     "author" : "Matthew D. Cutone",
     "author_email" : "cutonem(at)yorku.ca",
+    "maintainer": "Matthew D. Cutone",
+    "maintainer_email": "cutonem(at)yorku.ca",
     "packages" : PACKAGES,
     "package_data": PACKAGE_DATA,
     "include_package_data": True,
