@@ -36,12 +36,12 @@ configuration command is available. Command arguments are used to specify API
 specific build options. You must indicate where the compiler can find header
 and library files. See the example command below:
 
-    python setup.py ovrsdk --include-dir=C:\OculusSDK\LibOVR\Include
+    python setup.py libovr --include-dir=C:\OculusSDK\LibOVR\Include
         --lib-dir=C:\OculusSDK\...\VS2015
 
 After running the above command, build the library by calling:
 
-    python setup.py build_ext
+    python setup.py build
 
 NOTE: On Windows, you need to use the "Visual C++ 2015 (or 2017) Native Build
 Tools Command Prompt" when executing the above commands. Make sure your
@@ -200,7 +200,7 @@ setup_pars = {
     "ext_modules": ext_modules,
     "requires" : ["Cython", "PyOpenGL"],
     'py_modules' : [],
-    "cmdclass" : {"ovrsdk": SetupLibOvrSdkCommand,
+    "cmdclass" : {"libovr": SetupLibOvrSdkCommand,
                   "build_ext": build_ext}}
 
 setup(**setup_pars)
