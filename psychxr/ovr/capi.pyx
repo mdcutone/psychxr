@@ -1,8 +1,8 @@
 #  =============================================================================
-#  Oculus(TM) Rift SDK Python Interface Module
+#  Oculus(TM) LibOVR Python Interface Module
 #  =============================================================================
 #
-#  rift.pxy
+#  capi.pxy
 #
 #  Copyright 2018 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University,
