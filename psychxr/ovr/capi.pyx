@@ -47,7 +47,7 @@ import OpenGL.GL as GL
 cdef ovr_capi.ovrInitParams _init_params_  # initialization parameters
 
 # HMD descriptor storing information about the HMD being used.
-cdef ovr_capi.ovrHmdDesc _hmd_desc_
+cdef ovr_capi.ovrHmdDesc _hmdDesc_
 
 # Since we are only using one session per module instance, so we are going to
 # create our session pointer here and use it module-wide.
@@ -335,8 +335,8 @@ cpdef void startSession():
         ovr_capi.ovr_Shutdown()
 
     # get HMD descriptor
-    global _hmd_desc_
-    _hmd_desc_ = ovr_capi.ovr_GetHmdDesc(_ptr_session_)
+    global _hmdDesc_
+    _hmdDesc_ = ovr_capi.ovr_GetHmdDesc(_ptr_session_)
 
     # configure VR data with HMD descriptor information
     #global _eye_render_desc_, _hmd_to_eye_view_pose_
@@ -736,23 +736,23 @@ cpdef tuple getBufferSize(str fov_type='recommended',
         rec_tex0_size = ovr_capi.ovr_GetFovTextureSize(
             _ptr_session_,
             ovr_capi.ovrEye_Left,
-            _hmd_desc_.DefaultEyeFov[0],
+            _hmdDesc_.DefaultEyeFov[0],
             texel_per_pixel)
         rec_tex1_size = ovr_capi.ovr_GetFovTextureSize(
             _ptr_session_,
             ovr_capi.ovrEye_Right,
-            _hmd_desc_.DefaultEyeFov[1],
+            _hmdDesc_.DefaultEyeFov[1],
             texel_per_pixel)
     elif fov_type == 'max':
         rec_tex0_size = ovr_capi.ovr_GetFovTextureSize(
             _ptr_session_,
             ovr_capi.ovrEye_Left,
-            _hmd_desc_.MaxEyeFov[0],
+            _hmdDesc_.MaxEyeFov[0],
             texel_per_pixel)
         rec_tex1_size = ovr_capi.ovr_GetFovTextureSize(
             _ptr_session_,
             ovr_capi.ovrEye_Right,
-            _hmd_desc_.MaxEyeFov[1],
+            _hmdDesc_.MaxEyeFov[1],
             texel_per_pixel)
 
     buffer_size.w  = rec_tex0_size.w + rec_tex1_size.w

@@ -1,3 +1,4 @@
+# distutils: language=c++
 from math cimport *
 cimport libc.math as cmath
 import OpenGL.GL as GL

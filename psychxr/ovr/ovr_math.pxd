@@ -1,3 +1,4 @@
+# distutils: language=c++
 from libcpp cimport bool
 
 cdef extern from "OVR_Math.h" namespace "OVR":
