@@ -62,7 +62,7 @@ There are several limitations to the current version of PsychXR which may make i
 
 ## Support
 
-If you encounter problems with PsychXR, please submit an issue to [PsychXR's issue tracker](https://github.com/mdcutone/psychxr/issues). 
+If you encounter problems with PsychXR, please submit an issue to [PsychXR's issue tracker](https://github.com/mdcutone/psychxr/issues). *This software is not offically supported by any device vendor! Please do not direct PsycXR support requests to them.*
 
 ## Authors
 
