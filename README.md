@@ -8,6 +8,26 @@ PsychXR is a collection of [Python](https://www.python.org/) extension libraries
 
 ## Installing
 
+### Installing from PyPI
+
+The latest source and binary packages are usually made available on Python Package Index (PyPI). They can be pulled from PyPI  repository automatically and installed by issuing the following command.
+
+```
+python -m pip install psychxr
+```
+
+If the binaries are not available for some reason (eg. your version of Python is too new), `pip` will try to build the source distribution. In that case, you must set the environment variables as shown below in "Building from Source" before running the command above.
+
+### Installing Pre-Compiled Binaries
+
+Pre-compiled binaries for PsychXR are available as a [Wheel package](https://github.com/mdcutone/psychxr/releases) and which can be installed via `pip`. You can install the package with the following command (no environment variables or compilers needed):
+
+```
+python -m pip install psychxr-<version>.whl
+```
+
+Note that the pre-compiled binaries are built on Windows 10 64-bit using the MSVC++ 15.0 against Python 3.6 64-bit. If your configuration differs, consider building from source.
+
 ### Building from Source
 
 If you choose to compile PsychXR from source, you must have the appropriate C++ compiler ([Microsoft Visual C++ Build Tools](https://www.microsoft.com/en-us/download/details.aspx?id=48159)) and SDKs installed on your computer. Since the Oculus Rift on Windows is the only supported HMD at this time, this guide will only cover building LibOVR extensions. 
@@ -35,24 +55,6 @@ Now we can build the source package using the following command (obviously repla
 ```
 python -m pip install psychxr-<version>.tar.gz
 ```
-
-### Installing Pre-Compiled Binaries
-
-You can skip building PsychXR by downloading the [Wheel package](https://github.com/mdcutone/psychxr/releases) and installing it with pip. The pre-compiled binaries are built on Windows 10 64-bit using the MSVC++ 15.0 against Python 3.6 64-bit. You can install the package with the following command (no environment variables or compilers needed):
-
-```
-python -m pip install psychxr-<version>.whl
-```
-
-### Installing from PyPI
-
-The latest source and binary packages are usually made available on Python Package Index (PyPI). They can be pulled from PyPI  repository automatically and installed by issuing the following command.
-
-```
-python -m pip install psychxr
-```
-
-If the binaries are not available for some reason, `pip` will try to build the source distribution. In that case, you must set the environment variables as shown above in "Building from Source".
 
 ### Testing the Installation
 
