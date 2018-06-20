@@ -8,9 +8,53 @@ Device API wrappers are written in Cython, providing low latency and overhead. O
 
 * Oculus Rift DK2 and CV1
 
-## Getting Started
+## Installing
 
-The easiest way to get PsychXR is to get the [*.whl package](https://github.com/mdcutone/psychxr/releases) and install it using the 'pip install' command. The pre-compiled binaries are built on Windows 10 64-bit using the MSVC 15.0 compiler against Python 3.6 64-bit.
+### Building from Source
+
+If you choose to compile PsychXR from source, you must have the appropriate C++ compiler ([Microsoft Visual C++ Build Tools](https://www.microsoft.com/en-us/download/details.aspx?id=48159)) and SDKs installed on your computer. Since the Oculus Rift on Windows is the only supported HMD at this time, download the [Oculus SDK for Windows v1.25.0](https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/1.25.0/) and extract somewhere accessable on your PC.
+
+You can download the latest source distribution package for PsychXR from the releases page.
+
+Once downloaded, open the "Visual C++ 2015 Native Build Tools Command Console" and change to the directory the source package is located. Now we need to configure the build using environment variables. The build script needs these values to know which SDK we're building extensions for and where the SDK files are located.
+
+We tell the installer to build extensions for the Oculus SDK (LibOVR) by issuing the following command: 
+
+```
+set PSYCHXR_BUILD_LIBOVR=1
+```
+
+Futhermore, we need to tell the compiler where to find LibOVR's header and library files:
+
+```
+set PSYCHXR_LIBOVR_INCLUDE=C:\OculusSDK\LibOVR\Include;C:\OculusSDK\LibOVR\Include\Extras
+set PSYCHXR_LIBOVR_PATH=C:\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2015
+```
+The settings above depend on where you unpacked the Oculus SDK files. If you extracted the SDK package to 'C:\', the installer will use default values allowing you to skip setting the above variables. Futhermore, you can use libraries for different versions of Visual C++ (e.g. 2017) or even build 32-bit packages. 
+
+Now we can build the source package using the following command (obviously replcaing <version> with the current version of the package!):
+
+```
+python -m pip install psychxr-<version>.tar.gz
+```
+
+If everything goes well, it should be installed and ready to use. You can test it by issuing the following command into your Python interpreter:
+
+```
+>>> import psychxr.ovr as ovr
+>>> ovr.capi.isHmdConnected()
+False
+```
+
+### Installing Pre-Compiled Binaries
+
+The easiest way to get PsychXR is to get the [Wheel package](https://github.com/mdcutone/psychxr/releases) and install it using the 'pip install' command. The pre-compiled binaries are built on Windows 10 64-bit using the MSVC 15.0 compiler against Python 3.6 64-bit. You can install the package with the following command:
+
+```
+python -m pip install psychxr-<version>.whl
+```
+
+No environment variables or compilers to worry about!
 
 ## Limitations
 
