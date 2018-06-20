@@ -10,7 +10,7 @@ PsychXR is a collection of [Python](https://www.python.org/) extension libraries
 
 ### Building from Source
 
-If you choose to compile PsychXR from source, you must have the appropriate C++ compiler ([Microsoft Visual C++ Build Tools](https://www.microsoft.com/en-us/download/details.aspx?id=48159)) and SDKs installed on your computer. Since the Oculus Rift on Windows is the only supported HMD at this time, download the [Oculus SDK for Windows v1.25.0](https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/1.25.0/) and extract somewhere accessable on your PC.
+If you choose to compile PsychXR from source, you must have the appropriate C++ compiler ([Microsoft Visual C++ Build Tools](https://www.microsoft.com/en-us/download/details.aspx?id=48159)) and SDKs installed on your computer. Since the Oculus Rift on Windows is the only supported HMD at this time, download the [Oculus SDK for Windows v1.25.0](https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/1.25.0/) and extract the zip file somewhere accessable on your PC.
 
 You can download the latest source distribution package for PsychXR from the releases page.
 
@@ -28,7 +28,7 @@ Futhermore, we need to tell the compiler where to find LibOVR's header and libra
 set PSYCHXR_LIBOVR_INCLUDE=C:\OculusSDK\LibOVR\Include;C:\OculusSDK\LibOVR\Include\Extras
 set PSYCHXR_LIBOVR_PATH=C:\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2015
 ```
-The settings above depend on where you unpacked the Oculus SDK files, so set them appropriately. If you extracted the SDK package to `C:\`, the installer will use default values allowing you to skip setting the above variables.
+The settings above depend on where you unpacked the Oculus SDK files, so set them appropriately. If you extracted the SDK package to `C:\`, the installer will use default values allowing you to skip setting the above variables. If you are using a newer version of Visual C++ Build Tools (eg. 2017), you must set the `PSYCHXR_LIBOVR_PATH` to the path where that version of the LibOVR library is found.
 
 Now we can build the source package using the following command (obviously replacing `<version>` with the current version of the package):
 
