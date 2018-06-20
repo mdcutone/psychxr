@@ -30,9 +30,9 @@ Futhermore, we need to tell the compiler where to find LibOVR's header and libra
 set PSYCHXR_LIBOVR_INCLUDE=C:\OculusSDK\LibOVR\Include;C:\OculusSDK\LibOVR\Include\Extras
 set PSYCHXR_LIBOVR_PATH=C:\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2015
 ```
-The settings above depend on where you unpacked the Oculus SDK files. If you extracted the SDK package to 'C:\', the installer will use default values allowing you to skip setting the above variables. Futhermore, you can use libraries for different versions of Visual C++ (e.g. 2017) or even build 32-bit packages. 
+The settings above depend on where you unpacked the Oculus SDK files, so set them appropriately. If you extracted the SDK package to 'C:\', the installer will use default values allowing you to skip setting the above variables. Furthermore, you can use libraries for different versions of Visual C++ (e.g. 2017) or even build 32-bit packages.
 
-Now we can build the source package using the following command (obviously replcaing <version> with the current version of the package!):
+Now we can build the source package using the following command (obviously replacing <version> with the current version of the package):
 
 ```
 python -m pip install psychxr-<version>.tar.gz
@@ -43,18 +43,16 @@ If everything goes well, it should be installed and ready to use. You can test i
 ```
 >>> import psychxr.ovr as ovr
 >>> ovr.capi.isHmdConnected()
-False
+True
 ```
 
 ### Installing Pre-Compiled Binaries
 
-The easiest way to get PsychXR is to get the [Wheel package](https://github.com/mdcutone/psychxr/releases) and install it using the 'pip install' command. The pre-compiled binaries are built on Windows 10 64-bit using the MSVC 15.0 compiler against Python 3.6 64-bit. You can install the package with the following command:
+The easiest way to get PsychXR is to get the [Wheel package](https://github.com/mdcutone/psychxr/releases) and install it using the 'pip install' command. The pre-compiled binaries are built on Windows 10 64-bit using the MSVC 15.0 compiler against Python 3.6 64-bit. You can install the package with the following command (no environment variables or compilers needed):
 
 ```
 python -m pip install psychxr-<version>.whl
 ```
-
-No environment variables or compilers to worry about!
 
 ## Limitations
 
