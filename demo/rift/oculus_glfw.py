@@ -147,9 +147,6 @@ def main():
         view_left = capi.getEyeViewMatrix(left_eye_pose)
         view_right = capi.getEyeViewMatrix(right_eye_pose)
 
-        # hand matrix
-        #touch_matrix = rift.ovrMatrix4f(tracking_state.hand_poses[1].the_pose)
-
         # start frame rendering
         capi.beginFrame(frame_index)
 
@@ -198,7 +195,6 @@ def main():
 
                 GL.glColor3f(1.0, 1.0, 1.0)
                 GL.glPushMatrix()
-                #GL.glMultMatrixf(touch_matrix.ctypes)
                 GL.glBegin(GL.GL_QUADS)
                 GL.glVertex3f(-1.0, -1.0, -5.0)
                 GL.glVertex3f(-1.0, 1.0, -5.0)
@@ -221,7 +217,6 @@ def main():
 
                 GL.glColor3f(1.0, 1.0, 1.0)
                 GL.glPushMatrix()
-                #GL.glMultMatrixf(touch_matrix.ctypes)
                 GL.glBegin(GL.GL_QUADS)
                 GL.glVertex3f(-1.0, -1.0, -5.0)
                 GL.glVertex3f(-1.0, 1.0, -5.0)

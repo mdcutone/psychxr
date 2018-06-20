@@ -23,70 +23,140 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 #
+"""Installation script for PsychXR.
+
+Installation is straightforward as long as your build environment is properly
+configured. Significant portions of this library are written in Cython which is
+converted to C++ code. Therefore, you must have a C++ compiler and SDKs
+installed prior to building PsychXR from source.
+
+First, you must configure the installer to build extensions for a target HMD
+API. As of now, only the Oculus PC SDK is supported, therefore only one
+configuration command is available. Command arguments are used to specify API
+specific build options. You must indicate where the compiler can find header
+and library files. See the example command below:
+
+    python setup.py libovr --include-dir=C:\OculusSDK\LibOVR\Include
+        --lib-dir=C:\OculusSDK\...\VS2015
+
+After running the above command, build the library by calling:
+
+    python setup.py build
+
+NOTE: On Windows, you need to use the "Visual C++ 2015 (or 2017) Native Build
+Tools Command Prompt" when executing the above commands. Make sure your
+LibOVR.lib file matches the version of Visual C++ you are using!
+
+"""
 import os
+import json
 import platform
-from setuptools import setup, find_packages
+from setuptools import setup
 from setuptools.extension import Extension
+from setuptools.command.install import install
+from distutils.command.install_lib import install_lib
 from Cython.Build import cythonize, build_ext
-import Cython
+#from distutils.command.build_ext import build_ext
 
-# this is a mess right now but it works okay, needs to be improved soon.
+# compiler related data
+_include_dir_ = []
+_lib_dirs_ = []
+_libraries_ = []
+_build_ext_ = []
+
+# build flags
+_build_libovr_ = '0'  # Oculus PC SDK extensions
+
+# SDK related data
+_sdk_data_ = {}
+
+# additional package data
+PACKAGES = ['psychxr']
+DATA_FILES = []
+
 if platform.system() == 'Windows':
-    # set enviornment variables for build
-    os.environ["MSSdk"] = "1"
-    os.environ["DISTUTILS_USE_SDK"] = "1"
-    # get paths
-    OCULUS_SDK_PATH = os.getenv('OCULUS_SDK_DIR', r'C:\OculusSDK')
-    OCULUS_SDK_INCLUDE = os.path.join(OCULUS_SDK_PATH, 'LibOVR', 'Include')
-    OCULUS_SDK_INCLUDE_EXTRAS = os.path.join(OCULUS_SDK_INCLUDE, 'Extras')
-    OCULUS_SDK_LIB = os.path.join(
-        OCULUS_SDK_PATH, 'LibOVR', 'Lib', 'Windows', 'x64', 'Release', 'VS2015')
-    # set enviornment variables for build
-    LIBRARIES = ['opengl32', 'User32', "LibOVR"]
-    LIB_DIRS = [OCULUS_SDK_LIB]
-else:
-    raise Exception('Trying to install PsychHMD on an unsupported '
-        'operating system. Exiting.')
+    # This makes sure the correct compiler is used, even if not explicitly
+    # specified.
+    os.environ["MSSdk"] = '1'
+    os.environ["DISTUTILS_USE_SDK"] = '1'
+    _libraries_.extend(['opengl32', 'User32'])  # required Windows libraries
 
-# extensions to build
-ext_modules = [
-    Extension(
-        "psychxr.ovr.capi",
-        ["psychxr/ovr/capi.pyx"],
-        include_dirs=[OCULUS_SDK_INCLUDE,
-                      OCULUS_SDK_INCLUDE_EXTRAS,
-                      "psychxr/ovr/",
-                      "include/"],
-        libraries=LIBRARIES,
-        library_dirs=LIB_DIRS,
-        language="c++",
-        extra_compile_args=['']),
-    Extension(
-        "psychxr.ovr.math",
-        ["psychxr/ovr/math.pyx"],
-        include_dirs=[OCULUS_SDK_INCLUDE,
-                      OCULUS_SDK_INCLUDE_EXTRAS,
-                      "psychxr/ovr/",
-                      "include/"],
-        libraries=LIBRARIES,
-        library_dirs=LIB_DIRS,
-        language="c++",
-        extra_compile_args=[''])
-]
+    # check if which HMD were building libraries for
+    _build_libovr_ = os.environ.get('PSYCHXR_BUILD_LIBOVR', '1')
+
+    if _build_libovr_ == '1':  # build libovr extensions
+        _sdk_data_['libovr'] = {}
+        env_includes = os.environ.get('PSYCHXR_LIBOVR_INCLUDE', None)
+        if env_includes is not None:
+            _sdk_data_['libovr']['include'] = \
+                [i for i in env_includes.split(os.pathsep)]
+        else:
+            # use a default
+            _sdk_data_['libovr']['include'] = \
+                [r"C:\OculusSDK\LibOVR\Include",
+                 r"C:\OculusSDK\LibOVR\Include\Extras"]
+
+        _sdk_data_['libovr']['libs'] = ['LibOVR']
+        env_lib = os.environ.get('PSYCHXR_LIBOVR_PATH', None)
+        if env_lib is not None:
+            _sdk_data_['libovr']['lib_dir'] = \
+                [i for i in env_lib.split(os.pathsep)]
+        else:
+            _sdk_data_['libovr']['lib_dir'] = \
+                [r"C:\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2015"]
+
+        # package data
+        _sdk_data_['libovr']['packages'] = ['psychxr.ovr']
+        _sdk_data_['libovr']['package_data'] = \
+            {'psychxr.ovr': ['*.pxd', '*.pyx', '*.cpp']}
+        _sdk_data_['libovr']['data_files'] = {'psychxr/ovr': ['*.pyd']}
+
+else:
+    raise Exception("Trying to install PsychXR on an unsupported operating "
+                    "system. Exiting.")
+
+# add configured extensions
+ext_modules = []
+if _build_libovr_ == '1':
+    cythonize("psychxr/ovr/capi.pyx",
+              include_path=_sdk_data_['libovr']['include'])
+    cythonize("psychxr/ovr/math.pyx",
+              include_path=_sdk_data_['libovr']['include'])
+    ext_modules.extend([
+        Extension(
+            "psychxr.ovr.capi",
+            ["psychxr/ovr/capi"+".cpp"],
+            include_dirs=_include_dir_ + _sdk_data_['libovr']['include'],
+            libraries=_libraries_ + _sdk_data_['libovr']['libs'],
+            library_dirs=_lib_dirs_ + _sdk_data_['libovr']['lib_dir'],
+            language="c++",
+            extra_compile_args=['']),
+        Extension(
+            "psychxr.ovr.math",
+            ["psychxr/ovr/math"+".cpp"],
+            include_dirs=_include_dir_ + _sdk_data_['libovr']['include'],
+            libraries=_libraries_ + _sdk_data_['libovr']['libs'],
+            library_dirs=_lib_dirs_ + _sdk_data_['libovr']['lib_dir'],
+            language="c++",
+            extra_compile_args=[''])
+    ])
+    PACKAGES.extend(_sdk_data_['libovr']['packages'])
+
 setup_pars = {
     "name" : "psychxr",
     "author" : "Matthew D. Cutone",
     "author_email" : "cutonem(at)yorku.ca",
-    "packages" : ['psychxr',
-                  'psychxr.ovr'],
-    "package_data": {"psychxr": ["*.pxd"],
-                     "psychxr.ovr": ["*.pxd"]},
+    "maintainer": "Matthew D. Cutone",
+    "maintainer_email": "cutonem(at)yorku.ca",
+    "packages" : PACKAGES,
+    #"package_data": PACKAGE_DATA,
     "include_package_data": True,
     "version": "0.1.2",
     "license" : "MIT",
     "description":
-        "API access from Python for eXended reality displays, used for "
-        "developing psychology experiments.",
+        "Python extension library for interacting with eXtended Reality "
+        "displays (HMDs), intended for research in neuroscience and "
+        "psychology.",
     "long_description": "",
     "classifiers" : [
         'Development Status :: 3 - Alpha',
@@ -97,9 +167,11 @@ setup_pars = {
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Cython',
         'Intended Audience :: Science/Research'],
-    "ext_modules" : cythonize(ext_modules),
-    "requires" : ["Cython"],
-    'py_modules' : [],
+    "ext_modules": ext_modules,
+    #"data_files": DATA_FILES,
+    "requires" : ["cython", "pyopengl"],
     "cmdclass" : {"build_ext": build_ext}}
 
 setup(**setup_pars)
+
+
