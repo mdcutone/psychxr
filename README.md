@@ -30,7 +30,7 @@ Futhermore, we need to tell the compiler where to find LibOVR's header and libra
 set PSYCHXR_LIBOVR_INCLUDE=C:\OculusSDK\LibOVR\Include;C:\OculusSDK\LibOVR\Include\Extras
 set PSYCHXR_LIBOVR_PATH=C:\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2015
 ```
-The settings above depend on where you unpacked the Oculus SDK files, so set them appropriately. If you extracted the SDK package to 'C:\', the installer will use default values allowing you to skip setting the above variables. Furthermore, you can use libraries for different versions of Visual C++ (e.g. 2017) or even build 32-bit packages.
+The settings above depend on where you unpacked the Oculus SDK files, so set them appropriately. If you extracted the SDK package to 'C:\\', the installer will use default values allowing you to skip setting the above variables.
 
 Now we can build the source package using the following command (obviously replacing <version> with the current version of the package):
 
@@ -38,7 +38,7 @@ Now we can build the source package using the following command (obviously repla
 python -m pip install psychxr-<version>.tar.gz
 ```
 
-If everything goes well, it should be installed and ready to use. You can test it by issuing the following command into your Python interpreter:
+If everything goes well, PsychXR should be installed and ready to use. You can test it by issuing the following command into your Python interpreter:
 
 ```
 >>> import psychxr.ovr as ovr
