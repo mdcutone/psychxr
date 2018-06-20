@@ -10,9 +10,9 @@ PsychXR is a collection of [Python](https://www.python.org/) extension libraries
 
 ### Building from Source
 
-If you choose to compile PsychXR from source, you must have the appropriate C++ compiler ([Microsoft Visual C++ Build Tools](https://www.microsoft.com/en-us/download/details.aspx?id=48159)) and SDKs installed on your computer. Since the Oculus Rift on Windows is the only supported HMD at this time, download the [Oculus SDK for Windows v1.25.0](https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/1.25.0/) and extract the zip file somewhere accessable on your PC.
+If you choose to compile PsychXR from source, you must have the appropriate C++ compiler ([Microsoft Visual C++ Build Tools](https://www.microsoft.com/en-us/download/details.aspx?id=48159)) and SDKs installed on your computer. Since the Oculus Rift on Windows is the only supported HMD at this time, this guide will only cover building LibOVR extensions. 
 
-You can download the latest source distribution package for PsychXR from the releases page.
+Download the [Oculus SDK for Windows v1.25.0](https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/1.25.0/) and extract the zip file somewhere accessable on your PC. You can download the latest source distribution package for PsychXR from the releases page.
 
 Once downloaded, open the "Visual C++ 2015 Native Build Tools Command Console" and change to the directory the source package is located. Now we need to configure the build using environment variables. The build script needs these values to know which SDK we're building extensions for and where the SDK files are located.
 
