@@ -16,7 +16,7 @@ The latest source and binary packages are usually made available on Python Packa
 python -m pip install psychxr
 ```
 
-If the binaries are not available for some reason (eg. your version of Python is too new), `pip` will try to build the source distribution. In that case, you must set the environment variables as shown below in "Building from Source" before running the command above.
+If the binaries are not available for some reason (eg. your version of Python is too new), `pip` will try to build the source distribution (it will likely fail). In that case, you must set the environment variables as shown below in "Building from Source" before running the above command again.
 
 ### Installing Pre-Compiled Binaries
 
