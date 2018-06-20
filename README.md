@@ -22,7 +22,7 @@ We tell the installer to build extensions for the Oculus SDK (LibOVR) by issuing
 set PSYCHXR_BUILD_LIBOVR=1
 ```
 
-We need to tell the compiler where to find LibOVR's header and library files. To build LibOVR extensions, the installer needs to know where `..\OculusSDK\LibOVR\Include` and `\OculusSDK\LibOVR\Include\Extras` is located. Furthermore, we also need to provide a path to the location of `LibOVR.lib`. You specify these paths by entering the following commands:
+We need to tell the compiler where to find LibOVR's header and library files. To build LibOVR extensions, the installer needs to know where `..\OculusSDK\LibOVR\Include` and `..\OculusSDK\LibOVR\Include\Extras` are located. Furthermore, we also need to provide a path to the location of `LibOVR.lib` within the SDK directories. You specify these paths by entering the following commands:
 
 ```
 set PSYCHXR_LIBOVR_INCLUDE=C:\OculusSDK\LibOVR\Include;C:\OculusSDK\LibOVR\Include\Extras
