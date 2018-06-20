@@ -22,7 +22,7 @@ We tell the installer to build extensions for the Oculus SDK (LibOVR) by issuing
 set PSYCHXR_BUILD_LIBOVR=1
 ```
 
-Futhermore, we need to tell the compiler where to find LibOVR's header and library files:
+We need to tell the compiler where to find LibOVR's header and library files. To build LibOVR extensions, the installer needs to know where `..\OculusSDK\LibOVR\Include` and `\OculusSDK\LibOVR\Include\Extras` is located. Furthermore, we also need to provide a path to the location of `LibOVR.lib`. You specify these paths by entering the following commands:
 
 ```
 set PSYCHXR_LIBOVR_INCLUDE=C:\OculusSDK\LibOVR\Include;C:\OculusSDK\LibOVR\Include\Extras
@@ -59,6 +59,10 @@ There are several limitations to the current version of PsychXR which may make i
 * Only Oculus VR HMDs which use the PC SDK (Rift CV2 and DK2) are supported, the CV1 is recommended. There are currently no plans to support the mobile SDK.
 * You can only use one render layer.
 * OpenGL is required for rendering, no other graphics API (i.e. Vulkan and DirectX) is available at this time. You must use some OpenGL framework such as Pyglet, GLFW ([example](https://github.com/mdcutone/psychxr/blob/master/demo/rift/oculus_glfw.py)) or PyOpenGL with PsychXR to create visual stimuli.
+
+## Support
+
+If you encounter problems with PsychXR, please submit an issue to [PsychXR's issue tracker](https://github.com/mdcutone/psychxr/issues). 
 
 ## Authors
 
