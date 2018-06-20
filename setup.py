@@ -144,11 +144,12 @@ if _build_libovr_ == '1':
 
 setup_pars = {
     "name" : "psychxr",
-    "author" : "Matthew D. Cutone",
-    "author_email" : "cutonem(at)yorku.ca",
+    "author" : "Matthew D. Cutone, Laurie M. Wilcox",
+    "author_email" : "cutonem@yorku.ca",
     "maintainer": "Matthew D. Cutone",
-    "maintainer_email": "cutonem(at)yorku.ca",
+    "maintainer_email": "cutonem@yorku.ca",
     "packages" : PACKAGES,
+    "url": "https://github.com/mdcutone/psychxr",
     #"package_data": PACKAGE_DATA,
     "include_package_data": True,
     "version": "0.1.2",
@@ -169,7 +170,8 @@ setup_pars = {
         'Intended Audience :: Science/Research'],
     "ext_modules": ext_modules,
     #"data_files": DATA_FILES,
-    "requires" : ["cython", "pyopengl"],
+    "install_requires" : ["Cython>=0.27.3"],
+    "requires" : ["PyOpenGL"],
     "cmdclass" : {"build_ext": build_ext}}
 
 setup(**setup_pars)
