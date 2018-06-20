@@ -48,7 +48,7 @@ True
 
 ### Installing Pre-Compiled Binaries
 
-The easiest way to get PsychXR is to get the [Wheel package](https://github.com/mdcutone/psychxr/releases) and install it using the 'pip install' command. The pre-compiled binaries are built on Windows 10 64-bit using the MSVC 15.0 compiler against Python 3.6 64-bit. You can install the package with the following command (no environment variables or compilers needed):
+The easiest way to get PsychXR is by downloading the [Wheel package](https://github.com/mdcutone/psychxr/releases) and install it using pip. The pre-compiled binaries are built on Windows 10 64-bit using the MSVC++ 15.0 against Python 3.6 64-bit. You can install the package with the following command (no environment variables or compilers needed):
 
 ```
 python -m pip install psychxr-<version>.whl
