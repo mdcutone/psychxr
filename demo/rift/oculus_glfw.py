@@ -178,7 +178,7 @@ def main():
             GL.glEnable(GL.GL_SCISSOR_TEST)  # enable scissor test
             GL.glEnable(GL.GL_DEPTH_TEST)
 
-            # Here we can make whatever OpenGL we wish to draw our image. As an
+            # Here we can make whatever OpenGL we wish to draw our images. As an
             # example, I'm going to clear the eye buffer texture all some color,
             # with the colour determined by the active eye buffer.
             if eye == capi.ovrEye_Left:
