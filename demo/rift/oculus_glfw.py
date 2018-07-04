@@ -122,8 +122,8 @@ def main():
     proj_left = capi.getEyeProjectionMatrix(capi.ovrEye_Left)
     proj_right = capi.getEyeProjectionMatrix(capi.ovrEye_Right)
 
-    # get the player height
-    print(capi.getPlayerHeight())
+    # get the session status
+    session_status = capi.getSessionStatus()
 
     # begin application loop
     while not glfw.window_should_close(window):
@@ -262,7 +262,6 @@ def main():
                              GL.GL_NEAREST)
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-
         capi.pollController('touch')  # update touch controller state
 
         # if button 'A' is released on the touch controller, recenter the
