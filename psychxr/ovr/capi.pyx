@@ -1242,27 +1242,35 @@ cdef class ovrSessionStatus(object):
     def __cinit__(self, *args, **kwargs):
         self.c_data = &self.c_ovrSessionStatus
 
+    @property
     def IsVisible(self):
         return <bint>self.c_data.IsVisible
 
+    @property
     def HmdPresent(self):
         return <bint>self.c_data.HmdPresent
 
+    @property
     def DisplayLost(self):
         return <bint>self.c_data.DisplayLost
 
+    @property
     def ShouldQuit(self):
         return <bint>self.c_data.ShouldQuit
 
+    @property
     def ShouldRecenter(self):
         return <bint>self.c_data.ShouldRecenter
 
+    @property
     def HasInputFocus(self):
         return <bint>self.c_data.HasInputFocus
 
+    @property
     def OverlayPresent(self):
         return <bint>self.c_data.OverlayPresent
 
+    @property
     def DepthRequested(self):
         return <bint>self.c_data.DepthRequested
 
