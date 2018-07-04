@@ -152,7 +152,7 @@ setup_pars = {
     "url": "https://github.com/mdcutone/psychxr",
     #"package_data": PACKAGE_DATA,
     "include_package_data": True,
-    "version": "0.1.2",
+    "version": "0.1.3",
     "license" : "MIT",
     "description":
         "Python extension library for interacting with eXtended Reality "
