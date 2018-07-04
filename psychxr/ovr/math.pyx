@@ -1002,6 +1002,12 @@ cdef class ovrQuatf:
     def __invert__(self):
         return self.inverse()
 
+    def getYawPitchRoll(self):
+        cdef float yaw, pitch, roll
+        (<ovrQuatf>self).c_data[0].GetYawPitchRoll(&yaw, &pitch, &roll)
+
+        return yaw, pitch, roll
+
 
 cdef class ovrPosef:
     """ovrPosef
