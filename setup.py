@@ -119,9 +119,11 @@ else:
 ext_modules = []
 if _build_libovr_ == '1':
     cythonize("psychxr/ovr/capi.pyx",
-              include_path=_sdk_data_['libovr']['include'])
+              include_path=_sdk_data_['libovr']['include'],
+              compiler_directives = {'embedsignature': True})
     cythonize("psychxr/ovr/math.pyx",
-              include_path=_sdk_data_['libovr']['include'])
+              include_path=_sdk_data_['libovr']['include'],
+              compiler_directives = {'embedsignature': True})
     ext_modules.extend([
         Extension(
             "psychxr.ovr.capi",
@@ -152,7 +154,7 @@ setup_pars = {
     "url": "https://github.com/mdcutone/psychxr",
     #"package_data": PACKAGE_DATA,
     "include_package_data": True,
-    "version": "0.1.3",
+    "version": "0.1.4",
     "license" : "MIT",
     "description":
         "Python extension library for interacting with eXtended Reality "
