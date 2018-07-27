@@ -173,7 +173,7 @@ touch_names = list(ctrl_touch_lut.keys())
 cdef ovr_capi.ovrPerfStats _perf_stats_
 
 cdef class ovrColorf:
-    cdef ovr_capi.ovrColorf*c_data
+    cdef ovr_capi.ovrColorf* c_data
     cdef ovr_capi.ovrColorf  c_ovrColorf
 
     def __cinit__(self, float r=0.0, float g=0.0, float b=0.0, float a=0.0):
