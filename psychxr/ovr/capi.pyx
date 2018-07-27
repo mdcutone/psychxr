@@ -29,16 +29,13 @@
 """This file exposes LibOVR functions to Python.
 
 """
-from . cimport ovr_capi
-from . cimport ovr_capi_gl
-from . cimport ovr_errorcode
-from . cimport ovr_capi_util
-from . cimport ovr_math
+from .cimport ovr_capi
+from .cimport ovr_capi_gl
+from .cimport ovr_errorcode
+from .cimport ovr_capi_util
 from .math cimport *
 
-cimport libc.math as cmath
 from libc.stdint cimport int32_t
-import OpenGL.GL as GL
 
 # -----------------
 # Initialize module
@@ -128,7 +125,7 @@ cdef dict ctrl_index_lut = {
 cdef dict ctrl_button_lut = {
     "A": ovr_capi.ovrButton_A,
     "B": ovr_capi.ovrButton_B,
-    "RThumb" : ovr_capi.ovrButton_RThumb,
+    "RThumb": ovr_capi.ovrButton_RThumb,
     "RShoulder": ovr_capi.ovrButton_RShoulder,
     "X": ovr_capi.ovrButton_X,
     "Y": ovr_capi.ovrButton_Y,
@@ -155,14 +152,14 @@ button_names = list(ctrl_button_lut.keys())
 cdef dict ctrl_touch_lut = {
     "A": ovr_capi.ovrTouch_A,
     "B": ovr_capi.ovrTouch_B,
-    "RThumb" : ovr_capi.ovrTouch_RThumb,
+    "RThumb": ovr_capi.ovrTouch_RThumb,
     "RThumbRest": ovr_capi.ovrTouch_RThumbRest,
-    "RIndexTrigger" : ovr_capi.ovrTouch_RThumb,
+    "RIndexTrigger": ovr_capi.ovrTouch_RThumb,
     "X": ovr_capi.ovrTouch_X,
     "Y": ovr_capi.ovrTouch_Y,
     "LThumb": ovr_capi.ovrTouch_LThumb,
     "LThumbRest": ovr_capi.ovrTouch_LThumbRest,
-    "LIndexTrigger" : ovr_capi.ovrTouch_LIndexTrigger,
+    "LIndexTrigger": ovr_capi.ovrTouch_LIndexTrigger,
     "RIndexPointing": ovr_capi.ovrTouch_RIndexPointing,
     "RThumbUp": ovr_capi.ovrTouch_RThumbUp,
     "LIndexPointing": ovr_capi.ovrTouch_LIndexPointing,
@@ -175,9 +172,8 @@ touch_names = list(ctrl_touch_lut.keys())
 #
 cdef ovr_capi.ovrPerfStats _perf_stats_
 
-
 cdef class ovrColorf:
-    cdef ovr_capi.ovrColorf* c_data
+    cdef ovr_capi.ovrColorf*c_data
     cdef ovr_capi.ovrColorf  c_ovrColorf
 
     def __cinit__(self, float r=0.0, float g=0.0, float b=0.0, float a=0.0):
@@ -222,11 +218,6 @@ cdef class ovrColorf:
 
     def as_tuple(self):
         return self.c_data.r, self.c_data.g, self.c_data.b, self.c_data.a
-
-# ---------------------
-# Oculus SDK Math Types
-# ---------------------
-#
 
 
 # --------------------
@@ -312,13 +303,13 @@ cpdef bint isOculusServiceRunning(int timeout_milliseconds=100):
     cdef ovr_capi_util.ovrDetectResult result = ovr_capi_util.ovr_Detect(
         timeout_milliseconds)
 
-    return <bint>result.IsOculusServiceRunning
+    return <bint> result.IsOculusServiceRunning
 
 cpdef bint isHmdConnected(int timeout_milliseconds=100):
     cdef ovr_capi_util.ovrDetectResult result = ovr_capi_util.ovr_Detect(
         timeout_milliseconds)
 
-    return <bint>result.IsOculusHMDConnected
+    return <bint> result.IsOculusHMDConnected
 
 cpdef void startSession():
     """Start a new session. Control is handed over to the application from
@@ -394,7 +385,7 @@ cdef class ovrHmdDesc(object):
 
     @property
     def type(self):
-        return <int>self.c_data[0].Type
+        return <int> self.c_data[0].Type
 
     @property
     def ProductName(self):
@@ -406,11 +397,11 @@ cdef class ovrHmdDesc(object):
 
     @property
     def VendorId(self):
-        return <int>self.c_ovrHmdDesc.VendorId
+        return <int> self.c_ovrHmdDesc.VendorId
 
     @property
     def ProductId(self):
-        return <int>self.c_ovrHmdDesc.ProductId
+        return <int> self.c_ovrHmdDesc.ProductId
 
     @property
     def SerialNumber(self):
@@ -418,36 +409,36 @@ cdef class ovrHmdDesc(object):
 
     @property
     def FirmwareMajor(self):
-        return <int>self.c_ovrHmdDesc.FirmwareMajor
+        return <int> self.c_ovrHmdDesc.FirmwareMajor
 
     @property
     def FirmwareMinor(self):
-        return <int>self.c_ovrHmdDesc.FirmwareMinor
+        return <int> self.c_ovrHmdDesc.FirmwareMinor
 
     @property
     def AvailableHmdCaps(self):
-        return <int>self.c_ovrHmdDesc.AvailableHmdCaps
+        return <int> self.c_ovrHmdDesc.AvailableHmdCaps
 
     @property
     def DefaultHmdCaps(self):
-        return <int>self.c_ovrHmdDesc.DefaultHmdCaps
+        return <int> self.c_ovrHmdDesc.DefaultHmdCaps
 
     @property
     def AvailableTrackingCaps(self):
-        return <int>self.c_ovrHmdDesc.AvailableTrackingCaps
+        return <int> self.c_ovrHmdDesc.AvailableTrackingCaps
 
     @property
     def DefaultTrackingCaps(self):
-        return <int>self.c_ovrHmdDesc.DefaultTrackingCaps
+        return <int> self.c_ovrHmdDesc.DefaultTrackingCaps
 
     @property
     def DefaultEyeFov(self):
         cdef ovrFovPort default_fov_left = ovrFovPort()
         cdef ovrFovPort default_fov_right = ovrFovPort()
 
-        (<ovrFovPort>default_fov_left).c_data[0] = \
+        (<ovrFovPort> default_fov_left).c_data[0] = \
             self.c_ovrHmdDesc.DefaultEyeFov[0]
-        (<ovrFovPort>default_fov_right).c_data[0] = \
+        (<ovrFovPort> default_fov_right).c_data[0] = \
             self.c_ovrHmdDesc.DefaultEyeFov[1]
 
         return default_fov_left, default_fov_right
@@ -457,8 +448,8 @@ cdef class ovrHmdDesc(object):
         cdef ovrFovPort max_fov_left = ovrFovPort()
         cdef ovrFovPort max_fov_right = ovrFovPort()
 
-        (<ovrFovPort>max_fov_left).c_data[0] = self.c_ovrHmdDesc.MaxEyeFov[0]
-        (<ovrFovPort>max_fov_right).c_data[0] = self.c_ovrHmdDesc.MaxEyeFov[1]
+        (<ovrFovPort> max_fov_left).c_data[0] = self.c_ovrHmdDesc.MaxEyeFov[0]
+        (<ovrFovPort> max_fov_right).c_data[0] = self.c_ovrHmdDesc.MaxEyeFov[1]
 
         return max_fov_left, max_fov_right
 
@@ -472,7 +463,6 @@ cdef class ovrHmdDesc(object):
     def DisplayRefreshRate(self):
         return self.c_ovrHmdDesc.DisplayRefreshRate
 
-
 cpdef ovrHmdDesc getHmdDesc():
     """Get general information about the connected HMD. Information such as the
     serial number can identify a specific unit, etc.
@@ -482,7 +472,7 @@ cpdef ovrHmdDesc getHmdDesc():
     """
     global _ptr_session_
     cdef ovrHmdDesc to_return = ovrHmdDesc()
-    (<ovrHmdDesc>to_return).c_ovrHmdDesc = ovr_capi.ovr_GetHmdDesc(
+    (<ovrHmdDesc> to_return).c_ovrHmdDesc = ovr_capi.ovr_GetHmdDesc(
         _ptr_session_)
 
     return to_return
@@ -531,15 +521,14 @@ cdef class ovrTextureSwapChainDesc:
             int mip_levels=1,
             int sample_count=1,
             bint static_image=False):
-
-        self.c_ovrTextureSwapChainDesc.Type = <ovr_capi.ovrTextureType>type
-        self.c_ovrTextureSwapChainDesc.Format = <ovr_capi.ovrTextureFormat>_format
+        self.c_ovrTextureSwapChainDesc.Type = <ovr_capi.ovrTextureType> type
+        self.c_ovrTextureSwapChainDesc.Format = <ovr_capi.ovrTextureFormat> _format
         self.c_ovrTextureSwapChainDesc.ArraySize = array_size
         self.c_ovrTextureSwapChainDesc.Width = width
         self.c_ovrTextureSwapChainDesc.Height = height
         self.c_ovrTextureSwapChainDesc.MipLevels = mip_levels
         self.c_ovrTextureSwapChainDesc.SampleCount = sample_count
-        self.c_ovrTextureSwapChainDesc.StaticImage = <ovr_capi.ovrBool>static_image
+        self.c_ovrTextureSwapChainDesc.StaticImage = <ovr_capi.ovrBool> static_image
 
         # these can't be set right now
         self.c_ovrTextureSwapChainDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
@@ -547,23 +536,23 @@ cdef class ovrTextureSwapChainDesc:
 
     @property
     def Type(self):
-        return <int>self.c_ovrTextureSwapChainDesc.Type
+        return <int> self.c_ovrTextureSwapChainDesc.Type
 
     @Type.setter
     def Type(self, int value):
-        self.c_ovrTextureSwapChainDesc.Type = <ovr_capi.ovrTextureType>value
+        self.c_ovrTextureSwapChainDesc.Type = <ovr_capi.ovrTextureType> value
 
     @property
     def Format(self):
-        return <int>self.c_ovrTextureSwapChainDesc.Format
+        return <int> self.c_ovrTextureSwapChainDesc.Format
 
     @Format.setter
     def Format(self, int value):
-        self.c_ovrTextureSwapChainDesc.Format = <ovr_capi.ovrTextureFormat>value
+        self.c_ovrTextureSwapChainDesc.Format = <ovr_capi.ovrTextureFormat> value
 
     @property
     def ArraySize(self):
-        return <int>self.c_ovrTextureSwapChainDesc.ArraySize
+        return <int> self.c_ovrTextureSwapChainDesc.ArraySize
 
     @ArraySize.setter
     def ArraySize(self, int value):
@@ -571,7 +560,7 @@ cdef class ovrTextureSwapChainDesc:
 
     @property
     def Width(self):
-        return <int>self.c_ovrTextureSwapChainDesc.Width
+        return <int> self.c_ovrTextureSwapChainDesc.Width
 
     @Width.setter
     def Width(self, int value):
@@ -579,7 +568,7 @@ cdef class ovrTextureSwapChainDesc:
 
     @property
     def Height(self):
-        return <int>self.c_ovrTextureSwapChainDesc.Height
+        return <int> self.c_ovrTextureSwapChainDesc.Height
 
     @Height.setter
     def Height(self, int value):
@@ -587,7 +576,7 @@ cdef class ovrTextureSwapChainDesc:
 
     @property
     def MipLevels(self):
-        return <int>self.c_ovrTextureSwapChainDesc.MipLevels
+        return <int> self.c_ovrTextureSwapChainDesc.MipLevels
 
     @MipLevels.setter
     def MipLevels(self, int value):
@@ -595,7 +584,7 @@ cdef class ovrTextureSwapChainDesc:
 
     @property
     def SampleCount(self):
-        return <int>self.c_ovrTextureSwapChainDesc.SampleCount
+        return <int> self.c_ovrTextureSwapChainDesc.SampleCount
 
     @SampleCount.setter
     def SampleCount(self, int value):
@@ -603,11 +592,11 @@ cdef class ovrTextureSwapChainDesc:
 
     @property
     def StaticImage(self):
-        return <bint>self.c_ovrTextureSwapChainDesc.StaticImage
+        return <bint> self.c_ovrTextureSwapChainDesc.StaticImage
 
     @StaticImage.setter
     def StaticImage(self, bint value):
-        self.c_ovrTextureSwapChainDesc.StaticImage = <ovr_capi.ovrBool>value
+        self.c_ovrTextureSwapChainDesc.StaticImage = <ovr_capi.ovrBool> value
 
 cpdef int createTextureSwapChainGL(
         ovrTextureSwapChainDesc swap_desc):
@@ -669,9 +658,9 @@ cpdef ovrSizei getFovTextureSize(
     
     """
     cdef ovrSizei to_return = ovrSizei()
-    (<ovrSizei>to_return).c_data[0] = ovr_capi.ovr_GetFovTextureSize(
+    (<ovrSizei> to_return).c_data[0] = ovr_capi.ovr_GetFovTextureSize(
         _ptr_session_,
-        <ovr_capi.ovrEyeType>eye_type,
+        <ovr_capi.ovrEyeType> eye_type,
         fov.c_data[0],
         texels_per_pixel)
 
@@ -692,7 +681,7 @@ cpdef void configEyeRenderDesc(int eye_type, ovrFovPort fov):
     global _eye_render_desc_, _eye_layer_, _hmd_to_eye_view_pose_
     _eye_render_desc_[eye_type] = ovr_capi.ovr_GetRenderDesc(
         _ptr_session_,
-        <ovr_capi.ovrEyeType>eye_type,
+        <ovr_capi.ovrEyeType> eye_type,
         fov.c_data[0])
 
     # set the initial eye pose
@@ -711,10 +700,10 @@ cpdef list getHmdToEyePose():
     cdef ovrPosef hmdToEyePoseLeft = ovrPosef()
     cdef ovrPosef hmdToEyePoseRight = ovrPosef()
 
-    (<ovrPosef>hmdToEyePoseLeft).c_data[0] = \
-        <ovr_math.Posef>_eye_render_desc_[0].HmdToEyePose
-    (<ovrPosef>hmdToEyePoseRight).c_data[0] = \
-        <ovr_math.Posef>_eye_render_desc_[1].HmdToEyePose
+    (<ovrPosef> hmdToEyePoseLeft).c_data[0] = \
+        <ovr_math.Posef> _eye_render_desc_[0].HmdToEyePose
+    (<ovrPosef> hmdToEyePoseRight).c_data[0] = \
+        <ovr_math.Posef> _eye_render_desc_[1].HmdToEyePose
 
     return [hmdToEyePoseLeft, hmdToEyePoseRight]
 
@@ -755,7 +744,7 @@ cpdef tuple getBufferSize(str fov_type='recommended',
             _hmdDesc_.MaxEyeFov[1],
             texel_per_pixel)
 
-    buffer_size.w  = rec_tex0_size.w + rec_tex1_size.w
+    buffer_size.w = rec_tex0_size.w + rec_tex1_size.w
     buffer_size.h = max(rec_tex0_size.h, rec_tex1_size.h)
 
     return buffer_size.w, buffer_size.h
@@ -771,7 +760,7 @@ cpdef void setRenderSwapChain(int eye, object swap_chain):
     # set the swap chain textures
     global _eye_layer_
     if not swap_chain is None:
-        _eye_layer_.ColorTexture[eye] = _swap_chain_[<int>swap_chain]
+        _eye_layer_.ColorTexture[eye] = _swap_chain_[<int> swap_chain]
     else:
         _eye_layer_.ColorTexture[eye] = NULL
 
@@ -785,7 +774,7 @@ cpdef ovrRecti getRenderViewport(int eye):
     """
     global _ptr_session_, _eye_layer_
     cdef ovrRecti to_return = ovrRecti()
-    (<ovrRecti>to_return).c_data[0] = _eye_layer_.Viewport[eye]
+    (<ovrRecti> to_return).c_data[0] = _eye_layer_.Viewport[eye]
 
     return to_return
 
@@ -808,7 +797,7 @@ cpdef int getRenderLayerFlags():
     
     """
     global _eye_layer_
-    return <int>_eye_layer_.Header.Flags
+    return <int> _eye_layer_.Header.Flags
 
 cpdef void setRenderLayerFlags(int layerHeaderFlags):
     """Set the render layer's header flags.
@@ -828,7 +817,7 @@ cdef class ovrPoseStatef(object):
     """Pose state data.
 
     """
-    cdef ovr_capi.ovrPoseStatef* c_data
+    cdef ovr_capi.ovrPoseStatef*c_data
     cdef ovr_capi.ovrPoseStatef  c_ovrPoseStatef
 
     cdef ovrPosef field_the_pose
@@ -848,42 +837,42 @@ cdef class ovrPoseStatef(object):
     @property
     def ThePose(self):
         cdef ovrPosef to_return = ovrPosef()
-        (<ovrPosef>to_return).c_data[0] = <ovr_math.Posef>self.c_data[0].ThePose
+        (<ovrPosef> to_return).c_data[0] = <ovr_math.Posef> self.c_data[
+            0].ThePose
 
         return to_return
 
     @property
     def AngularVelocity(self):
         self.field_angular_velocity.c_data[0] = \
-            (<ovr_math.Vector3f>self.c_data[0].AngularVelocity)
+            (<ovr_math.Vector3f> self.c_data[0].AngularVelocity)
 
         return self.field_angular_velocity
 
     @property
     def LinearVelocity(self):
         self.field_linear_velocity.c_data[0] = \
-            (<ovr_math.Vector3f>self.c_data[0].LinearVelocity)
+            (<ovr_math.Vector3f> self.c_data[0].LinearVelocity)
 
         return self.field_linear_velocity
 
     @property
     def AngularAcceleration(self):
         self.field_angular_acceleration.c_data[0] = \
-            (<ovr_math.Vector3f>self.c_data[0].AngularAcceleration)
+            (<ovr_math.Vector3f> self.c_data[0].AngularAcceleration)
 
         return self.field_angular_acceleration
 
     @property
     def LinearAcceleration(self):
         self.field_linear_acceleration.c_data[0] = \
-            (<ovr_math.Vector3f>self.c_data[0].LinearAcceleration)
+            (<ovr_math.Vector3f> self.c_data[0].LinearAcceleration)
 
         return self.field_linear_acceleration
 
     @property
     def TimeInSeconds(self):
-        return <double>self.c_data[0].TimeInSeconds
-
+        return <double> self.c_data[0].TimeInSeconds
 
 ovrStatus_OrientationTracked = ovr_capi.ovrStatus_OrientationTracked
 ovrStatus_PositionTracked = ovr_capi.ovrStatus_PositionTracked
@@ -893,7 +882,7 @@ cdef class TrackingStateData(object):
     read-only, returning a copy of the data in the accessed field.
 
     """
-    cdef ovr_capi.ovrTrackingState* c_data
+    cdef ovr_capi.ovrTrackingState*c_data
     cdef ovr_capi.ovrTrackingState  c_ovrTrackingState
 
     def __cinit__(self, *args, **kwargs):
@@ -902,33 +891,33 @@ cdef class TrackingStateData(object):
     @property
     def HeadPose(self):
         cdef ovrPoseStatef to_return = ovrPoseStatef()
-        (<ovrPoseStatef>to_return).c_data[0] = self.c_data[0].HeadPose
+        (<ovrPoseStatef> to_return).c_data[0] = self.c_data[0].HeadPose
 
         return to_return
 
     @property
     def StatusFlags(self):
-        return <unsigned int>self.c_data[0].StatusFlags
+        return <unsigned int> self.c_data[0].StatusFlags
 
     @property
     def HandPoses(self):
         cdef ovrPoseStatef left_hand_pose = ovrPoseStatef()
-        (<ovrPoseStatef>left_hand_pose).c_data[0] = self.c_data[0].HandPoses[0]
+        (<ovrPoseStatef> left_hand_pose).c_data[0] = self.c_data[0].HandPoses[0]
 
         cdef ovrPoseStatef right_hand_pose = ovrPoseStatef()
-        (<ovrPoseStatef>right_hand_pose).c_data[0] = self.c_data[0].HandPoses[1]
+        (<ovrPoseStatef> right_hand_pose).c_data[0] = self.c_data[0].HandPoses[
+            1]
 
         return left_hand_pose, right_hand_pose
 
     @property
     def HandStatusFlags(self):
-        return <unsigned int>self.c_data[0].HandStatusFlags[0], \
-               <unsigned int>self.c_data[0].HandStatusFlags[1]
+        return <unsigned int> self.c_data[0].HandStatusFlags[0], \
+               <unsigned int> self.c_data[0].HandStatusFlags[1]
 
 cpdef TrackingStateData getTrackingState(
         double abs_time,
         bint latency_marker=True):
-
     cdef ovr_capi.ovrBool use_marker = \
         ovr_capi.ovrTrue if latency_marker else ovr_capi.ovrFalse
 
@@ -936,7 +925,7 @@ cpdef TrackingStateData getTrackingState(
         _ptr_session_, abs_time, use_marker)
 
     cdef TrackingStateData to_return = TrackingStateData()
-    (<TrackingStateData>to_return).c_data[0] = ts
+    (<TrackingStateData> to_return).c_data[0] = ts
 
     return to_return
 
@@ -993,7 +982,7 @@ cpdef void specifyTrackingOrigin(ovrPosef originPose):
     """
     global _ptr_session_
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_SpecifyTrackingOrigin(
-        _ptr_session_, <ovr_capi.ovrPosef>originPose.c_data[0])
+        _ptr_session_, <ovr_capi.ovrPosef> originPose.c_data[0])
 
     if debug_mode:
         check_result(result)
@@ -1019,8 +1008,10 @@ cpdef list calcEyePoses(TrackingStateData trackingState):
 
     cdef ovrPosef eye_pose0 = ovrPosef()
     cdef ovrPosef eye_pose1 = ovrPosef()
-    (<ovrPosef>eye_pose0).c_data[0] = <ovr_math.Posef>_eye_layer_.RenderPose[0]
-    (<ovrPosef>eye_pose1).c_data[0] = <ovr_math.Posef>_eye_layer_.RenderPose[1]
+    (<ovrPosef> eye_pose0).c_data[0] = <ovr_math.Posef> _eye_layer_.RenderPose[
+        0]
+    (<ovrPosef> eye_pose1).c_data[0] = <ovr_math.Posef> _eye_layer_.RenderPose[
+        1]
 
     return [eye_pose0, eye_pose1]
 
@@ -1034,13 +1025,13 @@ cpdef ovrMatrix4f getEyeViewMatrix(ovrPosef eyePose):
     """
     cdef ovrVector3f pos = ovrVector3f()
     cdef ovrMatrix4f rot = ovrMatrix4f()
-    pos.c_data[0] = <ovr_math.Vector3f>eyePose.c_data.Translation
-    rot.c_data[0] = ovr_math.Matrix4f(<ovr_math.Quatf>eyePose.c_data.Rotation)
+    pos.c_data[0] = <ovr_math.Vector3f> eyePose.c_data.Translation
+    rot.c_data[0] = ovr_math.Matrix4f(<ovr_math.Quatf> eyePose.c_data.Rotation)
 
     cdef ovrVector3f final_up = \
-        (<ovrVector3f>rot).transform(ovrVector3f(0, 1, 0))
+        (<ovrVector3f> rot).transform(ovrVector3f(0, 1, 0))
     cdef ovrVector3f final_forward = \
-        (<ovrVector3f>rot).transform(ovrVector3f(0, 0, -1))
+        (<ovrVector3f> rot).transform(ovrVector3f(0, 0, -1))
     cdef ovrMatrix4f viewMatrix = \
         ovrMatrix4f.lookAt(pos, pos + final_forward, final_up)
 
@@ -1063,8 +1054,8 @@ cpdef ovrMatrix4f getEyeProjectionMatrix(
     global _eye_layer_
 
     cdef ovrMatrix4f projectionMatrix = ovrMatrix4f()
-    (<ovrMatrix4f>projectionMatrix).c_data[0] = \
-        <ovr_math.Matrix4f>ovr_capi_util.ovrMatrix4f_Projection(
+    (<ovrMatrix4f> projectionMatrix).c_data[0] = \
+        <ovr_math.Matrix4f> ovr_capi_util.ovrMatrix4f_Projection(
             _eye_layer_.Fov[eye],
             near_clip,
             far_clip,
@@ -1098,12 +1089,12 @@ cpdef int waitToBeginFrame(unsigned int frameIndex=0):
     cdef ovr_capi.ovrResult result = 0
     result = ovr_capi.ovr_WaitToBeginFrame(_ptr_session_, frameIndex)
 
-    return <int>result
+    return <int> result
 
 cpdef int beginFrame(unsigned int frameIndex=0):
     result = ovr_capi.ovr_BeginFrame(_ptr_session_, frameIndex)
 
-    return <int>result
+    return <int> result
 
 cpdef void commitSwapChain(int sc):
     global _ptr_session_, _swap_chain_
@@ -1116,13 +1107,13 @@ cpdef void commitSwapChain(int sc):
 
 cpdef void endFrame(unsigned int frameIndex=0):
     global _eye_layer_
-    cdef ovr_capi.ovrLayerHeader* layers = &_eye_layer_.Header
+    cdef ovr_capi.ovrLayerHeader*layers = &_eye_layer_.Header
     result = ovr_capi.ovr_EndFrame(
         _ptr_session_,
         frameIndex,
         NULL,
         &layers,
-        <unsigned int>1)
+        <unsigned int> 1)
 
     if debug_mode:
         check_result(result)
@@ -1154,24 +1145,23 @@ cdef class ovrMirrorTextureDesc:
             int width=800,
             int height=600,
             int mirrorOptions=ovrMirrorOption_Default):
-
-        self.c_ovrMirrorTextureDesc.Format = <ovr_capi.ovrTextureFormat>_format
+        self.c_ovrMirrorTextureDesc.Format = <ovr_capi.ovrTextureFormat> _format
         self.c_ovrMirrorTextureDesc.Width = width
         self.c_ovrMirrorTextureDesc.Height = height
         self.c_ovrMirrorTextureDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
-        self.c_ovrMirrorTextureDesc.MirrorOptions = <int32_t>mirrorOptions
+        self.c_ovrMirrorTextureDesc.MirrorOptions = <int32_t> mirrorOptions
 
     @property
     def Format(self):
-        return <int>self.c_ovrMirrorTextureDesc.Format
+        return <int> self.c_ovrMirrorTextureDesc.Format
 
     @Format.setter
     def Format(self, int value):
-        self.c_ovrMirrorTextureDesc.Format = <ovr_capi.ovrTextureFormat>value
+        self.c_ovrMirrorTextureDesc.Format = <ovr_capi.ovrTextureFormat> value
 
     @property
     def Width(self):
-        return <int>self.c_ovrMirrorTextureDesc.Width
+        return <int> self.c_ovrMirrorTextureDesc.Width
 
     @Width.setter
     def Width(self, int value):
@@ -1179,7 +1169,7 @@ cdef class ovrMirrorTextureDesc:
 
     @property
     def Height(self):
-        return <int>self.c_ovrMirrorTextureDesc.Height
+        return <int> self.c_ovrMirrorTextureDesc.Height
 
     @Height.setter
     def Height(self, int value):
@@ -1187,12 +1177,11 @@ cdef class ovrMirrorTextureDesc:
 
     @property
     def MirrorOptions(self):
-        return <int>self.c_ovrMirrorTextureDesc.MirrorOptions
+        return <int> self.c_ovrMirrorTextureDesc.MirrorOptions
 
     @MirrorOptions.setter
     def MirrorOptions(self, int value):
-        self.c_ovrMirrorTextureDesc.MirrorOptions = <int32_t>value
-
+        self.c_ovrMirrorTextureDesc.MirrorOptions = <int32_t> value
 
 cpdef void setupMirrorTexture(ovrMirrorTextureDesc mirrorDesc):
     """Create a mirror texture buffer.
@@ -1221,7 +1210,7 @@ cpdef unsigned int getMirrorTexture():
             _mirror_texture_,
             &out_tex_id)
 
-    return <unsigned int>out_tex_id
+    return <unsigned int> out_tex_id
 
 # types
 ovrLayerType_EyeFov = ovr_capi.ovrLayerType_EyeFov
@@ -1236,7 +1225,7 @@ ovrLayerFlag_HeadLocked = ovr_capi.ovrLayerFlag_HeadLocked
 # ------------------------
 #
 cdef class ovrSessionStatus(object):
-    cdef ovr_capi.ovrSessionStatus* c_data
+    cdef ovr_capi.ovrSessionStatus*c_data
     cdef ovr_capi.ovrSessionStatus  c_ovrSessionStatus
 
     def __cinit__(self, *args, **kwargs):
@@ -1244,36 +1233,35 @@ cdef class ovrSessionStatus(object):
 
     @property
     def IsVisible(self):
-        return <bint>self.c_data.IsVisible
+        return <bint> self.c_data.IsVisible
 
     @property
     def HmdPresent(self):
-        return <bint>self.c_data.HmdPresent
+        return <bint> self.c_data.HmdPresent
 
     @property
     def DisplayLost(self):
-        return <bint>self.c_data.DisplayLost
+        return <bint> self.c_data.DisplayLost
 
     @property
     def ShouldQuit(self):
-        return <bint>self.c_data.ShouldQuit
+        return <bint> self.c_data.ShouldQuit
 
     @property
     def ShouldRecenter(self):
-        return <bint>self.c_data.ShouldRecenter
+        return <bint> self.c_data.ShouldRecenter
 
     @property
     def HasInputFocus(self):
-        return <bint>self.c_data.HasInputFocus
+        return <bint> self.c_data.HasInputFocus
 
     @property
     def OverlayPresent(self):
-        return <bint>self.c_data.OverlayPresent
+        return <bint> self.c_data.OverlayPresent
 
     @property
     def DepthRequested(self):
-        return <bint>self.c_data.DepthRequested
-
+        return <bint> self.c_data.DepthRequested
 
 cpdef ovrSessionStatus getSessionStatus():
     """Get the current session status.
@@ -1284,7 +1272,7 @@ cpdef ovrSessionStatus getSessionStatus():
     global _ptr_session_
     cdef ovrSessionStatus to_return = ovrSessionStatus()
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetSessionStatus(
-        _ptr_session_, &(<ovrSessionStatus>to_return).c_data[0])
+        _ptr_session_, &(<ovrSessionStatus> to_return).c_data[0])
 
     if debug_mode:
         check_result(result)
@@ -1300,7 +1288,7 @@ cdef class ovrInputState(object):
     by calling 'get_input_state()'.
 
     """
-    cdef ovr_capi.ovrInputState* c_data
+    cdef ovr_capi.ovrInputState*c_data
     cdef ovr_capi.ovrInputState c_ovrInputState
 
     def __cinit__(self, *args, **kwargs):
@@ -1308,7 +1296,7 @@ cdef class ovrInputState(object):
 
     @property
     def TimeInSeconds(self):
-        return <double>self.c_data.TimeInSeconds
+        return <double> self.c_data.TimeInSeconds
 
     @property
     def Buttons(self):
@@ -1343,7 +1331,7 @@ cdef class ovrInputState(object):
 
     @property
     def ControllerType(self):
-        cdef int ctrl_type = <int>self.c_data[0].ControllerType
+        cdef int ctrl_type = <int> self.c_data[0].ControllerType
         if ctrl_type == ovr_capi.ovrControllerType_XBox:
             return 'xbox'
         elif ctrl_type == ovr_capi.ovrControllerType_Remote:
@@ -1360,7 +1348,8 @@ cdef class ovrInputState(object):
     @property
     def IndexTriggerNoDeadzone(self):
         cdef float index_trigger_left = self.c_data[0].IndexTriggerNoDeadzone[0]
-        cdef float index_trigger_right = self.c_data[0].IndexTriggerNoDeadzone[1]
+        cdef float index_trigger_right = self.c_data[0].IndexTriggerNoDeadzone[
+            1]
 
         return index_trigger_left, index_trigger_right
 
@@ -1426,13 +1415,13 @@ cpdef object getInputState(str controller, object stateOut=None):
 
     # create a controller state object and set its data
     global _ptr_session_
-    cdef ovr_capi.ovrInputState* ptr_state
+    cdef ovr_capi.ovrInputState*ptr_state
     cdef ovrInputState to_return = ovrInputState()
 
     if stateOut is None:
-        ptr_state = &(<ovrInputState>to_return).c_ovrInputState
+        ptr_state = &(<ovrInputState> to_return).c_ovrInputState
     else:
-        ptr_state = &(<ovrInputState>stateOut).c_ovrInputState
+        ptr_state = &(<ovrInputState> stateOut).c_ovrInputState
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
         _ptr_session_,
@@ -1453,30 +1442,30 @@ cpdef double pollController(str controller):
     
     """
     global _ptr_session_, _ctrl_states_, _ctrl_states_prev_
-    cdef ovr_capi.ovrInputState* ptr_ctrl = NULL
-    cdef ovr_capi.ovrInputState* ptr_ctrl_prev = NULL
+    cdef ovr_capi.ovrInputState*ptr_ctrl = NULL
+    cdef ovr_capi.ovrInputState*ptr_ctrl_prev = NULL
 
     cdef ovr_capi.ovrControllerType ctrl_type
     if controller == 'xbox':
         ctrl_type = ovr_capi.ovrControllerType_XBox
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.xbox]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.xbox]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.xbox]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.xbox]
     elif controller == 'remote':
         ctrl_type = ovr_capi.ovrControllerType_Remote
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.remote]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.remote]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.remote]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.remote]
     elif controller == 'touch':
         ctrl_type = ovr_capi.ovrControllerType_Touch
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.touch]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.touch]
     elif controller == 'left_touch':
         ctrl_type = ovr_capi.ovrControllerType_LTouch
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.left_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.left_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.left_touch]
     elif controller == 'right_touch':
         ctrl_type = ovr_capi.ovrControllerType_RTouch
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.right_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.right_touch]
 
     # copy the previous control state
     ptr_ctrl_prev[0] = ptr_ctrl[0]
@@ -1503,17 +1492,17 @@ cpdef double getControllerAbsTime(str controller):
     """
     # get pointer to control state
     global _ctrl_states_
-    cdef ovr_capi.ovrInputState* ptr_ctrl_state = NULL
+    cdef ovr_capi.ovrInputState*ptr_ctrl_state = NULL
     if controller == 'xbox':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.xbox]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.xbox]
     elif controller == 'remote':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.remote]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.remote]
     elif controller == 'touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.touch]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.touch]
     elif controller == 'left_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.left_touch]
     elif controller == 'right_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.right_touch]
 
     return ptr_ctrl_state[0].TimeInSeconds
 
@@ -1527,17 +1516,17 @@ cpdef tuple getIndexTriggerValues(str controller, bint deadZone=False):
     """
     # get pointer to control state
     global _ctrl_states_
-    cdef ovr_capi.ovrInputState* ptr_ctrl_state = NULL
+    cdef ovr_capi.ovrInputState*ptr_ctrl_state = NULL
     if controller == 'xbox':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.xbox]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.xbox]
     elif controller == 'remote':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.remote]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.remote]
     elif controller == 'touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.touch]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.touch]
     elif controller == 'left_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.left_touch]
     elif controller == 'right_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.right_touch]
 
     cdef float index_trigger_left = 0.0
     cdef float index_trigger_right = 0.0
@@ -1562,17 +1551,17 @@ cpdef tuple getHandTriggerValues(str controller, bint deadZone=False):
     """
     # get pointer to control state
     global _ctrl_states_
-    cdef ovr_capi.ovrInputState* ptr_ctrl_state = NULL
+    cdef ovr_capi.ovrInputState*ptr_ctrl_state = NULL
     if controller == 'xbox':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.xbox]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.xbox]
     elif controller == 'remote':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.remote]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.remote]
     elif controller == 'touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.touch]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.touch]
     elif controller == 'left_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.left_touch]
     elif controller == 'right_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.right_touch]
 
     cdef float hand_trigger_left = 0.0
     cdef float hand_trigger_right = 0.0
@@ -1612,23 +1601,23 @@ cpdef tuple getThumbstickValues(str controller, bint deadZone=False):
     """
     # get pointer to control state
     global _ctrl_states_
-    cdef ovr_capi.ovrInputState* ptr_ctrl = NULL
-    cdef ovr_capi.ovrInputState* ptr_ctrl_prev = NULL
+    cdef ovr_capi.ovrInputState*ptr_ctrl = NULL
+    cdef ovr_capi.ovrInputState*ptr_ctrl_prev = NULL
     if controller == 'xbox':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.xbox]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.xbox]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.xbox]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.xbox]
     elif controller == 'remote':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.remote]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.remote]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.remote]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.remote]
     elif controller == 'touch':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.touch]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.touch]
     elif controller == 'left_touch':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.left_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.left_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.left_touch]
     elif controller == 'right_touch':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.right_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.right_touch]
 
     cdef float thumbstick0_x = 0.0
     cdef float thumbstick0_y = 0.0
@@ -1655,7 +1644,8 @@ cpdef tuple getThumbstickValues(str controller, bint deadZone=False):
 
     return (thumbstick0_x, thumbstick0_y), (thumbstick1_x, thumbstick1_y)
 
-cpdef bint getButtons(str controller, object buttonNames, str trigger='continuous'):
+cpdef bint getButtons(str controller, object buttonNames,
+                      str trigger='continuous'):
     """Get the state of a specified button for a given controller. 
     
     Buttons to test are specified using their string names. Argument
@@ -1677,23 +1667,23 @@ cpdef bint getButtons(str controller, object buttonNames, str trigger='continuou
     """
     # get pointer to control state
     global _ctrl_states_
-    cdef ovr_capi.ovrInputState* ptr_ctrl = NULL
-    cdef ovr_capi.ovrInputState* ptr_ctrl_prev = NULL
+    cdef ovr_capi.ovrInputState*ptr_ctrl = NULL
+    cdef ovr_capi.ovrInputState*ptr_ctrl_prev = NULL
     if controller == 'xbox':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.xbox]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.xbox]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.xbox]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.xbox]
     elif controller == 'remote':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.remote]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.remote]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.remote]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.remote]
     elif controller == 'touch':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.touch]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.touch]
     elif controller == 'left_touch':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.left_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.left_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.left_touch]
     elif controller == 'right_touch':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.right_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.right_touch]
 
     cdef unsigned int button_bits = 0x00000000
     cdef int i, N
@@ -1701,7 +1691,7 @@ cpdef bint getButtons(str controller, object buttonNames, str trigger='continuou
         button_bits |= ctrl_button_lut[buttonNames]
     elif isinstance(buttonNames, (tuple, list)):
         # loop over all names and combine them
-        N = <int>len(buttonNames)
+        N = <int> len(buttonNames)
         for i in range(N):
             button_bits |= ctrl_button_lut[buttonNames[i]]
 
@@ -1712,17 +1702,18 @@ cpdef bint getButtons(str controller, object buttonNames, str trigger='continuou
     elif trigger == 'rising' or trigger == 'pressed':
         # rising edge, will trigger once when pressed
         pressed = (ptr_ctrl.Buttons & button_bits) == button_bits and \
-            (ptr_ctrl_prev.Buttons & button_bits) != button_bits
+                  (ptr_ctrl_prev.Buttons & button_bits) != button_bits
     elif trigger == 'falling' or trigger == 'released':
         # falling edge, will trigger once when released
         pressed = (ptr_ctrl.Buttons & button_bits) != button_bits and \
-            (ptr_ctrl_prev.Buttons & button_bits) == button_bits
+                  (ptr_ctrl_prev.Buttons & button_bits) == button_bits
     else:
         raise ValueError("Invalid trigger mode specified.")
 
     return pressed
 
-cpdef bint getTouches(str controller, object touchNames, str trigger='continuous'):
+cpdef bint getTouches(str controller, object touchNames,
+                      str trigger='continuous'):
     """Get touches for a specified device.
     
     Touches reveal information about the user's hand pose, for instance, whether 
@@ -1742,23 +1733,23 @@ cpdef bint getTouches(str controller, object touchNames, str trigger='continuous
     """
     # get pointer to control state
     global _ctrl_states_
-    cdef ovr_capi.ovrInputState* ptr_ctrl = NULL
-    cdef ovr_capi.ovrInputState* ptr_ctrl_prev = NULL
+    cdef ovr_capi.ovrInputState*ptr_ctrl = NULL
+    cdef ovr_capi.ovrInputState*ptr_ctrl_prev = NULL
     if controller == 'xbox':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.xbox]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.xbox]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.xbox]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.xbox]
     elif controller == 'remote':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.remote]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.remote]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.remote]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.remote]
     elif controller == 'touch':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.touch]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.touch]
     elif controller == 'left_touch':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.left_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.left_touch]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.left_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.left_touch]
     elif controller == 'right_touch':
-        ptr_ctrl = &_ctrl_states_[<int>LibOVRControllers.right_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int>LibOVRControllers.right_touch]
+        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.right_touch]
 
     cdef unsigned int touch_bits = 0x00000000
     cdef int i, N
@@ -1766,7 +1757,7 @@ cpdef bint getTouches(str controller, object touchNames, str trigger='continuous
         touch_bits |= ctrl_button_lut[touchNames]
     elif isinstance(touchNames, (tuple, list)):
         # loop over all names and combine them
-        N = <int>len(touchNames)
+        N = <int> len(touchNames)
         for i in range(N):
             touch_bits |= ctrl_button_lut[touchNames[i]]
 
@@ -1777,11 +1768,11 @@ cpdef bint getTouches(str controller, object touchNames, str trigger='continuous
     elif trigger == 'rising' or trigger == 'pressed':
         # rising edge, will trigger once when pressed
         touched = (ptr_ctrl.Touches & touch_bits) == touch_bits and \
-            (ptr_ctrl_prev.Touches & touch_bits) != touch_bits
+                  (ptr_ctrl_prev.Touches & touch_bits) != touch_bits
     elif trigger == 'falling' or trigger == 'released':
         # falling edge, will trigger once when released
         touched = (ptr_ctrl.Touches & touch_bits) != touch_bits and \
-            (ptr_ctrl_prev.Touches & touch_bits) == touch_bits
+                  (ptr_ctrl_prev.Touches & touch_bits) == touch_bits
     else:
         raise ValueError("Invalid trigger mode specified.")
 
@@ -1828,7 +1819,7 @@ cpdef list getConnectedControllerTypes():
 # -------------------------------
 #
 cdef class ovrPerfStatsPerCompositorFrame(object):
-    cdef ovr_capi.ovrPerfStatsPerCompositorFrame* c_data
+    cdef ovr_capi.ovrPerfStatsPerCompositorFrame*c_data
     cdef ovr_capi.ovrPerfStatsPerCompositorFrame  c_ovrPerfStatsPerCompositorFrame
 
     def __cinit__(self, *args, **kwargs):
@@ -1882,9 +1873,8 @@ cdef class ovrPerfStatsPerCompositorFrame(object):
     def CompositorGpuEndToVsyncElapsedTime(self):
         return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
 
-
 cdef class ovrPerfStats(object):
-    cdef ovr_capi.ovrPerfStats* c_data
+    cdef ovr_capi.ovrPerfStats*c_data
     cdef ovr_capi.ovrPerfStats  c_ovrPerfStats
     cdef list perf_stats
 
@@ -1894,10 +1884,10 @@ cdef class ovrPerfStats(object):
         # initialize performance stats list
         self.perf_stats = list()
         cdef int i, N
-        N = <int>ovr_capi.ovrMaxProvidedFrameStats
+        N = <int> ovr_capi.ovrMaxProvidedFrameStats
         for i in range(N):
             self.perf_stats.append(ovrPerfStatsPerCompositorFrame())
-            (<ovrPerfStatsPerCompositorFrame>self.perf_stats[i]).c_data[0] = \
+            (<ovrPerfStatsPerCompositorFrame> self.perf_stats[i]).c_data[0] = \
                 self.c_data[0].FrameStats[i]
 
     @property
@@ -1906,26 +1896,25 @@ cdef class ovrPerfStats(object):
 
     @property
     def AnyFrameStatsDropped(self):
-        return <bint>self.c_data[0].AnyFrameStatsDropped
+        return <bint> self.c_data[0].AnyFrameStatsDropped
 
     @property
     def FrameStats(self):
         cdef int i, N
         N = self.c_data[0].FrameStatsCount
         for i in range(N):
-            (<ovrPerfStatsPerCompositorFrame>self.perf_stats[i]).c_data[0] = \
+            (<ovrPerfStatsPerCompositorFrame> self.perf_stats[i]).c_data[0] = \
                 self.c_data[0].FrameStats[i]
 
         return self.perf_stats
 
     @property
     def AdaptiveGpuPerformanceScale(self):
-        return <bint>self.c_data[0].AdaptiveGpuPerformanceScale
+        return <bint> self.c_data[0].AdaptiveGpuPerformanceScale
 
     @property
     def AswIsAvailable(self):
-        return <bint>self.c_data[0].AswIsAvailable
-
+        return <bint> self.c_data[0].AswIsAvailable
 
 cpdef ovrPerfStats getFrameStats():
     """Get most recent performance stats, returns an object with fields
@@ -1939,7 +1928,7 @@ cpdef ovrPerfStats getFrameStats():
     cdef ovrPerfStats to_return = ovrPerfStats()
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetPerfStats(
         _ptr_session_,
-        &(<ovrPerfStats>to_return).c_data[0])
+        &(<ovrPerfStats> to_return).c_data[0])
 
     if debug_mode:
         check_result(result)
@@ -1981,19 +1970,19 @@ cpdef void perfHudMode(str mode='Off'):
     cdef int perf_hud_mode = 0
 
     if mode == 'Off':
-        perf_hud_mode = <int>ovr_capi.ovrPerfHud_Off
+        perf_hud_mode = <int> ovr_capi.ovrPerfHud_Off
     elif mode == 'PerfSummary':
-        perf_hud_mode = <int>ovr_capi.ovrPerfHud_PerfSummary
+        perf_hud_mode = <int> ovr_capi.ovrPerfHud_PerfSummary
     elif mode == 'LatencyTiming':
-        perf_hud_mode = <int>ovr_capi.ovrPerfHud_LatencyTiming
+        perf_hud_mode = <int> ovr_capi.ovrPerfHud_LatencyTiming
     elif mode == 'AppRenderTiming':
-        perf_hud_mode = <int>ovr_capi.ovrPerfHud_AppRenderTiming
+        perf_hud_mode = <int> ovr_capi.ovrPerfHud_AppRenderTiming
     elif mode == 'CompRenderTiming':
-        perf_hud_mode = <int>ovr_capi.ovrPerfHud_CompRenderTiming
+        perf_hud_mode = <int> ovr_capi.ovrPerfHud_CompRenderTiming
     elif mode == 'AswStats':
-        perf_hud_mode = <int>ovr_capi.ovrPerfHud_AswStats
+        perf_hud_mode = <int> ovr_capi.ovrPerfHud_AswStats
     elif mode == 'VersionInfo':
-        perf_hud_mode = <int>ovr_capi.ovrPerfHud_VersionInfo
+        perf_hud_mode = <int> ovr_capi.ovrPerfHud_VersionInfo
 
     cdef ovr_capi.ovrBool ret = ovr_capi.ovr_SetInt(
         _ptr_session_, b"PerfHudMode", perf_hud_mode)
@@ -2036,11 +2025,11 @@ cpdef bint isBoundryVisible():
     if debug_mode:
         check_result(result)
 
-    return <bint>is_visible
+    return <bint> is_visible
 
 cpdef void showBoundry(bint show=True):
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_RequestBoundaryVisible(
-        _ptr_session_, <ovr_capi.ovrBool>show)
+        _ptr_session_, <ovr_capi.ovrBool> show)
 
     if debug_mode:
         check_result(result)
@@ -2051,19 +2040,19 @@ cpdef void showBoundry(bint show=True):
 #
 cpdef float getPlayerHeight():
     global _ptr_session_
-    cdef float to_return  = ovr_capi.ovr_GetFloat(
+    cdef float to_return = ovr_capi.ovr_GetFloat(
         _ptr_session_,
         b"PlayerHeight",
-        <float>1.778)
+        <float> 1.778)
 
     return to_return
 
 cpdef float getEyeHeight():
     global _ptr_session_
-    cdef float to_return  = ovr_capi.ovr_GetFloat(
+    cdef float to_return = ovr_capi.ovr_GetFloat(
         _ptr_session_,
         b"EyeHeight",
-        <float>1.675)
+        <float> 1.675)
 
     return to_return
 
@@ -2071,22 +2060,22 @@ cpdef tuple getNeckEyeDistance():
     global _ptr_session_
     cdef float vals[2]
 
-    cdef unsigned int ret  = ovr_capi.ovr_GetFloatArray(
+    cdef unsigned int ret = ovr_capi.ovr_GetFloatArray(
         _ptr_session_,
         b"NeckEyeDistance",
         vals,
-        <unsigned int>2)
+        <unsigned int> 2)
 
-    return <float>vals[0], <float>vals[1]
+    return <float> vals[0], <float> vals[1]
 
 cpdef tuple getEyeToNoseDist():
     global _ptr_session_
     cdef float vals[2]
 
-    cdef unsigned int ret  = ovr_capi.ovr_GetFloatArray(
+    cdef unsigned int ret = ovr_capi.ovr_GetFloatArray(
         _ptr_session_,
         b"EyeToNoseDist",
         vals,
-        <unsigned int>2)
+        <unsigned int> 2)
 
-    return <float>vals[0], <float>vals[1]
+    return <float> vals[0], <float> vals[1]
