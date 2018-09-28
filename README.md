@@ -92,6 +92,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you use PsychXR for your research, please use the following citation:
 
 ```
-Cutone, M. D. & Wilcox, L. M. (2018). PsychXR (Version 0.2.1) [Software]. Available from https://github.com/mdcutone/psychxr.
+Cutone, M. D. & Wilcox, L. M. (2018). PsychXR (Version 0.1.4) [Software]. Available from https://github.com/mdcutone/psychxr.
 ```
 
