@@ -38,8 +38,8 @@ def main():
 
     # get general information about the HMD
     hmd_desc = capi.getHmdDesc()
-
-    print(capi.getDeviceInfo())
+    fov = capi.getDefaultEyeFov()
+    print(capi.getEyeBufferSize(fov[0], 0))
 
     # set the perf hud on
     capi.perfHudMode("PerfSummary")
@@ -120,6 +120,8 @@ def main():
     # frame index, increment this every frame
     frame_index = 0
 
+    print(capi.getEyeProjectionMatrix2(fov[0]))
+    print(capi.getEyeProjectionMatrix2(fov[1]))
     # compute projection matrices
     proj_left = capi.getEyeProjectionMatrix(capi.ovrEye_Left)
     proj_right = capi.getEyeProjectionMatrix(capi.ovrEye_Right)

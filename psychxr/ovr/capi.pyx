@@ -403,7 +403,7 @@ DeviceInfo = namedtuple('DeviceInfo',[
 
 def getDeviceInfo():
     """Get information about this device."""
-    global _ptr_session_
+    global _ptr_session_, _hmd_desc_
     cdef ovr_capi.ovrHmdDesc desc = ovr_capi.ovr_GetHmdDesc(_ptr_session_)
 
     # default eye FOV
@@ -458,6 +458,195 @@ def getDeviceInfo():
         max_fov,
         resolution,
         <float>desc.DisplayRefreshRate)
+
+def getProductName():
+    """Get the product name for this device.
+
+    Returns
+    -------
+    str
+        Product name string (utf-8).
+
+    """
+    return _hmdDesc_.ProductName.decode('utf-8')
+
+def getManufacturerName():
+    """Get the device manufacturer name.
+
+    Returns
+    -------
+    str
+        Manufacturer name string (utf-8).
+
+    """
+    return _hmdDesc_.Manufacturer.decode('utf-8')
+
+def getScreenSize():
+    """Get the horizontal and vertical resolution of the screen in pixels.
+
+    Returns
+    -------
+    ndarray of int
+        Resolution of the display [w, h].
+
+    """
+    return np.asarray(
+        [_hmdDesc_.Resolution.w, _hmdDesc_.Resolution.h],
+        dtype=int)
+
+def getRefreshRate():
+    """Get the nominal refresh rate in Hertz of the display.
+
+    Returns
+    -------
+    float
+        Refresh rate in Hz.
+
+    """
+    return <float>_hmdDesc_.DisplayRefreshRate
+
+def getHID():
+    """Get the USB human interface device class identifiers.
+
+    Returns
+    -------
+    tuple
+        USB HIDs (vendor, product).
+
+    """
+    return <int>_hmdDesc_.VendorId, <int>_hmdDesc_.ProductId
+
+def getFirmwareVersion():
+    """Get the firmware version for this device.
+
+    Returns
+    -------
+    tuple
+        Firmware version (major, minor).
+
+    """
+    return <int>_hmdDesc_.FirmwareMajor, <int>_hmdDesc_.FirmwareMinor
+
+def getDefaultEyeFov():
+    """Get the default field-of-view (FOV) for the HMD.
+
+    Returns
+    -------
+    tuple of ndarray
+        Left and right eye FOVs specified as tangent angles [Up, Down, Left,
+        Right].
+
+    """
+    fovLeft = np.asarray([
+        _hmdDesc_.DefaultEyeFov[0].UpTan,
+        _hmdDesc_.DefaultEyeFov[0].DownTan,
+        _hmdDesc_.DefaultEyeFov[0].LeftTan,
+        _hmdDesc_.DefaultEyeFov[0].RightTan],
+        dtype=np.float32)
+
+    fovRight = np.asarray([
+        _hmdDesc_.DefaultEyeFov[1].UpTan,
+        _hmdDesc_.DefaultEyeFov[1].DownTan,
+        _hmdDesc_.DefaultEyeFov[1].LeftTan,
+        _hmdDesc_.DefaultEyeFov[1].RightTan],
+        dtype=np.float32)
+
+    return fovLeft, fovRight
+
+def getMaxEyeFov():
+    """Get the maximum field-of-view (FOV) for the HMD.
+
+    Returns
+    -------
+    tuple of ndarray
+        Left and right eye FOVs specified as tangent angles [Up, Down, Left,
+        Right].
+
+    """
+    fovLeft = np.asarray([
+        _hmdDesc_.MaxEyeFov[0].UpTan,
+        _hmdDesc_.MaxEyeFov[0].DownTan,
+        _hmdDesc_.MaxEyeFov[0].LeftTan,
+        _hmdDesc_.MaxEyeFov[0].RightTan],
+        dtype=np.float32)
+
+    fovRight = np.asarray([
+        _hmdDesc_.MaxEyeFov[1].UpTan,
+        _hmdDesc_.MaxEyeFov[1].DownTan,
+        _hmdDesc_.MaxEyeFov[1].LeftTan,
+        _hmdDesc_.MaxEyeFov[1].RightTan],
+        dtype=np.float32)
+
+    return fovLeft, fovRight
+
+def getEyeBufferSize(fov, eye, texelPerPixel=1.0):
+    """Get the recommended render buffer size in pixels.
+
+    Parameters
+    ----------
+    fov
+    eye
+    texelPerPixel
+
+    Returns
+    -------
+    ndarray of int
+        Resolution of the display [w, h].
+
+    """
+    cdef ovr_capi.ovrFovPort _fov
+    _fov.UpTan = fov[0]
+    _fov.DownTan = fov[1]
+    _fov.LeftTan = fov[2]
+    _fov.RightTan = fov[3]
+
+    cdef ovr_capi.ovrSizei bufferSize = ovr_capi.ovr_GetFovTextureSize(
+        _ptr_session_,
+        <ovr_capi.ovrEyeType>eye,
+        _fov,
+        texelPerPixel)
+
+    return np.asarray([bufferSize.w, bufferSize.h], dtype=np.int)
+
+def getEyeProjectionMatrix2(fov, nearClip=0.1, farClip=1000.0):
+    """Create a projection matrix.
+
+    Parameters
+    ----------
+    fov : ndarray, list or tuple of float
+        Field-of-view specified as an array of tangent angles [UpTan, DownTan,
+        LeftTan, RightTan].
+    nearClip : float
+        Near clipping plane in meters.
+    farClip
+        Far clipping plane in meters.
+
+    Returns
+    -------
+    ndarray
+        4x4 projection matrix.
+
+    """
+    cdef ovr_capi.ovrFovPort fov_in
+    fov_in.UpTan = fov[0]
+    fov_in.DownTan = fov[1]
+    fov_in.LeftTan = fov[2]
+    fov_in.RightTan = fov[3]
+
+    cdef ovr_capi.ovrMatrix4f projMat = ovr_capi_util.ovrMatrix4f_Projection(
+            fov_in,
+            nearClip,
+            farClip,
+            ovr_capi_util.ovrProjection_ClipRangeOpenGL)
+
+    cdef np.ndarray to_return = np.zeros((4, 4), dtype=np.float32)
+    cdef Py_ssize_t i, j
+    i = j = 0
+    for i in range(4):
+        for j in range(4):
+            to_return[i][j] = projMat.M[i][j]
+
+    return to_return
 
 
 cdef class ovrHmdDesc(object):
