@@ -39,14 +39,14 @@ def main():
     # get general information about the HMD
     hmd_desc = capi.getHmdDesc()
     eyeFov = capi.getDefaultEyeFov()
-    print(capi.getEyeBufferSize(fov[0], 0))
+    print(capi.getEyeBufferSize(eyeFov[0], 0))
 
     # set the perf hud on
     capi.perfHudMode("PerfSummary")
 
     # configure the internal render descriptors for each eye
-    for eye in range(capi.ovrEye_Count):
-        capi.configEyeRenderDesc(eye, hmd_desc.DefaultEyeFov[eye])
+    #for eye in range(capi.ovrEye_Count):
+    #    capi.configEyeRenderDesc(eye, eyeFov[eye])
 
     # Get the buffer dimensions specified by the Rift SDK, we need them to
     # setup OpenGL frame buffers.
@@ -56,22 +56,22 @@ def main():
         capi.ovrEye_Right, hmd_desc.DefaultEyeFov[1])
 
     # We are using a shared texture, so we need to combine dimensions.
+
     buffer_w = tex_size_left.w + tex_size_right.w
     buffer_h = max(tex_size_left.h, tex_size_right.h)
-
+    print(buffer_h)
     # Allocate a swap chain for render buffer textures, the handle used is an
     # integer. You can allocated up to 32 swap chains, however you will likely
     # run out of video memory by then.
 
     # configure the swap chain
-    swap_config = capi.ovrTextureSwapChainDesc()
-    swap_config.Format = capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
-    swap_config.Type = capi.ovrTexture_2D
-    swap_config.Width = buffer_w
-    swap_config.Height = buffer_h
-
+    swapChain = 0
     # Initialize texture swap chain
-    swap_chain = capi.createTextureSwapChainGL(swap_config)
+    capi.createTextureSwapChainGL(
+        swapChain,
+        capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
+        buffer_w,
+        buffer_h)
 
     # Since we are using a shared texture, each eye's viewport is half the width
     # of the allocated buffer texture.
@@ -79,13 +79,13 @@ def main():
     eye_h = buffer_h
 
     # setup the render layer
-    viewports = (vrmath.ovrRecti(0, 0, eye_w, eye_h),
-                 vrmath.ovrRecti(eye_w, 0, eye_w, eye_h))
+    viewports = ((0, 0, eye_w, eye_h),
+                 (eye_w, 0, eye_w, eye_h))
 
     for eye in range(capi.ovrEye_Count):
-        capi.setRenderViewport(eye, viewports[eye])
+        capi.setEyeViewport(eye, viewports[eye])
 
-    capi.setRenderSwapChain(0, swap_chain)  # set the swap chain
+    capi.setRenderSwapChain(0, swapChain)  # set the swap chain
     #rift.setRenderSwapChain(1, None)
 
     # create a frame buffer object as a render target for the HMD textures
