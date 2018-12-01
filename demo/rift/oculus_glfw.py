@@ -39,6 +39,8 @@ def main():
     # get general information about the HMD
     hmd_desc = capi.getHmdDesc()
 
+    print(capi.getDeviceInfo())
+
     # set the perf hud on
     capi.perfHudMode("PerfSummary")
 
@@ -280,7 +282,7 @@ def main():
     capi.perfHudMode("Off")
 
     # end the rift session cleanly, all swap chains are destroyed here
-    capi.endSession()
+    #capi.endSession()
 
     # close the GLFW application
     glfw.terminate()

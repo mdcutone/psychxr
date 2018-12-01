@@ -37,6 +37,11 @@ from .math cimport *
 
 from libc.stdint cimport int32_t
 
+cimport numpy as np
+import numpy as np
+
+from collections import namedtuple
+
 # -----------------
 # Initialize module
 # -----------------
@@ -377,15 +382,89 @@ cpdef void endSession():
     ovr_capi.ovr_Destroy(_ptr_session_)
     ovr_capi.ovr_Shutdown()
 
+
+DeviceInfo = namedtuple('DeviceInfo',[
+    "ProductName",
+    "Manufacturer",
+    "VendorId",
+    "ProductId",
+    "SerialNumber",
+    "FirmwareMajor",
+    "FirmwareMinor",
+    "AvailableHmdCaps",
+    "DefaultHmdCaps",
+    "AvailableTrackingCaps",
+    "DefaultTrackingCaps",
+    "DefaultEyeFov",
+    "MaxEyeFov",
+    "Resolution",
+    "DisplayRefreshRate"])
+
+
+def getDeviceInfo():
+    """Get information about this device."""
+    global _ptr_session_
+    cdef ovr_capi.ovrHmdDesc desc = ovr_capi.ovr_GetHmdDesc(_ptr_session_)
+
+    # default eye FOV
+    default_fov = (
+        np.asarray([
+            desc.DefaultEyeFov[0].UpTan,
+            desc.DefaultEyeFov[0].DownTan,
+            desc.DefaultEyeFov[0].LeftTan,
+            desc.DefaultEyeFov[0].RightTan],
+            dtype=np.float32),
+        np.asarray([
+            desc.DefaultEyeFov[1].UpTan,
+            desc.DefaultEyeFov[1].DownTan,
+            desc.DefaultEyeFov[1].LeftTan,
+            desc.DefaultEyeFov[1].RightTan],
+            dtype=np.float32)
+    )
+
+    # maximum eye FOVs
+    max_fov = (
+        np.asarray([
+            desc.MaxEyeFov[0].UpTan,
+            desc.MaxEyeFov[0].DownTan,
+            desc.MaxEyeFov[0].LeftTan,
+            desc.MaxEyeFov[0].RightTan],
+            dtype=np.float32),
+        np.asarray([
+            desc.MaxEyeFov[1].UpTan,
+            desc.MaxEyeFov[1].DownTan,
+            desc.MaxEyeFov[1].LeftTan,
+            desc.MaxEyeFov[1].RightTan],
+            dtype=np.float32)
+    )
+
+    resolution = np.asarray(
+        [desc.Resolution.w, desc.Resolution.h],
+        dtype=int)
+
+    return DeviceInfo(
+        desc.ProductName.decode('utf-8'),
+        desc.Manufacturer.decode('utf-8'),
+        <int>desc.VendorId,
+        <int>desc.ProductId,
+        desc.SerialNumber.decode('utf-8'),
+        <int>desc.FirmwareMajor,
+        <int>desc.FirmwareMinor,
+        <int>desc.AvailableHmdCaps,
+        <int>desc.DefaultHmdCaps,
+        <int>desc.AvailableTrackingCaps,
+        <int>desc.DefaultTrackingCaps,
+        default_fov,
+        max_fov,
+        resolution,
+        <float>desc.DisplayRefreshRate)
+
+
 cdef class ovrHmdDesc(object):
     cdef ovr_capi.ovrHmdDesc c_ovrHmdDesc
 
     def __cinit__(self, *args, **kwargs):
         pass
-
-    @property
-    def type(self):
-        return <int> self.c_data[0].Type
 
     @property
     def ProductName(self):
@@ -462,6 +541,7 @@ cdef class ovrHmdDesc(object):
     @property
     def DisplayRefreshRate(self):
         return self.c_ovrHmdDesc.DisplayRefreshRate
+
 
 cpdef ovrHmdDesc getHmdDesc():
     """Get general information about the connected HMD. Information such as the

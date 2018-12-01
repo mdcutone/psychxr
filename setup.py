@@ -56,10 +56,11 @@ from setuptools.extension import Extension
 from setuptools.command.install import install
 from distutils.command.install_lib import install_lib
 from Cython.Build import cythonize, build_ext
+import numpy
 #from distutils.command.build_ext import build_ext
 
 # compiler related data
-_include_dir_ = []
+_include_dir_ = [numpy.get_include()]
 _lib_dirs_ = []
 _libraries_ = []
 _build_ext_ = []
