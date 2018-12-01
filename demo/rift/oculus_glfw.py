@@ -38,7 +38,7 @@ def main():
 
     # get general information about the HMD
     hmd_desc = capi.getHmdDesc()
-    fov = capi.getDefaultEyeFov()
+    eyeFov = capi.getDefaultEyeFov()
     print(capi.getEyeBufferSize(fov[0], 0))
 
     # set the perf hud on
@@ -120,8 +120,8 @@ def main():
     # frame index, increment this every frame
     frame_index = 0
 
-    print(capi.getEyeProjectionMatrix2(fov[0]))
-    print(capi.getEyeProjectionMatrix2(fov[1]))
+    print(capi.getEyeProjectionMatrix2(eyeFov[0]))
+    print(capi.getEyeProjectionMatrix2(eyeFov[1]))
     # compute projection matrices
     proj_left = capi.getEyeProjectionMatrix(capi.ovrEye_Left)
     proj_right = capi.getEyeProjectionMatrix(capi.ovrEye_Right)
@@ -136,7 +136,7 @@ def main():
         capi.waitToBeginFrame(frame_index)
         #print(proj_left.M)
         # get current display time + predicted mid-frame time
-        abs_time = capi.getDisplayTime(frame_index)
+        abs_time = capi.getPredictedDisplayTime(frame_index)
 
         # get the current tracking state
         tracking_state = capi.getTrackingState(abs_time)

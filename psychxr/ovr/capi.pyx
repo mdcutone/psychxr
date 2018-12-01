@@ -1,5 +1,5 @@
 #  =============================================================================
-#  Oculus(TM) LibOVR Python Interface Module
+#  Python Interface Module for LibOVR
 #  =============================================================================
 #
 #  capi.pxy
@@ -382,83 +382,6 @@ cpdef void endSession():
     ovr_capi.ovr_Destroy(_ptr_session_)
     ovr_capi.ovr_Shutdown()
 
-
-DeviceInfo = namedtuple('DeviceInfo',[
-    "ProductName",
-    "Manufacturer",
-    "VendorId",
-    "ProductId",
-    "SerialNumber",
-    "FirmwareMajor",
-    "FirmwareMinor",
-    "AvailableHmdCaps",
-    "DefaultHmdCaps",
-    "AvailableTrackingCaps",
-    "DefaultTrackingCaps",
-    "DefaultEyeFov",
-    "MaxEyeFov",
-    "Resolution",
-    "DisplayRefreshRate"])
-
-
-def getDeviceInfo():
-    """Get information about this device."""
-    global _ptr_session_, _hmd_desc_
-    cdef ovr_capi.ovrHmdDesc desc = ovr_capi.ovr_GetHmdDesc(_ptr_session_)
-
-    # default eye FOV
-    default_fov = (
-        np.asarray([
-            desc.DefaultEyeFov[0].UpTan,
-            desc.DefaultEyeFov[0].DownTan,
-            desc.DefaultEyeFov[0].LeftTan,
-            desc.DefaultEyeFov[0].RightTan],
-            dtype=np.float32),
-        np.asarray([
-            desc.DefaultEyeFov[1].UpTan,
-            desc.DefaultEyeFov[1].DownTan,
-            desc.DefaultEyeFov[1].LeftTan,
-            desc.DefaultEyeFov[1].RightTan],
-            dtype=np.float32)
-    )
-
-    # maximum eye FOVs
-    max_fov = (
-        np.asarray([
-            desc.MaxEyeFov[0].UpTan,
-            desc.MaxEyeFov[0].DownTan,
-            desc.MaxEyeFov[0].LeftTan,
-            desc.MaxEyeFov[0].RightTan],
-            dtype=np.float32),
-        np.asarray([
-            desc.MaxEyeFov[1].UpTan,
-            desc.MaxEyeFov[1].DownTan,
-            desc.MaxEyeFov[1].LeftTan,
-            desc.MaxEyeFov[1].RightTan],
-            dtype=np.float32)
-    )
-
-    resolution = np.asarray(
-        [desc.Resolution.w, desc.Resolution.h],
-        dtype=int)
-
-    return DeviceInfo(
-        desc.ProductName.decode('utf-8'),
-        desc.Manufacturer.decode('utf-8'),
-        <int>desc.VendorId,
-        <int>desc.ProductId,
-        desc.SerialNumber.decode('utf-8'),
-        <int>desc.FirmwareMajor,
-        <int>desc.FirmwareMinor,
-        <int>desc.AvailableHmdCaps,
-        <int>desc.DefaultHmdCaps,
-        <int>desc.AvailableTrackingCaps,
-        <int>desc.DefaultTrackingCaps,
-        default_fov,
-        max_fov,
-        resolution,
-        <float>desc.DisplayRefreshRate)
-
 def getProductName():
     """Get the product name for this device.
 
@@ -647,6 +570,39 @@ def getEyeProjectionMatrix2(fov, nearClip=0.1, farClip=1000.0):
             to_return[i][j] = projMat.M[i][j]
 
     return to_return
+
+def getPredictedDisplayTime(frameIndex):
+    """Get the predicted time a frame will be displayed.
+
+    Parameters
+    ----------
+    frameIndex : int
+        Frame index.
+
+    Returns
+    -------
+    float
+        Absolute frame mid-point time for the given frame index in seconds.
+
+    """
+    cdef double t_sec = ovr_capi.ovr_GetPredictedDisplayTime(
+        _ptr_session_,
+        <int>frameIndex)
+
+    return t_sec
+
+def getTimeInSeconds():
+    """Absolute time in seconds.
+    
+    Returns
+    -------
+    float 
+        Time in seconds.
+
+    """
+    cdef double t_sec = ovr_capi.ovr_GetTimeInSeconds()
+
+    return t_sec
 
 
 cdef class ovrHmdDesc(object):
