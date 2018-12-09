@@ -34,31 +34,33 @@ def main():
     glfw.swap_interval(0)
 
     # start an Oculus session
-    capi.startSession()
+    session = capi.startSession()
+    print(capi.getUserHeight(session))
 
     # get general information about the HMD
-    hmd_desc = capi.getHmdDesc()
-    eyeFov = capi.getDefaultEyeFov()
-    print(capi.getEyeBufferSize(eyeFov[0], 0))
+    #hmd_desc = capi.getHmdDesc()
+    #eyeFov = capi.getDefaultEyeFov(session)
 
     # set the perf hud on
     capi.perfHudMode("PerfSummary")
-
-    # configure the internal render descriptors for each eye
-    #for eye in range(capi.ovrEye_Count):
-    #    capi.configEyeRenderDesc(eye, eyeFov[eye])
-
     # Get the buffer dimensions specified by the Rift SDK, we need them to
     # setup OpenGL frame buffers.
-    tex_size_left = capi.getFovTextureSize(
-        capi.ovrEye_Left, hmd_desc.DefaultEyeFov[0])
-    tex_size_right = capi.getFovTextureSize(
-        capi.ovrEye_Right, hmd_desc.DefaultEyeFov[1])
+    eyeFOV = capi.getDefaultEyeFov(session)
 
+    print(eyeFOV)
+    # configure the internal render descriptors for each eye
+    for eye in range(capi.ovrEye_Count):
+        capi.configEyeRenderDesc(session, eye, eyeFOV[eye])
+
+    tex_size_left = capi.getEyeBufferSize(session,
+        capi.ovrEye_Left, eyeFOV[0])
+    tex_size_right = capi.getEyeBufferSize(session,
+        capi.ovrEye_Right, eyeFOV[1])
+    print(tex_size_right)
     # We are using a shared texture, so we need to combine dimensions.
 
-    buffer_w = tex_size_left.w + tex_size_right.w
-    buffer_h = max(tex_size_left.h, tex_size_right.h)
+    buffer_w = tex_size_left[0] + tex_size_right[0]
+    buffer_h = max(tex_size_left[1], tex_size_right[1])
     print(buffer_h)
     # Allocate a swap chain for render buffer textures, the handle used is an
     # integer. You can allocated up to 32 swap chains, however you will likely
@@ -67,8 +69,7 @@ def main():
     # configure the swap chain
     swapChain = 0
     # Initialize texture swap chain
-    capi.createTextureSwapChainGL(
-        swapChain,
+    capi.createTextureSwapChainGL(session, 0,
         capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
         buffer_w,
         buffer_h)
@@ -81,11 +82,11 @@ def main():
     # setup the render layer
     viewports = ((0, 0, eye_w, eye_h),
                  (eye_w, 0, eye_w, eye_h))
-
+    print(viewports)
     for eye in range(capi.ovrEye_Count):
-        capi.setEyeViewport(eye, viewports[eye])
+        capi.setEyeViewport(session, eye, viewports[eye])
 
-    capi.setRenderSwapChain(0, swapChain)  # set the swap chain
+    #capi.setRenderSwapChain(0, swapChain)  # set the swap chain
     #rift.setRenderSwapChain(1, None)
 
     # create a frame buffer object as a render target for the HMD textures
@@ -115,36 +116,36 @@ def main():
     mirror_config.Width = 800
     mirror_config.Height = 600
 
-    capi.setupMirrorTexture(mirror_config)  # same size as window
+    capi.setupMirrorTexture(session, mirror_config)  # same size as window
 
     # frame index, increment this every frame
     frame_index = 0
 
-    print(capi.getEyeProjectionMatrix2(eyeFov[0]))
-    print(capi.getEyeProjectionMatrix2(eyeFov[1]))
+    print(capi.getEyeProjectionMatrix2(session, eyeFOV[0]))
+    print(capi.getEyeProjectionMatrix2(session, eyeFOV[1]))
     # compute projection matrices
-    proj_left = capi.getEyeProjectionMatrix(capi.ovrEye_Left)
-    proj_right = capi.getEyeProjectionMatrix(capi.ovrEye_Right)
+    proj_left = capi.getEyeProjectionMatrix(session, capi.ovrEye_Left)
+    proj_right = capi.getEyeProjectionMatrix(session, capi.ovrEye_Right)
 
     # get the session status
-    session_status = capi.getSessionStatus()
+    #session_status = capi.getSessionStatus(session)
 
     # begin application loop
     while not glfw.window_should_close(window):
         # wait for the buffer to be freed by the compositor, this is like
         # waiting for v-sync.
-        capi.waitToBeginFrame(frame_index)
+        capi.waitToBeginFrame(session, frame_index)
         #print(proj_left.M)
         # get current display time + predicted mid-frame time
-        abs_time = capi.getPredictedDisplayTime(frame_index)
+        abs_time = capi.getPredictedDisplayTime(session, frame_index)
 
         # get the current tracking state
-        tracking_state = capi.getTrackingState(abs_time)
+        tracking_state = capi.getTrackingState(session, abs_time, True)
 
         # Calculate eye poses, this needs to be called every frame, do this
         # after calling 'wait_to_begin_frame' to minimize the motion-to-photon
         # latency.
-        left_eye_pose, right_eye_pose = capi.calcEyePoses(
+        left_eye_pose, right_eye_pose = capi.calcEyePoses(session,
             tracking_state)
 
         # get the view matrix from the HMD after calculating the pose
@@ -152,7 +153,7 @@ def main():
         view_right = capi.getEyeViewMatrix(right_eye_pose)
 
         # start frame rendering
-        capi.beginFrame(frame_index)
+        capi.beginFrame(session, frame_index)
 
         # bind the render FBO
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId)
@@ -161,7 +162,9 @@ def main():
         # in the swap chain  and released when free. Making draw calls to
         # any other texture in the swap chain not returned here will report
         # and error.
-        tex_id = capi.getTextureSwapChainBufferGL(swap_chain)
+        tex_id = capi.getTextureSwapChainBufferGL(session, 0)
+
+        print(tex_id)
 
         # bind the returned texture ID to the frame buffer's texture slot
         GL.glFramebufferTexture2D(
@@ -175,12 +178,13 @@ def main():
             # also need to enable scissor testings with the same rect as the
             # viewport. This constrains rendering operations to one partition of
             # of the buffer since we are using a 'packed' layout.
-            vp = capi.getRenderViewport(eye)
-            GL.glViewport(*vp.asTuple())
-            GL.glScissor(*vp.asTuple())
+            vp = capi.getEyeViewport(session, eye)
+            GL.glViewport(*vp)
+            GL.glScissor(*vp)
 
             GL.glEnable(GL.GL_SCISSOR_TEST)  # enable scissor test
             GL.glEnable(GL.GL_DEPTH_TEST)
+            print(proj_left)
 
             # Here we can make whatever OpenGL we wish to draw our images. As an
             # example, I'm going to clear the eye buffer texture all some color,
@@ -232,19 +236,19 @@ def main():
         GL.glDisable(GL.GL_DEPTH_TEST)
 
         # commit the texture when were done drawing to it
-        capi.commitSwapChain(swap_chain)
+        capi.commitSwapChain(session, swapChain)
 
         # unbind the frame buffer, we're done with it
         GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
 
         # end frame rendering, submitting the eye layer to the compositor
-        capi.endFrame(frame_index)
+        capi.endFrame(session, frame_index)
 
         # increment frame index
         frame_index += 1
 
         # update session status
-        session_status = capi.getSessionStatus()
+        #session_status = capi.getSessionStatus()
 
         # blit mirror texture
         GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, mirrorFbo)
@@ -254,7 +258,7 @@ def main():
         GL.glFramebufferTexture2D(
             GL.GL_READ_FRAMEBUFFER,
             GL.GL_COLOR_ATTACHMENT0,
-            GL.GL_TEXTURE_2D, capi.getMirrorTexture(), 0)
+            GL.GL_TEXTURE_2D, capi.getMirrorTexture(session), 0)
 
         GL.glViewport(0, 0, 800, 600)
         GL.glScissor(0, 0, 800, 600)
@@ -266,15 +270,15 @@ def main():
                              GL.GL_NEAREST)
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-        capi.pollController('touch')  # update touch controller state
+        #capi.pollController('touch')  # update touch controller state
 
         # if button 'A' is released on the touch controller, recenter the
         # viewer in the scene.
-        if capi.getButtons('touch', 'A', 'falling'):
-            capi.recenterTrackingOrigin()
-        elif capi.getButtons('touch', 'B', 'falling'):
-            # exit if button 'B' is pressed
-            break
+        #if capi.getButtons('touch', 'A', 'falling'):
+        #    capi.recenterTrackingOrigin()
+        #elif capi.getButtons('touch', 'B', 'falling'):
+        #    # exit if button 'B' is pressed
+         #   break
 
         # flip the GLFW window and poll events
         glfw.swap_buffers(window)
