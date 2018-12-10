@@ -3,7 +3,7 @@
 import OpenGL.GL as GL
 import ctypes
 import glfw
-
+import numpy as np
 import psychxr.ovr.capi as capi
 import psychxr.ovr.math as vrmath
 capi.debug_mode = True
@@ -34,31 +34,33 @@ def main():
     glfw.swap_interval(0)
 
     # start an Oculus session
-    session = capi.startSession()
-    print(capi.getUserHeight(session))
+    session = capi.LibOVRSession()
+    session.start()
+    print(session.userHeight)
 
     # get general information about the HMD
     #hmd_desc = capi.getHmdDesc()
     #eyeFov = capi.getDefaultEyeFov(session)
 
     # set the perf hud on
-    capi.perfHudMode("PerfSummary")
+    session.perfHudMode("PerfSummary")
     # Get the buffer dimensions specified by the Rift SDK, we need them to
     # setup OpenGL frame buffers.
-    eyeFOV = capi.getDefaultEyeFov(session)
+    eyeFOV = session.getDefaultEyeFov()
 
     print(eyeFOV)
     # configure the internal render descriptors for each eye
     for eye in range(capi.ovrEye_Count):
         capi.configEyeRenderDesc(session, eye, eyeFOV[eye])
+        print(session.getEyeRenderFov(eye))
 
-    tex_size_left = capi.getEyeBufferSize(session,
+
+    tex_size_left = session.getEyeBufferSize(
         capi.ovrEye_Left, eyeFOV[0])
-    tex_size_right = capi.getEyeBufferSize(session,
+    tex_size_right = session.getEyeBufferSize(
         capi.ovrEye_Right, eyeFOV[1])
-    print(tex_size_right)
-    # We are using a shared texture, so we need to combine dimensions.
 
+    # We are using a shared texture, so we need to combine dimensions.
     buffer_w = tex_size_left[0] + tex_size_right[0]
     buffer_h = max(tex_size_left[1], tex_size_right[1])
     print(buffer_h)
@@ -82,9 +84,9 @@ def main():
     # setup the render layer
     viewports = ((0, 0, eye_w, eye_h),
                  (eye_w, 0, eye_w, eye_h))
-    print(viewports)
+    session.highQuality = False
     for eye in range(capi.ovrEye_Count):
-        capi.setEyeViewport(session, eye, viewports[eye])
+        session.setEyeViewport(eye, viewports[eye])
 
     #capi.setRenderSwapChain(0, swapChain)  # set the swap chain
     #rift.setRenderSwapChain(1, None)
@@ -121,11 +123,10 @@ def main():
     # frame index, increment this every frame
     frame_index = 0
 
-    print(capi.getEyeProjectionMatrix2(session, eyeFOV[0]))
-    print(capi.getEyeProjectionMatrix2(session, eyeFOV[1]))
+
     # compute projection matrices
-    proj_left = capi.getEyeProjectionMatrix(session, capi.ovrEye_Left)
-    proj_right = capi.getEyeProjectionMatrix(session, capi.ovrEye_Right)
+    proj_left = session.getEyeProjectionMatrix(capi.ovrEye_Left)
+    proj_right = session.getEyeProjectionMatrix(capi.ovrEye_Right)
 
     # get the session status
     #session_status = capi.getSessionStatus(session)
@@ -134,10 +135,10 @@ def main():
     while not glfw.window_should_close(window):
         # wait for the buffer to be freed by the compositor, this is like
         # waiting for v-sync.
-        capi.waitToBeginFrame(session, frame_index)
+        session.waitToBeginFrame(frame_index)
         #print(proj_left.M)
         # get current display time + predicted mid-frame time
-        abs_time = capi.getPredictedDisplayTime(session, frame_index)
+        abs_time = session.getPredictedDisplayTime(frame_index)
 
         # get the current tracking state
         tracking_state = capi.getTrackingState(session, abs_time, True)
@@ -149,11 +150,11 @@ def main():
             tracking_state)
 
         # get the view matrix from the HMD after calculating the pose
-        view_left = capi.getEyeViewMatrix(left_eye_pose)
-        view_right = capi.getEyeViewMatrix(right_eye_pose)
+        view_left = session.getEyeViewMatrix(left_eye_pose)
+        view_right = session.getEyeViewMatrix(right_eye_pose)
 
         # start frame rendering
-        capi.beginFrame(session, frame_index)
+        session.beginFrame(frame_index)
 
         # bind the render FBO
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId)
@@ -162,9 +163,9 @@ def main():
         # in the swap chain  and released when free. Making draw calls to
         # any other texture in the swap chain not returned here will report
         # and error.
-        tex_id = capi.getTextureSwapChainBufferGL(session, 0)
+        tex_id = session.getTextureSwapChainBufferGL(0)
 
-        print(tex_id)
+        #print(tex_id)
 
         # bind the returned texture ID to the frame buffer's texture slot
         GL.glFramebufferTexture2D(
@@ -178,13 +179,13 @@ def main():
             # also need to enable scissor testings with the same rect as the
             # viewport. This constrains rendering operations to one partition of
             # of the buffer since we are using a 'packed' layout.
-            vp = capi.getEyeViewport(session, eye)
+            vp = session.getEyeViewport(eye)
             GL.glViewport(*vp)
             GL.glScissor(*vp)
 
             GL.glEnable(GL.GL_SCISSOR_TEST)  # enable scissor test
             GL.glEnable(GL.GL_DEPTH_TEST)
-            print(proj_left)
+            #print(proj_left)
 
             # Here we can make whatever OpenGL we wish to draw our images. As an
             # example, I'm going to clear the eye buffer texture all some color,
@@ -192,11 +193,11 @@ def main():
             if eye == capi.ovrEye_Left:
                 GL.glMatrixMode(GL.GL_PROJECTION)
                 GL.glLoadIdentity()
-                GL.glMultMatrixf(proj_left.ctypes)
+                GL.glMultMatrixf(np.ctypeslib.as_ctypes(proj_left.flatten('F')))
                 GL.glMatrixMode(GL.GL_MODELVIEW)
                 GL.glLoadIdentity()
                 if HEAD_TRACKING:
-                    GL.glMultMatrixf(view_left.ctypes)
+                    GL.glMultMatrixf(np.ctypeslib.as_ctypes(view_left.flatten('F')))
 
                 GL.glClearColor(0.5, 0.5, 0.5, 1.0)
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
@@ -214,11 +215,11 @@ def main():
             elif eye == capi.ovrEye_Right:
                 GL.glMatrixMode(GL.GL_PROJECTION)
                 GL.glLoadIdentity()
-                GL.glMultMatrixf(proj_right.ctypes)
+                GL.glMultMatrixf(np.ctypeslib.as_ctypes(proj_right.flatten('F')))
                 GL.glMatrixMode(GL.GL_MODELVIEW)
                 GL.glLoadIdentity()
                 if HEAD_TRACKING:
-                    GL.glMultMatrixf(view_right.ctypes)
+                    GL.glMultMatrixf(np.ctypeslib.as_ctypes(view_right.flatten('F')))
 
                 GL.glClearColor(0.5, 0.5, 0.5, 1.0)
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
@@ -236,13 +237,13 @@ def main():
         GL.glDisable(GL.GL_DEPTH_TEST)
 
         # commit the texture when were done drawing to it
-        capi.commitSwapChain(session, swapChain)
+        session.commitSwapChain(swapChain)
 
         # unbind the frame buffer, we're done with it
         GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
 
         # end frame rendering, submitting the eye layer to the compositor
-        capi.endFrame(session, frame_index)
+        session.endFrame(frame_index)
 
         # increment frame index
         frame_index += 1
@@ -285,10 +286,10 @@ def main():
         glfw.poll_events()
 
     # switch off the performance summary
-    capi.perfHudMode("Off")
+    session.perfHudMode("Off")
 
     # end the rift session cleanly, all swap chains are destroyed here
-    #capi.endSession()
+    session.shutdown()
 
     # close the GLFW application
     glfw.terminate()
