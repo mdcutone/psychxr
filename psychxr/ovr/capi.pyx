@@ -229,7 +229,7 @@ cdef class LibOVRSession(object):
     cdef ovr_capi.ovrMirrorTexture mirrorTexture
 
     # status and performance information
-    cdef ovr_capi.ovrSessionStatus status
+    cdef ovr_capi.ovrSessionStatus sessionStatus
     cdef ovr_capi.ovrPerfStats perfStats
 
     def __cinit__(self, *args, **kwargs):
@@ -387,6 +387,16 @@ cdef class LibOVRSession(object):
         """
         return <int>self.hmdDesc.FirmwareMajor, <int>self.hmdDesc.FirmwareMinor
 
+    @property
+    def versionString(self):
+        """LibOVRRT version as a string."""
+        return self.getVersionString()
+
+    def getVersionString(self):
+        cdef const char* version = ovr_capi.ovr_GetVersionString()
+
+        return version.decode('utf-8')  # already UTF-8?
+
     def start(self):
         """Start a new session. Control is handed over to the application from
         Oculus Home.
@@ -460,6 +470,14 @@ cdef class LibOVRSession(object):
             self.eyeLayer.Header.Flags |= ovr_capi.ovrLayerFlag_HighQuality
         else:
             self.eyeLayer.Header.Flags &= ~ovr_capi.ovrLayerFlag_HighQuality
+
+    @property
+    def trackerCount(self):
+        """Number of attached trackers."""
+        return self.getTrackerCount()
+
+    def getTrackerCount(self):
+        return <int>ovr_capi.ovr_GetTrackerCount(self.ptrSession)
 
     @property
     def defaultEyeFov(self):
@@ -717,8 +735,7 @@ cdef class LibOVRSession(object):
         return to_return
 
     def getEyeViewMatrix(self, eyePose):
-        """Get the view matrix from the last calculated head pose. This should be
-        called once per frame if real-time head tracking is desired.
+        """Get the view matrix from the last calculated head pose.
 
         :param eye: str
         :return:
@@ -911,17 +928,58 @@ cdef class LibOVRSession(object):
         return to_return
 
     def waitToBeginFrame(self, unsigned int frameIndex=0):
+        """Wait until a buffer is available and frame rendering can begin. Must
+        be called before 'beginFrame'.
+
+        Parameters
+        ----------
+        frameIndex : int
+            The target frame index.
+
+        Returns
+        -------
+        int
+            Error code.
+
+        """
         cdef ovr_capi.ovrResult result = 0
         result = ovr_capi.ovr_WaitToBeginFrame(self.ptrSession, frameIndex)
 
         return <int> result
 
     def beginFrame(self, unsigned int frameIndex=0):
+        """Begin rendering the frame. Must be called prior to drawing and
+        'endFrame'.
+
+        Parameters
+        ----------
+        frameIndex : int
+            The target frame index.
+
+        Returns
+        -------
+        int
+            Error code returned by 'ovr_BeginFrame'.
+
+        """
         result = ovr_capi.ovr_BeginFrame(self.ptrSession, frameIndex)
 
         return <int> result
 
     def commitSwapChain(self, int eye):
+        """Make the eye render texture available to the compositor.
+
+        Parameters
+        ----------
+        eye : int
+            Eye buffer index.
+
+        Returns
+        -------
+        int
+            Error code returned by 'ovr_CommitTextureSwapChain'.
+
+        """
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_CommitTextureSwapChain(
             self.ptrSession,
             self.swapChains[eye])
@@ -930,6 +988,20 @@ cdef class LibOVRSession(object):
             check_result(result)
 
     def endFrame(self, unsigned int frameIndex=0):
+        """Call when rendering a frame has completed. Buffers which have been
+        committed are passed to the compositor for distortion.
+
+        Parameters
+        ----------
+        frameIndex : int
+            The target frame index.
+
+        Returns
+        -------
+        int
+            Error code returned by 'ovr_EndFrame'.
+
+        """
         cdef ovr_capi.ovrLayerHeader* layers = &(self.eyeLayer).Header
         result = ovr_capi.ovr_EndFrame(
             self.ptrSession,
@@ -940,6 +1012,77 @@ cdef class LibOVRSession(object):
 
         if debug_mode:
             check_result(result)
+
+    def resetFrameStats(self):
+        """Reset frame statistics.
+
+        Returns
+        -------
+        int
+            Error code returned by 'ovr_ResetPerfStats'.
+
+        """
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetPerfStats(
+            self.ptrSession)
+
+        return result
+
+    @property
+    def trackingOriginType(self):
+        return self.getTrackingOriginType()
+
+    @trackingOriginType.setter
+    def trackingOriginType(self, str origin='floor'):
+        self.setTrackingOriginType(origin)
+
+    def setTrackingOriginType(self, str origin='floor'):
+        """Set the tracking origin type. Can either be 'floor' or 'eye'.
+
+        """
+        cdef ovr_capi.ovrResult result
+        if origin == 'floor':
+            result = ovr_capi.ovr_SetTrackingOriginType(
+                self.ptrSession, ovr_capi.ovrTrackingOrigin_FloorLevel)
+        elif origin == 'eye':
+            result = ovr_capi.ovr_SetTrackingOriginType(
+                self.ptrSession, ovr_capi.ovrTrackingOrigin_EyeLevel)
+
+        if debug_mode:
+            check_result(result)
+
+    def getTrackingOriginType(self):
+        """Get the current tracking origin type.
+
+        """
+        cdef ovr_capi.ovrTrackingOrigin origin = \
+            ovr_capi.ovr_GetTrackingOriginType(self.ptrSession)
+
+        if origin == ovr_capi.ovrTrackingOrigin_FloorLevel:
+            return 'floor'
+        elif origin == ovr_capi.ovrTrackingOrigin_EyeLevel:
+            return 'eye'
+
+    def maxProvidedFrameStats(self):
+        """Maximum number of frame stats provided."""
+        return 5
+
+    def frameStatsCount(self):
+        """Number of frame stats available."""
+        pass
+
+    def anyFrameStatsDropped(self):
+        """Have any frame stats been dropped?"""
+        pass
+
+    def adaptiveGpuPerformanceScale(self):
+        """Adaptive GPU performance scaling factor."""
+        pass
+
+    def isAswAvailable(self):
+        """Is ASW available?"""
+        pass
+
+
 
 # ---------------------------------
 # Rendering Configuration Functions
