@@ -1,6 +1,6 @@
 # PsychXR
 
-PsychXR is a collection of [Python](https://www.python.org/) extension libraries for interacting with eXtended Reality displays (HMDs), intended for neuroscience and psychology research applications.
+PsychXR is a collection of [Python](https://www.python.org/) extension libraries for interacting with eXtended Reality displays (HMDs), intended for neuroscience and psychology research applications. PsychXR is used as the interface for HMD support in PsychoPy v3 (http://www.psychopy.org/).
 
 ## Supported Devices
 
@@ -8,7 +8,7 @@ PsychXR is a collection of [Python](https://www.python.org/) extension libraries
 
 ## Big Changes Coming Soon!
 
-PsychXR 0.2 is in the works, supporting Numpy integration and a cleaner API. *These are breaking changes!* However, the API will become mostly stable after the 0.2 release. The Rift class in PsychoPy will be updated to accomodate these changes.
+PsychXR 0.2 is in the works, supporting Numpy integration and a cleaner API. *These are breaking changes!* However, the API will become mostly stable after the 0.2 release. The Rift class in PsychoPy will be updated to accomodate these changes. We also have a website (http://psychxr.org/) which will host PsychXR's documentation in the future. 
 
 ## Installing
 
