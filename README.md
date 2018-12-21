@@ -6,6 +6,10 @@ PsychXR is a collection of [Python](https://www.python.org/) extension libraries
 
 * Oculus Rift DK2 and CV1
 
+## Big Changes Coming Soon!
+
+PsychXR 0.2 is in the works, supporting Numpy integration and a cleaner API. *These are breaking changes!* However, the API will become mostly stable after the 0.2 release. The Rift class in PsychoPy will be updated to accomodate these changes.
+
 ## Installing
 
 ### Installing from PyPI
