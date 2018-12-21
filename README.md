@@ -8,7 +8,7 @@ PsychXR is used by PsychoPy v3 (http://www.psychopy.org/) to provide HMD support
 
 * Oculus Rift DK2 and CV1
 
-## Changes Coming Soon!
+## Changes Coming Soon (12/21/18)!
 
 PsychXR 0.2 is in the works. *These are breaking changes, current applications will fail without modification!* However, the API will become mostly stable after the 0.2 release. PsychoPy's Rift class will be updated to accomodate these changes at release. We also have a new website (http://psychxr.org/) which will host PsychXR's documentation in the future. 
 
