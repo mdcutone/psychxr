@@ -1032,18 +1032,18 @@ cdef class LibOVRSession(object):
         return self.getTrackingOriginType()
 
     @trackingOriginType.setter
-    def trackingOriginType(self, str origin='floor'):
-        self.setTrackingOriginType(origin)
+    def trackingOriginType(self, str value):
+        self.setTrackingOriginType(value)
 
-    def setTrackingOriginType(self, str origin='floor'):
+    def setTrackingOriginType(self, str value):
         """Set the tracking origin type. Can either be 'floor' or 'eye'.
 
         """
         cdef ovr_capi.ovrResult result
-        if origin == 'floor':
+        if value == 'floor':
             result = ovr_capi.ovr_SetTrackingOriginType(
                 self.ptrSession, ovr_capi.ovrTrackingOrigin_FloorLevel)
-        elif origin == 'eye':
+        elif value == 'eye':
             result = ovr_capi.ovr_SetTrackingOriginType(
                 self.ptrSession, ovr_capi.ovrTrackingOrigin_EyeLevel)
 
@@ -1062,22 +1062,27 @@ cdef class LibOVRSession(object):
         elif origin == ovr_capi.ovrTrackingOrigin_EyeLevel:
             return 'eye'
 
+    @property
     def maxProvidedFrameStats(self):
         """Maximum number of frame stats provided."""
         return 5
 
+    @property
     def frameStatsCount(self):
         """Number of frame stats available."""
         pass
 
+    @property
     def anyFrameStatsDropped(self):
         """Have any frame stats been dropped?"""
         pass
 
+    @property
     def adaptiveGpuPerformanceScale(self):
         """Adaptive GPU performance scaling factor."""
         pass
 
+    @property
     def isAswAvailable(self):
         """Is ASW available?"""
         pass
