@@ -173,22 +173,26 @@ touch_names = list(ctrl_touch_lut.keys())
 #
 cdef ovr_capi.ovrPerfStats _perf_stats_
 
-# ---------
-# Constants
-# ---------
+# Color texture formats supported by OpenGL, can be used for creating swap
+# chains.
 #
-# Texture formats supported by OpenGL, can be used for creating swap chains.
+cdef dict _supported_texture_formats = {
+    "R8G8B8A8_UNORM": ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM,
+    "R8G8B8A8_UNORM_SRGB": ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
+    "R16G16B16A16_FLOAT": ovr_capi.OVR_FORMAT_R16G16B16A16_FLOAT,
+    "R11G11B10_FLOAT": ovr_capi.OVR_FORMAT_R11G11B10_FLOAT
+}
+
+# Performance HUD modes
 #
-OVR_FORMAT_R8G8B8A8_UNORM = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM
-OVR_FORMAT_R8G8B8A8_UNORM_SRGB = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
-OVR_FORMAT_B8G8R8A8_UNORM = ovr_capi.OVR_FORMAT_B8G8R8A8_UNORM
-OVR_FORMAT_B8G8R8_UNORM = ovr_capi.OVR_FORMAT_B8G8R8_UNORM
-OVR_FORMAT_R16G16B16A16_FLOAT = ovr_capi.OVR_FORMAT_R16G16B16A16_FLOAT
-OVR_FORMAT_R11G11B10_FLOAT = ovr_capi.OVR_FORMAT_R11G11B10_FLOAT
-#OVR_FORMAT_D16_UNORM = ovr_capi.OVR_FORMAT_D16_UNORM
-#OVR_FORMAT_D24_UNORM_S8_UINT = ovr_capi.OVR_FORMAT_D24_UNORM_S8_UINT
-#OVR_FORMAT_D32_FLOAT = ovr_capi.OVR_FORMAT_D32_FLOAT
-#OVR_FORMAT_D32_FLOAT_S8X24_UINT = ovr_capi.OVR_FORMAT_D32_FLOAT_S8X24_UINT
+cdef dict _performance_hud_modes = {
+    "Off" : ovr_capi.ovrPerfHud_Off,
+    "AppRenderTiming" : ovr_capi.ovrPerfHud_AppRenderTiming,
+    "LatencyTiming" : ovr_capi.ovrPerfHud_LatencyTiming,
+    "CompRenderTiming" : ovr_capi.ovrPerfHud_CompRenderTiming,
+    "AswStats" : ovr_capi.ovrPerfHud_AswStats,
+    "VersionInfo" : ovr_capi.ovrPerfHud_VersionInfo
+}
 
 # -----------------
 # Session Functions
@@ -232,8 +236,18 @@ cdef class LibOVRSession(object):
     cdef ovr_capi.ovrSessionStatus sessionStatus
     cdef ovr_capi.ovrPerfStats perfStats
 
-    def __cinit__(self, *args, **kwargs):
+    # tracking states
+
+    # controller states
+
+    # debug mode
+    cdef bint debugMode = False
+
+    def __init__(self, debugMode=False, *args, **kwargs):
         pass
+
+    def __cinit__(self, debugMode=False, *args, **kwargs):
+        self.debugMode = debugMode
 
     def __dealloc__(self):
         pass
@@ -245,7 +259,8 @@ cdef class LibOVRSession(object):
         Returns
         -------
         float
-            Distance from floor to the top of the user's head in meters.
+            Distance from floor to the top of the user's head in meters reported
+            by LibOVR. If not set, the default value is 1.778 meters.
 
         """
         cdef float to_return = ovr_capi.ovr_GetFloat(
@@ -258,7 +273,7 @@ cdef class LibOVRSession(object):
     @property
     def eyeHeight(self):
         """Get the height of the user's eye from the floor in meters as reported
-        by LibOVR.
+        by LibOVR. If not set, the default value is 1.675 meters.
 
         Returns
         -------
@@ -289,7 +304,7 @@ cdef class LibOVRSession(object):
             self.ptrSession,
             b"NeckEyeDistance",
             vals,
-            <unsigned int> 2)
+            <unsigned int>2)
 
         return <float> vals[0], <float> vals[1]
 
@@ -348,7 +363,7 @@ cdef class LibOVRSession(object):
 
         """
         return np.asarray(
-            [self.hmdDesc.Resolution.w, self.hmdDesc.Resolution.h],
+            (self.hmdDesc.Resolution.w, self.hmdDesc.Resolution.h),
             dtype=int)
 
     @property
@@ -427,28 +442,31 @@ cdef class LibOVRSession(object):
         self.eyeLayer.Header.Flags = \
             ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft | \
             ovr_capi.ovrLayerFlag_HighQuality
-        self.eyeLayer.ColorTexture[0] = NULL
-        self.eyeLayer.ColorTexture[1] = NULL
+        self.eyeLayer.ColorTexture[0] = self.eyeLayer.ColorTexture[1] = NULL
 
     def shutdown(self):
         """End the current session.
 
         Clean-up routines are executed that destroy all swap chains and mirror
         texture buffers, afterwards control is returned to Oculus Home. This
-        must be called after every successful 'create_session' call.
+        must be called after every successful 'startSession' call.
 
         Returns
         -------
         None
 
         """
+        # switch off the performance HUD
+        cdef ovr_capi.ovrBool ret = ovr_capi.ovr_SetInt(
+            self.ptrSession, b"PerfHudMode", ovr_capi.ovrPerfHud_Off)
+
         # destroy the mirror texture
         ovr_capi.ovr_DestroyMirrorTexture(self.ptrSession, self.mirrorTexture)
 
         # free all swap chains
         cdef int i = 0
         for i in range(2):
-            if not _swapChains_[i] is NULL:
+            if not self.swapChains[i] is NULL:
                 ovr_capi.ovr_DestroyTextureSwapChain(
                     self.ptrSession, self.swapChains[i])
                 self.swapChains[i] = NULL
@@ -458,8 +476,27 @@ cdef class LibOVRSession(object):
         ovr_capi.ovr_Shutdown()
 
     @property
+    def debugMode(self):
+        """Enable session debugging. Python exceptions are raised if the LibOVR
+        API returns an error. If 'debugMode=False', API errors will be silently
+        ignored.
+
+        """
+        return self.debugMode
+
+    @debugMode.setter
+    def debugMode(self, value):
+        self.debugMode = value
+
+    @property
     def highQuality(self):
-        """Is high quality mode enabled?"""
+        """Enable high-quality mode if True. The distortion compositor applies
+        4x anisotropic texture filtering which reduces the visibility of
+        artifacts, particularly in the periphery.
+
+        This is enabled by default when a session is started.
+
+        """
         return (self.eyeLayer.Header.Flags &
                 ovr_capi.ovrLayerFlag_HighQuality) == \
                ovr_capi.ovrLayerFlag_HighQuality
@@ -472,8 +509,27 @@ cdef class LibOVRSession(object):
             self.eyeLayer.Header.Flags &= ~ovr_capi.ovrLayerFlag_HighQuality
 
     @property
+    def headLocked(self):
+        """Enable head locking mode if True. Head locking places the rendered
+        image as a 'billboard' in front of the viewer.
+
+        This is disabled by default when a session is started.
+
+        """
+        return (self.eyeLayer.Header.Flags &
+                ovr_capi.ovrLayerFlag_HeadLocked) == \
+               ovr_capi.ovrLayerFlag_HeadLocked
+
+    @headLocked.setter
+    def headLocked(self, value):
+        if value:
+            self.eyeLayer.Header.Flags |= ovr_capi.ovrLayerFlag_HeadLocked
+        else:
+            self.eyeLayer.Header.Flags &= ~ovr_capi.ovrLayerFlag_HeadLocked
+
+    @property
     def trackerCount(self):
-        """Number of attached trackers."""
+        """Number of connected trackers."""
         return self.getTrackerCount()
 
     def getTrackerCount(self):
@@ -580,9 +636,10 @@ cdef class LibOVRSession(object):
 
         Parameters
         ----------
-        fov
-        eye
-        texelPerPixel
+        eye : int
+            Eye index.
+        fov : tuple, list or ndarray of floats
+        texelPerPixel : float
 
         Returns
         -------
@@ -617,8 +674,9 @@ cdef class LibOVRSession(object):
         ----------
         eye : int
             Eye index to initialize.
-        textureFormat : int
-            Texture format to use (see Notes).
+        textureFormat : str
+            Texture format, valid texture formats are 'R8G8B8A8_UNORM',
+            'R8G8B8A8_UNORM_SRGB', 'R16G16B16A16_FLOAT', and 'R11G11B10_FLOAT'.
         width : int
             Width of texture in pixels.
         height : int
@@ -630,22 +688,11 @@ cdef class LibOVRSession(object):
         -------
         None
 
-        Notes
-        -----
-        Permitted texture formats are:
-
-            - OVR_FORMAT_R8G8B8A8_UNORM
-            - OVR_FORMAT_R8G8B8A8_UNORM_SRGB
-            - OVR_FORMAT_B8G8R8A8_UNORM
-            - OVR_FORMAT_B8G8R8_UNORM
-            - OVR_FORMAT_R16G16B16A16_FLOAT
-            - OVR_FORMAT_R11G11B10_FLOAT
-
         """
         # configure the texture
         cdef ovr_capi.ovrTextureSwapChainDesc swapConfig
         swapConfig.Type = ovr_capi.ovrTexture_2D
-        swapConfig.Format = textureFormat
+        swapConfig.Format = _supported_texture_formats[textureFormat]
         swapConfig.ArraySize = 1
         swapConfig.Width = <int>width
         swapConfig.Height = <int>height
@@ -668,7 +715,7 @@ cdef class LibOVRSession(object):
             check_result(result)
 
     def getTextureSwapChainBufferGL(self, int eye):
-        """Get the next available swap chain buffer.
+        """Get the next available swap chain buffer for a specified eye.
 
         Parameters
         ----------
@@ -683,7 +730,12 @@ cdef class LibOVRSession(object):
         """
         cdef int current_idx = 0
         cdef unsigned int tex_id = 0
-        cdef ovr_capi.ovrResult result
+        cdef ovr_capi.ovrResult result = 0
+
+        # check if there is a swap chain in the slot
+        if self.eyeLayer.ColorTexture[eye] == NULL:
+            raise RuntimeError(
+                "Cannot get buffer ID, NULL eye buffer texture.")
 
         # get the current texture index within the swap chain
         result = ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
@@ -719,28 +771,44 @@ cdef class LibOVRSession(object):
             4x4 projection matrix.
 
         """
-        cdef ovr_capi.ovrMatrix4f projMat = ovr_capi_util.ovrMatrix4f_Projection(
+        cdef ovr_capi.ovrMatrix4f projMat = \
+            ovr_capi_util.ovrMatrix4f_Projection(
                 self.eyeRenderDesc[eye].Fov,
                 nearClip,
                 farClip,
                 ovr_capi_util.ovrProjection_ClipRangeOpenGL)
 
         cdef np.ndarray to_return = np.zeros((4, 4), dtype=np.float32)
+
+        # fast copy matrix to numpy array
+        cdef float [:, :] mv = to_return
         cdef Py_ssize_t i, j
         i = j = 0
         for i in range(4):
             for j in range(4):
-                to_return[i][j] = projMat.M[i][j]
+                mv[i, j] = projMat.M[i][j]
 
         return to_return
 
     def getEyeViewMatrix(self, eyePose):
-        """Get the view matrix from the last calculated head pose.
+        """Create a projection matrix.
 
-        :param eye: str
-        :return:
+        Parameters
+        ----------
+        eyePose : tuple, list, or ndarray of float
+            Eye pose.
+        nearClip : float
+            Near clipping plane in meters.
+        farClip
+            Far clipping plane in meters.
+
+        Returns
+        -------
+        ndarray
+            4x4 projection matrix.
 
         """
+
         cdef np.ndarray pos = np.zeros((4,), dtype=np.float32)
         pos[0] = eyePose.translation.x
         pos[1] = eyePose.translation.y
@@ -759,21 +827,21 @@ cdef class LibOVRSession(object):
 
         # build the rotation matrix from the pose quaternion
         cdef np.ndarray rotMat = np.zeros((4, 4), dtype=np.float32)
-        rotMat[0, 0] = (qw2 + qx2 - qy2 - qz2)
-        rotMat[1, 0] = 2.0 * (qx * qy + qw * qz)
-        rotMat[2, 0] = 2.0 * (qx * qz - qw * qy)
-        rotMat[3, 0] = 0.0
-        rotMat[0, 1] = 2.0 * (qx * qy - qw * qz)
-        rotMat[1, 1] = (qw2 - qx2 + qy2 - qz2)
-        rotMat[2, 1] = 2.0 * (qy * qz + qw * qx)
-        rotMat[3, 1] = 0.0
-        rotMat[0, 2] = 2.0 * (qx * qz + qw * qy)
-        rotMat[1, 2] = 2.0 * (qy * qz - qw * qx)
-        rotMat[2, 2] = (qw2 - qx2 - qy2 + qz2)
-        rotMat[3, 2] = 0.0
-
-        rotMat[:3, 3] = 0.0
-        rotMat[3, 3] = 1.0
+        cdef float[:, :] rmat_view = rotMat  # fast-access
+        rmat_view[0, 0] = (qw2 + qx2 - qy2 - qz2)
+        rmat_view[1, 0] = 2.0 * (qx * qy + qw * qz)
+        rmat_view[2, 0] = 2.0 * (qx * qz - qw * qy)
+        #rmat_view[3, 0] = 0.0
+        rmat_view[0, 1] = 2.0 * (qx * qy - qw * qz)
+        rmat_view[1, 1] = (qw2 - qx2 + qy2 - qz2)
+        rmat_view[2, 1] = 2.0 * (qy * qz + qw * qx)
+        #rmat_view[3, 1] = 0.0
+        rmat_view[0, 2] = 2.0 * (qx * qz + qw * qy)
+        rmat_view[1, 2] = 2.0 * (qy * qz - qw * qx)
+        rmat_view[2, 2] = (qw2 - qx2 - qy2 + qz2)
+        #rmat_view[3, 2] = 0.0
+        #rmat_view[:3, 3] = 0.0
+        rmat_view[3, 3] = 1.0
 
         cdef np.ndarray finalUp = np.asarray((0, 1, 0, 1), dtype=np.float32)
         cdef np.ndarray finalFwd = np.asarray((0, 0, -1, 1), dtype=np.float32)
@@ -839,12 +907,12 @@ cdef class LibOVRSession(object):
         return t_sec
 
     def perfHudMode(self, str mode):
-        """Display a performance HUD with a specified mode.
+        """Display a performance information HUD.
         
         Parameters
         ----------
         mode : str
-            Performance HUD mode to present. Valid mode strings are:
+            Performance HUD mode to present. Valid mode strings are
             'PerfSummary', 'LatencyTiming', 'AppRenderTiming', 
             'CompRenderTiming', 'AswStats', 'VersionInfo' and 'Off'. Specifying 
             'Off' hides the performance HUD.
@@ -861,23 +929,18 @@ cdef class LibOVRSession(object):
         """
         cdef int perfHudMode = 0
 
-        if mode == 'Off':
-            perfHudMode = <int> ovr_capi.ovrPerfHud_Off
-        elif mode == 'PerfSummary':
-            perfHudMode = <int> ovr_capi.ovrPerfHud_PerfSummary
-        elif mode == 'LatencyTiming':
-            perfHudMode = <int> ovr_capi.ovrPerfHud_LatencyTiming
-        elif mode == 'AppRenderTiming':
-            perfHudMode = <int> ovr_capi.ovrPerfHud_AppRenderTiming
-        elif mode == 'CompRenderTiming':
-            perf_hud_mode = <int> ovr_capi.ovrPerfHud_CompRenderTiming
-        elif mode == 'AswStats':
-            perfHudMode = <int> ovr_capi.ovrPerfHud_AswStats
-        elif mode == 'VersionInfo':
-            perfHudMode = <int> ovr_capi.ovrPerfHud_VersionInfo
+        try:
+            perfHudMode = <int>_performance_hud_modes[mode]
+        except KeyError:
+            raise KeyError("Invalid performance HUD mode specified.")
 
         cdef ovr_capi.ovrBool ret = ovr_capi.ovr_SetInt(
             self.ptrSession, b"PerfHudMode", perfHudMode)
+
+    @property
+    def perfHudModes(self):
+        """List of valid performance HUD modes."""
+        return [*_performance_hud_modes]
 
     def setEyeViewport(self, eye, rect):
         """Set the viewport for a given eye.
@@ -942,10 +1005,10 @@ cdef class LibOVRSession(object):
             Error code.
 
         """
-        cdef ovr_capi.ovrResult result = 0
-        result = ovr_capi.ovr_WaitToBeginFrame(self.ptrSession, frameIndex)
+        cdef ovr_capi.ovrResult result = \
+            ovr_capi.ovr_WaitToBeginFrame(self.ptrSession, frameIndex)
 
-        return <int> result
+        return <int>result
 
     def beginFrame(self, unsigned int frameIndex=0):
         """Begin rendering the frame. Must be called prior to drawing and
@@ -962,7 +1025,8 @@ cdef class LibOVRSession(object):
             Error code returned by 'ovr_BeginFrame'.
 
         """
-        result = ovr_capi.ovr_BeginFrame(self.ptrSession, frameIndex)
+        cdef ovr_capi.ovrResult result = \
+            ovr_capi.ovr_BeginFrame(self.ptrSession, frameIndex)
 
         return <int> result
 
@@ -1003,7 +1067,7 @@ cdef class LibOVRSession(object):
 
         """
         cdef ovr_capi.ovrLayerHeader* layers = &(self.eyeLayer).Header
-        result = ovr_capi.ovr_EndFrame(
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_EndFrame(
             self.ptrSession,
             frameIndex,
             NULL,
