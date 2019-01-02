@@ -243,11 +243,23 @@ cdef class LibOVRSession(object):
     # debug mode
     cdef bint debugMode = False
 
-    def __init__(self, debugMode=False, *args, **kwargs):
+    def __init__(self, debugMode=False, timeout=100, *args, **kwargs):
         pass
 
-    def __cinit__(self, debugMode=False, *args, **kwargs):
+    def __cinit__(self, bint debugMode=False, int timeout=100, *args, **kwargs):
         self.debugMode = debugMode
+
+        # check if the driver and service are available
+        cdef ovr_capi_util.ovrDetectResult result = ovr_capi_util.ovr_Detect(
+            <int>timeout)
+
+        if not result.IsOculusServiceRunning:
+            raise RuntimeError("Oculus service is not running, it may be "
+                               "disabled or not installed.")
+
+        if not result.IsOculusHMDConnected:
+            raise RuntimeError("No Oculus HMD connected! Check connections "
+                               "and try again.")
 
     def __dealloc__(self):
         pass
@@ -538,7 +550,6 @@ cdef class LibOVRSession(object):
     @property
     def defaultEyeFov(self):
         """Default or recommended eye field-of-views (FOVs) provided by the API.
-
         """
         return self.getDefaultEyeFov()
 
@@ -602,8 +613,13 @@ cdef class LibOVRSession(object):
         return fovLeft, fovRight
 
     def getEyeRenderFov(self, int eye):
-        """Set the field-of-view of a given eye used to compute the projection
+        """Get the field-of-view of a given eye used to compute the projection
         matrix.
+
+        Returns
+        -------
+        tuple of ndarray
+            Eye FOVs specified as tangent angles [Up, Down, Left, Right].
 
         """
         cdef np.ndarray to_return = np.asarray([
@@ -967,7 +983,7 @@ cdef class LibOVRSession(object):
         self.eyeLayer.Viewport[eye] = viewportRect
 
     def getEyeViewport(self, eye):
-        """Set the viewport for a given eye.
+        """Get the viewport for a given eye.
 
         Parameters
         ----------
