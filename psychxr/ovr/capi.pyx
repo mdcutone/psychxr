@@ -194,6 +194,48 @@ cdef dict _performance_hud_modes = {
     "VersionInfo" : ovr_capi.ovrPerfHud_VersionInfo
 }
 
+# Button values
+#
+cdef dict _controller_buttons = {
+    "A": ovr_capi.ovrButton_A,
+    "B": ovr_capi.ovrButton_B,
+    "RThumb": ovr_capi.ovrButton_RThumb,
+    "RShoulder": ovr_capi.ovrButton_RShoulder,
+    "X": ovr_capi.ovrButton_X,
+    "Y": ovr_capi.ovrButton_Y,
+    "LThumb": ovr_capi.ovrButton_LThumb,
+    "LShoulder": ovr_capi.ovrButton_LThumb,
+    "Up": ovr_capi.ovrButton_Up,
+    "Down": ovr_capi.ovrButton_Down,
+    "Left": ovr_capi.ovrButton_Left,
+    "Right": ovr_capi.ovrButton_Right,
+    "Enter": ovr_capi.ovrButton_Enter,
+    "Back": ovr_capi.ovrButton_Back,
+    "VolUp": ovr_capi.ovrButton_VolUp,
+    "VolDown": ovr_capi.ovrButton_VolDown,
+    "Home": ovr_capi.ovrButton_Home,
+    "Private": ovr_capi.ovrButton_Private,
+    "RMask": ovr_capi.ovrButton_RMask,
+    "LMask": ovr_capi.ovrButton_LMask}
+
+# Touch states
+#
+cdef dict _touch_states = {
+    "A": ovr_capi.ovrTouch_A,
+    "B": ovr_capi.ovrTouch_B,
+    "RThumb": ovr_capi.ovrTouch_RThumb,
+    "RThumbRest": ovr_capi.ovrTouch_RThumbRest,
+    "RIndexTrigger": ovr_capi.ovrTouch_RThumb,
+    "X": ovr_capi.ovrTouch_X,
+    "Y": ovr_capi.ovrTouch_Y,
+    "LThumb": ovr_capi.ovrTouch_LThumb,
+    "LThumbRest": ovr_capi.ovrTouch_LThumbRest,
+    "LIndexTrigger": ovr_capi.ovrTouch_LIndexTrigger,
+    "RIndexPointing": ovr_capi.ovrTouch_RIndexPointing,
+    "RThumbUp": ovr_capi.ovrTouch_RThumbUp,
+    "LIndexPointing": ovr_capi.ovrTouch_LIndexPointing,
+    "LThumbUp": ovr_capi.ovrTouch_LThumbUp}
+
 # -----------------
 # Session Functions
 # -----------------
@@ -214,7 +256,12 @@ cpdef bint isHmdConnected(int timeout_milliseconds=100):
 cdef class LibOVRSession(object):
     """Session object for LibOVR.
 
-    This class provides an interface for LibOVR sessions.
+    This class provides an interface for LibOVR sessions. Once initialized,
+    the LibOVRSession instance provides configuration, data acquisition (e.g.
+    sensors, inputs, etc.), and control of the HMD via attributes and methods.
+
+    LibOVR API functions which return matrix and vector data types are converted
+    to Numpy arrays.
 
     """
     # Session related pointers and information
@@ -240,8 +287,11 @@ cdef class LibOVRSession(object):
 
     # controller states
 
+    # error information
+    cdef ovr_errorcode.ovrErrorInfo errorInfo  # store our last error here
+
     # debug mode
-    cdef bint debugMode = False
+    cdef bint debugMode
 
     def __init__(self, debugMode=False, timeout=100, *args, **kwargs):
         pass
@@ -677,13 +727,7 @@ cdef class LibOVRSession(object):
 
         return np.asarray([bufferSize.w, bufferSize.h], dtype=np.int)
 
-    def createTextureSwapChainGL(
-            self,
-            eye,
-            width,
-            height,
-            textureFormat=OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
-            levels=1):
+    def createTextureSwapChainGL(self, eye, width, height, textureFormat='R8G8B8A8_UNORM_SRGB', levels=1):
         """Initialize an texture swap chain for eye images.
 
         Parameters
@@ -1165,6 +1209,11 @@ cdef class LibOVRSession(object):
     @property
     def isAswAvailable(self):
         """Is ASW available?"""
+        pass
+
+    def getLastErrorInfo(self):
+        """Get the last error code and information string reported by the API.
+        """
         pass
 
 
