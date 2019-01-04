@@ -194,6 +194,18 @@ cdef dict _performance_hud_modes = {
     "VersionInfo" : ovr_capi.ovrPerfHud_VersionInfo
 }
 
+# mirror texture options
+#
+cdef dict _mirror_texture_options = {
+    "Default" : ovr_capi.ovrMirrorOption_Default,
+    "PostDistortion" : ovr_capi.ovrMirrorOption_PostDistortion,
+    "LeftEyeOnly" : ovr_capi.ovrMirrorOption_LeftEyeOnly,
+    "RightEyeOnly" : ovr_capi.ovrMirrorOption_RightEyeOnly,
+    "IncludeGuardian" : ovr_capi.ovrMirrorOption_IncludeGuardian,
+    "IncludeNotifications" : ovr_capi.ovrMirrorOption_IncludeNotifications,
+    "IncludeSystemGui" : ovr_capi.ovrMirrorOption_IncludeSystemGui
+}
+
 # Button values
 #
 cdef dict _controller_buttons = {
@@ -523,7 +535,8 @@ cdef class LibOVRSession(object):
             self.ptrSession, b"PerfHudMode", ovr_capi.ovrPerfHud_Off)
 
         # destroy the mirror texture
-        ovr_capi.ovr_DestroyMirrorTexture(self.ptrSession, self.mirrorTexture)
+        if self.mirrorTexture != NULL:
+            ovr_capi.ovr_DestroyMirrorTexture(self.ptrSession, self.mirrorTexture)
 
         # free all swap chains
         cdef int i = 0
@@ -685,6 +698,13 @@ cdef class LibOVRSession(object):
         """Set the field-of-view of a given eye. This is used to compute the
         projection matrix.
 
+        Parameters
+        ----------
+        eye : int
+            Eye index.
+        fov : tuple, list or ndarray of floats
+        texelPerPixel : float
+
         """
         cdef ovr_capi.ovrFovPort fov_in
         fov_in.UpTan = <float>fov[0]
@@ -698,7 +718,12 @@ cdef class LibOVRSession(object):
             fov_in)
 
     def getEyeBufferSize(self, int eye, object fov, float texelPerPixel=1.0):
-        """Get the recommended render buffer size in pixels.
+        """Get the recommended buffer (texture) size for a specified
+        configuration.
+
+        Returns a tuple with the dimensions of the required texture (w, h). The
+        values can be used when configuring a render buffer which will
+        ultimately be used to draw to the HMD buffers.
 
         Parameters
         ----------
@@ -773,6 +798,69 @@ cdef class LibOVRSession(object):
 
         if debug_mode:
             check_result(result)
+
+    def createMirrorTexture(
+            self,
+            width,
+            height,
+            format,
+            mirrorMode='Default',
+            includeGuardian=False,
+            includeNotifications=False,
+            includeSystemGui=False):
+        """Create a mirror texture. The mirror texture captures what is being
+        presented on the HMD.
+
+        """
+        cdef int32_t mirrorOptions
+
+        # set the mirror texture mode
+        if mirrorMode == 'Default':
+            mirrorOptions = ovr_capi.ovrMirrorOption_Default
+        elif mirrorMode == 'PostDistortion':
+            mirrorOptions = ovr_capi.ovrMirrorOption_PostDistortion
+        elif mirrorMode == 'LeftEyeOnly':
+            mirrorOptions = ovr_capi.ovrMirrorOption_LeftEyeOnly
+        elif mirrorMode == 'RightEyeOnly':
+            mirrorOptions = ovr_capi.ovrMirrorOption_RightEyeOnly
+        else:
+            raise RuntimeError("Invalid 'mirrorMode' mode specified.")
+
+        # additional options
+        if includeGuardian:
+            mirrorOptions |= ovr_capi.ovrMirrorOption_IncludeGuardian
+        if includeNotifications:
+            mirrorOptions |= ovr_capi.ovrMirrorOption_IncludeNotifications
+        if includeSystemGui:
+            mirrorOptions |= ovr_capi.ovrMirrorOption_IncludeSystemGui
+
+        # create the descriptor
+        cdef ovr_capi.ovrMirrorTextureDesc mirrorDesc
+        mirrorDesc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+        mirrorDesc.Width = <int>width
+        mirrorDesc.Height = <int>height
+        mirrorDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
+        mirrorDesc.MirrorOptions = <ovr_capi.ovrMirrorOptions>mirrorOptions
+
+        cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateMirrorTextureGL(
+            self.ptrSession, &mirrorDesc, &self.mirrorTexture)
+
+        if debug_mode:
+            check_result(result)
+
+    def getMirrorTexture(self):
+        """Get the mirror texture handle.
+
+        :return:
+        """
+        cdef unsigned int out_tex_id
+        cdef ovr_capi.ovrResult result = \
+            ovr_capi_gl.ovr_GetMirrorTextureBufferGL(
+                self.ptrSession,
+                self.mirrorTexture,
+                &out_tex_id)
+
+        return <unsigned int> out_tex_id
 
     def getTextureSwapChainBufferGL(self, int eye):
         """Get the next available swap chain buffer for a specified eye.
