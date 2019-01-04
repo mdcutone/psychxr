@@ -310,6 +310,7 @@ cdef class LibOVRSession(object):
 
     def __cinit__(self, bint debugMode=False, int timeout=100, *args, **kwargs):
         self.debugMode = debugMode
+        self.ptrSession = NULL
 
         # check if the driver and service are available
         cdef ovr_capi_util.ovrDetectResult result = ovr_capi_util.ovr_Detect(
@@ -328,10 +329,10 @@ cdef class LibOVRSession(object):
 
     @property
     def userHeight(self):
-        """Get the user's height in meters as reported by the LibOVR.
+        """User's calibrated height in meters.
 
-        Returns
-        -------
+        Getter
+        ------
         float
             Distance from floor to the top of the user's head in meters reported
             by LibOVR. If not set, the default value is 1.778 meters.
@@ -346,11 +347,10 @@ cdef class LibOVRSession(object):
 
     @property
     def eyeHeight(self):
-        """Get the height of the user's eye from the floor in meters as reported
-        by LibOVR. If not set, the default value is 1.675 meters.
+        """Calibrated eye height from floor in meters.
 
-        Returns
-        -------
+        Getter
+        ------
         float
             Distance from floor to the user's eye level in meters.
 
@@ -364,10 +364,10 @@ cdef class LibOVRSession(object):
 
     @property
     def neckEyeDist(self):
-        """Distance from the neck to eyes.
+        """Distance from the neck to eyes in meters.
 
-        Returns
-        -------
+        Getter
+        ------
         float
             Distance in meters.
 
@@ -384,10 +384,10 @@ cdef class LibOVRSession(object):
 
     @property
     def eyeToNoseDist(self):
-        """Distance between the nose and eyes.
+        """Distance between the nose and eyes in meters.
 
-        Returns
-        -------
+        Getter
+        ------
         float
             Distance in meters.
 
@@ -406,8 +406,8 @@ cdef class LibOVRSession(object):
     def productName(self):
         """Get the product name for this device.
 
-        Returns
-        -------
+        Getter
+        ------
         str
             Product name string (utf-8).
 
@@ -418,8 +418,8 @@ cdef class LibOVRSession(object):
     def manufacturerName(self):
         """Get the device manufacturer name.
 
-        Returns
-        -------
+        Getter
+        ------
         str
             Manufacturer name string (utf-8).
 
@@ -428,10 +428,10 @@ cdef class LibOVRSession(object):
 
     @property
     def screenSize(self):
-        """Get the horizontal and vertical resolution of the screen in pixels.
+        """Horizontal and vertical resolution of the display in pixels.
 
-        Returns
-        -------
+        Getter
+        ------
         ndarray of int
             Resolution of the display [w, h].
 
@@ -442,10 +442,10 @@ cdef class LibOVRSession(object):
 
     @property
     def refreshRate(self):
-        """Get the nominal refresh rate in Hertz of the display.
+        """Nominal refresh rate in Hertz of the display.
 
-        Returns
-        -------
+        Getter
+        ------
         float
             Refresh rate in Hz.
 
@@ -454,10 +454,10 @@ cdef class LibOVRSession(object):
 
     @property
     def hid(self):
-        """Get the USB human interface device class identifiers.
+        """USB human interface device class identifiers.
 
-        Returns
-        -------
+        Getter
+        ------
         tuple
             USB HIDs (vendor, product).
 
@@ -466,10 +466,10 @@ cdef class LibOVRSession(object):
 
     @property
     def firmwareVersion(self):
-        """Get the firmware version for this device.
+        """Firmware version for this device.
 
-        Returns
-        -------
+        Getter
+        ------
         tuple
             Firmware version (major, minor).
 
@@ -478,7 +478,14 @@ cdef class LibOVRSession(object):
 
     @property
     def versionString(self):
-        """LibOVRRT version as a string."""
+        """LibOVRRT version as a string.
+
+        Getter
+        ------
+        str
+            Runtime version information as a UTF-8 encoded string.
+
+        """
         return self.getVersionString()
 
     def getVersionString(self):
@@ -489,6 +496,9 @@ cdef class LibOVRSession(object):
     def start(self):
         """Start a new session. Control is handed over to the application from
         Oculus Home.
+
+        Starting a session will initialize and create a new session. Afterwards
+        API functions will return valid values.
 
         """
         cdef ovr_capi.ovrResult result = 0
@@ -524,10 +534,6 @@ cdef class LibOVRSession(object):
         Clean-up routines are executed that destroy all swap chains and mirror
         texture buffers, afterwards control is returned to Oculus Home. This
         must be called after every successful 'startSession' call.
-
-        Returns
-        -------
-        None
 
         """
         # switch off the performance HUD
@@ -769,10 +775,6 @@ cdef class LibOVRSession(object):
         levels : int
             Mip levels to use, default is 1.
 
-        Returns
-        -------
-        None
-
         """
         # configure the texture
         cdef ovr_capi.ovrTextureSwapChainDesc swapConfig
@@ -803,13 +805,28 @@ cdef class LibOVRSession(object):
             self,
             width,
             height,
-            format,
+            textureFormat='R8G8B8A8_UNORM_SRGB',
             mirrorMode='Default',
             includeGuardian=False,
             includeNotifications=False,
             includeSystemGui=False):
-        """Create a mirror texture. The mirror texture captures what is being
-        presented on the HMD.
+        """Create a mirror texture displaying the contents of the rendered
+        images being presented on the HMD. The image is automatically refreshed
+        to reflect the current content o the display.
+
+        Parameters
+        ----------
+        width : int
+            Width of texture in pixels.
+        height : int
+            Height of texture in pixels.
+        textureFormat : str
+            Texture format. Valid texture formats are: 'R8G8B8A8_UNORM',
+            'R8G8B8A8_UNORM_SRGB', 'R16G16B16A16_FLOAT', and 'R11G11B10_FLOAT'.
+        mirrorMode : str
+        includeGuardian : bool
+        includeNotifications : bool
+        includeSystemGui : bool
 
         """
         cdef int32_t mirrorOptions
@@ -848,19 +865,28 @@ cdef class LibOVRSession(object):
         if debug_mode:
             check_result(result)
 
+    @property
+    def mirrorTexture(self):
+        """Mirror texture ID."""
+        return self.getMirrorTexture()
+
     def getMirrorTexture(self):
         """Get the mirror texture handle.
 
-        :return:
+        Returns
+        -------
+        int
+            OpenGL texture handle.
+
         """
-        cdef unsigned int out_tex_id
+        cdef unsigned int mirror_id
         cdef ovr_capi.ovrResult result = \
             ovr_capi_gl.ovr_GetMirrorTextureBufferGL(
                 self.ptrSession,
                 self.mirrorTexture,
-                &out_tex_id)
+                &mirror_id)
 
-        return <unsigned int> out_tex_id
+        return <unsigned int> mirror_id
 
     def getTextureSwapChainBufferGL(self, int eye):
         """Get the next available swap chain buffer for a specified eye.
@@ -902,7 +928,10 @@ cdef class LibOVRSession(object):
         return tex_id
 
     def getEyeProjectionMatrix(self, eye, nearClip=0.1, farClip=1000.0):
-        """Create a projection matrix.
+        """Compute the projection matrix.
+
+        The projection matrix is computed by the runtime using the eye FOV
+        parameters set with '~ovr.LibOVRSession.setEyeRenderFov' calls.
 
         Parameters
         ----------
@@ -915,7 +944,7 @@ cdef class LibOVRSession(object):
 
         Returns
         -------
-        ndarray
+        ndarray of floats
             4x4 projection matrix.
 
         """
@@ -939,7 +968,7 @@ cdef class LibOVRSession(object):
         return to_return
 
     def getEyeViewMatrix(self, eyePose):
-        """Create a projection matrix.
+        """Compute a view matrix.
 
         Parameters
         ----------
@@ -1060,14 +1089,10 @@ cdef class LibOVRSession(object):
         Parameters
         ----------
         mode : str
-            Performance HUD mode to present. Valid mode strings are
+            Performance HUD mode to present. Valid mode strings are:
             'PerfSummary', 'LatencyTiming', 'AppRenderTiming', 
             'CompRenderTiming', 'AswStats', 'VersionInfo' and 'Off'. Specifying 
             'Off' hides the performance HUD.
-
-        Returns
-        -------
-        None
             
         Warning
         -------
@@ -1101,10 +1126,6 @@ cdef class LibOVRSession(object):
             Rectangle specifying the viewport's position and dimensions on the
             eye buffer.
 
-        Returns
-        -------
-        None
-
         """
         cdef ovr_capi.ovrRecti viewportRect
         viewportRect.Pos.x = <int>rect[0]
@@ -1121,10 +1142,6 @@ cdef class LibOVRSession(object):
         ----------
         eye : int
             Which eye to set the viewport, where left=0 and right=1.
-
-        Returns
-        -------
-        None
 
         """
         cdef ovr_capi.ovrRecti viewportRect = \
@@ -1179,17 +1196,19 @@ cdef class LibOVRSession(object):
         return <int> result
 
     def commitSwapChain(self, int eye):
-        """Make the eye render texture available to the compositor.
+        """Commit changes to a given eye's texture swap chain. When called, the
+        runtime is notified that the texture is ready for use, and the swap
+        chain index is incremented.
 
         Parameters
         ----------
         eye : int
             Eye buffer index.
 
-        Returns
+        Warning
         -------
-        int
-            Error code returned by 'ovr_CommitTextureSwapChain'.
+            No additional drawing operations are permitted once the texture is
+            committed until the SDK dereferences it, making it available again.
 
         """
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_CommitTextureSwapChain(
@@ -1241,6 +1260,13 @@ cdef class LibOVRSession(object):
 
     @property
     def trackingOriginType(self):
+        """Tracking origin type.
+
+        The tracking origin type specifies where the origin is placed when
+        computing the pose of tracked objects (i.e. the head and touch
+        controllers.) Valid values are 'floor' and 'eye'.
+
+        """
         return self.getTrackingOriginType()
 
     @trackingOriginType.setter
@@ -1248,9 +1274,6 @@ cdef class LibOVRSession(object):
         self.setTrackingOriginType(value)
 
     def setTrackingOriginType(self, str value):
-        """Set the tracking origin type. Can either be 'floor' or 'eye'.
-
-        """
         cdef ovr_capi.ovrResult result
         if value == 'floor':
             result = ovr_capi.ovr_SetTrackingOriginType(
@@ -1263,9 +1286,6 @@ cdef class LibOVRSession(object):
             check_result(result)
 
     def getTrackingOriginType(self):
-        """Get the current tracking origin type.
-
-        """
         cdef ovr_capi.ovrTrackingOrigin origin = \
             ovr_capi.ovr_GetTrackingOriginType(self.ptrSession)
 
@@ -1273,6 +1293,39 @@ cdef class LibOVRSession(object):
             return 'floor'
         elif origin == ovr_capi.ovrTrackingOrigin_EyeLevel:
             return 'eye'
+
+    def getTrackerFrustum(self, int trackerIndex):
+        """Get the frustum parameters of a specified position tracker/sensor.
+
+        Parameters
+        ----------
+        trackerIndex : int
+            The index of the sensor to query. Valid values are between 0 and
+            '~LibOVRSession.trackerCount'.
+
+        Returns
+        -------
+        ndarray of float
+            Frustum parameters of the tracker's camera. The returned array
+            contains the horizontal and vertical FOV's in radians and the near
+            and far clipping planes in meters.
+
+        """
+        cdef ovr_capi.ovrTrackerDesc tracker_desc = ovr_capi.ovr_GetTrackerDesc(
+            self.ptrSession, <unsigned int>trackerIndex)
+
+        cdef np.ndarray to_return = np.asarray([
+            tracker_desc.FrustumHFovInRadians,
+            tracker_desc.FrustumVFovInRadians,
+            tracker_desc.FrustumNearZInMeters,
+            tracker_desc.FrustumFarZInMeters],
+            dtype=np.float32)
+
+        return to_return
+
+    def getTrackerInfo(self):
+        """Get position tracker/sensor information."""
+        pass
 
     @property
     def maxProvidedFrameStats(self):
