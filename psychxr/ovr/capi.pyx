@@ -29,6 +29,8 @@
 """This file exposes LibOVR functions to Python.
 
 """
+__all__ = ['LibOVRSession']
+
 from .cimport ovr_capi
 from .cimport ovr_capi_gl
 from .cimport ovr_errorcode
@@ -247,6 +249,21 @@ cdef dict _touch_states = {
     "RThumbUp": ovr_capi.ovrTouch_RThumbUp,
     "LIndexPointing": ovr_capi.ovrTouch_LIndexPointing,
     "LThumbUp": ovr_capi.ovrTouch_LThumbUp}
+
+
+# Numpy data types
+#
+ovrVector3f_dtype = np.dtype([
+    ('x', np.float32), ('y', np.float32), ('z', np.float32)
+])
+
+ovrQuatf_dtype = np.dtype([
+    ('x', np.float32), ('y', np.float32), ('z', np.float32), ('w', np.float32)
+])
+
+ovrPosef_dtype = np.dtype([
+    ('Orientation', ovrQuatf_dtype), ('Position', ovrVector3f_dtype)
+])
 
 # -----------------
 # Session Functions
@@ -870,6 +887,10 @@ cdef class LibOVRSession(object):
         """Mirror texture ID."""
         return self.getMirrorTexture()
 
+    def getTrackingState(self):
+        """Get the current tracking state."""
+        pass
+
     def getMirrorTexture(self):
         """Get the mirror texture handle.
 
@@ -1069,6 +1090,11 @@ cdef class LibOVRSession(object):
             <int>frameIndex)
 
         return t_sec
+
+    @property
+    def timeInSeconds(self):
+        """Absolute time in seconds."""
+        return self.getTimeInSeconds()
 
     def getTimeInSeconds(self):
         """Get the absolute time in seconds.
@@ -1657,8 +1683,14 @@ cdef class TrackingStateData(object):
     cdef ovr_capi.ovrTrackingState*c_data
     cdef ovr_capi.ovrTrackingState  c_ovrTrackingState
 
+    cdef np.ndarray head_pose
+
     def __cinit__(self, *args, **kwargs):
         self.c_data = &self.c_ovrTrackingState
+        cdef np.npy_intp shape[1]
+        shape[0] = <np.npy_intp>1
+        self.head_pose = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_FLOAT32, <void *>&self.c_data[0].HeadPose.ThePose)
 
     @property
     def HeadPose(self):
@@ -1890,97 +1922,6 @@ cpdef void endFrame(LibOVRSession session, unsigned int frameIndex=0):
 
     if debug_mode:
         check_result(result)
-
-# ------------------------
-# Mirror Texture Functions
-# ------------------------
-#
-ovrMirrorOption_Default = ovr_capi.ovrMirrorOption_Default
-ovrMirrorOption_PostDistortion = ovr_capi.ovrMirrorOption_PostDistortion
-ovrMirrorOption_LeftEyeOnly = ovr_capi.ovrMirrorOption_LeftEyeOnly
-ovrMirrorOption_RightEyeOnly = ovr_capi.ovrMirrorOption_RightEyeOnly
-ovrMirrorOption_IncludeGuardian = ovr_capi.ovrMirrorOption_IncludeGuardian
-ovrMirrorOption_IncludeNotifications = ovr_capi.ovrMirrorOption_IncludeNotifications
-ovrMirrorOption_IncludeSystemGui = ovr_capi.ovrMirrorOption_IncludeSystemGui
-
-cdef class ovrMirrorTextureDesc:
-    """ovrTextureSwapChainDesc
-    """
-    # no data pointer here
-    cdef ovr_capi.ovrMirrorTextureDesc c_ovrMirrorTextureDesc
-
-    def __cinit__(
-            self,
-            int _format=OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
-            int width=800,
-            int height=600,
-            int mirrorOptions=ovrMirrorOption_Default):
-        self.c_ovrMirrorTextureDesc.Format = <ovr_capi.ovrTextureFormat> _format
-        self.c_ovrMirrorTextureDesc.Width = width
-        self.c_ovrMirrorTextureDesc.Height = height
-        self.c_ovrMirrorTextureDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
-        self.c_ovrMirrorTextureDesc.MirrorOptions = <int32_t> mirrorOptions
-
-    @property
-    def Format(self):
-        return <int> self.c_ovrMirrorTextureDesc.Format
-
-    @Format.setter
-    def Format(self, int value):
-        self.c_ovrMirrorTextureDesc.Format = <ovr_capi.ovrTextureFormat> value
-
-    @property
-    def Width(self):
-        return <int> self.c_ovrMirrorTextureDesc.Width
-
-    @Width.setter
-    def Width(self, int value):
-        self.c_ovrMirrorTextureDesc.Width = value
-
-    @property
-    def Height(self):
-        return <int> self.c_ovrMirrorTextureDesc.Height
-
-    @Height.setter
-    def Height(self, int value):
-        self.c_ovrMirrorTextureDesc.Height = value
-
-    @property
-    def MirrorOptions(self):
-        return <int> self.c_ovrMirrorTextureDesc.MirrorOptions
-
-    @MirrorOptions.setter
-    def MirrorOptions(self, int value):
-        self.c_ovrMirrorTextureDesc.MirrorOptions = <int32_t> value
-
-cpdef void setupMirrorTexture(LibOVRSession session, ovrMirrorTextureDesc mirrorDesc):
-    """Create a mirror texture buffer.
-    
-    :param width: int 
-    :param height: int 
-    :return: None
-    
-    """
-    #global _mirrorTexture_
-    cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateMirrorTextureGL(
-        session.ptrSession, &mirrorDesc.c_ovrMirrorTextureDesc, &(<LibOVRSession>session).mirrorTexture)
-
-    if debug_mode:
-        check_result(result)
-
-cpdef unsigned int getMirrorTexture(LibOVRSession session):
-    """Get the mirror texture handle.
-    
-    :return: 
-    """
-    cdef unsigned int out_tex_id
-    cdef ovr_capi.ovrResult result = \
-        ovr_capi_gl.ovr_GetMirrorTextureBufferGL(
-            session.ptrSession,
-            session.mirrorTexture,
-            &out_tex_id)
-
-    return <unsigned int> out_tex_id
 
 # types
 ovrLayerType_EyeFov = ovr_capi.ovrLayerType_EyeFov

@@ -1,3 +1,3 @@
 # load extension modules
-from . import capi
+from .capi import LibOVRSession
 from . import math
