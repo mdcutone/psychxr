@@ -323,6 +323,7 @@ cdef class LibOVRSession(object):
     cdef ovr_capi.ovrGraphicsLuid ptrLuid  # LUID
     cdef ovr_capi.ovrHmdDesc hmdDesc  # HMD information descriptor
     cdef ovr_capi.ovrBoundaryLookAndFeel boundryStyle
+    cdef ovr_capi.ovrHmdDesc hmdDesc
 
     # VR related data persistent across frames
     cdef ovr_capi.ovrLayerEyeFov eyeLayer
@@ -527,11 +528,7 @@ cdef class LibOVRSession(object):
             Runtime version information as a UTF-8 encoded string.
 
         """
-        return self.getVersionString()
-
-    def get_version_string(self):
         cdef const char* version = ovr_capi.ovr_GetVersionString()
-
         return version.decode('utf-8')  # already UTF-8?
 
     def start(self):
@@ -612,9 +609,10 @@ cdef class LibOVRSession(object):
 
     @property
     def high_quality(self):
-        """Enable high-quality mode if True. The distortion compositor applies
-        4x anisotropic texture filtering which reduces the visibility of
-        artifacts, particularly in the periphery.
+        """High-quality mode.
+
+        The distortion compositor applies 4x anisotropic texture filtering which
+        reduces the visibility of artifacts, particularly in the periphery.
 
         This is enabled by default when a session is started.
 
@@ -632,7 +630,7 @@ cdef class LibOVRSession(object):
 
     @property
     def head_locked(self):
-        """Enable head locked mode if True.
+        """Head-locked mode.
 
         This is disabled by default when a session is started. Head locking
         places the rendered image as a 'billboard' in front of the viewer.
@@ -652,19 +650,11 @@ cdef class LibOVRSession(object):
     @property
     def tracker_count(self):
         """Number of connected trackers."""
-        return self.get_tracker_count()
-
-    def get_tracker_count(self):
         return <int>ovr_capi.ovr_GetTrackerCount(self.ptrSession)
 
     @property
     def default_eye_fov(self):
         """Default or recommended eye field-of-views (FOVs) provided by the API.
-        """
-        return self.getDefaultEyeFov()
-
-    def get_default_eye_fov(self):
-        """Get the default field-of-view (FOV) for the HMD for both eyes.
 
         Returns
         -------
@@ -693,34 +683,28 @@ cdef class LibOVRSession(object):
     def max_eye_fov(self):
         """Maximum eye field-of-views (FOVs) provided by the API.
 
-        """
-        return self.getMaxEyeFov()
-
-    def get_max_eye_fov(self):
-        """Get the maximum field-of-view (FOV) for the HMD.
-
         Returns
         -------
         tuple of ndarray
-            Pair of left and right eye FOVs specified as tangent angles [Up,
-            Down, Left, Right].
+            Pair of left and right eye FOVs specified as tangent angles in
+             radians [Up, Down, Left, Right].
 
         """
-        cdef np.ndarray fovLeft = np.asarray([
+        cdef np.ndarray[float, ndim=1] fov_left = np.asarray([
             self.hmdDesc.MaxEyeFov[0].UpTan,
             self.hmdDesc.MaxEyeFov[0].DownTan,
             self.hmdDesc.MaxEyeFov[0].LeftTan,
             self.hmdDesc.MaxEyeFov[0].RightTan],
             dtype=np.float32)
 
-        cdef np.ndarray fovRight = np.asarray([
+        cdef np.ndarray[float, ndim=1] fov_right = np.asarray([
             self.hmdDesc.MaxEyeFov[1].UpTan,
             self.hmdDesc.MaxEyeFov[1].DownTan,
             self.hmdDesc.MaxEyeFov[1].LeftTan,
             self.hmdDesc.MaxEyeFov[1].RightTan],
             dtype=np.float32)
 
-        return fovLeft, fovRight
+        return fov_left, fov_right
 
     def get_eye_render_fov(self, int eye):
         """Get the field-of-view of a given eye used to compute the projection
@@ -909,7 +893,7 @@ cdef class LibOVRSession(object):
     @property
     def mirror_texture(self):
         """Mirror texture ID."""
-        return self.getMirrorTexture()
+        return self.get_mirror_texture()
 
     def get_tracking_state(self, double abs_time, bint latency_marker=True):
         """Get the current tracking state.
@@ -942,15 +926,44 @@ cdef class LibOVRSession(object):
     def calc_eye_poses(self, LibOVRTrackingState tracking_state):
         """Compute eye poses using a given tracking state.
 
-        Eye pose data will be stored internally and passed to
+        Eye poses are derived from the head pose stored in the tracking state
+        and the HMD to eye poses reported by LibOVR. Calculated eye poses are
+        stored and passed to the compositor when 'end_frame' is called. You can
+        access the computed poses thru the 'render_poses' attribute.
 
         """
-        cdef ovr_capi.ovrPosef[2] _hmd_to_eye_view_pose_
-
         ovr_capi_util.ovr_CalcEyePoses2(
             tracking_state.c_data[0].HeadPose.ThePose,
-            _hmd_to_eye_view_pose_,
+            self.eyeRenderDesc.HmdToEyePose,
             self.eyeLayer.RenderPose)
+
+    @property
+    def hmd_to_eye_poses(self):
+        """HMD to eye poses.
+
+        These are the original eye poses specified by LibOVR, defined only after
+        'start' is called.
+
+        """
+        return 0
+
+    @hmd_to_eye_poses.setter
+    def hmd_to_eye_poses(self, value):
+        pass
+
+    @property
+    def render_poses(self):
+        """Render poses computed by the last 'calc_eye_poses' call.
+
+        These poses are used to define the view matrix when rendering for each
+        eye. You can overwrite these poses with custom poses.
+
+        """
+        return
+
+    @render_poses.setter
+    def render_poses(self, value):
+        pass
 
     def get_mirror_texture(self):
         """Get the mirror texture handle.
@@ -1158,7 +1171,7 @@ cdef class LibOVRSession(object):
     @property
     def time_in_seconds(self):
         """Absolute time in seconds."""
-        return self.getTimeInSeconds()
+        return self.get_time_in_seconds()
 
     def get_time_in_seconds(self):
         """Get the absolute time in seconds.
@@ -1357,13 +1370,17 @@ cdef class LibOVRSession(object):
         controllers.) Valid values are 'floor' and 'eye'.
 
         """
-        return self.getTrackingOriginType()
+        cdef ovr_capi.ovrTrackingOrigin origin = \
+            ovr_capi.ovr_GetTrackingOriginType(self.ptrSession)
+
+        if origin == ovr_capi.ovrTrackingOrigin_FloorLevel:
+            return 'floor'
+        elif origin == ovr_capi.ovrTrackingOrigin_EyeLevel:
+            return 'eye'
+
 
     @tracking_origin_type.setter
     def tracking_origin_type(self, str value):
-        self.setTrackingOriginType(value)
-
-    def set_tracking_origin_type(self, str value):
         cdef ovr_capi.ovrResult result
         if value == 'floor':
             result = ovr_capi.ovr_SetTrackingOriginType(
@@ -1374,15 +1391,6 @@ cdef class LibOVRSession(object):
 
         if debug_mode:
             check_result(result)
-
-    def get_tracking_origin_type(self):
-        cdef ovr_capi.ovrTrackingOrigin origin = \
-            ovr_capi.ovr_GetTrackingOriginType(self.ptrSession)
-
-        if origin == ovr_capi.ovrTrackingOrigin_FloorLevel:
-            return 'floor'
-        elif origin == ovr_capi.ovrTrackingOrigin_EyeLevel:
-            return 'eye'
 
     def recenter_tracking_origin(self):
         """Recenter the tracking origin.
@@ -1398,12 +1406,12 @@ cdef class LibOVRSession(object):
         if debug_mode:
             check_result(result)
 
-    def get_tracker_frustum(self, int trackerIndex):
+    def get_tracker_frustum(self, int tracker_index):
         """Get the frustum parameters of a specified position tracker/sensor.
 
         Parameters
         ----------
-        trackerIndex : int
+        tracker_index : int
             The index of the sensor to query. Valid values are between 0 and
             '~LibOVRSession.trackerCount'.
 
@@ -1416,7 +1424,7 @@ cdef class LibOVRSession(object):
 
         """
         cdef ovr_capi.ovrTrackerDesc tracker_desc = ovr_capi.ovr_GetTrackerDesc(
-            self.ptrSession, <unsigned int>trackerIndex)
+            self.ptrSession, <unsigned int>tracker_index)
 
         cdef np.ndarray to_return = np.asarray([
             tracker_desc.FrustumHFovInRadians,
