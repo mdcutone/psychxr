@@ -323,14 +323,13 @@ cdef class LibOVRSession(object):
     cdef ovr_capi.ovrGraphicsLuid ptrLuid  # LUID
     cdef ovr_capi.ovrHmdDesc hmdDesc  # HMD information descriptor
     cdef ovr_capi.ovrBoundaryLookAndFeel boundryStyle
-    cdef ovr_capi.ovrHmdDesc hmdDesc
 
     # VR related data persistent across frames
     cdef ovr_capi.ovrLayerEyeFov eyeLayer
     cdef ovr_capi.ovrEyeRenderDesc[2] eyeRenderDesc
 
     # texture swap chains, for eye views and mirror
-    cdef ovr_capi.ovrTextureSwapChain swapChains[2]
+    cdef ovr_capi.ovrTextureSwapChain[2] swapChains  # fixme!
     cdef ovr_capi.ovrMirrorTexture mirrorTexture
 
     # status and performance information
@@ -783,6 +782,95 @@ cdef class LibOVRSession(object):
 
         return np.asarray([bufferSize.w, bufferSize.h], dtype=np.int)
 
+    def get_swap_chain_length(self, eye):
+        """Get the swap chain length for a given eye."""
+        cdef unsigned int out_length
+        cdef ovr_capi.ovrResult result = 0
+
+        # check if there is a swap chain in the slot
+        if self.eyeLayer.ColorTexture[eye] == NULL:
+            raise RuntimeError(
+                "Cannot get swap chain length, NULL eye buffer texture.")
+
+        # get the current texture index within the swap chain
+        result = ovr_capi.ovr_GetTextureSwapChainLength(
+            self.ptrSession, self.swapChains[eye], &out_length)
+
+        return out_length
+
+    def get_swap_chain_current_index(self, eye):
+        """Get the current index of the swap chain for a given eye."""
+        cdef int current_idx = 0
+        cdef ovr_capi.ovrResult result = 0
+
+        # check if there is a swap chain in the slot
+        if self.eyeLayer.ColorTexture[eye] == NULL:
+            raise RuntimeError(
+                "Cannot get buffer ID, NULL eye buffer texture.")
+
+        # get the current texture index within the swap chain
+        result = ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
+            self.ptrSession, self.swapChains[eye], &current_idx)
+
+        return current_idx
+
+    def get_texture_buffer_gl(self, eye, index):
+        """Get the texture buffer as an OpenGL name at a specific index in the
+        swap chain for a given eye.
+
+        """
+        cdef unsigned int tex_id = 0
+        cdef ovr_capi.ovrResult result = 0
+
+        # get the next available texture ID from the swap chain
+        result = ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
+            self.ptrSession, self.swapChains[eye], index, &tex_id)
+
+        return tex_id
+
+    def get_next_texture_buffer_gl(self, eye):
+        """Get the next available texture buffer as an OpenGL name in the swap
+        chain for a given eye.
+
+        Calling this automatically handles getting the next available swap chain
+        index. The index is incremented when 'commit_swap_chain' is called.
+
+        Parameters
+        ----------
+        eye : int
+            Swap chain belonging to a given eye to get the texture ID.
+
+        Returns
+        -------
+        int
+            OpenGL texture handle.
+
+        """
+        cdef int current_idx = 0
+        cdef unsigned int tex_id = 0
+        cdef ovr_capi.ovrResult result = 0
+
+        # check if there is a swap chain in the slot
+        if self.eyeLayer.ColorTexture[eye] == NULL:
+            raise RuntimeError(
+                "Cannot get buffer ID, NULL eye buffer texture.")
+
+        # get the current texture index within the swap chain
+        result = ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
+            self.ptrSession, self.swapChains[eye], &current_idx)
+
+        if debug_mode:
+            check_result(result)
+
+        # get the next available texture ID from the swap chain
+        result = ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
+            self.ptrSession, self.swapChains[eye], current_idx, &tex_id)
+
+        if debug_mode:
+            check_result(result)
+
+        return tex_id
+
     def create_texture_swap_chain_GL(self, eye, width, height, textureFormat='R8G8B8A8_UNORM_SRGB', levels=1):
         """Initialize an texture swap chain for eye images.
 
@@ -837,7 +925,7 @@ cdef class LibOVRSession(object):
             includeSystemGui=False):
         """Create a mirror texture displaying the contents of the rendered
         images being presented on the HMD. The image is automatically refreshed
-        to reflect the current content o the display.
+        to reflect the current content on the display.
 
         Parameters
         ----------
@@ -928,14 +1016,37 @@ cdef class LibOVRSession(object):
 
         Eye poses are derived from the head pose stored in the tracking state
         and the HMD to eye poses reported by LibOVR. Calculated eye poses are
-        stored and passed to the compositor when 'end_frame' is called. You can
-        access the computed poses thru the 'render_poses' attribute.
+        stored and passed to the compositor when 'end_frame' is called for
+        additional rendering.
+
+        You can access the computed poses via the 'render_poses' attribute.
 
         """
+        cdef ovr_capi.ovrPosef[2] hmd_to_eye_poses
+        hmd_to_eye_poses[0] = self.eyeRenderDesc[0].HmdToEyePose
+        hmd_to_eye_poses[1] = self.eyeRenderDesc[1].HmdToEyePose
+
         ovr_capi_util.ovr_CalcEyePoses2(
             tracking_state.c_data[0].HeadPose.ThePose,
-            self.eyeRenderDesc.HmdToEyePose,
+            hmd_to_eye_poses,
             self.eyeLayer.RenderPose)
+    @property
+    def render_poses(self):
+        """Eye render poses.
+
+        Pose are those computed by the last 'calc_eye_poses' call. Returned
+        objects are copies of the data stored internally by the session
+        instance. These poses are used to define the view matrix when rendering
+        for each eye.
+
+        """
+        cdef LibOVRPose left_pose = LibOVRPose()
+        cdef LibOVRPose right_pose = LibOVRPose()
+
+        left_pose.c_data[0] = self.eyeLayer.RenderPose[0]
+        right_pose.c_data[0] = self.eyeLayer.RenderPose[1]
+
+        return left_pose, right_pose
 
     @property
     def hmd_to_eye_poses(self):
@@ -1170,11 +1281,7 @@ cdef class LibOVRSession(object):
 
     @property
     def time_in_seconds(self):
-        """Absolute time in seconds."""
-        return self.get_time_in_seconds()
-
-    def get_time_in_seconds(self):
-        """Get the absolute time in seconds.
+        """Absolute time in seconds.
 
         Returns
         -------
@@ -1469,6 +1576,77 @@ cdef class LibOVRSession(object):
         """
         pass
 
+    def set_boundary_color(self, red, green, blue):
+        """Set the boundary color.
+
+        The boundary is drawn by the compositor which overlays the extents of
+        the physical space where the user can safely move.
+
+        Parameters
+        ----------
+        red : float
+            Red component of the color from 0.0 to 1.0.
+        green : float
+            Green component of the color from 0.0 to 1.0.
+        blue : float
+            Blue component of the color from 0.0 to 1.0.
+
+        """
+        cdef ovr_capi.ovrColorf color
+        color.r = <float>red
+        color.g = <float>green
+        color.b = <float>blue
+
+        self.boundryStyle.Color = color
+
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_SetBoundaryLookAndFeel(
+            self.ptrSession,
+            &self.boundryStyle)
+
+        if debug_mode:
+            check_result(result)
+
+    def reset_boundary_color(self):
+        """Reset the boundary color.
+
+        Make the boundary color the system default.
+
+        """
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetBoundaryLookAndFeel(
+            self.ptrSession)
+
+        if debug_mode:
+            check_result(result)
+
+    @property
+    def is_boundry_visible(self):
+        """Check if the Guardian boundary is visible.
+
+        The boundary is drawn by the compositor which overlays the extents of
+        the physical space where the user can safely move.
+
+        """
+        cdef ovr_capi.ovrBool is_visible
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetBoundaryVisible(
+            self.ptrSession, &is_visible)
+
+        if debug_mode:
+            check_result(result)
+
+        return <bint> is_visible
+
+    def show_boundry(self, bint show=True):
+        """Show the boundary.
+
+        The boundary is drawn by the compositor which overlays the extents of
+        the physical space where the user can safely move.
+
+        """
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_RequestBoundaryVisible(
+            self.ptrSession, <ovr_capi.ovrBool> show)
+
+        if debug_mode:
+            check_result(result)
 
 
 # ---------------------------------
@@ -1851,135 +2029,6 @@ cdef class LibOVRTrackingState(object):
                <unsigned int> self.c_data[0].HandStatusFlags[1]
 
 
-
-
-
-cpdef void specifyTrackingOrigin(ovrPosef originPose):
-    """Specify a custom tracking origin.
-    
-    :param origin_pose: ovrVector3f
-    :return: 
-    """
-    global _ptrSession_
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_SpecifyTrackingOrigin(
-        _ptrSession_, <ovr_capi.ovrPosef> originPose.c_data[0])
-
-    if debug_mode:
-        check_result(result)
-
-cpdef ovrMatrix4f getEyeViewMatrix(ovrPosef eyePose):
-    """Get the view matrix from the last calculated head pose. This should be
-    called once per frame if real-time head tracking is desired.
-    
-    :param eye: str
-    :return: 
-    
-    """
-    cdef ovrVector3f pos = ovrVector3f()
-    cdef ovrMatrix4f rot = ovrMatrix4f()
-    pos.c_data[0] = <ovr_math.Vector3f> eyePose.c_data.Translation
-    rot.c_data[0] = ovr_math.Matrix4f(<ovr_math.Quatf> eyePose.c_data.Rotation)
-
-    cdef ovrVector3f final_up = \
-        (<ovrVector3f> rot).transform(ovrVector3f(0, 1, 0))
-    cdef ovrVector3f final_forward = \
-        (<ovrVector3f> rot).transform(ovrVector3f(0, 0, -1))
-    cdef ovrMatrix4f viewMatrix = \
-        ovrMatrix4f.lookAt(pos, pos + final_forward, final_up)
-
-    return viewMatrix
-
-cpdef ovrMatrix4f getEyeProjectionMatrix(
-        LibOVRSession session,
-        int eye,
-        float near_clip=0.2,
-        float far_clip=1000.0):
-    """Get the projection matrix for a specified eye. These do not need to be
-    computed more than once per session unless the render layer descriptors are 
-    updated, or the clipping planes have been changed.
-    
-    :param eye: str 
-    :param near_clip: float
-    :param far_clip: float
-    :return: 
-    
-    """
-    global _eyeLayer_
-
-    cdef ovrMatrix4f projectionMatrix = ovrMatrix4f()
-    (<ovrMatrix4f> projectionMatrix).c_data[0] = \
-        <ovr_math.Matrix4f> ovr_capi_util.ovrMatrix4f_Projection(
-            session.eyeLayer.Fov[eye],
-            near_clip,
-            far_clip,
-            ovr_capi_util.ovrProjection_ClipRangeOpenGL)
-
-    return projectionMatrix
-
-# -------------------------
-# Frame Rendering Functions
-# -------------------------
-#
-cpdef double getDisplayTime(unsigned int frameIndex=0, bint predicted=True):
-    """Get the current display time. If 'predicted=True', the predicted 
-    mid-frame time is returned.
-    
-    :param frameIndex: int
-    :param predicted: boolean
-    :return: float
-    
-    """
-    cdef double t_secs
-    if predicted:
-        t_secs = ovr_capi.ovr_GetPredictedDisplayTime(
-            _ptrSession_, frameIndex)
-    else:
-        t_secs = ovr_capi.ovr_GetTimeInSeconds()
-
-    return t_secs
-
-cpdef int waitToBeginFrame(LibOVRSession session, unsigned int frameIndex=0):
-    cdef ovr_capi.ovrResult result = 0
-    result = ovr_capi.ovr_WaitToBeginFrame(session.ptrSession, frameIndex)
-
-    return <int> result
-
-cpdef int beginFrame(LibOVRSession session, unsigned int frameIndex=0):
-    result = ovr_capi.ovr_BeginFrame(session.ptrSession, frameIndex)
-
-    return <int> result
-
-cpdef void commitSwapChain(LibOVRSession session, int eye):
-    #global _ptrSession_, _swapChains_
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_CommitTextureSwapChain(
-        session.ptrSession,
-        session.swapChains[eye])
-
-    if debug_mode:
-        check_result(result)
-
-cpdef void endFrame(LibOVRSession session, unsigned int frameIndex=0):
-    global _eyeLayer_
-    cdef ovr_capi.ovrLayerHeader* layers = &(session.eyeLayer).Header
-    result = ovr_capi.ovr_EndFrame(
-        session.ptrSession,
-        frameIndex,
-        NULL,
-        &layers,
-        <unsigned int> 1)
-
-    if debug_mode:
-        check_result(result)
-
-# types
-ovrLayerType_EyeFov = ovr_capi.ovrLayerType_EyeFov
-
-# layer header flags
-ovrLayerFlag_HighQuality = ovr_capi.ovrLayerFlag_HighQuality
-ovrLayerFlag_TextureOriginAtBottomLeft = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
-ovrLayerFlag_HeadLocked = ovr_capi.ovrLayerFlag_HeadLocked
-
-# ------------------------
 # Session Status Functions
 # ------------------------
 #
