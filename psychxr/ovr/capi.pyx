@@ -709,12 +709,15 @@ cdef class LibOVRSession(object):
     def symmetric_fov(self):
         """Symmetric field-of-views (FOVs) for mono rendering.
 
+        By default, the Rift uses off-axis FOVs. These frustum parameters make
+        it difficult to converge monoscopic stimuli.
+
         Returns
         -------
         tuple of ndarray
             Pair of left and right eye FOVs specified as tangent angles in
             radians [Up, Down, Left, Right]. Both FOV objects will have the same
-            values
+            values.
 
         """
         cdef ovr_capi.ovrFovPort fov_left = self.hmdDesc.DefaultEyeFov[0]
@@ -807,7 +810,7 @@ cdef class LibOVRSession(object):
             <ovr_capi.ovrEyeType>eye,
             fov_in)
 
-    def get_eye_buffer_size(self, int eye, object fov, float texelPerPixel=1.0):
+    def get_eye_buffer_size(self, eye, fov, texelPerPixel=1.0):
         """Get the recommended buffer (texture) size for a specified
         configuration.
 
@@ -838,7 +841,7 @@ cdef class LibOVRSession(object):
             self.ptrSession,
             <ovr_capi.ovrEyeType>eye,
             fov_in,
-            texelPerPixel)
+            <float>texelPerPixel)
 
         return np.asarray([bufferSize.w, bufferSize.h], dtype=np.int)
 
@@ -919,14 +922,14 @@ cdef class LibOVRSession(object):
         result = ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
             self.ptrSession, self.swapChains[eye], &current_idx)
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
 
         # get the next available texture ID from the swap chain
         result = ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
             self.ptrSession, self.swapChains[eye], current_idx, &tex_id)
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
 
         return tex_id
@@ -1035,7 +1038,7 @@ cdef class LibOVRSession(object):
         cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateMirrorTextureGL(
             self.ptrSession, &mirrorDesc, &self.mirrorTexture)
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
 
     @property
@@ -1043,11 +1046,8 @@ cdef class LibOVRSession(object):
         """Mirror texture ID."""
         return self.get_mirror_texture()
 
-    def get_tracking_state(self, double abs_time, bint latency_marker=True):
-        """Get the current tracking state.
-
-        The tracking state object can be passed to ~LibOVRSession.calcEyePoses()
-        to get the computed eye poses.
+    def get_poses(self, double abs_time, bint latency_marker=True):
+        """Get the current poses for the head and hands.
 
         Parameters
         ----------
@@ -1058,20 +1058,57 @@ cdef class LibOVRSession(object):
 
         Returns
         -------
-        LibOVRTrackingState
-            Tracking state data.
+        tuple of LibOVRTrackingState
+            Pose state for the head, left and right hands.
+
+        Examples
+        --------
+        Getting the head pose and calculating eye render poses::
+
+            t = hmd.get_predicted_display_time()
+            head, left_hand, right_hand = hmd.get_poses(t)
+
+            # check if tracking
+            if head.orientation_tracked and head.position_tracked:
+                hmd.calc_eye_poses(head)  # calculate eye poses
 
         """
         cdef ovr_capi.ovrBool use_marker = \
             ovr_capi.ovrTrue if latency_marker else ovr_capi.ovrFalse
 
-        cdef LibOVRTrackingState to_return = LibOVRTrackingState()
-        (<LibOVRTrackingState>to_return).c_data[0] = \
+        cdef ovr_capi.ovrTrackingState tracking_state = \
             ovr_capi.ovr_GetTrackingState(self.ptrSession, abs_time, use_marker)
 
-        return to_return
+        cdef LibOVRPoseState head_pose = LibOVRPoseState()
+        head_pose.c_data[0] = tracking_state.HeadPose
+        head_pose.ori_tracked = \
+            (ovr_capi.ovrStatus_OrientationTracked &
+             tracking_state.head_flags) == ovr_capi.ovrStatus_OrientationTracked
+        head_pose.pos_tracked = \
+            (ovr_capi.ovrStatus_PositionTracked &
+             tracking_state.head_flags) == ovr_capi.ovrStatus_PositionTracked
 
-    def calc_eye_poses(self, LibOVRTrackingState tracking_state):
+        cdef LibOVRPoseState left_hand_pose = LibOVRPoseState()
+        left_hand_pose.c_data[0] = tracking_state.HandPoses[0]
+        left_hand_pose.ori_tracked = \
+            (ovr_capi.ovrStatus_OrientationTracked &
+             tracking_state.hand_flags[0]) == ovr_capi.ovrStatus_OrientationTracked
+        left_hand_pose.pos_tracked = \
+            (ovr_capi.ovrStatus_PositionTracked &
+             tracking_state.hand_flags[0]) == ovr_capi.ovrStatus_PositionTracked
+
+        cdef LibOVRPoseState right_hand_pose = LibOVRPoseState()
+        right_hand_pose.c_data[0] = tracking_state.HandPoses[1]
+        right_hand_pose.ori_tracked = \
+            (ovr_capi.ovrStatus_OrientationTracked &
+             tracking_state.hand_flags[1]) == ovr_capi.ovrStatus_OrientationTracked
+        right_hand_pose.pos_tracked = \
+            (ovr_capi.ovrStatus_PositionTracked &
+             tracking_state.hand_flags[1]) == ovr_capi.ovrStatus_PositionTracked
+
+        return head_pose, left_hand_pose, right_hand_pose
+
+    def calc_eye_poses(self, LibOVRPoseState head_pose):
         """Compute eye poses using a given tracking state.
 
         Eye poses are derived from the head pose stored in the tracking state
@@ -1087,7 +1124,7 @@ cdef class LibOVRSession(object):
         hmd_to_eye_poses[1] = self.eyeRenderDesc[1].HmdToEyePose
 
         ovr_capi_util.ovr_CalcEyePoses2(
-            tracking_state.c_data[0].HeadPose.ThePose,
+            head_pose.c_data[0].ThePose,
             hmd_to_eye_poses,
             self.eyeLayer.RenderPose)
     @property
@@ -1181,14 +1218,14 @@ cdef class LibOVRSession(object):
         result = ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
             self.ptrSession, self.swapChains[eye], &current_idx)
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
 
         # get the next available texture ID from the swap chain
         result = ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
             self.ptrSession, self.swapChains[eye], current_idx, &tex_id)
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
 
         return tex_id
@@ -1336,9 +1373,6 @@ cdef class LibOVRSession(object):
 
         return t_sec
 
-    def get_tracking_state(self):
-        """Get the current tacking state."""
-
     @property
     def time_in_seconds(self):
         """Absolute time in seconds.
@@ -1485,7 +1519,7 @@ cdef class LibOVRSession(object):
             self.ptrSession,
             self.swapChains[eye])
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
 
     def end_frame(self, unsigned int frameIndex=0):
@@ -1511,8 +1545,59 @@ cdef class LibOVRSession(object):
             &layers,
             <unsigned int> 1)
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
+
+        result = ovr_capi.ovr_GetSessionStatus(
+            self.ptrSession, &self.sessionStatus)
+
+        if self.debug_mode:
+            check_result(result)
+
+    @property
+    def is_visible(self):
+        """Application has focus and is visible in the HMD."""
+        return <bint>self.sessionStatus.IsVisible
+
+    @property
+    def hmd_present(self):
+        """HMD is present."""
+        return <bint>self.sessionStatus.HmdPresent
+
+    @property
+    def hmd_mounted(self):
+        """HMD is being worn by the user."""
+        return <bint>self.sessionStatus.HmdMounted
+
+    @property
+    def display_lost(self):
+        """Display has been lost."""
+        return <bint>self.sessionStatus.DisplayLost
+
+    @property
+    def should_quit(self):
+        """The application should quit."""
+        return <bint>self.sessionStatus.ShouldQuit
+
+    @property
+    def should_recenter(self):
+        """The application should recenter."""
+        return <bint>self.sessionStatus.ShouldRecenter
+
+    @property
+    def has_input_focus(self):
+        """The application has input focus."""
+        return <bint>self.sessionStatus.HasInputFocus
+
+    @property
+    def overlay_present(self):
+        """The system overlay is present."""
+        return <bint>self.sessionStatus.OverlayPresent
+
+    @property
+    def depth_requested(self):
+        """Depth buffers are requested by the runtime."""
+        return <bint>self.sessionStatus.DepthRequested
 
     def reset_frame_stats(self):
         """Reset frame statistics.
@@ -1556,7 +1641,7 @@ cdef class LibOVRSession(object):
             result = ovr_capi.ovr_SetTrackingOriginType(
                 self.ptrSession, ovr_capi.ovrTrackingOrigin_EyeLevel)
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
 
     def recenter_tracking_origin(self):
@@ -1570,7 +1655,7 @@ cdef class LibOVRSession(object):
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_RecenterTrackingOrigin(
             self.ptrSession)
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
 
     def get_tracker_frustum(self, int tracker_index):
@@ -1663,7 +1748,7 @@ cdef class LibOVRSession(object):
             self.ptrSession,
             &self.boundryStyle)
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
 
     def reset_boundary_color(self):
@@ -1675,7 +1760,7 @@ cdef class LibOVRSession(object):
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetBoundaryLookAndFeel(
             self.ptrSession)
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
 
     @property
@@ -1690,7 +1775,7 @@ cdef class LibOVRSession(object):
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetBoundaryVisible(
             self.ptrSession, &is_visible)
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
 
         return <bint> is_visible
@@ -1705,7 +1790,7 @@ cdef class LibOVRSession(object):
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_RequestBoundaryVisible(
             self.ptrSession, <ovr_capi.ovrBool> show)
 
-        if debug_mode:
+        if self.debug_mode:
             check_result(result)
 
 
@@ -1981,6 +2066,9 @@ cdef class LibOVRPoseState(object):
     cdef np.ndarray angular_acc_np_array
     cdef np.ndarray linear_acc_np_array
 
+    cdef bint ori_tracked
+    cdef bint pos_tracked
+
     def __cinit__(self, *args, **kwargs):
         self.c_data = &self.c_ovrPoseStatef  # pointer to ovrPoseStatef
 
@@ -2018,28 +2106,38 @@ cdef class LibOVRPoseState(object):
 
     @property
     def angular_velocity(self):
-        """Angular velocity in radians/sec."""
+        """Angular velocity vector in radians/sec."""
         return self.angular_vel_np_array
 
     @property
     def linear_velocity(self):
-        """Linear velocity in meters/sec."""
+        """Linear velocity vector in meters/sec."""
         return self.linear_vel_np_array
 
     @property
     def angular_acceleration(self):
-        """Angular acceleration in radians/s^2."""
+        """Angular acceleration vector in radians/s^2."""
         return self.angular_acc_np_array
 
     @property
     def linear_acceleration(self):
-        """Linear acceleration in meters/s^2."""
+        """Linear acceleration vector in meters/s^2."""
         return self.linear_acc_np_array
 
     @property
     def time_in_seconds(self):
         """Absolute time this data refers to in seconds."""
         return <double>self.c_data[0].TimeInSeconds
+
+    @property
+    def orientation_tracked(self):
+        """True if the orientation was tracked when sampled."""
+        return self.ori_tracked
+
+    @property
+    def position_tracked(self):
+        """True if the position was tracked when sampled."""
+        return self.pos_tracked
 
 
 ovrStatus_OrientationTracked = ovr_capi.ovrStatus_OrientationTracked
@@ -2073,18 +2171,32 @@ cdef class LibOVRTrackingState(object):
 
     @property
     def head_pose(self):
+        """The head pose (`LibOVRPoseState`).
+
+        """
         return self.head_pose_state
 
     @property
     def status_flags(self):
+        """Status flags for head tracking (`int`).
+        """
         return <unsigned int>self.c_data[0].StatusFlags
 
     @property
     def hand_poses(self):
+        """The hand poses (`tuple of LibOVRPoseState`).
+
+        These are the estimated poses of the Oculus Touch controllers. The first
+        object is the left hand's pose, the second is the right hand's pose.
+
+        """
         return self.left_hand_pose_state[0], self.right_hand_pose_state[1]
 
     @property
     def hand_status_flags(self):
+        """Status flags for hand tracking (`tuple of int`).
+
+        """
         return <unsigned int> self.c_data[0].HandStatusFlags[0], \
                <unsigned int> self.c_data[0].HandStatusFlags[1]
 
@@ -2092,60 +2204,45 @@ cdef class LibOVRTrackingState(object):
 # Session Status Functions
 # ------------------------
 #
-cdef class ovrSessionStatus(object):
-    cdef ovr_capi.ovrSessionStatus*c_data
-    cdef ovr_capi.ovrSessionStatus  c_ovrSessionStatus
+cdef class LibOVRSessionStatus(object):
+    cdef ovr_capi.ovrSessionStatus* c_data
+    cdef ovr_capi.ovrSessionStatus c_ovrSessionStatus
 
     def __cinit__(self, *args, **kwargs):
         self.c_data = &self.c_ovrSessionStatus
 
     @property
-    def IsVisible(self):
-        return <bint> self.c_data.IsVisible
+    def is_visible(self):
+        return <bint>self.c_data.IsVisible
 
     @property
-    def HmdPresent(self):
-        return <bint> self.c_data.HmdPresent
+    def hmd_present(self):
+        return <bint>self.c_data.HmdPresent
 
     @property
-    def DisplayLost(self):
-        return <bint> self.c_data.DisplayLost
+    def display_lost(self):
+        return <bint>self.c_data.DisplayLost
 
     @property
-    def ShouldQuit(self):
-        return <bint> self.c_data.ShouldQuit
+    def should_quit(self):
+        return <bint>self.c_data.ShouldQuit
 
     @property
-    def ShouldRecenter(self):
-        return <bint> self.c_data.ShouldRecenter
+    def should_recenter(self):
+        return <bint>self.c_data.ShouldRecenter
 
     @property
-    def HasInputFocus(self):
-        return <bint> self.c_data.HasInputFocus
+    def has_input_focus(self):
+        return <bint>self.c_data.HasInputFocus
 
     @property
-    def OverlayPresent(self):
-        return <bint> self.c_data.OverlayPresent
+    def overlay_present(self):
+        return <bint>self.c_data.OverlayPresent
 
     @property
-    def DepthRequested(self):
-        return <bint> self.c_data.DepthRequested
+    def depth_requested(self):
+        return <bint>self.c_data.DepthRequested
 
-cpdef ovrSessionStatus getSessionStatus():
-    """Get the current session status.
-    
-    :return: ovrSessionStatus
-    
-    """
-    global _ptrSession_
-    cdef ovrSessionStatus to_return = ovrSessionStatus()
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetSessionStatus(
-        _ptrSession_, &(<ovrSessionStatus> to_return).c_data[0])
-
-    if debug_mode:
-        check_result(result)
-
-    return to_return
 
 # -------------------------
 # HID Classes and Functions
