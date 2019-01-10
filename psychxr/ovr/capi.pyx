@@ -686,7 +686,7 @@ cdef class LibOVRSession(object):
         -------
         tuple of ndarray
             Pair of left and right eye FOVs specified as tangent angles in
-             radians [Up, Down, Left, Right].
+            radians [Up, Down, Left, Right].
 
         """
         cdef np.ndarray[float, ndim=1] fov_left = np.asarray([
@@ -704,6 +704,66 @@ cdef class LibOVRSession(object):
             dtype=np.float32)
 
         return fov_left, fov_right
+
+    @property
+    def symmetric_fov(self):
+        """Symmetric field-of-views (FOVs) for mono rendering.
+
+        Returns
+        -------
+        tuple of ndarray
+            Pair of left and right eye FOVs specified as tangent angles in
+            radians [Up, Down, Left, Right]. Both FOV objects will have the same
+            values
+
+        """
+        cdef ovr_capi.ovrFovPort fov_left = self.hmdDesc.DefaultEyeFov[0]
+        cdef ovr_capi.ovrFovPort fov_right = self.hmdDesc.DefaultEyeFov[1]
+
+        cdef ovr_capi.ovrFovPort fov_max
+        fov_max.UpTan = \
+            fov_left.UpTan if \
+                fov_left.UpTan >= \
+                fov_right.Uptan else fov_right.Uptan
+        fov_max.DownTan = \
+            fov_left.DownTan \
+                if fov_left.DownTan >= \
+                   fov_right.DownTan else fov_right.DownTan
+        fov_max.LeftTan = \
+            fov_left.LeftTan \
+                if fov_left.LeftTan >= \
+                   fov_right.LeftTan else fov_right.LeftTan
+        fov_max.RightTan = \
+            fov_left.RightTan \
+                if fov_left.LeftTan >= \
+                   fov_right.RightTan else fov_right.RightTan
+
+        cdef float tan_half_fov_horz = \
+            fov_max.LeftTan if fov_max.LeftTan >= \
+                               fov_max.RightTan else fov_max.RightTan
+        cdef float tan_half_fov_vert = \
+            fov_max.UpTan if fov_max.DownTan >= \
+                             fov_max.UpTan else fov_max.DownTan
+
+        cdef ovr_capi.ovrFovPort fov_both
+        fov_both.LeftTan = fov_both.RightTan = tan_half_fov_horz
+        fov_both.UpTan = fov_both.DownTan = tan_half_fov_horz
+
+        cdef np.ndarray[float, ndim=1] fov_left_out = np.asarray([
+            fov_both.UpTan,
+            fov_both.DownTan,
+            fov_both.LeftTan,
+            fov_both.RightTan],
+            dtype=np.float32)
+
+        cdef np.ndarray[float, ndim=1] fov_right_out = np.asarray([
+            fov_both.UpTan,
+            fov_both.DownTan,
+            fov_both.LeftTan,
+            fov_both.RightTan],
+            dtype=np.float32)
+
+        return fov_left_out, fov_right_out
 
     def get_eye_render_fov(self, int eye):
         """Get the field-of-view of a given eye used to compute the projection
@@ -784,7 +844,7 @@ cdef class LibOVRSession(object):
 
     def get_swap_chain_length(self, eye):
         """Get the swap chain length for a given eye."""
-        cdef unsigned int out_length
+        cdef int out_length
         cdef ovr_capi.ovrResult result = 0
 
         # check if there is a swap chain in the slot
