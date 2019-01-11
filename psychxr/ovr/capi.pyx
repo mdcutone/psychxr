@@ -1081,30 +1081,15 @@ cdef class LibOVRSession(object):
 
         cdef LibOVRPoseState head_pose = LibOVRPoseState()
         head_pose.c_data[0] = tracking_state.HeadPose
-        head_pose.ori_tracked = \
-            (ovr_capi.ovrStatus_OrientationTracked &
-             tracking_state.head_flags) == ovr_capi.ovrStatus_OrientationTracked
-        head_pose.pos_tracked = \
-            (ovr_capi.ovrStatus_PositionTracked &
-             tracking_state.head_flags) == ovr_capi.ovrStatus_PositionTracked
+        head_pose.status_flags = tracking_state.StatusFlags
 
         cdef LibOVRPoseState left_hand_pose = LibOVRPoseState()
         left_hand_pose.c_data[0] = tracking_state.HandPoses[0]
-        left_hand_pose.ori_tracked = \
-            (ovr_capi.ovrStatus_OrientationTracked &
-             tracking_state.hand_flags[0]) == ovr_capi.ovrStatus_OrientationTracked
-        left_hand_pose.pos_tracked = \
-            (ovr_capi.ovrStatus_PositionTracked &
-             tracking_state.hand_flags[0]) == ovr_capi.ovrStatus_PositionTracked
+        left_hand_pose.status_flags = tracking_state.HandStatusFlags[0]
 
         cdef LibOVRPoseState right_hand_pose = LibOVRPoseState()
         right_hand_pose.c_data[0] = tracking_state.HandPoses[1]
-        right_hand_pose.ori_tracked = \
-            (ovr_capi.ovrStatus_OrientationTracked &
-             tracking_state.hand_flags[1]) == ovr_capi.ovrStatus_OrientationTracked
-        right_hand_pose.pos_tracked = \
-            (ovr_capi.ovrStatus_PositionTracked &
-             tracking_state.hand_flags[1]) == ovr_capi.ovrStatus_PositionTracked
+        right_hand_pose.status_flags = tracking_state.HandStatusFlags[1]
 
         return head_pose, left_hand_pose, right_hand_pose
 
@@ -1127,23 +1112,6 @@ cdef class LibOVRSession(object):
             head_pose.c_data[0].ThePose,
             hmd_to_eye_poses,
             self.eyeLayer.RenderPose)
-    @property
-    def render_poses(self):
-        """Eye render poses.
-
-        Pose are those computed by the last 'calc_eye_poses' call. Returned
-        objects are copies of the data stored internally by the session
-        instance. These poses are used to define the view matrix when rendering
-        for each eye.
-
-        """
-        cdef LibOVRPose left_pose = LibOVRPose()
-        cdef LibOVRPose right_pose = LibOVRPose()
-
-        left_pose.c_data[0] = self.eyeLayer.RenderPose[0]
-        right_pose.c_data[0] = self.eyeLayer.RenderPose[1]
-
-        return left_pose, right_pose
 
     @property
     def hmd_to_eye_poses(self):
@@ -1161,17 +1129,27 @@ cdef class LibOVRSession(object):
 
     @property
     def render_poses(self):
-        """Render poses computed by the last 'calc_eye_poses' call.
+        """Eye render poses.
 
-        These poses are used to define the view matrix when rendering for each
-        eye. You can overwrite these poses with custom poses.
+        Pose are those computed by the last 'calc_eye_poses' call. Returned
+        objects are copies of the data stored internally by the session
+        instance. These poses are used to define the view matrix when rendering
+        for each eye.
+
+        Notes
+        -----
+            The returned LibOVRPose objects reference data stored in the session
+            instance. Changing their values will immediately update render
+            poses.
 
         """
-        return
+        cdef LibOVRPose left_eye_pose = LibOVRPose()
+        cdef LibOVRPose right_eye_pose = LibOVRPose()
 
-    @render_poses.setter
-    def render_poses(self, value):
-        pass
+        left_eye_pose.c_data = &self.eyeLayer.RenderPose[0]
+        right_eye_pose.c_data = &self.eyeLayer.RenderPose[1]
+
+        return left_eye_pose, right_eye_pose
 
     def get_mirror_texture(self):
         """Get the mirror texture handle.
@@ -1794,260 +1772,66 @@ cdef class LibOVRSession(object):
             check_result(result)
 
 
-# ---------------------------------
-# Rendering Configuration Functions
-# ---------------------------------
-#
-# layer header flags
-ovrLayerFlag_HighQuality = 0x01
-ovrLayerFlag_TextureOriginAtBottomLeft = 0x02
-ovrLayerFlag_HeadLocked = 0x04
-
-# Texture types supported by the PC version of LibOVR
-#
-ovrTexture_2D = ovr_capi.ovrTexture_2D
-ovrTexture_Cube = ovr_capi.ovrTexture_Cube
-
-# Texture formats supported by OpenGL
-#
-OVR_FORMAT_R8G8B8A8_UNORM = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM
-OVR_FORMAT_R8G8B8A8_UNORM_SRGB = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
-OVR_FORMAT_B8G8R8A8_UNORM = ovr_capi.OVR_FORMAT_B8G8R8A8_UNORM
-OVR_FORMAT_B8G8R8_UNORM = ovr_capi.OVR_FORMAT_B8G8R8_UNORM
-OVR_FORMAT_R16G16B16A16_FLOAT = ovr_capi.OVR_FORMAT_R16G16B16A16_FLOAT
-OVR_FORMAT_R11G11B10_FLOAT = ovr_capi.OVR_FORMAT_R11G11B10_FLOAT
-OVR_FORMAT_D16_UNORM = ovr_capi.OVR_FORMAT_D16_UNORM
-OVR_FORMAT_D24_UNORM_S8_UINT = ovr_capi.OVR_FORMAT_D24_UNORM_S8_UINT
-OVR_FORMAT_D32_FLOAT = ovr_capi.OVR_FORMAT_D32_FLOAT
-OVR_FORMAT_D32_FLOAT_S8X24_UINT = ovr_capi.OVR_FORMAT_D32_FLOAT_S8X24_UINT
-
-SWAP_CHAIN_TEXTURE0 = 0
-SWAP_CHAIN_TEXTURE1 = 1
-
-def createTextureSwapChainGL(
-        LibOVRSession session,
-        eye,
-        textureFormat,
-        width,
-        height,
-        levels=1):
-    """Initialize a texture swap chain.
-
-    :param swap_desc: ovrTextureSwapChainDesc
-    :return: int
-
-    """
-    #global _swapChains_, _ptrSession_
-
-    # check if the swap chain is available (if NULL)
-    # if 0 > swapChainIndex >= 2:
-    #     if _swapChains_[swapChainIndex] is not NULL:
-    #         raise RuntimeError(
-    #             "Swap chain at index '{}' already initialized!".format(
-    #                 swapChainIndex))
-    #     raise IndexError(
-    #         "Swap chain index '{}' out-of-range, must be >0 and <32.".format(
-    #             swapChainIndex))
-
-    # configure the texture
-    cdef ovr_capi.ovrTextureSwapChainDesc swapConfig
-    swapConfig.Type = ovr_capi.ovrTexture_2D
-    swapConfig.Format = textureFormat
-    swapConfig.ArraySize = 1
-    swapConfig.Width = <int>width
-    swapConfig.Height = <int>height
-    swapConfig.MipLevels = <int>levels
-    swapConfig.SampleCount = 1
-    swapConfig.StaticImage = ovr_capi.ovrFalse
-    swapConfig.MiscFlags = ovr_capi.ovrTextureMisc_None
-    swapConfig.BindFlags = ovr_capi.ovrTextureBind_None
-
-    # create the swap chain
-    cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateTextureSwapChainGL(
-        session.ptrSession,
-        &swapConfig,
-        &session.swapChains[eye])
-
-    global _eyeLayer_
-    session.eyeLayer.ColorTexture[eye] = session.swapChains[eye]
-
-    if debug_mode:
-        check_result(result)
-
-# types
-ovrLayerType_EyeFov = ovr_capi.ovrLayerType_EyeFov
-
-# layer header flags
-ovrLayerFlag_HighQuality = ovr_capi.ovrLayerFlag_HighQuality
-ovrLayerFlag_TextureOriginAtBottomLeft = ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft
-ovrLayerFlag_HeadLocked = ovr_capi.ovrLayerFlag_HeadLocked
-
-ovrEye_Left = ovr_capi.ovrEye_Left
-ovrEye_Right = ovr_capi.ovrEye_Right
-ovrEye_Count = ovr_capi.ovrEye_Count
-
-cpdef ovrSizei getFovTextureSize(
-        int eye_type,
-        ovrFovPort fov,
-        float texels_per_pixel=1.0):
-    """Compute the recommended buffer (texture) size for a specified 
-    configuration.
-    
-    Returns a tuple with the dimensions of the required texture (w, h). The 
-    values can be used when configuring a render buffer which will ultimately
-    be used to draw to the HMD buffers.
-    
-    :return: None 
-    
-    """
-    cdef ovrSizei to_return = ovrSizei()
-    (<ovrSizei> to_return).c_data[0] = ovr_capi.ovr_GetFovTextureSize(
-        _ptrSession_,
-        <ovr_capi.ovrEyeType> eye_type,
-        fov.c_data[0],
-        texels_per_pixel)
-
-    return to_return
-
-cpdef void configEyeRenderDesc(LibOVRSession session, int eye_type, object fov):
-    """Compute eye render descriptors for a given eye. 
-    
-    Each eye has an internal 'ovrEyeRenderDesc' structure which stores computed
-    information which is not accessible directly from Python. You must call this
-    function twice (for each eye) to fully configure the descriptors.
-
-    :param eye_type: int
-    :param fov: ovrFovPort
-    :return: None
-    
-    """
-    global _hmd_to_eye_view_pose_, _eyeLayer_
-    cdef ovr_capi.ovrFovPort fov_in
-    fov_in.UpTan = fov[0]
-    fov_in.DownTan = fov[1]
-    fov_in.LeftTan = fov[2]
-    fov_in.RightTan = fov[3]
-
-    session.eyeRenderDesc[eye_type] = ovr_capi.ovr_GetRenderDesc(
-        session.ptrSession,
-        <ovr_capi.ovrEyeType> eye_type,
-        fov_in)
-
-    # set the initial eye pose
-    _hmd_to_eye_view_pose_[eye_type] = session.eyeRenderDesc[eye_type].HmdToEyePose
-
-    # set the render layer FOV to what is computed
-    session.eyeLayer.Fov[eye_type] = session.eyeRenderDesc[eye_type].Fov
-
-cpdef list getHmdToEyePose(LibOVRSession session):
-    """Get the HMD to eye poses from the internal eye render descriptor.
-    
-    :return: 
-    
-    """
-    global _eyeRenderDesc_
-    cdef ovrPosef hmdToEyePoseLeft = ovrPosef()
-    cdef ovrPosef hmdToEyePoseRight = ovrPosef()
-
-    (<ovrPosef> hmdToEyePoseLeft).c_data[0] = \
-        <ovr_math.Posef> session.eyeRenderDesc[0].HmdToEyePose
-    (<ovrPosef> hmdToEyePoseRight).c_data[0] = \
-        <ovr_math.Posef> session.eyeRenderDesc[1].HmdToEyePose
-
-    return [hmdToEyePoseLeft, hmdToEyePoseRight]
-
-cpdef void setRenderSwapChain(LibOVRSession session, int eye, object swap_chain):
-    """Set the swap chain for the render layer.
-
-    :param eye: str
-    :param swap_chain: int or None
-    :return: None
-    
-    """
-    # set the swap chain textures
-    global _eyeLayer_
-    if not swap_chain is None:
-        session.eyeLayer.ColorTexture[eye] = _swapChains_[<int> swap_chain]
-    else:
-        session.eyeLayer.ColorTexture[eye] = NULL
-
-cpdef ovrRecti getRenderViewport(LibOVRSession session, int eye):
-    """Get the viewport rectangle for a given eye view. These will return the
-    viewports set by the previous 'setRenderViewport' call.
-    
-    :param eye: int
-    :return: None
-    
-    """
-    global _ptrSession_, _eyeLayer_
-    cdef ovrRecti to_return = ovrRecti()
-    (<ovrRecti> to_return).c_data[0] = session.eyeLayer.Viewport[eye]
-
-    return to_return
-
-cpdef void setRenderViewport(int eye, ovrRecti viewPortRect):
-    """Set the viewport rectangle for a specified eye view. This defines where
-    on the swap texture the eye view is to be drawn/retrieved.
-    
-    :param eye: int
-    :param viewPortRect: ovrRecti
-    :return: None
-    
-    """
-    global _eyeLayer_
-    _eyeLayer_.Viewport[eye] = viewPortRect.c_data[0]
-
-cpdef int getRenderLayerFlags():
-    """Get the render layer's header flags.
-    
-    :return: int
-    
-    """
-    global _eyeLayer_
-    return <int> _eyeLayer_.Header.Flags
-
-cpdef void setRenderLayerFlags(int layerHeaderFlags):
-    """Set the render layer's header flags.
-    
-    :param layerHeaderFlags: 
-    :return: None
-    
-    """
-    global _eyeLayer_
-    _eyeLayer_.Header.Flags = layerHeaderFlags
-
-# ---------------------------------
-# VR Tracking Classes and Functions
-# ---------------------------------
-#
 cdef class LibOVRPose(object):
     """Combined position and orientation data describing the pose of a body.
 
     """
     cdef ovr_capi.ovrPosef* c_data
-    cdef ovr_capi.ovrPosef c_ovrPosef
+    cdef ovr_capi.ovrPosef c_ovrPosef  # internal data
 
     cdef np.ndarray pos_np_array
     cdef np.ndarray ori_np_array
 
-    def __cinit__(self, *args, **kwargs):
+    def __init__(self, pos=(0, 0, 0), ori=(0, 0, 0, 1)):
+        """Constructor for LibOVRPose.
+
+        Parameters
+        ----------
+        pos : tuple, list, or ndarray of float
+            Position vector (x, y, z).
+        ori : tuple, list, or ndarray of float
+            Orientation quaternion vector (x, y, z, x).
+
+        Notes
+        -----
+            Values for vectors are stored internally as 32-bit floating point
+            numbers.
+
+        """
+        pass
+
+    def __cinit__(self, pos=(0, 0, 0), ori=(0, 0, 0, 1)):
         self.c_data = &self.c_ovrPosef  # pointer to c_ovrPosef
 
-        self.pos_np_array = np.empty((3,), dtype=np.float32)
-        self.pos_np_array.data = <char*>(&self.c_data[0].Position.x)
+        # create numpy arrays and have them reference the Oculus data
+        cdef np.npy_intp shape[1]
+        shape[0] = <np.npy_intp>3
+
+        cdef float* pos_arr = <float*>(&self.c_data[0].Position.x)
+
+        self.pos_np_array = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_FLOAT, <void*>pos_arr)
         self.ori_np_array = np.empty((4,), dtype=np.float32)
         self.ori_np_array.data = <char*>(&self.c_data[0].Orientation.x)
 
+        # set data values from constructor args
+        self.pos_np_array[:] = pos
+        self.ori_np_array[:] = ori
+
     @property
-    def pos(self):
-        """Position vector (x, y, z).
+    def position(self):
+        """Position vector (`ndarray`).
 
         """
         return self.pos_np_array
 
     @property
-    def ori(self):
-        """Orientation quaternion (x, y, z, w).
+    def orientation(self):
+        """Orientation quaternion (`ndarray`).
+
+        Notes
+        -----
+            The orientation quaternion should be normalized.
 
         """
         return self.ori_np_array
@@ -2066,10 +1850,9 @@ cdef class LibOVRPoseState(object):
     cdef np.ndarray angular_acc_np_array
     cdef np.ndarray linear_acc_np_array
 
-    cdef bint ori_tracked
-    cdef bint pos_tracked
+    cdef int status_flags
 
-    def __cinit__(self, *args, **kwargs):
+    def __cinit__(self):
         self.c_data = &self.c_ovrPoseStatef  # pointer to ovrPoseStatef
 
         # the pose is accessed using a LibOVRPose object
@@ -2132,122 +1915,73 @@ cdef class LibOVRPoseState(object):
     @property
     def orientation_tracked(self):
         """True if the orientation was tracked when sampled."""
-        return self.ori_tracked
+        return <bint>(ovr_capi.ovrStatus_OrientationTracked &
+             self.status_flags) == ovr_capi.ovrStatus_OrientationTracked
 
     @property
     def position_tracked(self):
         """True if the position was tracked when sampled."""
-        return self.pos_tracked
-
-
-ovrStatus_OrientationTracked = ovr_capi.ovrStatus_OrientationTracked
-ovrStatus_PositionTracked = ovr_capi.ovrStatus_PositionTracked
-
-cdef class LibOVRTrackingState(object):
-    """Structure which stores tracking state information. All attributes are
-    read-only, returning a copy of the data in the accessed field.
-
-    """
-    cdef ovr_capi.ovrTrackingState* c_data
-    cdef ovr_capi.ovrTrackingState c_ovrTrackingState
-
-    cdef LibOVRPoseState head_pose_state
-    cdef LibOVRPoseState left_hand_pose_state
-    cdef LibOVRPoseState right_hand_pose_state
-
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrTrackingState
-
-        # wrapper objects for tracking state data
-        self.head_pose_state = LibOVRPoseState()
-        (<LibOVRPoseState>self.head_pose_state).c_data[0] = \
-            self.c_data[0].HeadPose
-        self.left_hand_pose_state[0] = LibOVRPoseState()
-        (<LibOVRPoseState>self.left_hand_pose_state[1]).c_data[0] = \
-            self.c_data[0].HandPoses[0]
-        self.right_hand_pose_state[1]  = LibOVRPoseState()
-        (<LibOVRPoseState>self.right_hand_pose_state[1]).c_data[0] = \
-            self.c_data[0].HandPoses[1]
+        return <bint>(ovr_capi.ovrStatus_PositionTracked &
+             self.status_flags) == ovr_capi.ovrStatus_PositionTracked
 
     @property
-    def head_pose(self):
-        """The head pose (`LibOVRPoseState`).
+    def fully_tracked(self):
+        """True if position and orientation were tracked when sampled."""
+        return <bint>(self.status_flags &
+                      (ovr_capi.ovrStatus_OrientationTracked |
+                       ovr_capi.ovrStatus_PositionTracked))
 
-        """
-        return self.head_pose_state
 
-    @property
-    def status_flags(self):
-        """Status flags for head tracking (`int`).
-        """
-        return <unsigned int>self.c_data[0].StatusFlags
+cdef class LibOVRInputState(object):
+    cdef ovr_capi.ovrInputState* c_data
+    cdef ovr_capi.ovrInputState c_ovrInputState
 
-    @property
-    def hand_poses(self):
-        """The hand poses (`tuple of LibOVRPoseState`).
+    def __cinit__(self):
+        self.c_data = &self.c_ovrInputState
 
-        These are the estimated poses of the Oculus Touch controllers. The first
-        object is the left hand's pose, the second is the right hand's pose.
-
-        """
-        return self.left_hand_pose_state[0], self.right_hand_pose_state[1]
+    def time_in_seconds(self):
+        return <double>self.c_data.TimeInSeconds
 
     @property
-    def hand_status_flags(self):
-        """Status flags for hand tracking (`tuple of int`).
-
-        """
-        return <unsigned int> self.c_data[0].HandStatusFlags[0], \
-               <unsigned int> self.c_data[0].HandStatusFlags[1]
-
-
-# Session Status Functions
-# ------------------------
-#
-cdef class LibOVRSessionStatus(object):
-    cdef ovr_capi.ovrSessionStatus* c_data
-    cdef ovr_capi.ovrSessionStatus c_ovrSessionStatus
-
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrSessionStatus
+    def buttons(self):
+        return self.c_data[0].Buttons
 
     @property
-    def is_visible(self):
-        return <bint>self.c_data.IsVisible
+    def touches(self):
+        return self.c_data[0].Touches
 
     @property
-    def hmd_present(self):
-        return <bint>self.c_data.HmdPresent
+    def index_trigger(self):
+        cdef float index_trigger_left = self.c_data[0].IndexTrigger[0]
+        cdef float index_trigger_right = self.c_data[0].IndexTrigger[1]
+
+        return index_trigger_left, index_trigger_right
 
     @property
-    def display_lost(self):
-        return <bint>self.c_data.DisplayLost
+    def hand_trigger(self):
+        cdef float hand_trigger_left = self.c_data[0].HandTrigger[0]
+        cdef float hand_trigger_right = self.c_data[0].HandTrigger[1]
+
+        return hand_trigger_left, hand_trigger_right
 
     @property
-    def should_quit(self):
-        return <bint>self.c_data.ShouldQuit
+    def controller_type(self):
+        cdef int ctrl_type = <int>self.c_data[0].ControllerType
 
-    @property
-    def should_recenter(self):
-        return <bint>self.c_data.ShouldRecenter
-
-    @property
-    def has_input_focus(self):
-        return <bint>self.c_data.HasInputFocus
-
-    @property
-    def overlay_present(self):
-        return <bint>self.c_data.OverlayPresent
-
-    @property
-    def depth_requested(self):
-        return <bint>self.c_data.DepthRequested
+        if ctrl_type == ovr_capi.ovrControllerType_XBox:
+            return 'xbox'
+        elif ctrl_type == ovr_capi.ovrControllerType_Remote:
+            return 'remote'
+        elif ctrl_type == ovr_capi.ovrControllerType_Touch:
+            return 'touch'
+        elif ctrl_type == ovr_capi.ovrControllerType_LTouch:
+            return 'ltouch'
+        elif ctrl_type == ovr_capi.ovrControllerType_RTouch:
+            return 'rtouch'
+        else:
+            return None
 
 
-# -------------------------
-# HID Classes and Functions
-# -------------------------
-#
 cdef class ovrInputState(object):
     """Class storing the state of an input device. Fields can only be updated
     by calling 'get_input_state()'.
