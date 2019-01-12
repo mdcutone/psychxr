@@ -578,7 +578,7 @@ cdef class LibOVRSession(object):
             self.ptrSession, b"PerfHudMode", ovr_capi.ovrPerfHud_Off)
 
         # destroy the mirror texture
-        if self.mirrorTexture != NULL:
+        if self.mirrorTexture is NULL:
             ovr_capi.ovr_DestroyMirrorTexture(self.ptrSession, self.mirrorTexture)
 
         # free all swap chains
@@ -608,7 +608,7 @@ cdef class LibOVRSession(object):
 
     @property
     def high_quality(self):
-        """High-quality mode.
+        """True when high quality mode is enabled.
 
         The distortion compositor applies 4x anisotropic texture filtering which
         reduces the visibility of artifacts, particularly in the periphery.
@@ -629,7 +629,7 @@ cdef class LibOVRSession(object):
 
     @property
     def head_locked(self):
-        """Head-locked mode.
+        """True when head-locked mode is enabled.
 
         This is disabled by default when a session is started. Head locking
         places the rendered image as a 'billboard' in front of the viewer.
@@ -1775,14 +1775,19 @@ cdef class LibOVRSession(object):
 cdef class LibOVRPose(object):
     """Combined position and orientation data describing the pose of a body.
 
+    Data is internally stored using a 'ovrPosef' structure which is passed to
+    LibOVR. Attributes 'pos' and 'ori' return copies of the structure's fields
+    formatted as NumPy arrays. You can set the fields by passing any array-like
+    object to those attributes.
+
     """
     cdef ovr_capi.ovrPosef* c_data
     cdef ovr_capi.ovrPosef c_ovrPosef  # internal data
 
-    cdef np.ndarray pos_np_array
-    cdef np.ndarray ori_np_array
+    cdef np.ndarray _pos
+    cdef np.ndarray _ori
 
-    def __init__(self, pos=(0, 0, 0), ori=(0, 0, 0, 1)):
+    def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
         """Constructor for LibOVRPose.
 
         Parameters
@@ -1790,65 +1795,72 @@ cdef class LibOVRPose(object):
         pos : tuple, list, or ndarray of float
             Position vector (x, y, z).
         ori : tuple, list, or ndarray of float
-            Orientation quaternion vector (x, y, z, x).
+            Orientation quaternion vector (x, y, z, w).
 
         Notes
         -----
-            Values for vectors are stored internally as 32-bit floating point
-            numbers.
+        Values for vectors are stored internally as 32-bit floating point
+        numbers.
 
         """
-        pass
+        pass  # nop
 
-    def __cinit__(self, pos=(0, 0, 0), ori=(0, 0, 0, 1)):
+    def __cinit__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
         self.c_data = &self.c_ovrPosef  # pointer to c_ovrPosef
 
-        # create numpy arrays and have them reference the Oculus data
-        cdef np.npy_intp shape[1]
-        shape[0] = <np.npy_intp>3
+        # numpy arrays which view internal data
+        cdef float[:] pos_mv = <float[:3]>&self.c_data[0].Position.x
+        self._pos = np.frombuffer(pos_mv, dtype=np.float32)
+        self._pos[:] = pos
 
-        cdef float* pos_arr = <float*>(&self.c_data[0].Position.x)
-
-        self.pos_np_array = np.PyArray_SimpleNewFromData(
-            1, shape, np.NPY_FLOAT, <void*>pos_arr)
-        self.ori_np_array = np.empty((4,), dtype=np.float32)
-        self.ori_np_array.data = <char*>(&self.c_data[0].Orientation.x)
-
-        # set data values from constructor args
-        self.pos_np_array[:] = pos
-        self.ori_np_array[:] = ori
+        cdef float[:] ori_mv = <float[:4]>&self.c_data[0].Orientation.x
+        self._ori = np.frombuffer(ori_mv, dtype=np.float32)
+        self._ori[:] = ori
 
     @property
-    def position(self):
-        """Position vector (`ndarray`).
-
+    def pos(self):
+        """Position vector (`ndarray` of `float`).
         """
-        return self.pos_np_array
+        return self._pos
+
+    @pos.setter
+    def pos(self, object value):
+        self.c_data[0].Position.x = <float>value[0]
+        self.c_data[0].Position.y = <float>value[1]
+        self.c_data[0].Position.z = <float>value[2]
 
     @property
-    def orientation(self):
-        """Orientation quaternion (`ndarray`).
+    def ori(self):
+        """Orientation quaternion (`ndarray` of `float`).
 
         Notes
         -----
             The orientation quaternion should be normalized.
 
         """
-        return self.ori_np_array
+        return self._ori
+
+    @ori.setter
+    def ori(self, object value):
+        self.c_data[0].Orientation.x = <float>value[0]
+        self.c_data[0].Orientation.y = <float>value[1]
+        self.c_data[0].Orientation.z = <float>value[2]
+        self.c_data[0].Orientation.w = <float>value[3]
 
 
 cdef class LibOVRPoseState(object):
-    """Rigid body configuration with derivatives computed by the LibOVR runtime.
+    """Class for data about rigid body configuration with derivatives computed
+    by the LibOVR runtime.
 
     """
     cdef ovr_capi.ovrPoseStatef* c_data
     cdef ovr_capi.ovrPoseStatef c_ovrPoseStatef
 
-    cdef LibOVRPose pose
-    cdef np.ndarray angular_vel_np_array
-    cdef np.ndarray linear_vel_np_array
-    cdef np.ndarray angular_acc_np_array
-    cdef np.ndarray linear_acc_np_array
+    cdef LibOVRPose _pose
+    cdef np.ndarray _angular_vel
+    cdef np.ndarray _linear_vel
+    cdef np.ndarray _angular_acc
+    cdef np.ndarray _linear_acc
 
     cdef int status_flags
 
@@ -1856,24 +1868,21 @@ cdef class LibOVRPoseState(object):
         self.c_data = &self.c_ovrPoseStatef  # pointer to ovrPoseStatef
 
         # the pose is accessed using a LibOVRPose object
-        self.pose = LibOVRPose()
-        self.pose.c_data = &self.c_data.ThePose
+        self._pose = LibOVRPose()
+        self._pose.c_data = &self.c_data.ThePose
 
-        # Create Numpy arrays and point their data to struct fields. These are
-        # returned when properties are accessed.
-        #
-        self.angular_vel_np_array = np.empty((3,), dtype=np.float32)
-        self.angular_vel_np_array.data = \
-            <char*>(&self.c_data[0].AngularVelocity.x)
-        self.linear_vel_np_array = np.empty((3,), dtype=np.float32)
-        self.linear_vel_np_array.data = \
-            <char*>(&self.c_data[0].LinearVelocity.x)
-        self.angular_acc_np_array = np.empty((3,), dtype=np.float32)
-        self.angular_acc_np_array.data = \
-            <char*>(&self.c_data[0].AngularAcceleration.x)
-        self.linear_acc_np_array = np.empty((3,), dtype=np.float32)
-        self.linear_acc_np_array.data = \
-            <char*>(&self.c_data[0].LinearAcceleration.x)
+        # numpy arrays which view internal data
+        cdef float[:] avel_mv = <float[:3]>&self.c_data[0].AngularVelocity.x
+        self._angular_vel = np.frombuffer(avel_mv, dtype=np.float32)
+
+        cdef float[:] lvel_mv = <float[:3]>&self.c_data[0].LinearVelocity.x
+        self._linear_vel = np.frombuffer(lvel_mv, dtype=np.float32)
+
+        cdef float[:] aacc_mv = <float[:3]>&self.c_data[0].AngularAcceleration.x
+        self._angular_acc = np.frombuffer(aacc_mv, dtype=np.float32)
+
+        cdef float[:] lacc_mv = <float[:3]>&self.c_data[0].LinearAcceleration.x
+        self._linear_acc = np.frombuffer(lacc_mv, dtype=np.float32)
 
     @property
     def the_pose(self):
@@ -1882,30 +1891,59 @@ cdef class LibOVRPoseState(object):
         Returns
         -------
         LibOVRPose
-            Body pose data with position and orientation information.
+            Rigid body pose data with position and orientation information.
 
         """
-        return self.pose
+        return self._pose
+
+    @the_pose.setter
+    def the_pose(self, LibOVRPose value):
+        self._pose.c_data[0] = value.c_data[0]  # copy data
 
     @property
     def angular_velocity(self):
         """Angular velocity vector in radians/sec."""
-        return self.angular_vel_np_array
+        return self._angular_vel
+
+    @angular_velocity.setter
+    def angular_velocity(self, object value):
+        """Angular velocity vector in radians/sec."""
+        self.c_data[0].AngularVelocity.x = <float>value[0]
+        self.c_data[0].AngularVelocity.y = <float>value[1]
+        self.c_data[0].AngularVelocity.z = <float>value[2]
 
     @property
     def linear_velocity(self):
         """Linear velocity vector in meters/sec."""
-        return self.linear_vel_np_array
+        return self._linear_vel
+
+    @linear_velocity.setter
+    def linear_velocity(self, object value):
+        self.c_data[0].LinearVelocity.x = <float>value[0]
+        self.c_data[0].LinearVelocity.y = <float>value[1]
+        self.c_data[0].LinearVelocity.z = <float>value[2]
 
     @property
     def angular_acceleration(self):
         """Angular acceleration vector in radians/s^2."""
-        return self.angular_acc_np_array
+        return self._angular_acc
+
+    @angular_acceleration.setter
+    def angular_acceleration(self, object value):
+        self.c_data[0].AngularAcceleration.x = <float>value[0]
+        self.c_data[0].AngularAcceleration.y = <float>value[1]
+        self.c_data[0].AngularAcceleration.z = <float>value[2]
 
     @property
     def linear_acceleration(self):
         """Linear acceleration vector in meters/s^2."""
-        return self.linear_acc_np_array
+        return self._linear_acc
+
+    @linear_acceleration.setter
+    def linear_acceleration(self, object value):
+        self.c_data[0].LinearAcceleration.x = <float>value[0]
+        self.c_data[0].LinearAcceleration.y = <float>value[1]
+        self.c_data[0].LinearAcceleration.z = <float>value[2]
 
     @property
     def time_in_seconds(self):
@@ -1916,13 +1954,13 @@ cdef class LibOVRPoseState(object):
     def orientation_tracked(self):
         """True if the orientation was tracked when sampled."""
         return <bint>(ovr_capi.ovrStatus_OrientationTracked &
-             self.status_flags) == ovr_capi.ovrStatus_OrientationTracked
+             self.status_flags)
 
     @property
     def position_tracked(self):
         """True if the position was tracked when sampled."""
         return <bint>(ovr_capi.ovrStatus_PositionTracked &
-             self.status_flags) == ovr_capi.ovrStatus_PositionTracked
+             self.status_flags)
 
     @property
     def fully_tracked(self):
