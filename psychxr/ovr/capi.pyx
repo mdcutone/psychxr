@@ -189,6 +189,7 @@ cdef dict _supported_texture_formats = {
 #
 cdef dict _performance_hud_modes = {
     "Off" : ovr_capi.ovrPerfHud_Off,
+    "PerfSummary": ovr_capi.ovrPerfHud_PerfSummary,
     "AppRenderTiming" : ovr_capi.ovrPerfHud_AppRenderTiming,
     "LatencyTiming" : ovr_capi.ovrPerfHud_LatencyTiming,
     "CompRenderTiming" : ovr_capi.ovrPerfHud_CompRenderTiming,
@@ -340,10 +341,8 @@ cdef class LibOVRSession(object):
         self.ptrSession = NULL
 
         # view objects
-        cdef int[:] vpl_mv = <int[:4]>&(self.eyeLayer.Viewport[0].Pos.x)
-        self._viewport_left = np.frombuffer(vpl_mv, dtype=np.float32)
-        cdef int[:] vpr_mv = <int[:4]>&(self.eyeLayer.Viewport[1].Pos.x)
-        self._viewport_right = np.frombuffer(vpr_mv, dtype=np.float32)
+        self._viewport_left = np.empty((4,), dtype=np.int)
+        self._viewport_right = np.empty((4,), dtype=np.int)
 
         # check if the driver and service are available
         cdef ovr_capi_util.ovrDetectResult result = \
@@ -531,7 +530,7 @@ cdef class LibOVRSession(object):
 
         """
         cdef ovr_capi.ovrResult result = 0
-        self.initParams.RequestedMinorVersion = 25
+        self.initParams.RequestedMinorVersion = 32
         result = ovr_capi.ovr_Initialize(&self.initParams)
 
         result = ovr_capi.ovr_Create(&self.ptrSession, &self.ptrLuid)
@@ -801,6 +800,9 @@ cdef class LibOVRSession(object):
             self.ptrSession,
             <ovr_capi.ovrEyeType>eye,
             fov_in)
+
+        # set in eye layer too
+        self.eyeLayer.Fov[eye] = self.eyeRenderDesc[eye].Fov
 
     def get_eye_buffer_size(self, eye, fov, texelPerPixel=1.0):
         """Get the recommended buffer (texture) size for a specified
@@ -1107,6 +1109,8 @@ cdef class LibOVRSession(object):
         You can access the computed poses via the 'render_poses' attribute.
 
         """
+
+
         cdef ovr_capi.ovrPosef[2] hmd_to_eye_poses
         hmd_to_eye_poses[0] = self.eyeRenderDesc[0].HmdToEyePose
         hmd_to_eye_poses[1] = self.eyeRenderDesc[1].HmdToEyePose
@@ -1254,7 +1258,22 @@ cdef class LibOVRSession(object):
     @property
     def eye_viewports(self):
         """Eye viewports."""
+        self._viewport_left.data = <char*>&self.eyeLayer.Viewport[0]
+        self._viewport_right.data = <char*>&self.eyeLayer.Viewport[1]
+
         return self._viewport_left, self._viewport_right
+
+    @eye_viewports.setter
+    def eye_viewports(self, object values):
+        self.eyeLayer.Viewport[0].Pos.x = <int>values[0][0]
+        self.eyeLayer.Viewport[0].Pos.y = <int>values[0][1]
+        self.eyeLayer.Viewport[0].Size.w = <int>values[0][2]
+        self.eyeLayer.Viewport[0].Size.h = <int>values[0][3]
+
+        self.eyeLayer.Viewport[1].Pos.x = <int>values[1][0]
+        self.eyeLayer.Viewport[1].Pos.y = <int>values[1][1]
+        self.eyeLayer.Viewport[1].Size.w = <int>values[1][2]
+        self.eyeLayer.Viewport[1].Size.h = <int>values[1][3]
 
     def get_eye_view_matrix(self, eyePose):
         """Compute a view matrix.
@@ -1523,13 +1542,13 @@ cdef class LibOVRSession(object):
             Error code returned by 'ovr_EndFrame'.
 
         """
-        cdef ovr_capi.ovrLayerHeader* layers = &(self.eyeLayer).Header
+        cdef ovr_capi.ovrLayerHeader* layers = &self.eyeLayer.Header
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_EndFrame(
             self.ptrSession,
             frameIndex,
             NULL,
             &layers,
-            <unsigned int> 1)
+            <unsigned int>1)
 
         if self.debug_mode:
             check_result(result)
@@ -1738,9 +1757,7 @@ cdef class LibOVRSession(object):
             check_result(result)
 
     def reset_boundary_color(self):
-        """Reset the boundary color.
-
-        Make the boundary color the system default.
+        """Reset the boundary color to system default.
 
         """
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetBoundaryLookAndFeel(
@@ -1816,19 +1833,24 @@ cdef class LibOVRPose(object):
     def __cinit__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
         self.c_data = &self.c_ovrPosef  # pointer to c_ovrPosef
 
-        # numpy arrays which view internal data
-        cdef float[:] pos_mv = <float[:3]>&self.c_data[0].Position.x
-        self._pos = np.frombuffer(pos_mv, dtype=np.float32)
-        self._pos[:] = pos
+        # numpy arrays for internal data
+        self._pos = np.empty((3,), dtype=np.float32)
+        self._ori = np.empty((4,), dtype=np.float32)
 
-        cdef float[:] ori_mv = <float[:4]>&self.c_data[0].Orientation.x
-        self._ori = np.frombuffer(ori_mv, dtype=np.float32)
-        self._ori[:] = ori
+        self.c_data[0].Position.x = <float>pos[0]
+        self.c_data[0].Position.y = <float>pos[1]
+        self.c_data[0].Position.z = <float>pos[2]
+
+        self.c_data[0].Orientation.x = <float>ori[0]
+        self.c_data[0].Orientation.y = <float>ori[1]
+        self.c_data[0].Orientation.z = <float>ori[2]
+        self.c_data[0].Orientation.w = <float>ori[3]
 
     @property
     def pos(self):
         """Position vector (`ndarray` of `float`).
         """
+        self._pos.data = <char*>&self.c_data.Position.x
         return self._pos
 
     @pos.setter
@@ -1846,6 +1868,7 @@ cdef class LibOVRPose(object):
             The orientation quaternion should be normalized.
 
         """
+        self._ori.data = <char*>&self.c_data.Orientation.x
         return self._ori
 
     @ori.setter
@@ -1879,18 +1902,11 @@ cdef class LibOVRPoseState(object):
         self._pose = LibOVRPose()
         self._pose.c_data = &self.c_data.ThePose
 
-        # numpy arrays which view internal data
-        cdef float[:] avel_mv = <float[:3]>&self.c_data[0].AngularVelocity.x
-        self._angular_vel = np.frombuffer(avel_mv, dtype=np.float32)
-
-        cdef float[:] lvel_mv = <float[:3]>&self.c_data[0].LinearVelocity.x
-        self._linear_vel = np.frombuffer(lvel_mv, dtype=np.float32)
-
-        cdef float[:] aacc_mv = <float[:3]>&self.c_data[0].AngularAcceleration.x
-        self._angular_acc = np.frombuffer(aacc_mv, dtype=np.float32)
-
-        cdef float[:] lacc_mv = <float[:3]>&self.c_data[0].LinearAcceleration.x
-        self._linear_acc = np.frombuffer(lacc_mv, dtype=np.float32)
+        # numpy arrays which view internal dat
+        self._angular_vel = np.empty((3,), dtype=np.float32)
+        self._linear_vel = np.empty((3,), dtype=np.float32)
+        self._angular_acc = np.empty((3,), dtype=np.float32)
+        self._linear_acc = np.empty((3,), dtype=np.float32)
 
     @property
     def the_pose(self):
@@ -1904,51 +1920,54 @@ cdef class LibOVRPoseState(object):
         """
         return self._pose
 
-    @the_pose.setter
-    def the_pose(self, LibOVRPose value):
-        self._pose.c_data[0] = value.c_data[0]  # copy data
-
     @property
-    def angular_velocity(self):
+    def angular_vel(self):
         """Angular velocity vector in radians/sec."""
+        self._angular_vel.data = <char*>&self.c_data.AngularVelocity.x
         return self._angular_vel
 
-    @angular_velocity.setter
-    def angular_velocity(self, object value):
+    @angular_vel.setter
+    def angular_vel(self, object value):
         """Angular velocity vector in radians/sec."""
         self.c_data[0].AngularVelocity.x = <float>value[0]
         self.c_data[0].AngularVelocity.y = <float>value[1]
         self.c_data[0].AngularVelocity.z = <float>value[2]
 
     @property
-    def linear_velocity(self):
-        """Linear velocity vector in meters/sec."""
+    def linear_vel(self):
+        """Linear velocity vector in meters/sec.
+
+        This is only available if 'pos_tracked' is True.
+        """
+        self._linear_vel.data = <char*>&self.c_data.LinearVelocity.x
         return self._linear_vel
 
-    @linear_velocity.setter
-    def linear_velocity(self, object value):
+    @linear_vel.setter
+    def linear_vel(self, object value):
         self.c_data[0].LinearVelocity.x = <float>value[0]
         self.c_data[0].LinearVelocity.y = <float>value[1]
         self.c_data[0].LinearVelocity.z = <float>value[2]
 
     @property
-    def angular_acceleration(self):
+    def angular_acc(self):
         """Angular acceleration vector in radians/s^2."""
+        self._angular_acc.data = <char*>&self.c_data.AngularAcceleration.x
         return self._angular_acc
 
-    @angular_acceleration.setter
-    def angular_acceleration(self, object value):
+    @angular_acc.setter
+    def angular_acc(self, object value):
         self.c_data[0].AngularAcceleration.x = <float>value[0]
         self.c_data[0].AngularAcceleration.y = <float>value[1]
         self.c_data[0].AngularAcceleration.z = <float>value[2]
 
     @property
-    def linear_acceleration(self):
+    def linear_acc(self):
         """Linear acceleration vector in meters/s^2."""
+        self._linear_acc.data = <char*>&self.c_data.LinearAcceleration.x
         return self._linear_acc
 
-    @linear_acceleration.setter
-    def linear_acceleration(self, object value):
+    @linear_acc.setter
+    def linear_acc(self, object value):
         self.c_data[0].LinearAcceleration.x = <float>value[0]
         self.c_data[0].LinearAcceleration.y = <float>value[1]
         self.c_data[0].LinearAcceleration.z = <float>value[2]
@@ -1961,21 +1980,23 @@ cdef class LibOVRPoseState(object):
     @property
     def ori_tracked(self):
         """True if the orientation was tracked when sampled."""
-        return <bint>(ovr_capi.ovrStatus_OrientationTracked &
-             self.status_flags)
+        return <bint>((ovr_capi.ovrStatus_OrientationTracked &
+             self.status_flags) == ovr_capi.ovrStatus_OrientationTracked)
 
     @property
     def pos_tracked(self):
         """True if the position was tracked when sampled."""
-        return <bint>(ovr_capi.ovrStatus_PositionTracked &
-             self.status_flags)
+        return <bint>((ovr_capi.ovrStatus_PositionTracked &
+             self.status_flags) == ovr_capi.ovrStatus_PositionTracked)
 
     @property
     def fully_tracked(self):
         """True if position and orientation were tracked when sampled."""
-        return <bint>(self.status_flags &
-                      (ovr_capi.ovrStatus_OrientationTracked |
-                       ovr_capi.ovrStatus_PositionTracked))
+        cdef int32_t full_tracking_flags = \
+            ovr_capi.ovrStatus_OrientationTracked | \
+            ovr_capi.ovrStatus_PositionTracked
+        return <bint>((self.status_flags & full_tracking_flags) ==
+                      full_tracking_flags)
 
 
 cdef class LibOVRInputState(object):
