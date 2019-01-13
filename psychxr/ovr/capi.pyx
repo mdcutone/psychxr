@@ -169,7 +169,7 @@ cdef dict ctrl_touch_lut = {
     "LThumbUp": ovr_capi.ovrTouch_LThumbUp}
 
 # Python accessible list of valid touch names.
-touch_names = list(ctrl_touch_lut.keys())
+touch_names = [*ctrl_touch_lut.keys()]
 
 # Performance information for profiling.
 #
@@ -251,24 +251,6 @@ cdef dict _touch_states = {
     "LThumbUp": ovr_capi.ovrTouch_LThumbUp}
 
 
-# Numpy data types
-#
-ovrVector3f_dtype = np.dtype([
-    ('x', np.float32), ('y', np.float32), ('z', np.float32)
-])
-
-ovrQuatf_dtype = np.dtype([
-    ('x', np.float32), ('y', np.float32), ('z', np.float32), ('w', np.float32)
-])
-
-ovrPosef_dtype = np.dtype([
-    ('Orientation', ovrQuatf_dtype), ('Position', ovrVector3f_dtype)
-])
-
-# -----------------
-# Session Functions
-# -----------------
-#
 def is_oculus_service_running(int timeout_ms=100):
     """Check if the Oculus Runtime is loaded and running.
 
@@ -346,6 +328,10 @@ cdef class LibOVRSession(object):
     # debug mode
     cdef bint debugMode
 
+    # view objects
+    cdef np.ndarray _viewport_left
+    cdef np.ndarray _viewport_right
+
     def __init__(self, debugMode=False, timeout=100, *args, **kwargs):
         pass
 
@@ -353,9 +339,15 @@ cdef class LibOVRSession(object):
         self.debugMode = debugMode
         self.ptrSession = NULL
 
+        # view objects
+        cdef int[:] vpl_mv = <int[:4]>&(self.eyeLayer.Viewport[0].Pos.x)
+        self._viewport_left = np.frombuffer(vpl_mv, dtype=np.float32)
+        cdef int[:] vpr_mv = <int[:4]>&(self.eyeLayer.Viewport[1].Pos.x)
+        self._viewport_right = np.frombuffer(vpr_mv, dtype=np.float32)
+
         # check if the driver and service are available
-        cdef ovr_capi_util.ovrDetectResult result = ovr_capi_util.ovr_Detect(
-            <int>timeout)
+        cdef ovr_capi_util.ovrDetectResult result = \
+            ovr_capi_util.ovr_Detect(<int>timeout)
 
         if not result.IsOculusServiceRunning:
             raise RuntimeError("Oculus service is not running, it may be "
@@ -1044,10 +1036,21 @@ cdef class LibOVRSession(object):
     @property
     def mirror_texture(self):
         """Mirror texture ID."""
-        return self.get_mirror_texture()
+        cdef unsigned int mirror_id
+
+        if self.mirrorTexture is NULL:  # no texture created
+            return None
+
+        cdef ovr_capi.ovrResult result = \
+            ovr_capi_gl.ovr_GetMirrorTextureBufferGL(
+                self.ptrSession,
+                self.mirrorTexture,
+                &mirror_id)
+
+        return <unsigned int>mirror_id
 
     def get_poses(self, double abs_time, bint latency_marker=True):
-        """Get the current poses for the head and hands.
+        """Get the current poses of the head and hands.
 
         Parameters
         ----------
@@ -1058,7 +1061,7 @@ cdef class LibOVRSession(object):
 
         Returns
         -------
-        tuple of LibOVRTrackingState
+        tuple of LibOVRPoseState
             Pose state for the head, left and right hands.
 
         Examples
@@ -1247,6 +1250,11 @@ cdef class LibOVRSession(object):
                 mv[i, j] = projMat.M[i][j]
 
         return to_return
+
+    @property
+    def eye_viewports(self):
+        """Eye viewports."""
+        return self._viewport_left, self._viewport_right
 
     def get_eye_view_matrix(self, eyePose):
         """Compute a view matrix.
@@ -1951,13 +1959,13 @@ cdef class LibOVRPoseState(object):
         return <double>self.c_data[0].TimeInSeconds
 
     @property
-    def orientation_tracked(self):
+    def ori_tracked(self):
         """True if the orientation was tracked when sampled."""
         return <bint>(ovr_capi.ovrStatus_OrientationTracked &
              self.status_flags)
 
     @property
-    def position_tracked(self):
+    def pos_tracked(self):
         """True if the position was tracked when sampled."""
         return <bint>(ovr_capi.ovrStatus_PositionTracked &
              self.status_flags)
