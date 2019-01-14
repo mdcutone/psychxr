@@ -32,16 +32,13 @@
 __all__ = ['LibOVRSession']
 
 from .cimport ovr_capi
-from .cimport ovr_capi_gl
-from .cimport ovr_errorcode
-from .cimport ovr_capi_util
+from .cimport ovr_math
 from .math cimport *
 
 from libc.stdint cimport int32_t
 
 cimport numpy as np
 import numpy as np
-
 
 # -----------------
 # Initialize module
@@ -84,12 +81,16 @@ cdef ovr_capi.ovrPoseStatef[9] _device_poses_
 
 # Function to check for errors returned by OVRLib functions
 #
-cdef ovr_errorcode.ovrErrorInfo _last_error_info_  # store our last error here
+cdef ovr_capi.ovrErrorInfo _last_error_info_  # store our last error here
 def check_result(result):
-    if ovr_errorcode.OVR_FAILURE(result):
+    if ovr_capi.OVR_FAILURE(result):
         ovr_capi.ovr_GetLastErrorInfo(&_last_error_info_)
         raise RuntimeError(
             str(result) + ": " + _last_error_info_.ErrorString.decode("utf-8"))
+
+# helper functions
+cdef float maxf(float a, float b):
+    return a if a >= b else b
 
 # Enable error checking on OVRLib functions by setting 'debug_mode=True'. All
 # LibOVR functions that return a 'ovrResult' type will be checked. A
@@ -252,6 +253,13 @@ cdef dict _touch_states = {
     "LThumbUp": ovr_capi.ovrTouch_LThumbUp}
 
 
+# return codes
+LIBOVR_SUCCESS = ovr_capi.ovrSuccess
+LIBOVR_SUCCESS_NOT_VISIBLE = ovr_capi.ovrSuccess_NotVisible
+LIBOVR_SUCCESS_DEVICE_UNAVAILABLE = ovr_capi.ovrSuccess_DeviceUnavailable
+LIBOVR_SUCCESS_BOUNDARY_INVALID = ovr_capi.ovrSuccess_BoundaryInvalid
+
+
 def is_oculus_service_running(int timeout_ms=100):
     """Check if the Oculus Runtime is loaded and running.
 
@@ -265,7 +273,7 @@ def is_oculus_service_running(int timeout_ms=100):
     bool
 
     """
-    cdef ovr_capi_util.ovrDetectResult result = ovr_capi_util.ovr_Detect(
+    cdef ovr_capi.ovrDetectResult result = ovr_capi.ovr_Detect(
         timeout_ms)
 
     return <bint>result.IsOculusServiceRunning
@@ -283,10 +291,20 @@ def is_hmd_connected(int timeout_ms=100):
     bool
 
     """
-    cdef ovr_capi_util.ovrDetectResult result = ovr_capi_util.ovr_Detect(
+    cdef ovr_capi.ovrDetectResult result = ovr_capi.ovr_Detect(
         timeout_ms)
 
     return <bint>result.IsOculusHMDConnected
+
+
+def libovr_success(result):
+    pass
+
+def libovr_failure(result):
+    pass
+
+def libovr_unqualified_success(result):
+    pass
 
 
 cdef class LibOVRSession(object):
@@ -324,7 +342,7 @@ cdef class LibOVRSession(object):
     # controller states
 
     # error information
-    cdef ovr_errorcode.ovrErrorInfo errorInfo  # store our last error here
+    cdef ovr_capi.ovrErrorInfo errorInfo  # store our last error here
 
     # debug mode
     cdef bint debugMode
@@ -333,11 +351,23 @@ cdef class LibOVRSession(object):
     cdef np.ndarray _viewport_left
     cdef np.ndarray _viewport_right
 
-    def __init__(self, debugMode=False, timeout=100, *args, **kwargs):
+    def __init__(self, raiseErrors=False, timeout=100, *args, **kwargs):
+        """Constructor for LibOVRSession.
+
+        Parameters
+        ----------
+        raiseErrors : bool
+            Raise exceptions when LibOVR functions return errors. If False,
+            returned values of some methods will need to be checked for error
+            conditions.
+        timeout : int
+            Connection timeout in milliseconds.
+
+        """
         pass
 
-    def __cinit__(self, bint debugMode=False, int timeout=100, *args, **kwargs):
-        self.debugMode = debugMode
+    def __cinit__(self, bint raiseErrors=False, int timeout=100, *args, **kwargs):
+        self.debugMode = raiseErrors
         self.ptrSession = NULL
 
         # view objects
@@ -345,8 +375,8 @@ cdef class LibOVRSession(object):
         self._viewport_right = np.empty((4,), dtype=np.int)
 
         # check if the driver and service are available
-        cdef ovr_capi_util.ovrDetectResult result = \
-            ovr_capi_util.ovr_Detect(<int>timeout)
+        cdef ovr_capi.ovrDetectResult result = \
+            ovr_capi.ovr_Detect(<int>timeout)
 
         if not result.IsOculusServiceRunning:
             raise RuntimeError("Oculus service is not running, it may be "
@@ -532,11 +562,16 @@ cdef class LibOVRSession(object):
         cdef ovr_capi.ovrResult result = 0
         self.initParams.RequestedMinorVersion = 32
         result = ovr_capi.ovr_Initialize(&self.initParams)
+        check_result(result)
+        if ovr_capi.OVR_FAILURE(result):
+            return result  # failed to initalize, return error code
 
         result = ovr_capi.ovr_Create(&self.ptrSession, &self.ptrLuid)
-        if ovr_errorcode.OVR_FAILURE(result):
-            ovr_capi.ovr_Shutdown()
+        check_result(result)
+        if ovr_capi.OVR_FAILURE(result):
+            return result  # failed to create session, return error code
 
+        # if we got to this point, everything should be fine
         # get HMD descriptor
         self.hmdDesc = ovr_capi.ovr_GetHmdDesc(self.ptrSession)
 
@@ -549,12 +584,16 @@ cdef class LibOVRSession(object):
                 <ovr_capi.ovrEyeType>i,
                 self.hmdDesc.DefaultEyeFov[i])
 
+            self.eyeLayer.Fov[i] = self.eyeRenderDesc[i].Fov
+
         # prepare the render layer
         self.eyeLayer.Header.Type = ovr_capi.ovrLayerType_EyeFov
         self.eyeLayer.Header.Flags = \
             ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft | \
             ovr_capi.ovrLayerFlag_HighQuality
         self.eyeLayer.ColorTexture[0] = self.eyeLayer.ColorTexture[1] = NULL
+
+        return ovr_capi.ovrSuccess
 
     def shutdown(self):
         """End the current session.
@@ -643,7 +682,7 @@ cdef class LibOVRSession(object):
         return <int>ovr_capi.ovr_GetTrackerCount(self.ptrSession)
 
     @property
-    def default_eye_fov(self):
+    def default_eye_fovs(self):
         """Default or recommended eye field-of-views (FOVs) provided by the API.
 
         Returns
@@ -670,7 +709,7 @@ cdef class LibOVRSession(object):
         return fovLeft, fovRight
 
     @property
-    def max_eye_fov(self):
+    def max_eye_fovs(self):
         """Maximum eye field-of-views (FOVs) provided by the API.
 
         Returns
@@ -697,7 +736,7 @@ cdef class LibOVRSession(object):
         return fov_left, fov_right
 
     @property
-    def symmetric_fov(self):
+    def symmetric_eye_fovs(self):
         """Symmetric field-of-views (FOVs) for mono rendering.
 
         By default, the Rift uses off-axis FOVs. These frustum parameters make
@@ -705,7 +744,7 @@ cdef class LibOVRSession(object):
 
         Returns
         -------
-        tuple of ndarray
+        tuple of ndarray of float
             Pair of left and right eye FOVs specified as tangent angles in
             radians [Up, Down, Left, Right]. Both FOV objects will have the same
             values.
@@ -715,29 +754,13 @@ cdef class LibOVRSession(object):
         cdef ovr_capi.ovrFovPort fov_right = self.hmdDesc.DefaultEyeFov[1]
 
         cdef ovr_capi.ovrFovPort fov_max
-        fov_max.UpTan = \
-            fov_left.UpTan if \
-                fov_left.UpTan >= \
-                fov_right.Uptan else fov_right.Uptan
-        fov_max.DownTan = \
-            fov_left.DownTan \
-                if fov_left.DownTan >= \
-                   fov_right.DownTan else fov_right.DownTan
-        fov_max.LeftTan = \
-            fov_left.LeftTan \
-                if fov_left.LeftTan >= \
-                   fov_right.LeftTan else fov_right.LeftTan
-        fov_max.RightTan = \
-            fov_left.RightTan \
-                if fov_left.LeftTan >= \
-                   fov_right.RightTan else fov_right.RightTan
+        fov_max.UpTan = maxf(fov_left.UpTan, fov_right.Uptan)
+        fov_max.DownTan = maxf(fov_left.DownTan, fov_right.DownTan)
+        fov_max.LeftTan = maxf(fov_left.LeftTan, fov_right.LeftTan)
+        fov_max.RightTan = maxf(fov_left.RightTan, fov_right.RightTan)
 
-        cdef float tan_half_fov_horz = \
-            fov_max.LeftTan if fov_max.LeftTan >= \
-                               fov_max.RightTan else fov_max.RightTan
-        cdef float tan_half_fov_vert = \
-            fov_max.UpTan if fov_max.DownTan >= \
-                             fov_max.UpTan else fov_max.DownTan
+        cdef float tan_half_fov_horz = maxf(fov_max.LeftTan, fov_max.RightTan)
+        cdef float tan_half_fov_vert = maxf(fov_max.DownTan, fov_max.UpTan)
 
         cdef ovr_capi.ovrFovPort fov_both
         fov_both.LeftTan = fov_both.RightTan = tan_half_fov_horz
@@ -758,6 +781,69 @@ cdef class LibOVRSession(object):
             dtype=np.float32)
 
         return fov_left_out, fov_right_out
+
+    @property
+    def eye_render_fovs(self):
+        """Field-of-view to use for rendering.
+
+        The FOV for a given eye are defined as a tuple of tangent angles (Up,
+        Down, Left, Right). By default, this function will return the default
+        FOVs after 'start' is called (see 'default_eye_fovs'). You can override
+        these values using 'max_eye_fovs' and 'symmetric_eye_fovs', or with
+        custom values (see Examples below).
+
+        Examples
+        --------
+        Setting eye render FOVs to symmetric (needed for mono rendering)::
+
+            hmd.eye_render_fovs = hmd.symmetric_eye_fovs
+
+        Getting the tangent angles::
+
+            left_fov, right_fov = hmd.eye_render_fovs
+            # left FOV tangent angles, do the same for the right
+            up_tan, down_tan, left_tan, right_tan =  left_fov
+
+        Using custom values::
+
+            # Up, Down, Left, Right tan angles
+            left_fov = [1.0, -1.0, -1.0, 1.0]
+            right_fov = [1.0, -1.0, -1.0, 1.0]
+            hmd.eye_render_fovs = left_fov, right_fov
+
+        """
+        cdef np.ndarray left_fov = np.asarray([
+            self.eyeRenderDesc[0].Fov.UpTan,
+            self.eyeRenderDesc[0].Fov.DownTan,
+            self.eyeRenderDesc[0].Fov.LeftTan,
+            self.eyeRenderDesc[0].Fov.RightTan],
+            dtype=np.float32)
+
+        cdef np.ndarray right_fov = np.asarray([
+            self.eyeRenderDesc[1].Fov.UpTan,
+            self.eyeRenderDesc[1].Fov.DownTan,
+            self.eyeRenderDesc[1].Fov.LeftTan,
+            self.eyeRenderDesc[1].Fov.RightTan],
+            dtype=np.float32)
+
+        return left_fov, right_fov
+
+    @eye_render_fovs.setter
+    def eye_render_fovs(self, object value):
+        cdef ovr_capi.ovrFovPort fov_in
+        cdef int i = 0
+        for i in range(ovr_capi.ovrEye_Count):
+            fov_in.UpTan = <float>value[i][0]
+            fov_in.DownTan = <float>value[i][1]
+            fov_in.LeftTan = <float>value[i][2]
+            fov_in.RightTan = <float>value[i][3]
+
+            self.eyeRenderDesc[i] = ovr_capi.ovr_GetRenderDesc(
+                self.ptrSession,
+                <ovr_capi.ovrEyeType>i,
+                fov_in)
+
+            self.eyeLayer.Fov[i] = self.eyeRenderDesc[i].Fov
 
     def get_eye_render_fov(self, int eye):
         """Get the field-of-view of a given eye used to compute the projection
@@ -804,40 +890,58 @@ cdef class LibOVRSession(object):
         # set in eye layer too
         self.eyeLayer.Fov[eye] = self.eyeRenderDesc[eye].Fov
 
-    def get_eye_buffer_size(self, eye, fov, texelPerPixel=1.0):
-        """Get the recommended buffer (texture) size for a specified
-        configuration.
+    def calc_eye_buffer_sizes(self, texel_per_pixel=1.0):
+        """Get the recommended buffer (texture) sizes for eye buffers.
 
-        Returns a tuple with the dimensions of the required texture (w, h). The
-        values can be used when configuring a render buffer which will
-        ultimately be used to draw to the HMD buffers.
+        Should be called after 'eye_render_fovs' is set. Returns left and
+        right buffer resolutions (w, h). The values can be used when configuring
+        a framebuffer for rendering to the HMD eye buffers.
 
         Parameters
         ----------
-        eye : int
-            Eye index.
-        fov : tuple, list or ndarray of floats
-        texelPerPixel : float
+        texel_per_pixel : float
+            Display pixels per texture pixels at the center of the display.
+            Use a value less than 1.0 to improve performance at the cost of
+            resolution. Specifying a larger texture is possible, but not
+            recommended by the manufacturer.
 
         Returns
         -------
-        ndarray of int
-            Resolution of the display [w, h].
+        tuple of tuples
+            Buffer widths and heights (w, h) for each eye.
+
+        Examples
+        --------
+        Getting the buffer sizes::
+
+            hmd.eye_render_fovs = hmd.default_eye_fovs  # set the FOV
+            left_buffer, right_buffer = hmd.calc_eye_buffer_sizes()
+            left_w, left_h = left_buffer
+            right_w, right_h = right_buffer
+            # combined size if using a single texture buffer for both eyes
+            w, h = left_w + right_w, max(left_h, right_h)
+            # make the texture ...
+
+        Notes
+        -----
+        This function returns the recommended texture resolution for each eye.
+        If you are using a single buffer for both eyes, that buffer should be
+        as wide as the combined width of both returned size.
 
         """
-        cdef ovr_capi.ovrFovPort fov_in
-        fov_in.UpTan = <float>fov[0]
-        fov_in.DownTan = <float>fov[1]
-        fov_in.LeftTan = <float>fov[2]
-        fov_in.RightTan = <float>fov[3]
-
-        cdef ovr_capi.ovrSizei bufferSize = ovr_capi.ovr_GetFovTextureSize(
+        cdef ovr_capi.ovrSizei size_left = ovr_capi.ovr_GetFovTextureSize(
             self.ptrSession,
-            <ovr_capi.ovrEyeType>eye,
-            fov_in,
-            <float>texelPerPixel)
+            <ovr_capi.ovrEyeType>0,
+            self.eyeRenderDesc[0].Fov,
+            <float>texel_per_pixel)
 
-        return np.asarray([bufferSize.w, bufferSize.h], dtype=np.int)
+        cdef ovr_capi.ovrSizei size_right = ovr_capi.ovr_GetFovTextureSize(
+            self.ptrSession,
+            <ovr_capi.ovrEyeType>1,
+            self.eyeRenderDesc[1].Fov,
+            <float>texel_per_pixel)
+
+        return (size_left.w, size_left.h), (size_right.w, size_right.h)
 
     def get_swap_chain_length(self, eye):
         """Get the swap chain length for a given eye."""
@@ -880,7 +984,7 @@ cdef class LibOVRSession(object):
         cdef ovr_capi.ovrResult result = 0
 
         # get the next available texture ID from the swap chain
-        result = ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
+        result = ovr_capi.ovr_GetTextureSwapChainBufferGL(
             self.ptrSession, self.swapChains[eye], index, &tex_id)
 
         return tex_id
@@ -920,7 +1024,7 @@ cdef class LibOVRSession(object):
             check_result(result)
 
         # get the next available texture ID from the swap chain
-        result = ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
+        result = ovr_capi.ovr_GetTextureSwapChainBufferGL(
             self.ptrSession, self.swapChains[eye], current_idx, &tex_id)
 
         if self.debug_mode:
@@ -961,7 +1065,7 @@ cdef class LibOVRSession(object):
 
         # create the swap chain
         cdef ovr_capi.ovrResult result = \
-            ovr_capi_gl.ovr_CreateTextureSwapChainGL(
+            ovr_capi.ovr_CreateTextureSwapChainGL(
                 self.ptrSession,
                 &swapConfig,
                 &self.swapChains[eye])
@@ -975,11 +1079,11 @@ cdef class LibOVRSession(object):
             self,
             width,
             height,
-            textureFormat='R8G8B8A8_UNORM_SRGB',
-            mirrorMode='Default',
-            includeGuardian=False,
-            includeNotifications=False,
-            includeSystemGui=False):
+            texture_format='R8G8B8A8_UNORM_SRGB',
+            mirror_mode='Default',
+            include_guardian=False,
+            include_notifications=False,
+            include_system_gui=False):
         """Create a mirror texture displaying the contents of the rendered
         images being presented on the HMD. The image is automatically refreshed
         to reflect the current content on the display.
@@ -990,36 +1094,36 @@ cdef class LibOVRSession(object):
             Width of texture in pixels.
         height : int
             Height of texture in pixels.
-        textureFormat : str
+        texture_format : str
             Texture format. Valid texture formats are: 'R8G8B8A8_UNORM',
             'R8G8B8A8_UNORM_SRGB', 'R16G16B16A16_FLOAT', and 'R11G11B10_FLOAT'.
-        mirrorMode : str
-        includeGuardian : bool
-        includeNotifications : bool
-        includeSystemGui : bool
+        mirror_mode : str
+        include_guardian : bool
+        include_notifications : bool
+        include_system_gui : bool
 
         """
-        cdef int32_t mirrorOptions
+        cdef int32_t mirror_options
 
         # set the mirror texture mode
-        if mirrorMode == 'Default':
-            mirrorOptions = ovr_capi.ovrMirrorOption_Default
-        elif mirrorMode == 'PostDistortion':
-            mirrorOptions = ovr_capi.ovrMirrorOption_PostDistortion
-        elif mirrorMode == 'LeftEyeOnly':
-            mirrorOptions = ovr_capi.ovrMirrorOption_LeftEyeOnly
-        elif mirrorMode == 'RightEyeOnly':
-            mirrorOptions = ovr_capi.ovrMirrorOption_RightEyeOnly
+        if mirror_mode == 'Default':
+            mirror_options = ovr_capi.ovrMirrorOption_Default
+        elif mirror_mode == 'PostDistortion':
+            mirror_options = ovr_capi.ovrMirrorOption_PostDistortion
+        elif mirror_mode == 'LeftEyeOnly':
+            mirror_options = ovr_capi.ovrMirrorOption_LeftEyeOnly
+        elif mirror_mode == 'RightEyeOnly':
+            mirror_options = ovr_capi.ovrMirrorOption_RightEyeOnly
         else:
             raise RuntimeError("Invalid 'mirrorMode' mode specified.")
 
         # additional options
-        if includeGuardian:
-            mirrorOptions |= ovr_capi.ovrMirrorOption_IncludeGuardian
-        if includeNotifications:
-            mirrorOptions |= ovr_capi.ovrMirrorOption_IncludeNotifications
-        if includeSystemGui:
-            mirrorOptions |= ovr_capi.ovrMirrorOption_IncludeSystemGui
+        if include_guardian:
+            mirror_options |= ovr_capi.ovrMirrorOption_IncludeGuardian
+        if include_notifications:
+            mirror_options |= ovr_capi.ovrMirrorOption_IncludeNotifications
+        if include_system_gui:
+            mirror_options |= ovr_capi.ovrMirrorOption_IncludeSystemGui
 
         # create the descriptor
         cdef ovr_capi.ovrMirrorTextureDesc mirrorDesc
@@ -1027,9 +1131,9 @@ cdef class LibOVRSession(object):
         mirrorDesc.Width = <int>width
         mirrorDesc.Height = <int>height
         mirrorDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
-        mirrorDesc.MirrorOptions = <ovr_capi.ovrMirrorOptions>mirrorOptions
+        mirrorDesc.MirrorOptions = <ovr_capi.ovrMirrorOptions>mirror_options
 
-        cdef ovr_capi.ovrResult result = ovr_capi_gl.ovr_CreateMirrorTextureGL(
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_CreateMirrorTextureGL(
             self.ptrSession, &mirrorDesc, &self.mirrorTexture)
 
         if self.debug_mode:
@@ -1044,7 +1148,7 @@ cdef class LibOVRSession(object):
             return None
 
         cdef ovr_capi.ovrResult result = \
-            ovr_capi_gl.ovr_GetMirrorTextureBufferGL(
+            ovr_capi.ovr_GetMirrorTextureBufferGL(
                 self.ptrSession,
                 self.mirrorTexture,
                 &mirror_id)
@@ -1099,23 +1203,21 @@ cdef class LibOVRSession(object):
         return head_pose, left_hand_pose, right_hand_pose
 
     def calc_eye_poses(self, LibOVRPoseState head_pose):
-        """Compute eye poses using a given tracking state.
+        """Calcuate eye poses using a given pose state.
 
-        Eye poses are derived from the head pose stored in the tracking state
-        and the HMD to eye poses reported by LibOVR. Calculated eye poses are
-        stored and passed to the compositor when 'end_frame' is called for
-        additional rendering.
+        Eye poses are derived from the head pose stored in the pose state and
+        the HMD to eye poses reported by LibOVR. Calculated eye poses are stored
+        and passed to the compositor when 'end_frame' is called for additional
+        rendering.
 
         You can access the computed poses via the 'render_poses' attribute.
 
         """
-
-
         cdef ovr_capi.ovrPosef[2] hmd_to_eye_poses
         hmd_to_eye_poses[0] = self.eyeRenderDesc[0].HmdToEyePose
         hmd_to_eye_poses[1] = self.eyeRenderDesc[1].HmdToEyePose
 
-        ovr_capi_util.ovr_CalcEyePoses2(
+        ovr_capi.ovr_CalcEyePoses2(
             head_pose.c_data[0].ThePose,
             hmd_to_eye_poses,
             self.eyeLayer.RenderPose)
@@ -1169,7 +1271,7 @@ cdef class LibOVRSession(object):
         """
         cdef unsigned int mirror_id
         cdef ovr_capi.ovrResult result = \
-            ovr_capi_gl.ovr_GetMirrorTextureBufferGL(
+            ovr_capi.ovr_GetMirrorTextureBufferGL(
                 self.ptrSession,
                 self.mirrorTexture,
                 &mirror_id)
@@ -1207,7 +1309,7 @@ cdef class LibOVRSession(object):
             check_result(result)
 
         # get the next available texture ID from the swap chain
-        result = ovr_capi_gl.ovr_GetTextureSwapChainBufferGL(
+        result = ovr_capi.ovr_GetTextureSwapChainBufferGL(
             self.ptrSession, self.swapChains[eye], current_idx, &tex_id)
 
         if self.debug_mode:
@@ -1237,11 +1339,11 @@ cdef class LibOVRSession(object):
 
         """
         cdef ovr_capi.ovrMatrix4f projMat = \
-            ovr_capi_util.ovrMatrix4f_Projection(
+            ovr_capi.ovrMatrix4f_Projection(
                 self.eyeRenderDesc[eye].Fov,
                 nearClip,
                 farClip,
-                ovr_capi_util.ovrProjection_ClipRangeOpenGL)
+                ovr_capi.ovrProjection_ClipRangeOpenGL)
 
         cdef np.ndarray to_return = np.zeros((4, 4), dtype=np.float32)
 
@@ -1265,105 +1367,60 @@ cdef class LibOVRSession(object):
 
     @eye_viewports.setter
     def eye_viewports(self, object values):
-        self.eyeLayer.Viewport[0].Pos.x = <int>values[0][0]
-        self.eyeLayer.Viewport[0].Pos.y = <int>values[0][1]
-        self.eyeLayer.Viewport[0].Size.w = <int>values[0][2]
-        self.eyeLayer.Viewport[0].Size.h = <int>values[0][3]
+        cdef int i = 0
+        for i in range(ovr_capi.ovrEye_Count):
+            self.eyeLayer.Viewport[i].Pos.x = <int>values[i][0]
+            self.eyeLayer.Viewport[i].Pos.y = <int>values[i][1]
+            self.eyeLayer.Viewport[i].Size.w = <int>values[i][2]
+            self.eyeLayer.Viewport[i].Size.h = <int>values[i][3]
 
-        self.eyeLayer.Viewport[1].Pos.x = <int>values[1][0]
-        self.eyeLayer.Viewport[1].Pos.y = <int>values[1][1]
-        self.eyeLayer.Viewport[1].Size.w = <int>values[1][2]
-        self.eyeLayer.Viewport[1].Size.h = <int>values[1][3]
-
-    def get_eye_view_matrix(self, eyePose):
-        """Compute a view matrix.
+    def get_eye_view_matrix(self, int eye):
+        """Compute a view matrix for a specified eye.
 
         Parameters
         ----------
-        eyePose : tuple, list, or ndarray of float
-            Eye pose.
-        nearClip : float
-            Near clipping plane in meters.
-        farClip
-            Far clipping plane in meters.
+        eye_pose : int
+            Eye index.
 
         Returns
         -------
         ndarray
-            4x4 projection matrix.
+            4x4 view matrix.
 
         """
+        cdef ovr_math.Vector3f pos = \
+            <ovr_math.Vector3f>self.eyeLayer.RenderPose[eye].Position
+        cdef ovr_math.Quatf ori = \
+            <ovr_math.Quatf>self.eyeLayer.RenderPose[eye].Orientation
 
-        cdef np.ndarray pos = np.zeros((4,), dtype=np.float32)
-        pos[0] = eyePose.translation.x
-        pos[1] = eyePose.translation.y
-        pos[2] = eyePose.translation.z
-        pos[3] = 1.0
+        if not ori.IsNormalized():  # make sure orientation is normalized
+            ori.Normalize()
 
-        cdef float qw = eyePose.rotation.w
-        cdef float qx = eyePose.rotation.x
-        cdef float qy = eyePose.rotation.y
-        cdef float qz = eyePose.rotation.z
+        cdef ovr_math.Matrix4f rm = ovr_math.Matrix4f(ori)
+        cdef ovr_math.Vector3f up = \
+            rm.Transform(ovr_math.Vector3f(0., 1., 0.))
+        cdef ovr_math.Vector3f forward = \
+            rm.Transform(ovr_math.Vector3f(0., 0., -1.))
+        cdef ovr_math.Matrix4f view_mat = ovr_math.Matrix4f.LookAtRH(
+            pos, pos + forward, up)
 
-        cdef float qw2 = qw * qw
-        cdef float qx2 = qx * qx
-        cdef float qy2 = qy * qy
-        cdef float qz2 = qz * qz
+        # output array
+        cdef np.ndarray to_return = np.zeros((4, 4), dtype=np.float32)
+        cdef float [:, :] mv = to_return
+        cdef Py_ssize_t i, j
+        i = j = 0
+        for i in range(4):
+            for j in range(4):
+                mv[i, j] = view_mat.M[i][j]
 
-        # build the rotation matrix from the pose quaternion
-        cdef np.ndarray rotMat = np.zeros((4, 4), dtype=np.float32)
-        cdef float[:, :] rmat_view = rotMat  # fast-access
-        rmat_view[0, 0] = (qw2 + qx2 - qy2 - qz2)
-        rmat_view[1, 0] = 2.0 * (qx * qy + qw * qz)
-        rmat_view[2, 0] = 2.0 * (qx * qz - qw * qy)
-        #rmat_view[3, 0] = 0.0
-        rmat_view[0, 1] = 2.0 * (qx * qy - qw * qz)
-        rmat_view[1, 1] = (qw2 - qx2 + qy2 - qz2)
-        rmat_view[2, 1] = 2.0 * (qy * qz + qw * qx)
-        #rmat_view[3, 1] = 0.0
-        rmat_view[0, 2] = 2.0 * (qx * qz + qw * qy)
-        rmat_view[1, 2] = 2.0 * (qy * qz - qw * qx)
-        rmat_view[2, 2] = (qw2 - qx2 - qy2 + qz2)
-        #rmat_view[3, 2] = 0.0
-        #rmat_view[:3, 3] = 0.0
-        rmat_view[3, 3] = 1.0
+        return to_return
 
-        cdef np.ndarray finalUp = np.asarray((0, 1, 0, 1), dtype=np.float32)
-        cdef np.ndarray finalFwd = np.asarray((0, 0, -1, 1), dtype=np.float32)
-
-        np.matmul(finalUp, rotMat.T, finalUp)
-        np.matmul(finalFwd, rotMat.T, finalFwd)
-
-        finalUp = finalUp[:3]
-        finalFwd = finalFwd[:3]
-        pos = pos[:3]
-
-        cdef np.ndarray centerPos = pos + finalFwd
-        cdef np.ndarray f = centerPos - pos
-        f /= np.linalg.norm(f)
-        finalUp /= np.linalg.norm(finalUp)
-
-        cdef np.ndarray s = np.cross(f, finalUp)
-        cdef np.ndarray u = np.cross(s / np.linalg.norm(s), f)
-
-        rotMat = np.zeros((4, 4), np.float32)
-        rotMat[0, :3] = s
-        rotMat[1, :3] = u
-        rotMat[2, :3] = -f
-        rotMat[3, 3] = 1.0
-
-        transMat = np.zeros((4, 4), np.float32)
-        np.fill_diagonal(transMat, 1.0)
-        transMat[:3, 3] = -pos
-
-        return np.matmul(rotMat, transMat)
-
-    def get_predicted_display_time(self, frameIndex=0):
+    def get_predicted_display_time(self, unsigned int frame_index=0):
         """Get the predicted time a frame will be displayed.
 
         Parameters
         ----------
-        frameIndex : int
+        frame_index : int
             Frame index.
 
         Returns
@@ -1374,7 +1431,7 @@ cdef class LibOVRSession(object):
         """
         cdef double t_sec = ovr_capi.ovr_GetPredictedDisplayTime(
             self.ptrSession,
-            <int>frameIndex)
+            frame_index)
 
         return t_sec
 
@@ -1418,6 +1475,16 @@ cdef class LibOVRSession(object):
 
         cdef ovr_capi.ovrBool ret = ovr_capi.ovr_SetInt(
             self.ptrSession, b"PerfHudMode", perfHudMode)
+
+    def hide_perf_hud(self):
+        """Hide the performance HUD.
+
+        This is a convenience function that is equivalent to calling
+        'perf_hud_mode('Off').
+
+        """
+        cdef ovr_capi.ovrBool ret = ovr_capi.ovr_SetInt(
+            self.ptrSession, b"PerfHudMode", ovr_capi.ovrPerfHud_Off)
 
     @property
     def perf_hud_modes(self):
@@ -1796,6 +1863,37 @@ cdef class LibOVRSession(object):
         if self.debug_mode:
             check_result(result)
 
+    def get_input_state(self, str controller_type):
+        """Get the current state of a input device.
+
+        Parameters
+        ----------
+        controller_type : str
+            Controller name to poll. Valid names are: 'Xbox', 'Remote', 'Touch',
+            'LeftTouch', and 'RightTouch'.
+
+        Returns
+        -------
+        LibOVRControllerState
+            Object storing controller state information.
+
+        """
+        cdef dict _controller_types = {
+            'Xbox' : ovr_capi.ovrControllerType_XBox,
+            'Remote' : ovr_capi.ovrControllerType_Remote,
+            'Touch' : ovr_capi.ovrControllerType_Touch,
+            'LeftTouch' : ovr_capi.ovrControllerType_LTouch,
+            'RightTouch' : ovr_capi.ovrControllerType_RTouch}
+
+        cdef LibOVRInputState to_return = LibOVRInputState()
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
+            self.ptrSession,
+            <ovr_capi.ovrControllerType>_controller_types[controller_type],
+            to_return.c_data)
+
+        if debug_mode:
+            check_result(result)
+
 
 cdef class LibOVRPose(object):
     """Combined position and orientation data describing the pose of a body.
@@ -1877,6 +1975,36 @@ cdef class LibOVRPose(object):
         self.c_data[0].Orientation.y = <float>value[1]
         self.c_data[0].Orientation.z = <float>value[2]
         self.c_data[0].Orientation.w = <float>value[3]
+
+    def as_matrix(self):
+        """Convert this pose into a 4x4 transformation matrix.
+
+        Returns
+        -------
+        ndarray
+            4x4 transformation matrix.
+
+        """
+        cdef ovr_math.Matrix4f m_pose = ovr_math.Matrix4f(
+            <ovr_math.Posef>self.c_data[0])
+
+        cdef np.ndarray to_return = np.zeros((4, 4), dtype=np.float32)
+
+        # fast copy matrix to numpy array
+        cdef float [:, :] mv = to_return
+        cdef Py_ssize_t i, j
+        i = j = 0
+        for i in range(4):
+            for j in range(4):
+                mv[i, j] = m_pose.M[i][j]
+
+        return to_return
+
+    def normalize(self):
+        """Normalize the pose.
+        """
+        (<ovr_math.Posef>self.c_data[0]).Normalize()
+
 
 
 cdef class LibOVRPoseState(object):
@@ -2000,6 +2128,9 @@ cdef class LibOVRPoseState(object):
 
 
 cdef class LibOVRInputState(object):
+    """Class for storing the input state of a controller.
+
+    """
     cdef ovr_capi.ovrInputState* c_data
     cdef ovr_capi.ovrInputState c_ovrInputState
 
@@ -2032,21 +2163,78 @@ cdef class LibOVRInputState(object):
         return hand_trigger_left, hand_trigger_right
 
     @property
+    def thumbstick(self):
+        cdef float thumbstick_x0 = self.c_data[0].Thumbstick[0].x
+        cdef float thumbstick_y0 = self.c_data[0].Thumbstick[0].y
+        cdef float thumbstick_x1 = self.c_data[0].Thumbstick[1].x
+        cdef float thumbstick_y1 = self.c_data[0].Thumbstick[1].y
+
+        return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
+
+    @property
     def controller_type(self):
         cdef int ctrl_type = <int>self.c_data[0].ControllerType
 
         if ctrl_type == ovr_capi.ovrControllerType_XBox:
-            return 'xbox'
+            return 'Xbox'
         elif ctrl_type == ovr_capi.ovrControllerType_Remote:
-            return 'remote'
+            return 'Remote'
         elif ctrl_type == ovr_capi.ovrControllerType_Touch:
-            return 'touch'
+            return 'Touch'
         elif ctrl_type == ovr_capi.ovrControllerType_LTouch:
-            return 'ltouch'
+            return 'LeftTouch'
         elif ctrl_type == ovr_capi.ovrControllerType_RTouch:
-            return 'rtouch'
+            return 'RightTouch'
         else:
             return None
+
+    @property
+    def IndexTriggerNoDeadzone(self):
+        cdef float index_trigger_left = self.c_data[0].IndexTriggerNoDeadzone[0]
+        cdef float index_trigger_right = self.c_data[0].IndexTriggerNoDeadzone[
+            1]
+
+        return index_trigger_left, index_trigger_right
+
+    @property
+    def HandTriggerNoDeadzone(self):
+        cdef float hand_trigger_left = self.c_data[0].HandTriggerNoDeadzone[0]
+        cdef float hand_trigger_right = self.c_data[0].HandTriggerNoDeadzone[1]
+
+        return hand_trigger_left, hand_trigger_right
+
+    @property
+    def thumbstick_no_deadzone(self):
+        cdef float thumbstick_x0 = self.c_data[0].ThumbstickNoDeadzone[0].x
+        cdef float thumbstick_y0 = self.c_data[0].ThumbstickNoDeadzone[0].y
+        cdef float thumbstick_x1 = self.c_data[0].ThumbstickNoDeadzone[1].x
+        cdef float thumbstick_y1 = self.c_data[0].ThumbstickNoDeadzone[1].y
+
+        return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
+
+    @property
+    def index_trigger_raw(self):
+        cdef float index_trigger_left = self.c_data[0].IndexTriggerRaw[0]
+        cdef float index_trigger_right = self.c_data[0].IndexTriggerRaw[1]
+
+        return index_trigger_left, index_trigger_right
+
+    @property
+    def hand_trigger_raw(self):
+        cdef float hand_trigger_left = self.c_data[0].HandTriggerRaw[0]
+        cdef float hand_trigger_right = self.c_data[0].HandTriggerRaw[1]
+
+        return hand_trigger_left, hand_trigger_right
+
+    @property
+    def thumbstick_raw(self):
+        cdef float thumbstick_x0 = self.c_data[0].ThumbstickRaw[0].x
+        cdef float thumbstick_y0 = self.c_data[0].ThumbstickRaw[0].y
+        cdef float thumbstick_x1 = self.c_data[0].ThumbstickRaw[1].x
+        cdef float thumbstick_y1 = self.c_data[0].ThumbstickRaw[1].y
+
+        return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
+
 
 
 cdef class ovrInputState(object):
