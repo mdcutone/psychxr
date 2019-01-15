@@ -44,41 +44,6 @@ import numpy as np
 # Initialize module
 # -----------------
 #
-cdef ovr_capi.ovrInitParams _init_params_  # initialization parameters
-
-# HMD descriptor storing information about the HMD being used.
-#
-cdef ovr_capi.ovrHmdDesc _hmdDesc_
-
-# Since we are only using one session per module instance, so we are going to
-# create our session pointer here and use it module-wide.
-#
-cdef ovr_capi.ovrSession _ptrSession_
-cdef ovr_capi.ovrGraphicsLuid _ptrLuid_
-
-# Array of texture swap chains.
-#
-cdef ovr_capi.ovrTextureSwapChain _swapChains_[32]
-
-# mirror texture swap chain, we only create one here
-#
-cdef ovr_capi.ovrMirrorTexture _mirrorTexture_ = NULL
-
-# Persistent VR related structures to store head pose and other data used across
-# frames.
-#
-cdef ovr_capi.ovrEyeRenderDesc[2] _eyeRenderDesc_
-cdef ovr_capi.ovrPosef[2] _hmd_to_eye_view_pose_
-
-# Render layer
-#
-cdef ovr_capi.ovrLayerEyeFov _eyeLayer_
-
-# Arrays to store device poses.
-#
-cdef ovr_capi.ovrTrackedDeviceType[9] _device_types_
-cdef ovr_capi.ovrPoseStatef[9] _device_poses_
-
 # Function to check for errors returned by OVRLib functions
 #
 cdef ovr_capi.ovrErrorInfo _last_error_info_  # store our last error here
@@ -99,30 +64,10 @@ cdef float maxf(float a, float b):
 #
 debug_mode = False
 
-# Controller indices in controller state array.
-#
-ctypedef enum LibOVRControllers:
-    xbox = 0
-    remote = 1
-    touch = 2
-    left_touch = 3
-    right_touch = 4
-    count = 5
-
 # Store controller states.
 #
 cdef ovr_capi.ovrInputState _ctrl_states_[5]
 cdef ovr_capi.ovrInputState _ctrl_states_prev_[5]  # previous controller states
-
-# Controller indices look-up table.
-#
-cdef dict ctrl_index_lut = {
-    "xbox": LibOVRControllers.xbox,
-    "remote": LibOVRControllers.remote,
-    "touch": LibOVRControllers.touch,
-    "left_touch": LibOVRControllers.left_touch,
-    "right_touch": LibOVRControllers.right_touch
-}
 
 # Look-up table of button values to test which are pressed.
 #
@@ -149,7 +94,7 @@ cdef dict ctrl_button_lut = {
     "LMask": ovr_capi.ovrButton_LMask}
 
 # Python accessible list of valid button names.
-button_names = list(ctrl_button_lut.keys())
+button_names = [*ctrl_button_lut.keys()]
 
 # Look-up table of controller touches.
 #
@@ -261,7 +206,6 @@ cdef dict _controller_types = {
     'LeftTouch' : ovr_capi.ovrControllerType_LTouch,
     'RightTouch' : ovr_capi.ovrControllerType_RTouch}
 
-
 # return codes
 LIBOVR_SUCCESS = ovr_capi.ovrSuccess
 LIBOVR_SUCCESS_NOT_VISIBLE = ovr_capi.ovrSuccess_NotVisible
@@ -269,7 +213,7 @@ LIBOVR_SUCCESS_DEVICE_UNAVAILABLE = ovr_capi.ovrSuccess_DeviceUnavailable
 LIBOVR_SUCCESS_BOUNDARY_INVALID = ovr_capi.ovrSuccess_BoundaryInvalid
 
 
-def is_oculus_service_running(int timeout_ms=100):
+def isOculusServiceRunning(int timeout_ms=100):
     """Check if the Oculus Runtime is loaded and running.
 
     Parameters
@@ -287,7 +231,7 @@ def is_oculus_service_running(int timeout_ms=100):
 
     return <bint>result.IsOculusServiceRunning
 
-def is_hmd_connected(int timeout_ms=100):
+def isHmdConnected(int timeout_ms=100):
     """Check if an HMD is connected.
 
     Parameters
@@ -688,10 +632,13 @@ cdef class LibOVRSession(object):
     @property
     def trackerCount(self):
         """Number of connected trackers."""
-        return <int>ovr_capi.ovr_GetTrackerCount(self.ptrSession)
+        cdef unsigned int trackerCount = ovr_capi.ovr_GetTrackerCount(
+            self.ptrSession)
+
+        return <int>trackerCount
 
     @property
-    def defaultEyeFovs(self):
+    def defaultEyeFOVs(self):
         """Default or recommended eye field-of-views (FOVs) provided by the API.
 
         Returns
@@ -718,7 +665,7 @@ cdef class LibOVRSession(object):
         return fovLeft, fovRight
 
     @property
-    def maxEyeFovs(self):
+    def maxEyeFOVs(self):
         """Maximum eye field-of-views (FOVs) provided by the API.
 
         Returns
@@ -745,7 +692,7 @@ cdef class LibOVRSession(object):
         return fov_left, fov_right
 
     @property
-    def symmetricEyeFovs(self):
+    def symmetricEyeFOVs(self):
         """Symmetric field-of-views (FOVs) for mono rendering.
 
         By default, the Rift uses off-axis FOVs. These frustum parameters make
@@ -854,7 +801,7 @@ cdef class LibOVRSession(object):
 
             self.eyeLayer.Fov[i] = self.eyeRenderDesc[i].Fov
 
-    def getEyeRenderFov(self, int eye):
+    def getEyeRenderFOV(self, int eye):
         """Get the field-of-view of a given eye used to compute the projection
         matrix.
 
@@ -873,7 +820,7 @@ cdef class LibOVRSession(object):
 
         return to_return
 
-    def setEyeRenderFov(self, int eye, object fov):
+    def setEyeRenderFOV(self, int eye, object fov):
         """Set the field-of-view of a given eye. This is used to compute the
         projection matrix.
 
@@ -1326,7 +1273,7 @@ cdef class LibOVRSession(object):
 
         return tex_id
 
-    def getEyeProjectionMatrix(self, eye, nearClip=0.1, farClip=1000.0):
+    def getEyeProjectionMatrix(self, int eye, float nearClip=0.1, float farClip=1000.0):
         """Compute the projection matrix.
 
         The projection matrix is computed by the runtime using the eye FOV
@@ -1338,7 +1285,7 @@ cdef class LibOVRSession(object):
             Eye index.
         nearClip : float
             Near clipping plane in meters.
-        farClip
+        farClip : float
             Far clipping plane in meters.
 
         Returns
@@ -1383,18 +1330,25 @@ cdef class LibOVRSession(object):
             self.eyeLayer.Viewport[i].Size.w = <int>values[i][2]
             self.eyeLayer.Viewport[i].Size.h = <int>values[i][3]
 
-    def getEyeViewMatrix(self, int eye):
+    def getEyeViewMatrix(self, int eye, bint flatten=False):
         """Compute a view matrix for a specified eye.
+
+        View matrices are derived from the eye render poses calculated by the
+        last 'calcEyePoses' call.
 
         Parameters
         ----------
-        eye_pose : int
+        eye : int
             Eye index.
+        flatten : bool
+            Flatten the matrix into a 1D vector. This will create an array
+            suitable for use with OpenGL functions accepting column-major, 4x4
+            matrices as a length 16 vector of floats.
 
         Returns
         -------
         ndarray
-            4x4 view matrix.
+            4x4 view matrix (16x1 if flatten=True).
 
         """
         cdef ovr_math.Vector3f pos = \
@@ -1414,13 +1368,21 @@ cdef class LibOVRSession(object):
             pos, pos + forward, up)
 
         # output array
-        cdef np.ndarray to_return = np.zeros((4, 4), dtype=np.float32)
-        cdef float [:, :] mv = to_return
-        cdef Py_ssize_t i, j
-        i = j = 0
-        for i in range(4):
-            for j in range(4):
-                mv[i, j] = view_mat.M[i][j]
+        cdef np.ndarray[np.float32_t] to_return
+        cdef Py_ssize_t i, j, k, N
+        i = j = k = 0
+        N = 4
+        if flatten:
+            to_return = np.zeros((16,), dtype=np.float32)
+            for i in range(N):
+                for j in range(N):
+                    to_return[k] = view_mat.M[j][i]
+                    k += 1
+        else:
+            to_return = np.zeros((4, 4), dtype=np.float32)
+            for i in range(N):
+                for j in range(N):
+                    to_return[i, j] = view_mat.M[i][j]
 
         return to_return
 
@@ -1739,12 +1701,12 @@ cdef class LibOVRSession(object):
         if self.debugMode:
             check_result(result)
 
-    def getTrackerFrustum(self, int tracker_index):
+    def getTrackerFrustum(self, int trackerIndex):
         """Get the frustum parameters of a specified position tracker/sensor.
 
         Parameters
         ----------
-        tracker_index : int
+        trackerIndex : int
             The index of the sensor to query. Valid values are between 0 and
             '~LibOVRSession.trackerCount'.
 
@@ -1757,7 +1719,7 @@ cdef class LibOVRSession(object):
 
         """
         cdef ovr_capi.ovrTrackerDesc tracker_desc = ovr_capi.ovr_GetTrackerDesc(
-            self.ptrSession, <unsigned int>tracker_index)
+            self.ptrSession, <unsigned int>trackerIndex)
 
         cdef np.ndarray to_return = np.asarray([
             tracker_desc.FrustumHFovInRadians,
@@ -1768,9 +1730,26 @@ cdef class LibOVRSession(object):
 
         return to_return
 
-    def getTrackerInfo(self):
-        """Get position tracker/sensor information."""
-        pass
+    def getTrackerInfo(self, int trackerIndex):
+        """Get information about a given tracker.
+
+        Parameters
+        ----------
+        trackerIndex : int
+            The index of the sensor to query. Valid values are between 0 and
+            '~LibOVRSession.trackerCount'.
+
+        """
+        cdef LibOVRTrackerInfo to_return = LibOVRTrackerInfo()
+
+        # set the descriptor data
+        to_return.c_ovrTrackerDesc = ovr_capi.ovr_GetTrackerDesc(
+            self.ptrSession, <unsigned int>trackerIndex)
+        # get the tracker pose
+        to_return.c_ovrTrackerPose = ovr_capi.ovr_GetTrackerPose(
+            self.ptrSession, <unsigned int>trackerIndex)
+
+        return to_return
 
     @property
     def maxProvidedFrameStats(self):
@@ -1905,12 +1884,7 @@ cdef class LibOVRSession(object):
 
 
 cdef class LibOVRPose(object):
-    """Combined position and orientation data describing the pose of a body.
-
-    Data is internally stored using a 'ovrPosef' structure which is passed to
-    LibOVR. Attributes 'pos' and 'ori' return copies of the structure's fields
-    formatted as NumPy arrays. You can set the fields by passing any array-like
-    object to those attributes.
+    """Class for rigid body pose data for LibOVR.
 
     """
     cdef ovr_capi.ovrPosef* c_data
@@ -1955,7 +1929,22 @@ cdef class LibOVRPose(object):
 
     @property
     def pos(self):
-        """Position vector (`ndarray` of `float`).
+        """Position vector X, Y, Z (`ndarray` of `float`).
+
+        The returned object is a NumPy array which references data stored in an
+        internal structure (ovrPosef). The array is conformal with the internal
+        data's type (float32) and size (length 3).
+
+        Examples
+        --------
+        Set the position of the pose manually::
+
+            myPose.pos = [5., 6., 7.]
+
+        Add 1 unit to the position's Z component::
+
+            myPose.pos[2] += 1.
+
         """
         self._pos.data = <char*>&self.c_data.Position.x
         return self._pos
@@ -1968,7 +1957,13 @@ cdef class LibOVRPose(object):
 
     @property
     def ori(self):
-        """Orientation quaternion (`ndarray` of `float`).
+        """Orientation quaternion X, Y, Z, W (`ndarray` of `float`).
+
+        Components X, Y, Z are imaginary and W is real.
+
+        The returned object is a NumPy array which references data stored in an
+        internal structure (ovrPosef). The array is conformal with the internal
+        data's type (float32) and size (length 3).
 
         Notes
         -----
@@ -1984,6 +1979,23 @@ cdef class LibOVRPose(object):
         self.c_data[0].Orientation.y = <float>value[1]
         self.c_data[0].Orientation.z = <float>value[2]
         self.c_data[0].Orientation.w = <float>value[3]
+
+    def __mul__(LibOVRPose a, LibOVRPose b):
+        cdef ovr_math.Posef pose_a = <ovr_math.Posef>a.c_data[0]
+        cdef ovr_math.Posef pose_b = <ovr_math.Posef>b.c_data[0]
+        cdef ovr_math.Posef pose_r = pose_a * pose_b
+
+        cdef LibOVRPose to_return = \
+            LibOVRPose(
+                (pose_r.Rotation.x,
+                 pose_r.Rotation.y,
+                 pose_r.Rotation.z,
+                 pose_r.Rotation.w),
+                (pose_r.Translation.x,
+                 pose_r.Translation.y,
+                 pose_r.Translation.z),)
+
+        return to_return
 
     def asMatrix(self):
         """Convert this pose into a 4x4 transformation matrix.
@@ -2010,7 +2022,7 @@ cdef class LibOVRPose(object):
 
         return to_return
 
-    def asArray(self):
+    def asMatrix1D(self):
         """Convert this pose into a 1D (flattened) transform matrix.
 
         This will output an array suitable for use with OpenGL.
@@ -2028,7 +2040,7 @@ cdef class LibOVRPose(object):
             np.zeros((16,), dtype=np.float32)
 
         # fast copy matrix to numpy array
-        cdef float [:, :] mv = to_return
+        cdef float [:] mv = to_return
         cdef Py_ssize_t i, j, k, N
         i = j = k = 0
         N = 4
@@ -2061,13 +2073,13 @@ cdef class LibOVRPose(object):
                 -(<ovr_math.Vector3f>self.c_data[0].Position))
         cdef LibOVRPose to_return = \
             LibOVRPose(
-                (self.c_data[0].Position.x,
-                 self.c_data[0].Position.y,
-                 self.c_data[0].Position.z),
                 (self.c_data[0].Orientation.x,
                  self.c_data[0].Orientation.y,
                  self.c_data[0].Orientation.z,
-                 self.c_data[0].Orientation.w))
+                 self.c_data[0].Orientation.w),
+                (self.c_data[0].Position.x,
+                 self.c_data[0].Position.y,
+                 self.c_data[0].Position.z))
 
     def rotate(self, object v):
         """Rotate a position vector.
@@ -2500,547 +2512,624 @@ cdef class LibOVRInputState(object):
         return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
 
 
-cpdef object getInputState(str controller, object stateOut=None):
-    """Get a controller state as an object. If a 'InputStateData' object is
-    passed to 'state_out', that object will be updated.
-    
-    :param controller: str
-    :param state_out: InputStateData or None
-    :return: InputStateData or None
-    
+cdef class LibOVRTrackerInfo(object):
+    """Class for information about camera based tracking sensors.
+
     """
-    cdef ovr_capi.ovrControllerType ctrl_type
-    if controller == 'xbox':
-        ctrl_type = ovr_capi.ovrControllerType_XBox
-    elif controller == 'remote':
-        ctrl_type = ovr_capi.ovrControllerType_Remote
-    elif controller == 'touch':
-        ctrl_type = ovr_capi.ovrControllerType_Touch
-    elif controller == 'left_touch':
-        ctrl_type = ovr_capi.ovrControllerType_LTouch
-    elif controller == 'right_touch':
-        ctrl_type = ovr_capi.ovrControllerType_RTouch
+    cdef ovr_capi.ovrTrackerPose c_ovrTrackerPose
+    cdef ovr_capi.ovrTrackerDesc c_ovrTrackerDesc
 
-    # create a controller state object and set its data
-    global _ptrSession_
-    cdef ovr_capi.ovrInputState*ptr_state
-    cdef LibOVRInputState to_return = LibOVRInputState()
+    cdef LibOVRPose _trackerPose
+    cdef LibOVRPose _leveledPose
 
-    if stateOut is None:
-        ptr_state = &(<LibOVRInputState> to_return).c_ovrInputState
-    else:
-        ptr_state = &(<LibOVRInputState> stateOut).c_ovrInputState
+    def __cinit__(self):
+        self._trackerPose.c_data = &self.c_ovrTrackerPose.Pose
+        self._leveledPose.c_data = &self.c_ovrTrackerPose.LeveledPose
 
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
-        _ptrSession_,
-        ctrl_type,
-        ptr_state)
+    @property
+    def pose(self):
+        """The pose of the sensor (`LibOVRPose`)."""
+        return self._trackerPose
 
-    if stateOut is None:
-        return None
+    @property
+    def leveledPose(self):
+        """Gravity aligned pose of the sensor (`LibOVRPose`)."""
+        return self._leveledPose
 
-    return to_return
+    @property
+    def isConnected(self):
+        """True if the sensor is connected and available (`bool`)."""
+        return <bint>((ovr_capi.ovrTracker_Connected &
+             self.c_ovrTrackerPose.TrackerFlags) == ovr_capi.ovrTracker_Connected)
 
-cpdef double pollController(str controller):
-    """Poll and update specified controller's state data. The time delta in 
-    seconds between the current and previous controller state is returned.
-    
-    :param controller: str or None
-    :return: double
-    
-    """
-    global _ptrSession_, _ctrl_states_, _ctrl_states_prev_
-    cdef ovr_capi.ovrInputState*ptr_ctrl = NULL
-    cdef ovr_capi.ovrInputState*ptr_ctrl_prev = NULL
+    @property
+    def isPoseTracked(self):
+        """True if the sensor has a valid pose (`bool`)."""
+        return <bint>((ovr_capi.ovrTracker_PoseTracked &
+             self.c_ovrTrackerPose.TrackerFlags) == ovr_capi.ovrTracker_PoseTracked)
 
-    cdef ovr_capi.ovrControllerType ctrl_type
-    if controller == 'xbox':
-        ctrl_type = ovr_capi.ovrControllerType_XBox
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.xbox]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.xbox]
-    elif controller == 'remote':
-        ctrl_type = ovr_capi.ovrControllerType_Remote
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.remote]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.remote]
-    elif controller == 'touch':
-        ctrl_type = ovr_capi.ovrControllerType_Touch
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.touch]
-    elif controller == 'left_touch':
-        ctrl_type = ovr_capi.ovrControllerType_LTouch
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.left_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.left_touch]
-    elif controller == 'right_touch':
-        ctrl_type = ovr_capi.ovrControllerType_RTouch
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.right_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.right_touch]
+    @property
+    def frustum(self):
+        """Frustum parameters of the sensor as an array (`ndarray`).
 
-    # copy the previous control state
-    ptr_ctrl_prev[0] = ptr_ctrl[0]
+        Returns
+        -------
+        ndarray
+            Frustum parameters [HFovInRadians, VFovInRadians, NearZInMeters,
+            FarZInMeters].
 
-    # update the current controller state
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
-        _ptrSession_,
-        ctrl_type,
-        ptr_ctrl)
+        """
+        cdef np.ndarray to_return = np.asarray([
+            self.c_ovrTrackerDesc.FrustumHFovInRadians,
+            self.c_ovrTrackerDesc.FrustumVFovInRadians,
+            self.c_ovrTrackerDesc.FrustumNearZInMeters,
+            self.c_ovrTrackerDesc.FrustumFarZInMeters],
+            dtype=np.float32)
 
-    if debug_mode:
-        check_result(result)
+        return to_return
 
-    # return the time delta between the last time the controller was polled
-    return ptr_ctrl[0].TimeInSeconds - ptr_ctrl_prev[0].TimeInSeconds
+    @property
+    def horizontalFOV(self):
+        """Horizontal FOV of the sensor in radians (`float`)."""
+        return self.c_ovrTrackerDesc.FrustumHFovInRadians
 
-cpdef double getControllerAbsTime(str controller):
-    """Get the absolute time the state of the specified controller was last 
-    updated.
-    
-    :param controller: str or None
-    :return: float
-    
-    """
-    # get pointer to control state
-    global _ctrl_states_
-    cdef ovr_capi.ovrInputState*ptr_ctrl_state = NULL
-    if controller == 'xbox':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.xbox]
-    elif controller == 'remote':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.remote]
-    elif controller == 'touch':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.touch]
-    elif controller == 'left_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.left_touch]
-    elif controller == 'right_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+    @property
+    def verticalFOV(self):
+        """Vertical FOV of the sensor in radians (`float`)."""
+        return self.c_ovrTrackerDesc.FrustumVFovInRadians
 
-    return ptr_ctrl_state[0].TimeInSeconds
+    @property
+    def nearZ(self):
+        """Near clipping plane of the sensor frustum in meters (`float`)."""
+        return self.c_ovrTrackerDesc.FrustumNearZInMeters
 
-cpdef tuple getIndexTriggerValues(str controller, bint deadZone=False):
-    """Get index trigger values for a specified controller.
-    
-    :param controller: str
-    :param deadZone: boolean
-    :return: tuple
-    
-    """
-    # get pointer to control state
-    global _ctrl_states_
-    cdef ovr_capi.ovrInputState*ptr_ctrl_state = NULL
-    if controller == 'xbox':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.xbox]
-    elif controller == 'remote':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.remote]
-    elif controller == 'touch':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.touch]
-    elif controller == 'left_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.left_touch]
-    elif controller == 'right_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+    @property
+    def farZ(self):
+        """Far clipping plane of the sensor frustum in meters (`float`)."""
+        return self.c_ovrTrackerDesc.FrustumFarZInMeters
 
-    cdef float index_trigger_left = 0.0
-    cdef float index_trigger_right = 0.0
 
-    # get the value with or without the deadzone
-    if not deadZone:
-        index_trigger_left = ptr_ctrl_state[0].IndexTriggerNoDeadzone[0]
-        index_trigger_right = ptr_ctrl_state[0].IndexTriggerNoDeadzone[1]
-    else:
-        index_trigger_left = ptr_ctrl_state[0].IndexTrigger[0]
-        index_trigger_right = ptr_ctrl_state[0].IndexTrigger[1]
-
-    return index_trigger_left, index_trigger_right
-
-cpdef tuple getHandTriggerValues(str controller, bint deadZone=False):
-    """Get hand trigger values for a specified controller.
-    
-    :param controller: str
-    :param deadzone: boolean
-    :return: tuple
-    
-    """
-    # get pointer to control state
-    global _ctrl_states_
-    cdef ovr_capi.ovrInputState*ptr_ctrl_state = NULL
-    if controller == 'xbox':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.xbox]
-    elif controller == 'remote':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.remote]
-    elif controller == 'touch':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.touch]
-    elif controller == 'left_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.left_touch]
-    elif controller == 'right_touch':
-        ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.right_touch]
-
-    cdef float hand_trigger_left = 0.0
-    cdef float hand_trigger_right = 0.0
-
-    # get the value with or without the deadzone
-    if not deadZone:
-        hand_trigger_left = ptr_ctrl_state[0].HandTriggerNoDeadzone[0]
-        hand_trigger_right = ptr_ctrl_state[0].HandTriggerNoDeadzone[1]
-    else:
-        hand_trigger_left = ptr_ctrl_state[0].HandTrigger[0]
-        hand_trigger_right = ptr_ctrl_state[0].HandTrigger[1]
-
-    return hand_trigger_left, hand_trigger_right
-
-cdef float clip_input_range(float val):
-    """Constrain an analog input device's range between -1.0 and 1.0. This is 
-    only accessible from module functions.
-    
-    :param val: float
-    :return: float
-    
-    """
-    if val > 1.0:
-        val = 1.0
-    elif val < 1.0:
-        val = 1.0
-
-    return val
-
-cpdef tuple getThumbstickValues(str controller, bint deadZone=False):
-    """Get thumbstick values for a specified controller.
-    
-    :param controller: 
-    :param dead_zone: 
-    :return: tuple
-    
-    """
-    # get pointer to control state
-    global _ctrl_states_
-    cdef ovr_capi.ovrInputState*ptr_ctrl = NULL
-    cdef ovr_capi.ovrInputState*ptr_ctrl_prev = NULL
-    if controller == 'xbox':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.xbox]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.xbox]
-    elif controller == 'remote':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.remote]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.remote]
-    elif controller == 'touch':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.touch]
-    elif controller == 'left_touch':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.left_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.left_touch]
-    elif controller == 'right_touch':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.right_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.right_touch]
-
-    cdef float thumbstick0_x = 0.0
-    cdef float thumbstick0_y = 0.0
-    cdef float thumbstick1_x = 0.0
-    cdef float thumbstick1_y = 0.0
-
-    # get the value with or without the deadzone
-    if not deadZone:
-        thumbstick0_x = ptr_ctrl[0].Thumbstick[0].x
-        thumbstick0_y = ptr_ctrl[0].Thumbstick[0].y
-        thumbstick1_x = ptr_ctrl[0].Thumbstick[1].x
-        thumbstick1_y = ptr_ctrl[0].Thumbstick[1].y
-    else:
-        thumbstick0_x = ptr_ctrl[0].ThumbstickNoDeadzone[0].x
-        thumbstick0_y = ptr_ctrl[0].ThumbstickNoDeadzone[0].y
-        thumbstick1_x = ptr_ctrl[0].ThumbstickNoDeadzone[1].x
-        thumbstick1_y = ptr_ctrl[0].ThumbstickNoDeadzone[1].y
-
-    # clip range
-    thumbstick0_x = clip_input_range(thumbstick0_x)
-    thumbstick0_y = clip_input_range(thumbstick0_y)
-    thumbstick1_x = clip_input_range(thumbstick1_x)
-    thumbstick1_y = clip_input_range(thumbstick1_y)
-
-    return (thumbstick0_x, thumbstick0_y), (thumbstick1_x, thumbstick1_y)
-
-cpdef bint getButtons(str controller, object buttonNames,
-                      str trigger='continuous'):
-    """Get the state of a specified button for a given controller. 
-    
-    Buttons to test are specified using their string names. Argument
-    'button_names' accepts a single string or a list. If a list is specified,
-    the returned value will reflect whether all buttons were triggered at the
-    time the controller was polled last. 
-    
-    An optional trigger mode may be specified which defines the button's
-    activation criteria. Be default, trigger='continuous' which will return the
-    immediate state of the button is used. Using 'rising' will return True once 
-    when the button is first pressed, whereas 'falling' will return True once 
-    the button is released.
-    
-    :param controller: str
-    :param buttonNames: str, tuple or list
-    :param trigger: str
-    :return: boolean
-    
-    """
-    # get pointer to control state
-    global _ctrl_states_
-    cdef ovr_capi.ovrInputState*ptr_ctrl = NULL
-    cdef ovr_capi.ovrInputState*ptr_ctrl_prev = NULL
-    if controller == 'xbox':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.xbox]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.xbox]
-    elif controller == 'remote':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.remote]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.remote]
-    elif controller == 'touch':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.touch]
-    elif controller == 'left_touch':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.left_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.left_touch]
-    elif controller == 'right_touch':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.right_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.right_touch]
-
-    cdef unsigned int button_bits = 0x00000000
-    cdef int i, N
-    if isinstance(buttonNames, str):  # don't loop if a string is specified
-        button_bits |= ctrl_button_lut[buttonNames]
-    elif isinstance(buttonNames, (tuple, list)):
-        # loop over all names and combine them
-        N = <int> len(buttonNames)
-        for i in range(N):
-            button_bits |= ctrl_button_lut[buttonNames[i]]
-
-    # test if the button was pressed
-    cdef bint pressed
-    if trigger == 'continuous':
-        pressed = (ptr_ctrl.Buttons & button_bits) == button_bits
-    elif trigger == 'rising' or trigger == 'pressed':
-        # rising edge, will trigger once when pressed
-        pressed = (ptr_ctrl.Buttons & button_bits) == button_bits and \
-                  (ptr_ctrl_prev.Buttons & button_bits) != button_bits
-    elif trigger == 'falling' or trigger == 'released':
-        # falling edge, will trigger once when released
-        pressed = (ptr_ctrl.Buttons & button_bits) != button_bits and \
-                  (ptr_ctrl_prev.Buttons & button_bits) == button_bits
-    else:
-        raise ValueError("Invalid trigger mode specified.")
-
-    return pressed
-
-cpdef bint getTouches(str controller, object touchNames,
-                      str trigger='continuous'):
-    """Get touches for a specified device.
-    
-    Touches reveal information about the user's hand pose, for instance, whether 
-    a pointing or pinching gesture is being made. Oculus Touch controllers are
-    required for this functionality.
-
-    Touch points to test are specified using their string names. Argument
-    'touch_names' accepts a single string or a list. If a list is specified,
-    the returned value will reflect whether all touches were triggered at the
-    time the controller was polled last. 
-    
-    :param controller: str
-    :param touchNames: str, tuple or list
-    :param trigger: str
-    :return: boolean
-    
-    """
-    # get pointer to control state
-    global _ctrl_states_
-    cdef ovr_capi.ovrInputState*ptr_ctrl = NULL
-    cdef ovr_capi.ovrInputState*ptr_ctrl_prev = NULL
-    if controller == 'xbox':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.xbox]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.xbox]
-    elif controller == 'remote':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.remote]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.remote]
-    elif controller == 'touch':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.touch]
-    elif controller == 'left_touch':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.left_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.left_touch]
-    elif controller == 'right_touch':
-        ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.right_touch]
-        ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.right_touch]
-
-    cdef unsigned int touch_bits = 0x00000000
-    cdef int i, N
-    if isinstance(touchNames, str):  # don't loop if a string is specified
-        touch_bits |= ctrl_button_lut[touchNames]
-    elif isinstance(touchNames, (tuple, list)):
-        # loop over all names and combine them
-        N = <int> len(touchNames)
-        for i in range(N):
-            touch_bits |= ctrl_button_lut[touchNames[i]]
-
-    # test if the button was pressed
-    cdef bint touched
-    if trigger == 'continuous':
-        touched = (ptr_ctrl.Touches & touch_bits) == touch_bits
-    elif trigger == 'rising' or trigger == 'pressed':
-        # rising edge, will trigger once when pressed
-        touched = (ptr_ctrl.Touches & touch_bits) == touch_bits and \
-                  (ptr_ctrl_prev.Touches & touch_bits) != touch_bits
-    elif trigger == 'falling' or trigger == 'released':
-        # falling edge, will trigger once when released
-        touched = (ptr_ctrl.Touches & touch_bits) != touch_bits and \
-                  (ptr_ctrl_prev.Touches & touch_bits) == touch_bits
-    else:
-        raise ValueError("Invalid trigger mode specified.")
-
-    return touched
-
-# List of controller names that are available to the user. These are handled by
-# the SDK, additional joysticks, keyboards and mice must be accessed by some
-# other method.
+# cpdef object getInputState(str controller, object stateOut=None):
+#     """Get a controller state as an object. If a 'InputStateData' object is
+#     passed to 'state_out', that object will be updated.
 #
-controller_names = ['xbox', 'remote', 'touch', 'left_touch', 'right_touch']
+#     :param controller: str
+#     :param state_out: InputStateData or None
+#     :return: InputStateData or None
+#
+#     """
+#     cdef ovr_capi.ovrControllerType ctrl_type
+#     if controller == 'xbox':
+#         ctrl_type = ovr_capi.ovrControllerType_XBox
+#     elif controller == 'remote':
+#         ctrl_type = ovr_capi.ovrControllerType_Remote
+#     elif controller == 'touch':
+#         ctrl_type = ovr_capi.ovrControllerType_Touch
+#     elif controller == 'left_touch':
+#         ctrl_type = ovr_capi.ovrControllerType_LTouch
+#     elif controller == 'right_touch':
+#         ctrl_type = ovr_capi.ovrControllerType_RTouch
+#
+#     # create a controller state object and set its data
+#     global _ptrSession_
+#     cdef ovr_capi.ovrInputState*ptr_state
+#     cdef LibOVRInputState to_return = LibOVRInputState()
+#
+#     if stateOut is None:
+#         ptr_state = &(<LibOVRInputState> to_return).c_ovrInputState
+#     else:
+#         ptr_state = &(<LibOVRInputState> stateOut).c_ovrInputState
+#
+#     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
+#         _ptrSession_,
+#         ctrl_type,
+#         ptr_state)
+#
+#     if stateOut is None:
+#         return None
+#
+#     return to_return
 
-cpdef list getConnectedControllerTypes():
-    """Get a list of currently connected controllers. You can check if a
-    controller is attached by testing for its membership in the list using its
-    name.
-    
-    :return: list  
-    
-    """
-    cdef unsigned int result = ovr_capi.ovr_GetConnectedControllerTypes(
-        _ptrSession_)
+# cpdef double pollController(str controller):
+#     """Poll and update specified controller's state data. The time delta in
+#     seconds between the current and previous controller state is returned.
+#
+#     :param controller: str or None
+#     :return: double
+#
+#     """
+#     global _ptrSession_, _ctrl_states_, _ctrl_states_prev_
+#     cdef ovr_capi.ovrInputState*ptr_ctrl = NULL
+#     cdef ovr_capi.ovrInputState*ptr_ctrl_prev = NULL
+#
+#     cdef ovr_capi.ovrControllerType ctrl_type
+#     if controller == 'xbox':
+#         ctrl_type = ovr_capi.ovrControllerType_XBox
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.xbox]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.xbox]
+#     elif controller == 'remote':
+#         ctrl_type = ovr_capi.ovrControllerType_Remote
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.remote]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.remote]
+#     elif controller == 'touch':
+#         ctrl_type = ovr_capi.ovrControllerType_Touch
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.touch]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.touch]
+#     elif controller == 'left_touch':
+#         ctrl_type = ovr_capi.ovrControllerType_LTouch
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.left_touch]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.left_touch]
+#     elif controller == 'right_touch':
+#         ctrl_type = ovr_capi.ovrControllerType_RTouch
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.right_touch]
+#
+#     # copy the previous control state
+#     ptr_ctrl_prev[0] = ptr_ctrl[0]
+#
+#     # update the current controller state
+#     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
+#         _ptrSession_,
+#         ctrl_type,
+#         ptr_ctrl)
+#
+#     if debug_mode:
+#         check_result(result)
+#
+#     # return the time delta between the last time the controller was polled
+#     return ptr_ctrl[0].TimeInSeconds - ptr_ctrl_prev[0].TimeInSeconds
 
-    cdef list ctrl_types = list()
-    if (result & ovr_capi.ovrControllerType_XBox) == \
-            ovr_capi.ovrControllerType_XBox:
-        ctrl_types.append('xbox')
-    elif (result & ovr_capi.ovrControllerType_Remote) == \
-            ovr_capi.ovrControllerType_Remote:
-        ctrl_types.append('remote')
-    elif (result & ovr_capi.ovrControllerType_Touch) == \
-            ovr_capi.ovrControllerType_Touch:
-        ctrl_types.append('touch')
-    elif (result & ovr_capi.ovrControllerType_LTouch) == \
-            ovr_capi.ovrControllerType_LTouch:
-        ctrl_types.append('left_touch')
-    elif (result & ovr_capi.ovrControllerType_RTouch) == \
-            ovr_capi.ovrControllerType_RTouch:
-        ctrl_types.append('right_touch')
-
-    return ctrl_types
+# cpdef double getControllerAbsTime(str controller):
+#     """Get the absolute time the state of the specified controller was last
+#     updated.
+#
+#     :param controller: str or None
+#     :return: float
+#
+#     """
+#     # get pointer to control state
+#     global _ctrl_states_
+#     cdef ovr_capi.ovrInputState*ptr_ctrl_state = NULL
+#     if controller == 'xbox':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.xbox]
+#     elif controller == 'remote':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.remote]
+#     elif controller == 'touch':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.touch]
+#     elif controller == 'left_touch':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.left_touch]
+#     elif controller == 'right_touch':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+#
+#     return ptr_ctrl_state[0].TimeInSeconds
+#
+# cpdef tuple getIndexTriggerValues(str controller, bint deadZone=False):
+#     """Get index trigger values for a specified controller.
+#
+#     :param controller: str
+#     :param deadZone: boolean
+#     :return: tuple
+#
+#     """
+#     # get pointer to control state
+#     global _ctrl_states_
+#     cdef ovr_capi.ovrInputState*ptr_ctrl_state = NULL
+#     if controller == 'xbox':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.xbox]
+#     elif controller == 'remote':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.remote]
+#     elif controller == 'touch':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.touch]
+#     elif controller == 'left_touch':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.left_touch]
+#     elif controller == 'right_touch':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+#
+#     cdef float index_trigger_left = 0.0
+#     cdef float index_trigger_right = 0.0
+#
+#     # get the value with or without the deadzone
+#     if not deadZone:
+#         index_trigger_left = ptr_ctrl_state[0].IndexTriggerNoDeadzone[0]
+#         index_trigger_right = ptr_ctrl_state[0].IndexTriggerNoDeadzone[1]
+#     else:
+#         index_trigger_left = ptr_ctrl_state[0].IndexTrigger[0]
+#         index_trigger_right = ptr_ctrl_state[0].IndexTrigger[1]
+#
+#     return index_trigger_left, index_trigger_right
+#
+# cpdef tuple getHandTriggerValues(str controller, bint deadZone=False):
+#     """Get hand trigger values for a specified controller.
+#
+#     :param controller: str
+#     :param deadzone: boolean
+#     :return: tuple
+#
+#     """
+#     # get pointer to control state
+#     global _ctrl_states_
+#     cdef ovr_capi.ovrInputState*ptr_ctrl_state = NULL
+#     if controller == 'xbox':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.xbox]
+#     elif controller == 'remote':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.remote]
+#     elif controller == 'touch':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.touch]
+#     elif controller == 'left_touch':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.left_touch]
+#     elif controller == 'right_touch':
+#         ptr_ctrl_state = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+#
+#     cdef float hand_trigger_left = 0.0
+#     cdef float hand_trigger_right = 0.0
+#
+#     # get the value with or without the deadzone
+#     if not deadZone:
+#         hand_trigger_left = ptr_ctrl_state[0].HandTriggerNoDeadzone[0]
+#         hand_trigger_right = ptr_ctrl_state[0].HandTriggerNoDeadzone[1]
+#     else:
+#         hand_trigger_left = ptr_ctrl_state[0].HandTrigger[0]
+#         hand_trigger_right = ptr_ctrl_state[0].HandTrigger[1]
+#
+#     return hand_trigger_left, hand_trigger_right
+#
+# cdef float clip_input_range(float val):
+#     """Constrain an analog input device's range between -1.0 and 1.0. This is
+#     only accessible from module functions.
+#
+#     :param val: float
+#     :return: float
+#
+#     """
+#     if val > 1.0:
+#         val = 1.0
+#     elif val < 1.0:
+#         val = 1.0
+#
+#     return val
+#
+# cpdef tuple getThumbstickValues(str controller, bint deadZone=False):
+#     """Get thumbstick values for a specified controller.
+#
+#     :param controller:
+#     :param dead_zone:
+#     :return: tuple
+#
+#     """
+#     # get pointer to control state
+#     global _ctrl_states_
+#     cdef ovr_capi.ovrInputState*ptr_ctrl = NULL
+#     cdef ovr_capi.ovrInputState*ptr_ctrl_prev = NULL
+#     if controller == 'xbox':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.xbox]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.xbox]
+#     elif controller == 'remote':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.remote]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.remote]
+#     elif controller == 'touch':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.touch]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.touch]
+#     elif controller == 'left_touch':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.left_touch]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.left_touch]
+#     elif controller == 'right_touch':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.right_touch]
+#
+#     cdef float thumbstick0_x = 0.0
+#     cdef float thumbstick0_y = 0.0
+#     cdef float thumbstick1_x = 0.0
+#     cdef float thumbstick1_y = 0.0
+#
+#     # get the value with or without the deadzone
+#     if not deadZone:
+#         thumbstick0_x = ptr_ctrl[0].Thumbstick[0].x
+#         thumbstick0_y = ptr_ctrl[0].Thumbstick[0].y
+#         thumbstick1_x = ptr_ctrl[0].Thumbstick[1].x
+#         thumbstick1_y = ptr_ctrl[0].Thumbstick[1].y
+#     else:
+#         thumbstick0_x = ptr_ctrl[0].ThumbstickNoDeadzone[0].x
+#         thumbstick0_y = ptr_ctrl[0].ThumbstickNoDeadzone[0].y
+#         thumbstick1_x = ptr_ctrl[0].ThumbstickNoDeadzone[1].x
+#         thumbstick1_y = ptr_ctrl[0].ThumbstickNoDeadzone[1].y
+#
+#     # clip range
+#     thumbstick0_x = clip_input_range(thumbstick0_x)
+#     thumbstick0_y = clip_input_range(thumbstick0_y)
+#     thumbstick1_x = clip_input_range(thumbstick1_x)
+#     thumbstick1_y = clip_input_range(thumbstick1_y)
+#
+#     return (thumbstick0_x, thumbstick0_y), (thumbstick1_x, thumbstick1_y)
+#
+# cpdef bint getButtons(str controller, object buttonNames,
+#                       str trigger='continuous'):
+#     """Get the state of a specified button for a given controller.
+#
+#     Buttons to test are specified using their string names. Argument
+#     'button_names' accepts a single string or a list. If a list is specified,
+#     the returned value will reflect whether all buttons were triggered at the
+#     time the controller was polled last.
+#
+#     An optional trigger mode may be specified which defines the button's
+#     activation criteria. Be default, trigger='continuous' which will return the
+#     immediate state of the button is used. Using 'rising' will return True once
+#     when the button is first pressed, whereas 'falling' will return True once
+#     the button is released.
+#
+#     :param controller: str
+#     :param buttonNames: str, tuple or list
+#     :param trigger: str
+#     :return: boolean
+#
+#     """
+#     # get pointer to control state
+#     global _ctrl_states_
+#     cdef ovr_capi.ovrInputState*ptr_ctrl = NULL
+#     cdef ovr_capi.ovrInputState*ptr_ctrl_prev = NULL
+#     if controller == 'xbox':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.xbox]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.xbox]
+#     elif controller == 'remote':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.remote]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.remote]
+#     elif controller == 'touch':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.touch]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.touch]
+#     elif controller == 'left_touch':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.left_touch]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.left_touch]
+#     elif controller == 'right_touch':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.right_touch]
+#
+#     cdef unsigned int button_bits = 0x00000000
+#     cdef int i, N
+#     if isinstance(buttonNames, str):  # don't loop if a string is specified
+#         button_bits |= ctrl_button_lut[buttonNames]
+#     elif isinstance(buttonNames, (tuple, list)):
+#         # loop over all names and combine them
+#         N = <int> len(buttonNames)
+#         for i in range(N):
+#             button_bits |= ctrl_button_lut[buttonNames[i]]
+#
+#     # test if the button was pressed
+#     cdef bint pressed
+#     if trigger == 'continuous':
+#         pressed = (ptr_ctrl.Buttons & button_bits) == button_bits
+#     elif trigger == 'rising' or trigger == 'pressed':
+#         # rising edge, will trigger once when pressed
+#         pressed = (ptr_ctrl.Buttons & button_bits) == button_bits and \
+#                   (ptr_ctrl_prev.Buttons & button_bits) != button_bits
+#     elif trigger == 'falling' or trigger == 'released':
+#         # falling edge, will trigger once when released
+#         pressed = (ptr_ctrl.Buttons & button_bits) != button_bits and \
+#                   (ptr_ctrl_prev.Buttons & button_bits) == button_bits
+#     else:
+#         raise ValueError("Invalid trigger mode specified.")
+#
+#     return pressed
+#
+# cpdef bint getTouches(str controller, object touchNames,
+#                       str trigger='continuous'):
+#     """Get touches for a specified device.
+#
+#     Touches reveal information about the user's hand pose, for instance, whether
+#     a pointing or pinching gesture is being made. Oculus Touch controllers are
+#     required for this functionality.
+#
+#     Touch points to test are specified using their string names. Argument
+#     'touch_names' accepts a single string or a list. If a list is specified,
+#     the returned value will reflect whether all touches were triggered at the
+#     time the controller was polled last.
+#
+#     :param controller: str
+#     :param touchNames: str, tuple or list
+#     :param trigger: str
+#     :return: boolean
+#
+#     """
+#     # get pointer to control state
+#     global _ctrl_states_
+#     cdef ovr_capi.ovrInputState*ptr_ctrl = NULL
+#     cdef ovr_capi.ovrInputState*ptr_ctrl_prev = NULL
+#     if controller == 'xbox':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.xbox]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.xbox]
+#     elif controller == 'remote':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.remote]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.remote]
+#     elif controller == 'touch':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.touch]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.touch]
+#     elif controller == 'left_touch':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.left_touch]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.left_touch]
+#     elif controller == 'right_touch':
+#         ptr_ctrl = &_ctrl_states_[<int> LibOVRControllers.right_touch]
+#         ptr_ctrl_prev = &_ctrl_states_prev_[<int> LibOVRControllers.right_touch]
+#
+#     cdef unsigned int touch_bits = 0x00000000
+#     cdef int i, N
+#     if isinstance(touchNames, str):  # don't loop if a string is specified
+#         touch_bits |= ctrl_button_lut[touchNames]
+#     elif isinstance(touchNames, (tuple, list)):
+#         # loop over all names and combine them
+#         N = <int> len(touchNames)
+#         for i in range(N):
+#             touch_bits |= ctrl_button_lut[touchNames[i]]
+#
+#     # test if the button was pressed
+#     cdef bint touched
+#     if trigger == 'continuous':
+#         touched = (ptr_ctrl.Touches & touch_bits) == touch_bits
+#     elif trigger == 'rising' or trigger == 'pressed':
+#         # rising edge, will trigger once when pressed
+#         touched = (ptr_ctrl.Touches & touch_bits) == touch_bits and \
+#                   (ptr_ctrl_prev.Touches & touch_bits) != touch_bits
+#     elif trigger == 'falling' or trigger == 'released':
+#         # falling edge, will trigger once when released
+#         touched = (ptr_ctrl.Touches & touch_bits) != touch_bits and \
+#                   (ptr_ctrl_prev.Touches & touch_bits) == touch_bits
+#     else:
+#         raise ValueError("Invalid trigger mode specified.")
+#
+#     return touched
+#
+# # List of controller names that are available to the user. These are handled by
+# # the SDK, additional joysticks, keyboards and mice must be accessed by some
+# # other method.
+# #
+# controller_names = ['xbox', 'remote', 'touch', 'left_touch', 'right_touch']
+#
+# cpdef list getConnectedControllerTypes():
+#     """Get a list of currently connected controllers. You can check if a
+#     controller is attached by testing for its membership in the list using its
+#     name.
+#
+#     :return: list
+#
+#     """
+#     cdef unsigned int result = ovr_capi.ovr_GetConnectedControllerTypes(
+#         _ptrSession_)
+#
+#     cdef list ctrl_types = list()
+#     if (result & ovr_capi.ovrControllerType_XBox) == \
+#             ovr_capi.ovrControllerType_XBox:
+#         ctrl_types.append('xbox')
+#     elif (result & ovr_capi.ovrControllerType_Remote) == \
+#             ovr_capi.ovrControllerType_Remote:
+#         ctrl_types.append('remote')
+#     elif (result & ovr_capi.ovrControllerType_Touch) == \
+#             ovr_capi.ovrControllerType_Touch:
+#         ctrl_types.append('touch')
+#     elif (result & ovr_capi.ovrControllerType_LTouch) == \
+#             ovr_capi.ovrControllerType_LTouch:
+#         ctrl_types.append('left_touch')
+#     elif (result & ovr_capi.ovrControllerType_RTouch) == \
+#             ovr_capi.ovrControllerType_RTouch:
+#         ctrl_types.append('right_touch')
+#
+#     return ctrl_types
 
 # -------------------------------
 # Performance/Profiling Functions
 # -------------------------------
 #
-cdef class ovrPerfStatsPerCompositorFrame(object):
-    cdef ovr_capi.ovrPerfStatsPerCompositorFrame*c_data
-    cdef ovr_capi.ovrPerfStatsPerCompositorFrame  c_ovrPerfStatsPerCompositorFrame
-
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrPerfStatsPerCompositorFrame
-
-    @property
-    def HmdVsyncIndex(self):
-        return self.c_data[0].HmdVsyncIndex
-
-    @property
-    def AppFrameIndex(self):
-        return self.c_data[0].AppFrameIndex
-
-    @property
-    def AppDroppedFrameCount(self):
-        return self.c_data[0].AppDroppedFrameCount
-
-    @property
-    def AppQueueAheadTime(self):
-        return self.c_data[0].AppQueueAheadTime
-
-    @property
-    def AppCpuElapsedTime(self):
-        return self.c_data[0].AppCpuElapsedTime
-
-    @property
-    def AppGpuElapsedTime(self):
-        return self.c_data[0].AppGpuElapsedTime
-
-    @property
-    def CompositorFrameIndex(self):
-        return self.c_data[0].CompositorFrameIndex
-
-    @property
-    def CompositorLatency(self):
-        return self.c_data[0].CompositorLatency
-
-    @property
-    def CompositorCpuElapsedTime(self):
-        return self.c_data[0].CompositorCpuElapsedTime
-
-    @property
-    def CompositorGpuElapsedTime(self):
-        return self.c_data[0].CompositorGpuElapsedTime
-
-    @property
-    def CompositorCpuStartToGpuEndElapsedTime(self):
-        return self.c_data[0].CompositorCpuStartToGpuEndElapsedTime
-
-    @property
-    def CompositorGpuEndToVsyncElapsedTime(self):
-        return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
-
-
-cdef class ovrPerfStats(object):
-    cdef ovr_capi.ovrPerfStats*c_data
-    cdef ovr_capi.ovrPerfStats  c_ovrPerfStats
-    cdef list perf_stats
-
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrPerfStats
-
-        # initialize performance stats list
-        self.perf_stats = list()
-        cdef int i, N
-        N = <int> ovr_capi.ovrMaxProvidedFrameStats
-        for i in range(N):
-            self.perf_stats.append(ovrPerfStatsPerCompositorFrame())
-            (<ovrPerfStatsPerCompositorFrame> self.perf_stats[i]).c_data[0] = \
-                self.c_data[0].FrameStats[i]
-
-    @property
-    def FrameStatsCount(self):
-        return self.c_data[0].FrameStatsCount
-
-    @property
-    def AnyFrameStatsDropped(self):
-        return <bint> self.c_data[0].AnyFrameStatsDropped
-
-    @property
-    def FrameStats(self):
-        cdef int i, N
-        N = self.c_data[0].FrameStatsCount
-        for i in range(N):
-            (<ovrPerfStatsPerCompositorFrame> self.perf_stats[i]).c_data[0] = \
-                self.c_data[0].FrameStats[i]
-
-        return self.perf_stats
-
-    @property
-    def AdaptiveGpuPerformanceScale(self):
-        return <bint> self.c_data[0].AdaptiveGpuPerformanceScale
-
-    @property
-    def AswIsAvailable(self):
-        return <bint> self.c_data[0].AswIsAvailable
-
-cpdef ovrPerfStats getFrameStats():
-    """Get most recent performance stats, returns an object with fields
-    corresponding to various performance stats reported by the SDK.
-    
-    :return: dict 
-    
-    """
-    global _ptrSession_
-
-    cdef ovrPerfStats to_return = ovrPerfStats()
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetPerfStats(
-        _ptrSession_,
-        &(<ovrPerfStats> to_return).c_data[0])
-
-    if debug_mode:
-        check_result(result)
-
-    return to_return
+# cdef class ovrPerfStatsPerCompositorFrame(object):
+#     cdef ovr_capi.ovrPerfStatsPerCompositorFrame*c_data
+#     cdef ovr_capi.ovrPerfStatsPerCompositorFrame  c_ovrPerfStatsPerCompositorFrame
+#
+#     def __cinit__(self, *args, **kwargs):
+#         self.c_data = &self.c_ovrPerfStatsPerCompositorFrame
+#
+#     @property
+#     def HmdVsyncIndex(self):
+#         return self.c_data[0].HmdVsyncIndex
+#
+#     @property
+#     def AppFrameIndex(self):
+#         return self.c_data[0].AppFrameIndex
+#
+#     @property
+#     def AppDroppedFrameCount(self):
+#         return self.c_data[0].AppDroppedFrameCount
+#
+#     @property
+#     def AppQueueAheadTime(self):
+#         return self.c_data[0].AppQueueAheadTime
+#
+#     @property
+#     def AppCpuElapsedTime(self):
+#         return self.c_data[0].AppCpuElapsedTime
+#
+#     @property
+#     def AppGpuElapsedTime(self):
+#         return self.c_data[0].AppGpuElapsedTime
+#
+#     @property
+#     def CompositorFrameIndex(self):
+#         return self.c_data[0].CompositorFrameIndex
+#
+#     @property
+#     def CompositorLatency(self):
+#         return self.c_data[0].CompositorLatency
+#
+#     @property
+#     def CompositorCpuElapsedTime(self):
+#         return self.c_data[0].CompositorCpuElapsedTime
+#
+#     @property
+#     def CompositorGpuElapsedTime(self):
+#         return self.c_data[0].CompositorGpuElapsedTime
+#
+#     @property
+#     def CompositorCpuStartToGpuEndElapsedTime(self):
+#         return self.c_data[0].CompositorCpuStartToGpuEndElapsedTime
+#
+#     @property
+#     def CompositorGpuEndToVsyncElapsedTime(self):
+#         return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
+#
+#
+# cdef class ovrPerfStats(object):
+#     cdef ovr_capi.ovrPerfStats*c_data
+#     cdef ovr_capi.ovrPerfStats  c_ovrPerfStats
+#     cdef list perf_stats
+#
+#     def __cinit__(self, *args, **kwargs):
+#         self.c_data = &self.c_ovrPerfStats
+#
+#         # initialize performance stats list
+#         self.perf_stats = list()
+#         cdef int i, N
+#         N = <int> ovr_capi.ovrMaxProvidedFrameStats
+#         for i in range(N):
+#             self.perf_stats.append(ovrPerfStatsPerCompositorFrame())
+#             (<ovrPerfStatsPerCompositorFrame> self.perf_stats[i]).c_data[0] = \
+#                 self.c_data[0].FrameStats[i]
+#
+#     @property
+#     def FrameStatsCount(self):
+#         return self.c_data[0].FrameStatsCount
+#
+#     @property
+#     def AnyFrameStatsDropped(self):
+#         return <bint> self.c_data[0].AnyFrameStatsDropped
+#
+#     @property
+#     def FrameStats(self):
+#         cdef int i, N
+#         N = self.c_data[0].FrameStatsCount
+#         for i in range(N):
+#             (<ovrPerfStatsPerCompositorFrame> self.perf_stats[i]).c_data[0] = \
+#                 self.c_data[0].FrameStats[i]
+#
+#         return self.perf_stats
+#
+#     @property
+#     def AdaptiveGpuPerformanceScale(self):
+#         return <bint> self.c_data[0].AdaptiveGpuPerformanceScale
+#
+#     @property
+#     def AswIsAvailable(self):
+#         return <bint> self.c_data[0].AswIsAvailable
+#
+# cpdef ovrPerfStats getFrameStats():
+#     """Get most recent performance stats, returns an object with fields
+#     corresponding to various performance stats reported by the SDK.
+#
+#     :return: dict
+#
+#     """
+#     global _ptrSession_
+#
+#     cdef ovrPerfStats to_return = ovrPerfStats()
+#     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetPerfStats(
+#         _ptrSession_,
+#         &(<ovrPerfStats> to_return).c_data[0])
+#
+#     if debug_mode:
+#         check_result(result)
+#
+#     return to_return
 
