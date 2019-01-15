@@ -252,6 +252,15 @@ cdef dict _touch_states = {
     "LIndexPointing": ovr_capi.ovrTouch_LIndexPointing,
     "LThumbUp": ovr_capi.ovrTouch_LThumbUp}
 
+# Controller types
+#
+cdef dict _controller_types = {
+    'Xbox' : ovr_capi.ovrControllerType_XBox,
+    'Remote' : ovr_capi.ovrControllerType_Remote,
+    'Touch' : ovr_capi.ovrControllerType_Touch,
+    'LeftTouch' : ovr_capi.ovrControllerType_LTouch,
+    'RightTouch' : ovr_capi.ovrControllerType_RTouch}
+
 
 # return codes
 LIBOVR_SUCCESS = ovr_capi.ovrSuccess
@@ -943,7 +952,7 @@ cdef class LibOVRSession(object):
 
         return (size_left.w, size_left.h), (size_right.w, size_right.h)
 
-    def getSwapChainLength(self, eye):
+    def getSwapChainLengthGL(self, eye):
         """Get the swap chain length for a given eye."""
         cdef int out_length
         cdef ovr_capi.ovrResult result = 0
@@ -1237,7 +1246,7 @@ cdef class LibOVRSession(object):
         pass
 
     @property
-    def render_poses(self):
+    def renderPoses(self):
         """Eye render poses.
 
         Pose are those computed by the last 'calc_eye_poses' call. Returned
@@ -1910,15 +1919,15 @@ cdef class LibOVRPose(object):
     cdef np.ndarray _pos
     cdef np.ndarray _ori
 
-    def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+    def __init__(self, ori=(0., 0., 0., 1.), pos=(0., 0., 0.)):
         """Constructor for LibOVRPose.
 
         Parameters
         ----------
-        pos : tuple, list, or ndarray of float
-            Position vector (x, y, z).
         ori : tuple, list, or ndarray of float
             Orientation quaternion vector (x, y, z, w).
+        pos : tuple, list, or ndarray of float
+            Position vector (x, y, z).
 
         Notes
         -----
@@ -1928,7 +1937,7 @@ cdef class LibOVRPose(object):
         """
         pass  # nop
 
-    def __cinit__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+    def __cinit__(self, ori=(0., 0., 0., 1.), pos=(0., 0., 0.)):
         self.c_data = &self.c_ovrPosef  # pointer to c_ovrPosef
 
         # numpy arrays for internal data
@@ -1976,7 +1985,7 @@ cdef class LibOVRPose(object):
         self.c_data[0].Orientation.z = <float>value[2]
         self.c_data[0].Orientation.w = <float>value[3]
 
-    def as_matrix(self):
+    def asMatrix(self):
         """Convert this pose into a 4x4 transformation matrix.
 
         Returns
@@ -2001,10 +2010,235 @@ cdef class LibOVRPose(object):
         return to_return
 
     def normalize(self):
-        """Normalize the pose.
+        """Normalize this pose.
+
         """
         (<ovr_math.Posef>self.c_data[0]).Normalize()
 
+    def inverted(self):
+        """Get the inverse of the pose.
+
+        Returns
+        -------
+        LibOVRPose
+            Inverted pose.
+
+        """
+        cdef ovr_math.Quatf inv_ori = \
+            (<ovr_math.Quatf>self.c_data[0].Orientation).Inverted()
+        cdef ovr_math.Vector3f inv_pos = \
+            (<ovr_math.Quatf>inv_ori).Rotate(
+                -(<ovr_math.Vector3f>self.c_data[0].Position))
+        cdef LibOVRPose to_return = \
+            LibOVRPose(
+                (self.c_data[0].Position.x,
+                 self.c_data[0].Position.y,
+                 self.c_data[0].Position.z),
+                (self.c_data[0].Orientation.x,
+                 self.c_data[0].Orientation.y,
+                 self.c_data[0].Orientation.z,
+                 self.c_data[0].Orientation.w))
+
+    def rotate(self, object v):
+        """Rotate a position vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to rotate.
+
+        Returns
+        -------
+        ndarray
+            Vector rotated by the pose's orientation.
+
+        """
+        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef ovr_math.Vector3f rotated_pos = \
+            (<ovr_math.Posef>self.c_data[0]).Rotate(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((rotated_pos.x, rotated_pos.y, rotated_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def inverseRotate(self, object v):
+        """Inverse rotate a position vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to rotate.
+
+        Returns
+        -------
+        ndarray
+            Vector rotated by the pose's inverse orientation.
+
+        """
+        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef ovr_math.Vector3f inv_rotated_pos = \
+            (<ovr_math.Posef>self.c_data[0]).InverseRotate(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((inv_rotated_pos.x, inv_rotated_pos.y, inv_rotated_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def translate(self, object v):
+        """Translate a position vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to translate (x, y, z).
+
+        Returns
+        -------
+        ndarray
+            Vector translated by the pose's position.
+
+        """
+        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef ovr_math.Vector3f translated_pos = \
+            (<ovr_math.Posef>self.c_data[0]).Translate(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((translated_pos.x, translated_pos.y, translated_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def transform(self, object v):
+        """Transform a position vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the pose's position and orientation.
+
+        """
+        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef ovr_math.Vector3f transformed_pos = \
+            (<ovr_math.Posef>self.c_data[0]).Transform(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def inverseTransform(self, object v):
+        """Inverse transform a position vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the inverse of the pose's position and
+            orientation.
+
+        """
+        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef ovr_math.Vector3f transformed_pos = \
+            (<ovr_math.Posef>self.c_data[0]).InverseTransform(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def transformNormal(self, object v):
+        """Transform a normal vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the pose's position and orientation.
+
+        """
+        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef ovr_math.Vector3f transformed_pos = \
+            (<ovr_math.Posef>self.c_data[0]).TransformNormal(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def inverseTransformNormal(self, object v):
+        """Inverse transform a normal vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the pose's position and orientation.
+
+        """
+        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef ovr_math.Vector3f transformed_pos = \
+            (<ovr_math.Posef>self.c_data[0]).InverseTransformNormal(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def apply(self, object v):
+        """Apply a transform to a position vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the pose's position and orientation.
+
+        """
+        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef ovr_math.Vector3f transformed_pos = \
+            (<ovr_math.Posef>self.c_data[0]).Apply(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
+                     dtype=np.float32)
+
+        return to_return
 
 
 cdef class LibOVRPoseState(object):
@@ -2037,7 +2271,7 @@ cdef class LibOVRPoseState(object):
         self._linear_acc = np.empty((3,), dtype=np.float32)
 
     @property
-    def the_pose(self):
+    def thePose(self):
         """Body pose.
 
         Returns
@@ -2049,20 +2283,20 @@ cdef class LibOVRPoseState(object):
         return self._pose
 
     @property
-    def angular_vel(self):
+    def angularVelocity(self):
         """Angular velocity vector in radians/sec."""
         self._angular_vel.data = <char*>&self.c_data.AngularVelocity.x
         return self._angular_vel
 
-    @angular_vel.setter
-    def angular_vel(self, object value):
+    @angularVelocity.setter
+    def angularVelocity(self, object value):
         """Angular velocity vector in radians/sec."""
         self.c_data[0].AngularVelocity.x = <float>value[0]
         self.c_data[0].AngularVelocity.y = <float>value[1]
         self.c_data[0].AngularVelocity.z = <float>value[2]
 
     @property
-    def linear_vel(self):
+    def linearVelocity(self):
         """Linear velocity vector in meters/sec.
 
         This is only available if 'pos_tracked' is True.
@@ -2070,55 +2304,55 @@ cdef class LibOVRPoseState(object):
         self._linear_vel.data = <char*>&self.c_data.LinearVelocity.x
         return self._linear_vel
 
-    @linear_vel.setter
-    def linear_vel(self, object value):
+    @linearVelocity.setter
+    def linearVelocity(self, object value):
         self.c_data[0].LinearVelocity.x = <float>value[0]
         self.c_data[0].LinearVelocity.y = <float>value[1]
         self.c_data[0].LinearVelocity.z = <float>value[2]
 
     @property
-    def angular_acc(self):
+    def angularAcceleration(self):
         """Angular acceleration vector in radians/s^2."""
         self._angular_acc.data = <char*>&self.c_data.AngularAcceleration.x
         return self._angular_acc
 
-    @angular_acc.setter
-    def angular_acc(self, object value):
+    @angularAcceleration.setter
+    def angularAcceleration(self, object value):
         self.c_data[0].AngularAcceleration.x = <float>value[0]
         self.c_data[0].AngularAcceleration.y = <float>value[1]
         self.c_data[0].AngularAcceleration.z = <float>value[2]
 
     @property
-    def linear_acc(self):
+    def linearAcceleration(self):
         """Linear acceleration vector in meters/s^2."""
         self._linear_acc.data = <char*>&self.c_data.LinearAcceleration.x
         return self._linear_acc
 
-    @linear_acc.setter
-    def linear_acc(self, object value):
+    @linearAcceleration.setter
+    def linearAcceleration(self, object value):
         self.c_data[0].LinearAcceleration.x = <float>value[0]
         self.c_data[0].LinearAcceleration.y = <float>value[1]
         self.c_data[0].LinearAcceleration.z = <float>value[2]
 
     @property
-    def time_in_seconds(self):
+    def timeInSeconds(self):
         """Absolute time this data refers to in seconds."""
         return <double>self.c_data[0].TimeInSeconds
 
     @property
-    def ori_tracked(self):
+    def orientationTracked(self):
         """True if the orientation was tracked when sampled."""
         return <bint>((ovr_capi.ovrStatus_OrientationTracked &
              self.status_flags) == ovr_capi.ovrStatus_OrientationTracked)
 
     @property
-    def pos_tracked(self):
+    def positionTracked(self):
         """True if the position was tracked when sampled."""
         return <bint>((ovr_capi.ovrStatus_PositionTracked &
              self.status_flags) == ovr_capi.ovrStatus_PositionTracked)
 
     @property
-    def fully_tracked(self):
+    def fullyTracked(self):
         """True if position and orientation were tracked when sampled."""
         cdef int32_t full_tracking_flags = \
             ovr_capi.ovrStatus_OrientationTracked | \
@@ -2137,7 +2371,7 @@ cdef class LibOVRInputState(object):
     def __cinit__(self):
         self.c_data = &self.c_ovrInputState
 
-    def time_in_seconds(self):
+    def timeInSeconds(self):
         return <double>self.c_data.TimeInSeconds
 
     @property
@@ -2149,14 +2383,14 @@ cdef class LibOVRInputState(object):
         return self.c_data[0].Touches
 
     @property
-    def index_trigger(self):
+    def indexTrigger(self):
         cdef float index_trigger_left = self.c_data[0].IndexTrigger[0]
         cdef float index_trigger_right = self.c_data[0].IndexTrigger[1]
 
         return index_trigger_left, index_trigger_right
 
     @property
-    def hand_trigger(self):
+    def handTrigger(self):
         cdef float hand_trigger_left = self.c_data[0].HandTrigger[0]
         cdef float hand_trigger_right = self.c_data[0].HandTrigger[1]
 
@@ -2172,7 +2406,7 @@ cdef class LibOVRInputState(object):
         return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
 
     @property
-    def controller_type(self):
+    def controllerType(self):
         cdef int ctrl_type = <int>self.c_data[0].ControllerType
 
         if ctrl_type == ovr_capi.ovrControllerType_XBox:
@@ -2189,7 +2423,7 @@ cdef class LibOVRInputState(object):
             return None
 
     @property
-    def IndexTriggerNoDeadzone(self):
+    def indexTriggerNoDeadzone(self):
         cdef float index_trigger_left = self.c_data[0].IndexTriggerNoDeadzone[0]
         cdef float index_trigger_right = self.c_data[0].IndexTriggerNoDeadzone[
             1]
@@ -2197,14 +2431,14 @@ cdef class LibOVRInputState(object):
         return index_trigger_left, index_trigger_right
 
     @property
-    def HandTriggerNoDeadzone(self):
+    def handTriggerNoDeadzone(self):
         cdef float hand_trigger_left = self.c_data[0].HandTriggerNoDeadzone[0]
         cdef float hand_trigger_right = self.c_data[0].HandTriggerNoDeadzone[1]
 
         return hand_trigger_left, hand_trigger_right
 
     @property
-    def thumbstick_no_deadzone(self):
+    def thumbstickNoDeadzone(self):
         cdef float thumbstick_x0 = self.c_data[0].ThumbstickNoDeadzone[0].x
         cdef float thumbstick_y0 = self.c_data[0].ThumbstickNoDeadzone[0].y
         cdef float thumbstick_x1 = self.c_data[0].ThumbstickNoDeadzone[1].x
@@ -2213,21 +2447,21 @@ cdef class LibOVRInputState(object):
         return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
 
     @property
-    def index_trigger_raw(self):
+    def indexTriggerRaw(self):
         cdef float index_trigger_left = self.c_data[0].IndexTriggerRaw[0]
         cdef float index_trigger_right = self.c_data[0].IndexTriggerRaw[1]
 
         return index_trigger_left, index_trigger_right
 
     @property
-    def hand_trigger_raw(self):
+    def handTriggerRaw(self):
         cdef float hand_trigger_left = self.c_data[0].HandTriggerRaw[0]
         cdef float hand_trigger_right = self.c_data[0].HandTriggerRaw[1]
 
         return hand_trigger_left, hand_trigger_right
 
     @property
-    def thumbstick_raw(self):
+    def thumbstickRaw(self):
         cdef float thumbstick_x0 = self.c_data[0].ThumbstickRaw[0].x
         cdef float thumbstick_y0 = self.c_data[0].ThumbstickRaw[0].y
         cdef float thumbstick_x1 = self.c_data[0].ThumbstickRaw[1].x
@@ -2235,116 +2469,6 @@ cdef class LibOVRInputState(object):
 
         return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
 
-
-
-cdef class ovrInputState(object):
-    """Class storing the state of an input device. Fields can only be updated
-    by calling 'get_input_state()'.
-
-    """
-    cdef ovr_capi.ovrInputState*c_data
-    cdef ovr_capi.ovrInputState c_ovrInputState
-
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrInputState
-
-    @property
-    def TimeInSeconds(self):
-        return <double> self.c_data.TimeInSeconds
-
-    @property
-    def Buttons(self):
-        return self.c_data[0].Buttons
-
-    @property
-    def Touches(self):
-        return self.c_data[0].Touches
-
-    @property
-    def IndexTrigger(self):
-        cdef float index_trigger_left = self.c_data[0].IndexTrigger[0]
-        cdef float index_trigger_right = self.c_data[0].IndexTrigger[1]
-
-        return index_trigger_left, index_trigger_right
-
-    @property
-    def HandTrigger(self):
-        cdef float hand_trigger_left = self.c_data[0].HandTrigger[0]
-        cdef float hand_trigger_right = self.c_data[0].HandTrigger[1]
-
-        return hand_trigger_left, hand_trigger_right
-
-    @property
-    def Thumbstick(self):
-        cdef float thumbstick_x0 = self.c_data[0].Thumbstick[0].x
-        cdef float thumbstick_y0 = self.c_data[0].Thumbstick[0].y
-        cdef float thumbstick_x1 = self.c_data[0].Thumbstick[1].x
-        cdef float thumbstick_y1 = self.c_data[0].Thumbstick[1].y
-
-        return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
-
-    @property
-    def ControllerType(self):
-        cdef int ctrl_type = <int> self.c_data[0].ControllerType
-        if ctrl_type == ovr_capi.ovrControllerType_XBox:
-            return 'xbox'
-        elif ctrl_type == ovr_capi.ovrControllerType_Remote:
-            return 'remote'
-        elif ctrl_type == ovr_capi.ovrControllerType_Touch:
-            return 'touch'
-        elif ctrl_type == ovr_capi.ovrControllerType_LTouch:
-            return 'ltouch'
-        elif ctrl_type == ovr_capi.ovrControllerType_RTouch:
-            return 'rtouch'
-        else:
-            return None
-
-    @property
-    def IndexTriggerNoDeadzone(self):
-        cdef float index_trigger_left = self.c_data[0].IndexTriggerNoDeadzone[0]
-        cdef float index_trigger_right = self.c_data[0].IndexTriggerNoDeadzone[
-            1]
-
-        return index_trigger_left, index_trigger_right
-
-    @property
-    def HandTriggerNoDeadzone(self):
-        cdef float hand_trigger_left = self.c_data[0].HandTriggerNoDeadzone[0]
-        cdef float hand_trigger_right = self.c_data[0].HandTriggerNoDeadzone[1]
-
-        return hand_trigger_left, hand_trigger_right
-
-    @property
-    def ThumbstickNoDeadzone(self):
-        cdef float thumbstick_x0 = self.c_data[0].ThumbstickNoDeadzone[0].x
-        cdef float thumbstick_y0 = self.c_data[0].ThumbstickNoDeadzone[0].y
-        cdef float thumbstick_x1 = self.c_data[0].ThumbstickNoDeadzone[1].x
-        cdef float thumbstick_y1 = self.c_data[0].ThumbstickNoDeadzone[1].y
-
-        return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
-
-    @property
-    def IndexTriggerRaw(self):
-        cdef float index_trigger_left = self.c_data[0].IndexTriggerRaw[0]
-        cdef float index_trigger_right = self.c_data[0].IndexTriggerRaw[1]
-
-        return index_trigger_left, index_trigger_right
-
-    @property
-    def HandTriggerRaw(self):
-        cdef float hand_trigger_left = self.c_data[0].HandTriggerRaw[0]
-        cdef float hand_trigger_right = self.c_data[0].HandTriggerRaw[1]
-
-        return hand_trigger_left, hand_trigger_right
-
-    @property
-    def ThumbstickRaw(self):
-        cdef float thumbstick_x0 = self.c_data[0].ThumbstickRaw[0].x
-        cdef float thumbstick_y0 = self.c_data[0].ThumbstickRaw[0].y
-        cdef float thumbstick_x1 = self.c_data[0].ThumbstickRaw[1].x
-        cdef float thumbstick_y1 = self.c_data[0].ThumbstickRaw[1].y
-
-        return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
 
 cpdef object getInputState(str controller, object stateOut=None):
     """Get a controller state as an object. If a 'InputStateData' object is
@@ -2370,12 +2494,12 @@ cpdef object getInputState(str controller, object stateOut=None):
     # create a controller state object and set its data
     global _ptrSession_
     cdef ovr_capi.ovrInputState*ptr_state
-    cdef ovrInputState to_return = ovrInputState()
+    cdef LibOVRInputState to_return = LibOVRInputState()
 
     if stateOut is None:
-        ptr_state = &(<ovrInputState> to_return).c_ovrInputState
+        ptr_state = &(<LibOVRInputState> to_return).c_ovrInputState
     else:
-        ptr_state = &(<ovrInputState> stateOut).c_ovrInputState
+        ptr_state = &(<LibOVRInputState> stateOut).c_ovrInputState
 
     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
         _ptrSession_,
@@ -2827,6 +2951,7 @@ cdef class ovrPerfStatsPerCompositorFrame(object):
     def CompositorGpuEndToVsyncElapsedTime(self):
         return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
 
+
 cdef class ovrPerfStats(object):
     cdef ovr_capi.ovrPerfStats*c_data
     cdef ovr_capi.ovrPerfStats  c_ovrPerfStats
@@ -2889,101 +3014,3 @@ cpdef ovrPerfStats getFrameStats():
 
     return to_return
 
-cpdef void resetFrameStats():
-    """Flushes backlog of frame stats.
-    
-    :return: None 
-    
-    """
-    global _ptrSession_
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetPerfStats(
-        _ptrSession_)
-
-    if debug_mode:
-        check_result(result)
-
-# List of available performance HUD modes.
-#
-available_hud_modes = [
-    'Off',
-    'PerfSummary',
-    'LatencyTiming',
-    'AppRenderTiming',
-    'CompRenderTiming',
-    'AswStats',
-    'VersionInfo']
-
-cpdef void perfHudMode(LibOVRSession session, str mode='Off'):
-    """Display a performance HUD with a specified mode.
-    
-    :param mode: str 
-    :return: None
-    
-    """
-    global _ptrSession_
-    cdef int perf_hud_mode = 0
-
-    if mode == 'Off':
-        perf_hud_mode = <int> ovr_capi.ovrPerfHud_Off
-    elif mode == 'PerfSummary':
-        perf_hud_mode = <int> ovr_capi.ovrPerfHud_PerfSummary
-    elif mode == 'LatencyTiming':
-        perf_hud_mode = <int> ovr_capi.ovrPerfHud_LatencyTiming
-    elif mode == 'AppRenderTiming':
-        perf_hud_mode = <int> ovr_capi.ovrPerfHud_AppRenderTiming
-    elif mode == 'CompRenderTiming':
-        perf_hud_mode = <int> ovr_capi.ovrPerfHud_CompRenderTiming
-    elif mode == 'AswStats':
-        perf_hud_mode = <int> ovr_capi.ovrPerfHud_AswStats
-    elif mode == 'VersionInfo':
-        perf_hud_mode = <int> ovr_capi.ovrPerfHud_VersionInfo
-
-    cdef ovr_capi.ovrBool ret = ovr_capi.ovr_SetInt(
-        session.ptrSession, b"PerfHudMode", perf_hud_mode)
-
-# -----------------------------
-# Boundary and Safety Functions
-# -----------------------------
-#
-cdef ovr_capi.ovrBoundaryLookAndFeel _boundary_style_
-
-cpdef void setBoundryColor(float r, float g, float b):
-    global _ptrSession_, _boundary_style_
-
-    cdef ovr_capi.ovrColorf color
-    color.r = r
-    color.g = g
-    color.b = b
-
-    _boundary_style_.Color = color
-
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_SetBoundaryLookAndFeel(
-        _ptrSession_,
-        &_boundary_style_)
-
-    if debug_mode:
-        check_result(result)
-
-cpdef void resetBoundryColor():
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetBoundaryLookAndFeel(
-        _ptrSession_)
-
-    if debug_mode:
-        check_result(result)
-
-cpdef bint isBoundryVisible():
-    cdef ovr_capi.ovrBool is_visible
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetBoundaryVisible(
-        _ptrSession_, &is_visible)
-
-    if debug_mode:
-        check_result(result)
-
-    return <bint> is_visible
-
-cpdef void showBoundry(bint show=True):
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_RequestBoundaryVisible(
-        _ptrSession_, <ovr_capi.ovrBool> show)
-
-    if debug_mode:
-        check_result(result)
