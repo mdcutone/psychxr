@@ -1997,7 +1997,8 @@ cdef class LibOVRPose(object):
         cdef ovr_math.Matrix4f m_pose = ovr_math.Matrix4f(
             <ovr_math.Posef>self.c_data[0])
 
-        cdef np.ndarray to_return = np.zeros((4, 4), dtype=np.float32)
+        cdef np.ndarray[np.float32_t, ndim=2] to_return = \
+            np.zeros((4, 4), dtype=np.float32)
 
         # fast copy matrix to numpy array
         cdef float [:, :] mv = to_return
@@ -2006,6 +2007,35 @@ cdef class LibOVRPose(object):
         for i in range(4):
             for j in range(4):
                 mv[i, j] = m_pose.M[i][j]
+
+        return to_return
+
+    def asArray(self):
+        """Convert this pose into a 1D (flattened) transform matrix.
+
+        This will output an array suitable for use with OpenGL.
+
+        Returns
+        -------
+        ndarray
+            4x4 transformation matrix flattened to a 1D array assuming column
+            major order with a 'float32' data type.
+
+        """
+        cdef ovr_math.Matrix4f m_pose = ovr_math.Matrix4f(
+            <ovr_math.Posef>self.c_data[0])
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.zeros((16,), dtype=np.float32)
+
+        # fast copy matrix to numpy array
+        cdef float [:, :] mv = to_return
+        cdef Py_ssize_t i, j, k, N
+        i = j = k = 0
+        N = 4
+        for i in range(N):
+            for j in range(N):
+                mv[k] = m_pose.M[j][i]  # row -> column major order
+                k += 1
 
         return to_return
 
