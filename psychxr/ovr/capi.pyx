@@ -1186,6 +1186,17 @@ cdef class LibOVRSession(object):
         after 'start' is called. These poses are transformed by the head pose
         by 'calcEyePoses' to get 'eyeRenderPoses'.
 
+        Notes
+        -----
+            The horizontal (x-axis) separation of the eye poses are determined
+            by the configured lens spacing (slider adjustment). This spacing is
+            supposed to correspond to the actual inter-ocular distance (IOD) of
+            the user. You can get the IOD used for rendering by adding up the
+            absolute values of the x-components of the eye poses, or by
+            multiplying the value of 'eyeToNoseDist' by two. Furthermore, the
+            IOD values can be altered, prior to calling 'calcEyePoses', to
+            override the values specified by LibOVR.
+
         Returns
         -------
         tuple of LibOVRPose
