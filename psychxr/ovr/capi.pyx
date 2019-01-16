@@ -1180,23 +1180,36 @@ cdef class LibOVRSession(object):
 
     @property
     def hmdToEyePoses(self):
-        """HMD to eye poses.
+        """HMD to eye poses (`tuple` of `LibOVRPose`).
 
-        These are the original eye poses specified by LibOVR, defined only after
-        'start' is called.
+        These are the prototype eye poses specified by LibOVR, defined only
+        after 'start' is called. These poses are transformed by the head pose
+        by 'calcEyePoses' to get 'eyeRenderPoses'.
+
+        Returns
+        -------
+        tuple of LibOVRPose
+            Copies of the HMD to eye poses for the left and right eye.
 
         """
-        return 0
+        cdef LibOVRPose leftHmdToEyePose = LibOVRPose()
+        cdef LibOVRPose rightHmdToEyePose = LibOVRPose()
+
+        leftHmdToEyePose.c_data[0] = self.eyeRenderDesc[0].HmdToEyePose
+        leftHmdToEyePose.c_data[1] = self.eyeRenderDesc[1].HmdToEyePose
+
+        return leftHmdToEyePose, rightHmdToEyePose
 
     @hmdToEyePoses.setter
     def hmdToEyePoses(self, value):
-        pass
+        self.eyeRenderDesc[0].HmdToEyePose = (<LibOVRPose>value[0]).c_data[0]
+        self.eyeRenderDesc[1].HmdToEyePose = (<LibOVRPose>value[1]).c_data[1]
 
     @property
     def renderPoses(self):
         """Eye render poses.
 
-        Pose are those computed by the last 'calc_eye_poses' call. Returned
+        Pose are those computed by the last 'calcEyePoses' call. Returned
         objects are copies of the data stored internally by the session
         instance. These poses are used to define the view matrix when rendering
         for each eye.
@@ -1981,6 +1994,7 @@ cdef class LibOVRPose(object):
         self.c_data[0].Orientation.w = <float>value[3]
 
     def __mul__(LibOVRPose a, LibOVRPose b):
+        """Multiplication operator (*) to combine poses."""
         cdef ovr_math.Posef pose_a = <ovr_math.Posef>a.c_data[0]
         cdef ovr_math.Posef pose_b = <ovr_math.Posef>b.c_data[0]
         cdef ovr_math.Posef pose_r = pose_a * pose_b
@@ -1996,6 +2010,12 @@ cdef class LibOVRPose(object):
                  pose_r.Translation.z),)
 
         return to_return
+
+    def __invert__(self):
+        """Invert operator (~) to invert a pose.
+
+        """
+        return self.inverted()
 
     def asMatrix(self):
         """Convert this pose into a 4x4 transformation matrix.
