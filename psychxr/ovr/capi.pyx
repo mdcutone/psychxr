@@ -2028,7 +2028,21 @@ cdef class LibOVRPose(object):
         """
         return self.inverted()
 
-    def asMatrix(self):
+    def getYawPitchRoll(self):
+        """Get the yaw, pitch, and roll of the orientation quaternion.
+
+        Computed values are referenced relative to the world axes.
+
+        """
+        cdef float yaw, pitch, roll
+        (<ovr_math.Posef>self.c_data[0]).Rotation.GetYawPitchRoll(
+            &yaw, &pitch, &roll)
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((yaw, pitch, roll), dtype=np.float32)
+
+        return to_return
+
+    def matrix4x4(self):
         """Convert this pose into a 4x4 transformation matrix.
 
         Returns
@@ -2053,7 +2067,7 @@ cdef class LibOVRPose(object):
 
         return to_return
 
-    def asMatrix1D(self):
+    def matrix1D(self):
         """Convert this pose into a 1D (flattened) transform matrix.
 
         This will output an array suitable for use with OpenGL.
