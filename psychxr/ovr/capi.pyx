@@ -1974,7 +1974,7 @@ cdef class LibOVRSession(object):
         if self.debugMode:
             check_result(result)
 
-    def getInputState(self, str controller_type):
+    def getInputState(self, str controller):
         """Get the current state of a input device.
 
         Parameters
@@ -1999,7 +1999,7 @@ cdef class LibOVRSession(object):
         cdef LibOVRInputState to_return = LibOVRInputState()
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
             self.ptrSession,
-            <ovr_capi.ovrControllerType>_controller_types[controller_type],
+            <ovr_capi.ovrControllerType>_controller_types[controller],
             to_return.c_data)
 
         if self.debugMode:
@@ -2023,7 +2023,7 @@ cdef class LibOVRSession(object):
             Controller name to vibrate. Valid names are: 'Xbox', 'Touch',
             'LeftTouch', and 'RightTouch'.
         frequency : str
-            Vibration frequency. Valid values are 'off', 'low', or 'high'.
+            Vibration frequency. Valid values are: 'off', 'low', or 'high'.
         amplitude : float
             Vibration amplitude in the range of [0.0 and 1.0]. Values outside
             this range are clamped.
