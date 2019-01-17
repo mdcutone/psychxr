@@ -29,7 +29,23 @@
 """This file exposes LibOVR functions to Python.
 
 """
-__all__ = ['LibOVRSession']
+__author__ = "Matthew D. Cutone"
+__credits__ = ["Laurie M. Wilcox"]
+__copyright__ = "Copyright 2019 Matthew D. Cutone"
+__license__ = "MIT"
+__version__ = "0.2.0"
+__status__ = "Production"
+__maintainer__ = "Matthew D. Cutone"
+__email__ = "cutonem@yorku.ca"
+
+# exports
+__all__ = [
+    'LibOVRSession', 'LibOVRPose', 'LibOVRPoseState', 'LibOVRInputState',
+    'LibOVRTrackerInfo', 'isOculusServiceRunning', 'isHmdConnected',
+    'LIBOVR_SUCCESS', 'LIBOVR_SUCCESS_NOT_VISIBLE',
+    'LIBOVR_SUCCESS_BOUNDARY_INVALID', 'LIBOVR_SUCCESS_DEVICE_UNAVAILABLE',
+    'LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL'
+    ]
 
 from .cimport ovr_capi
 from .cimport ovr_math
@@ -206,11 +222,22 @@ cdef dict _controller_types = {
     'LeftTouch' : ovr_capi.ovrControllerType_LTouch,
     'RightTouch' : ovr_capi.ovrControllerType_RTouch}
 
-# return codes
+# return success codes, values other than 'LIBOVR_SUCCESS' are conditional
 LIBOVR_SUCCESS = ovr_capi.ovrSuccess
 LIBOVR_SUCCESS_NOT_VISIBLE = ovr_capi.ovrSuccess_NotVisible
 LIBOVR_SUCCESS_DEVICE_UNAVAILABLE = ovr_capi.ovrSuccess_DeviceUnavailable
 LIBOVR_SUCCESS_BOUNDARY_INVALID = ovr_capi.ovrSuccess_BoundaryInvalid
+
+# return error code
+LIBOVR_ERROR_MEMORY_ALLOCATION_FAILURE = ovr_capi.ovrError_MemoryAllocationFailure
+LIBOVR_ERROR_INVALID_SESSION = ovr_capi.ovrError_InvalidSession
+LIBOVR_ERROR_TIMEOUT = ovr_capi.ovrError_Timeout
+LIBOVR_ERROR_NOT_INITIALIZED = ovr_capi.ovrError_NotInitialized
+LIBOVR_ERROR_INVALID_PARAMETER = ovr_capi.ovrError_InvalidParameter
+LIBOVR_ERROR_SERVICE_ERROR = ovr_capi.ovrError_ServiceError
+LIBOVR_ERROR_NO_HMD = ovr_capi.ovrError_NoHmd
+LIBOVR_ERROR_UNSUPPORTED = ovr_capi.ovrError_Unsupported
+LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL = ovr_capi.ovrError_TextureSwapChainFull
 
 
 def isOculusServiceRunning(int timeout_ms=100):
@@ -1538,7 +1565,20 @@ cdef class LibOVRSession(object):
         Returns
         -------
         int
-            Error code.
+            Return code of the LibOVR API call 'ovr_WaitToBeginFrame'. Returns
+            LIBOVR_SUCCESS if completed without errors. May return
+            LIBOVR_ERROR_DISPLAY_LOST if the device was removed, rendering the
+            current session invalid.
+
+        Raises
+        ------
+        RuntimeError
+            Raised if 'debugMode' is True and the API call to
+            'ovr_WaitToBeginFrame' returns an error.
+
+        Notes
+        -----
+
 
         """
         cdef ovr_capi.ovrResult result = \
@@ -1576,6 +1616,20 @@ cdef class LibOVRSession(object):
         eye : int
             Eye buffer index.
 
+        Returns
+        -------
+        int
+            Error code returned by API call 'ovr_CommitTextureSwapChain'. Will
+            return LIBOVR_SUCCESS if successful. Returns error code
+            LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL if called too many times
+            without calling 'endFrame'.
+
+        Raises
+        ------
+        RuntimeError
+            Raised if 'debugMode' is True and the API call to
+            'ovr_CommitTextureSwapChain' returns an error.
+
         Warning
         -------
             No additional drawing operations are permitted once the texture is
@@ -1589,6 +1643,8 @@ cdef class LibOVRSession(object):
         if self.debugMode:
             check_result(result)
 
+            return result
+
     def endFrame(self, unsigned int frameIndex=0):
         """Call when rendering a frame has completed. Buffers which have been
         committed are passed to the compositor for distortion.
@@ -1601,7 +1657,15 @@ cdef class LibOVRSession(object):
         Returns
         -------
         int
-            Error code returned by 'ovr_EndFrame'.
+            Error code returned by API call 'ovr_EndFrame'. Check against
+            LIBOVR_SUCCESS, LIBOVR_SUCCESS_NOT_VISIBLE,
+            LIBOVR_SUCCESS_BOUNDARY_INVALID, LIBOVR_SUCCESS_DEVICE_UNAVAILABLE.
+
+        Raises
+        ------
+        RuntimeError
+            Raised if 'debugMode' is True and the API call to 'ovr_EndFrame'
+            returns an error.
 
         """
         cdef ovr_capi.ovrLayerHeader* layers = &self.eyeLayer.Header
@@ -1615,11 +1679,7 @@ cdef class LibOVRSession(object):
         if self.debugMode:
             check_result(result)
 
-        result = ovr_capi.ovr_GetSessionStatus(
-            self.ptrSession, &self.sessionStatus)
-
-        if self.debugMode:
-            check_result(result)
+        return result
 
     @property
     def isVisible(self):
