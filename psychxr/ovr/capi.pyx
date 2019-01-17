@@ -51,7 +51,7 @@ from .cimport ovr_capi
 from .cimport ovr_math
 from .math cimport *
 
-from libc.stdint cimport int32_t
+from libc.stdint cimport int32_t, uint32_t
 
 cimport numpy as np
 import numpy as np
@@ -531,21 +531,64 @@ cdef class LibOVRSession(object):
         cdef const char* version = ovr_capi.ovr_GetVersionString()
         return version.decode('utf-8')  # already UTF-8?
 
-    def start(self):
-        """Start a new session. Control is handed over to the application from
+    def initialize(self, bint focusAware=False, int connectionTimeout=0):
+        """Initialize the session.
+
+        Parameters
+        ----------
+        focusAware : bool
+            Client is focus aware.
+        connectionTimeout : bool
+            Timeout in milliseconds for connecting to the server.
+
+        Returns
+        -------
+        int
+            Return code of the LibOVR API call 'ovr_Initialize'. Returns
+            LIBOVR_SUCCESS if completed without errors. In the event of an
+            error, possible values are: :data:`LIBOVR_ERROR_INITIALIZE`,
+            :data:`LIBOVR_ERROR_LIB_LOAD`, :data:`LIBOVR_ERROR_LIB_VERSION`,
+            :data:`LIBOVR_ERROR_SERVICE_CONNECTION`,
+            :data:`LIBOVR_ERROR_SERVICE_VERSION`,
+            :data:`LIBOVR_ERROR_INCOMPATIBLE_OS`,
+            :data:`LIBOVR_ERROR_DISPLAY_INIT`,
+            :data:`LIBOVR_ERROR_SERVER_START`, and
+            :data:`LIBOVR_ERROR_REINITIALIZATION`.
+
+        Raises
+        ------
+        RuntimeError
+            Raised if 'debugMode' is True and the API call to
+            'ovr_Initialize' returns an error.
+
+        """
+        cdef int32_t flags = ovr_capi.ovrInit_RequestVersion
+        if focusAware is True:
+            flags |= ovr_capi.ovrInit_FocusAware
+
+        #if debug is True:
+        #    flags |= ovr_capi.ovrInit_Debug
+
+        self.initParams.Flags = flags
+        self.initParams.RequestedMinorVersion = 32
+        self.initParams.LogCallback = NULL  # not used yet
+        self.initParams.ConnectionTimeoutMS = <uint32_t>connectionTimeout
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_Initialize(
+            &self.initParams)
+
+        if self.debugMode:
+            check_result(result)
+
+        return result  # failed to initalize, return error code
+
+    def create(self):
+        """Create a new session. Control is handed over to the application from
         Oculus Home.
 
         Starting a session will initialize and create a new session. Afterwards
         API functions will return valid values.
 
         """
-        cdef ovr_capi.ovrResult result = 0
-        self.initParams.RequestedMinorVersion = 32
-        result = ovr_capi.ovr_Initialize(&self.initParams)
-        check_result(result)
-        if ovr_capi.OVR_FAILURE(result):
-            return result  # failed to initalize, return error code
-
         result = ovr_capi.ovr_Create(&self.ptrSession, &self.ptrLuid)
         check_result(result)
         if ovr_capi.OVR_FAILURE(result):
@@ -573,7 +616,7 @@ cdef class LibOVRSession(object):
             ovr_capi.ovrLayerFlag_HighQuality
         self.eyeLayer.ColorTexture[0] = self.eyeLayer.ColorTexture[1] = NULL
 
-        return ovr_capi.ovrSuccess
+        return result
 
     def shutdown(self):
         """End the current session.
@@ -1576,10 +1619,6 @@ cdef class LibOVRSession(object):
             Raised if 'debugMode' is True and the API call to
             'ovr_WaitToBeginFrame' returns an error.
 
-        Notes
-        -----
-
-
         """
         cdef ovr_capi.ovrResult result = \
             ovr_capi.ovr_WaitToBeginFrame(self.ptrSession, frameIndex)
@@ -1965,6 +2004,62 @@ cdef class LibOVRSession(object):
 
         if self.debugMode:
             check_result(result)
+
+    def setControllerVibration(self, str controller, str frequency, float amplitude):
+        """Vibrate a controller.
+
+        Vibration is constant at fixed frequency and amplitude. Vibration lasts
+        2.5 seconds, so this function needs to be called more often than that
+        for sustained vibration. Only controllers which support vibration can be
+        used here.
+
+        There are only two frequencies permitted 'high' (1 Hz) and 'low'
+        (0.5 Hz), however, amplitude can vary from 0.0 to 1.0. Specifying
+        frequency='off' stops vibration.
+
+        Parameters
+        ----------
+        controller : str
+            Controller name to vibrate. Valid names are: 'Xbox', 'Touch',
+            'LeftTouch', and 'RightTouch'.
+        frequency : str
+            Vibration frequency. Valid values are 'off', 'low', or 'high'.
+        amplitude : float
+            Vibration amplitude in the range of [0.0 and 1.0]. Values outside
+            this range are clamped.
+
+        Returns
+        -------
+        int
+            Return value of API call 'ovr_SetControllerVibration'. Can return
+            LIBOVR_SUCCESS_DEVICE_UNAVAILABLE if no device is present.
+
+        """
+        # get frequency associated with the string
+        cdef float freq = 0.0
+        if frequency == 'off':
+            freq = 0.0
+        elif frequency == 'low':
+            freq = 0.5
+        elif frequency == 'high':
+            freq = 1.0
+
+        cdef dict _controller_types = {
+            'Xbox' : ovr_capi.ovrControllerType_XBox,
+            'Touch' : ovr_capi.ovrControllerType_Touch,
+            'LeftTouch' : ovr_capi.ovrControllerType_LTouch,
+            'RightTouch' : ovr_capi.ovrControllerType_RTouch}
+
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_SetControllerVibration(
+            self.ptrSession,
+            <ovr_capi.ovrControllerType>_controller_types[controller],
+            freq,
+            amplitude)
+
+        if self.debugMode:
+            check_result(result)
+
+        return result
 
 
 cdef class LibOVRPose(object):
