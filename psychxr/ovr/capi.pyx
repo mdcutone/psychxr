@@ -2482,6 +2482,30 @@ cdef class LibOVRPose(object):
 
         return to_return
 
+    def distanceTo(self, object v):
+        """Distance to a point or pose from this pose.
+
+        Parameters
+        ----------
+        v : tuple, list, ndarray, or LibOVRPose
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        float
+            Distance to a point or Pose.
+
+        """
+        cdef ovr_math.Vector3f pos_in
+
+        if isinstance(v, LibOVRPose):
+            pos_in = <ovr_math.Vector3f>(<LibOVRPose>v).c_data[0].Translation
+        else:
+            pos_in = ovr_math.Vector3f(<float>v[0], <float>v[1], <float>v[2])
+
+        cdef float to_return = \
+            (<ovr_math.Posef>self.c_data[0]).Translation.Distance(pos_in)
+
 
 cdef class LibOVRPoseState(object):
     """Class for data about rigid body configuration with derivatives computed
