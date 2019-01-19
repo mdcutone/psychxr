@@ -2790,6 +2790,48 @@ cdef class LibOVRPose(object):
         # one or more roots? if so we are touching the sphere
         return desc >= 0.0
 
+    def interp(self, LibOVRPose toPose, float s, bint fast=False):
+        """Interpolate between poses.
+
+        Linear interpolation is used on position (Lerp) while the orientation
+        has spherical linear interpolation (Slerp) applied.
+
+        Parameters
+        ----------
+        toPose : LibOVRPose
+            End pose.
+        s : float
+            Interpolation factor between in interval 0.0 and 1.0.
+        fast : bool
+            If True, use fast interpolation which is quicker but less accurate
+            over larger distances.
+
+        Returns
+        -------
+        LibOVRPose
+            Interpolated pose at 's'.
+
+        """
+        cdef ovr_math.Posef _toPose = <ovr_math.Posef>toPose.c_data[0]
+        cdef ovr_math.Posef interp
+
+        if not fast:
+            interp = (<ovr_math.Posef>self.c_data[0]).Lerp(_toPose, s)
+        else:
+            interp = (<ovr_math.Posef>self.c_data[0]).FastLerp(_toPose, s)
+
+        cdef LibOVRPose to_return = \
+            LibOVRPose(
+                (interp.Translation.x,
+                 interp.Translation.y,
+                 interp.Translation.z),
+                (interp.Rotation.x,
+                 interp.Rotation.y,
+                 interp.Rotation.z,
+                 interp.Rotation.w))
+
+        return to_return
+
 
 cdef class LibOVRPoseState(object):
     """Class for data about rigid body configuration with derivatives computed
