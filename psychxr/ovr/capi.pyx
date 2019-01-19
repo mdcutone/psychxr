@@ -1283,7 +1283,7 @@ cdef class LibOVRSession(object):
     @hmdToEyePoses.setter
     def hmdToEyePoses(self, value):
         self.eyeRenderDesc[0].HmdToEyePose = (<LibOVRPose>value[0]).c_data[0]
-        self.eyeRenderDesc[1].HmdToEyePose = (<LibOVRPose>value[1]).c_data[1]
+        self.eyeRenderDesc[1].HmdToEyePose = (<LibOVRPose>value[1]).c_data[0]
 
     @property
     def renderPoses(self):
@@ -2056,7 +2056,7 @@ cdef class LibOVRSession(object):
 
         Parameters
         ----------
-        controller_type : str
+        controller : str
             Controller name to poll. Valid names are: 'Xbox', 'Remote', 'Touch',
             'LeftTouch', and 'RightTouch'.
 
@@ -2839,6 +2839,11 @@ cdef class LibOVRInputState(object):
     def getButtonPress(self, object buttons):
         """Check if buttons were pressed.
 
+        Buttons to test are specified using their string names. Argument
+        'button_names' accepts a single string or a list. If a list is specified,
+        the returned value will reflect whether all buttons were triggered at the
+        time the controller was polled last.
+
         Parameters
         ----------
         buttons : list, tuple, or str
@@ -2867,6 +2872,10 @@ cdef class LibOVRInputState(object):
 
     def getTouches(self, object touches):
         """Check for touch states.
+
+        Touches reveal information about the user's hand pose, for instance,
+        whether a pointing or pinching gesture is being made. Oculus Touch
+        controllers are required for this functionality.
 
         Parameters
         ----------
