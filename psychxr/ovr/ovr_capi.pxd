@@ -457,6 +457,7 @@ cdef extern from "OVR_CAPI.h":
         ovrTrackedDevice_Object3 = 0x0080
 
     ctypedef enum ovrBoundaryType:
+        ovrBoundary_Outer = 0x0001
         ovrBoundary_PlayArea = 0x0100
 
     ctypedef struct ovrBoundaryLookAndFeel:

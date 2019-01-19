@@ -41,8 +41,8 @@ __email__ = "cutonem@yorku.ca"
 # exports
 __all__ = [
     'LibOVRSession', 'LibOVRPose', 'LibOVRPoseState', 'LibOVRInputState',
-    'LibOVRTrackerInfo', 'isOculusServiceRunning', 'isHmdConnected',
-    'LIBOVR_SUCCESS', 'LIBOVR_SUCCESS_NOT_VISIBLE',
+    'LibOVRTrackerInfo', 'LibOVRSessionStatus', 'isOculusServiceRunning',
+    'isHmdConnected', 'LIBOVR_SUCCESS', 'LIBOVR_SUCCESS_NOT_VISIBLE',
     'LIBOVR_SUCCESS_BOUNDARY_INVALID', 'LIBOVR_SUCCESS_DEVICE_UNAVAILABLE',
     'LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL'
     ]
@@ -546,14 +546,17 @@ cdef class LibOVRSession(object):
         int
             Return code of the LibOVR API call 'ovr_Initialize'. Returns
             LIBOVR_SUCCESS if completed without errors. In the event of an
-            error, possible values are: :data:`LIBOVR_ERROR_INITIALIZE`,
-            :data:`LIBOVR_ERROR_LIB_LOAD`, :data:`LIBOVR_ERROR_LIB_VERSION`,
-            :data:`LIBOVR_ERROR_SERVICE_CONNECTION`,
-            :data:`LIBOVR_ERROR_SERVICE_VERSION`,
-            :data:`LIBOVR_ERROR_INCOMPATIBLE_OS`,
-            :data:`LIBOVR_ERROR_DISPLAY_INIT`,
-            :data:`LIBOVR_ERROR_SERVER_START`, and
-            :data:`LIBOVR_ERROR_REINITIALIZATION`.
+            error, possible return values are:
+
+            - :data:`LIBOVR_ERROR_INITIALIZE`: Initialization error.
+            - :data:`LIBOVR_ERROR_LIB_LOAD`:  Failed to load LibOVRRT.
+            - :data:`LIBOVR_ERROR_LIB_VERSION`:  LibOVRRT version incompatible.
+            - :data:`LIBOVR_ERROR_SERVICE_CONNECTION`:  Cannot connect to OVR service.
+            - :data:`LIBOVR_ERROR_SERVICE_VERSION`: OVR service version is incompatible.
+            - :data:`LIBOVR_ERROR_INCOMPATIBLE_OS`: Operating system version is incompatible.
+            - :data:`LIBOVR_ERROR_DISPLAY_INIT`: Unable to initialize the HMD.
+            - :data:`LIBOVR_ERROR_SERVER_START`:  Cannot start a server.
+            - :data:`LIBOVR_ERROR_REINITIALIZATION`: Reinitialized with a different version.
 
         Raises
         ------
@@ -618,32 +621,35 @@ cdef class LibOVRSession(object):
 
         return result
 
-    def shutdown(self):
-        """End the current session.
-
-        Clean-up routines are executed that destroy all swap chains and mirror
-        texture buffers, afterwards control is returned to Oculus Home. This
-        must be called after every successful 'startSession' call.
+    def destroy(self):
+        """Destroy all resources associated with this session.
 
         """
-        # switch off the performance HUD
-        cdef ovr_capi.ovrBool ret = ovr_capi.ovr_SetInt(
-            self.ptrSession, b"PerfHudMode", ovr_capi.ovrPerfHud_Off)
+        # free all swap chains
+        cdef int i = 0
+        for i in range(32):
+            ovr_capi.ovr_DestroyTextureSwapChain(
+                self.ptrSession, self.swapChains[i])
+            self.swapChains[i] = NULL
+
+        # null eye textures in eye layer
+        self.eyeLayer.ColorTexture[0] = self.eyeLayer.ColorTexture[1] = NULL
 
         # destroy the mirror texture
         if self.mirrorTexture is NULL:
             ovr_capi.ovr_DestroyMirrorTexture(self.ptrSession, self.mirrorTexture)
 
-        # free all swap chains
-        cdef int i = 0
-        for i in range(2):
-            if not self.swapChains[i] is NULL:
-                ovr_capi.ovr_DestroyTextureSwapChain(
-                    self.ptrSession, self.swapChains[i])
-                self.swapChains[i] = NULL
-
         # destroy the current session and shutdown
         ovr_capi.ovr_Destroy(self.ptrSession)
+
+    def shutdown(self):
+        """End the current session.
+
+        Clean-up routines are executed that destroy all swap chains and mirror
+        texture buffers, afterwards control is returned to Oculus Home. This
+        must be called after every successful 'initialize' call.
+
+        """
         ovr_capi.ovr_Shutdown()
 
     @property
@@ -814,8 +820,8 @@ cdef class LibOVRSession(object):
 
         The FOV for a given eye are defined as a tuple of tangent angles (Up,
         Down, Left, Right). By default, this function will return the default
-        FOVs after 'start' is called (see 'default_eye_fovs'). You can override
-        these values using 'max_eye_fovs' and 'symmetric_eye_fovs', or with
+        FOVs after 'start' is called (see 'defaultEyeFOVs'). You can override
+        these values using 'maxEyeFOVs' and 'symmetricEyeFOVs', or with
         custom values (see Examples below).
 
         Examples
@@ -916,7 +922,7 @@ cdef class LibOVRSession(object):
         # set in eye layer too
         self.eyeLayer.Fov[eye] = self.eyeRenderDesc[eye].Fov
 
-    def calcEyeBufferSizes(self, texel_per_pixel=1.0):
+    def calcEyeBufferSizes(self, texelsPerPixel=1.0):
         """Get the recommended buffer (texture) sizes for eye buffers.
 
         Should be called after 'eye_render_fovs' is set. Returns left and
@@ -925,7 +931,7 @@ cdef class LibOVRSession(object):
 
         Parameters
         ----------
-        texel_per_pixel : float
+        texelsPerPixel : float
             Display pixels per texture pixels at the center of the display.
             Use a value less than 1.0 to improve performance at the cost of
             resolution. Specifying a larger texture is possible, but not
@@ -940,10 +946,10 @@ cdef class LibOVRSession(object):
         --------
         Getting the buffer sizes::
 
-            hmd.eye_render_fovs = hmd.default_eye_fovs  # set the FOV
-            left_buffer, right_buffer = hmd.calc_eye_buffer_sizes()
-            left_w, left_h = left_buffer
-            right_w, right_h = right_buffer
+            hmd.eyeRenderFOVs = hmd.defaultEyeFOVs  # set the FOV
+            leftBufferSize, rightBufferSize = hmd.calcEyeBufferSizes()
+            left_w, left_h = leftBufferSize
+            right_w, right_h = rightBufferSize
             # combined size if using a single texture buffer for both eyes
             w, h = left_w + right_w, max(left_h, right_h)
             # make the texture ...
@@ -955,19 +961,19 @@ cdef class LibOVRSession(object):
         as wide as the combined width of both returned size.
 
         """
-        cdef ovr_capi.ovrSizei size_left = ovr_capi.ovr_GetFovTextureSize(
+        cdef ovr_capi.ovrSizei sizeLeft = ovr_capi.ovr_GetFovTextureSize(
             self.ptrSession,
             <ovr_capi.ovrEyeType>0,
             self.eyeRenderDesc[0].Fov,
-            <float>texel_per_pixel)
+            <float>texelsPerPixel)
 
-        cdef ovr_capi.ovrSizei size_right = ovr_capi.ovr_GetFovTextureSize(
+        cdef ovr_capi.ovrSizei sizeRight = ovr_capi.ovr_GetFovTextureSize(
             self.ptrSession,
             <ovr_capi.ovrEyeType>1,
             self.eyeRenderDesc[1].Fov,
-            <float>texel_per_pixel)
+            <float>texelsPerPixel)
 
-        return (size_left.w, size_left.h), (size_right.w, size_right.h)
+        return (sizeLeft.w, sizeLeft.h), (sizeRight.w, sizeRight.h)
 
     def getSwapChainLengthGL(self, eye):
         """Get the swap chain length for a given eye."""
@@ -1098,21 +1104,15 @@ cdef class LibOVRSession(object):
 
         self.eyeLayer.ColorTexture[eye] = self.swapChains[eye]
 
-        if debug_mode:
-            check_result(result)
-
     def createMirrorTexture(
             self,
             width,
             height,
-            texture_format='R8G8B8A8_UNORM_SRGB',
-            mirror_mode='Default',
-            include_guardian=False,
-            include_notifications=False,
-            include_system_gui=False):
+            texture_format='R8G8B8A8_UNORM_SRGB'):
         """Create a mirror texture displaying the contents of the rendered
         images being presented on the HMD. The image is automatically refreshed
-        to reflect the current content on the display.
+        to reflect the current content on the display. This displays the
+        post-distortion texture.
 
         Parameters
         ----------
@@ -1123,41 +1123,37 @@ cdef class LibOVRSession(object):
         texture_format : str
             Texture format. Valid texture formats are: 'R8G8B8A8_UNORM',
             'R8G8B8A8_UNORM_SRGB', 'R16G16B16A16_FLOAT', and 'R11G11B10_FLOAT'.
-        mirror_mode : str
-        include_guardian : bool
-        include_notifications : bool
-        include_system_gui : bool
 
         """
-        cdef int32_t mirror_options
-
-        # set the mirror texture mode
-        if mirror_mode == 'Default':
-            mirror_options = ovr_capi.ovrMirrorOption_Default
-        elif mirror_mode == 'PostDistortion':
-            mirror_options = ovr_capi.ovrMirrorOption_PostDistortion
-        elif mirror_mode == 'LeftEyeOnly':
-            mirror_options = ovr_capi.ovrMirrorOption_LeftEyeOnly
-        elif mirror_mode == 'RightEyeOnly':
-            mirror_options = ovr_capi.ovrMirrorOption_RightEyeOnly
-        else:
-            raise RuntimeError("Invalid 'mirrorMode' mode specified.")
-
         # additional options
-        if include_guardian:
-            mirror_options |= ovr_capi.ovrMirrorOption_IncludeGuardian
-        if include_notifications:
-            mirror_options |= ovr_capi.ovrMirrorOption_IncludeNotifications
-        if include_system_gui:
-            mirror_options |= ovr_capi.ovrMirrorOption_IncludeSystemGui
+        #cdef unsigned int mirror_options = ovr_capi.ovrMirrorOption_Default
+        # set the mirror texture mode
+        #if mirrorMode == 'Default':
+        #    mirror_options = <ovr_capi.ovrMirrorOptions>ovr_capi.ovrMirrorOption_Default
+        #elif mirrorMode == 'PostDistortion':
+        #    mirror_options = <ovr_capi.ovrMirrorOptions>ovr_capi.ovrMirrorOption_PostDistortion
+        #elif mirrorMode == 'LeftEyeOnly':
+        #    mirror_options = <ovr_capi.ovrMirrorOptions>ovr_capi.ovrMirrorOption_LeftEyeOnly
+        #elif mirrorMode == 'RightEyeOnly':
+        #    mirror_options = <ovr_capi.ovrMirrorOptions>ovr_capi.ovrMirrorOption_RightEyeOnly
+        #else:
+        #    raise RuntimeError("Invalid 'mirrorMode' mode specified.")
+
+        #if include_guardian:
+        #    mirror_options |= ovr_capi.ovrMirrorOption_IncludeGuardian
+        #if include_notifications:
+        #    mirror_options |= ovr_capi.ovrMirrorOption_IncludeNotifications
+        #if include_system_gui:
+        #    mirror_options |= ovr_capi.ovrMirrorOption_IncludeSystemGui
 
         # create the descriptor
         cdef ovr_capi.ovrMirrorTextureDesc mirrorDesc
+
         mirrorDesc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
         mirrorDesc.Width = <int>width
         mirrorDesc.Height = <int>height
         mirrorDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
-        mirrorDesc.MirrorOptions = <ovr_capi.ovrMirrorOptions>mirror_options
+        mirrorDesc.MirrorOptions = ovr_capi.ovrMirrorOption_Default
 
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_CreateMirrorTextureGL(
             self.ptrSession, &mirrorDesc, &self.mirrorTexture)
@@ -1217,6 +1213,9 @@ cdef class LibOVRSession(object):
         cdef LibOVRPoseState head_pose = LibOVRPoseState()
         head_pose.c_data[0] = tracking_state.HeadPose
         head_pose.status_flags = tracking_state.StatusFlags
+
+        # for computing app photon-to-motion latency
+        self.eyeLayer.SensorSampleTime = tracking_state.HeadPose.TimeInSeconds
 
         cdef LibOVRPoseState left_hand_pose = LibOVRPoseState()
         left_hand_pose.c_data[0] = tracking_state.HandPoses[0]
@@ -1309,6 +1308,11 @@ cdef class LibOVRSession(object):
         right_eye_pose.c_data = &self.eyeLayer.RenderPose[1]
 
         return left_eye_pose, right_eye_pose
+
+    @renderPoses.setter
+    def renderPoses(self, object value):
+        self.eyeLayer.RenderPose[0] = (<LibOVRPose>value[0]).c_data[0]
+        self.eyeLayer.RenderPose[1] = (<LibOVRPose>value[1]).c_data[1]
 
     def getMirrorTexture(self):
         """Get the mirror texture handle.
@@ -1462,7 +1466,7 @@ cdef class LibOVRSession(object):
             pos, pos + forward, up)
 
         # output array
-        cdef np.ndarray[np.float32_t] to_return
+        cdef np.ndarray to_return
         cdef Py_ssize_t i, j, k, N
         i = j = k = 0
         N = 4
@@ -1659,9 +1663,9 @@ cdef class LibOVRSession(object):
         -------
         int
             Error code returned by API call 'ovr_CommitTextureSwapChain'. Will
-            return LIBOVR_SUCCESS if successful. Returns error code
-            LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL if called too many times
-            without calling 'endFrame'.
+            return :data:`LIBOVR_SUCCESS` if successful. Returns error code
+            :data:`LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL` if called too many
+            times without calling 'endFrame'.
 
         Raises
         ------
@@ -1961,7 +1965,7 @@ cdef class LibOVRSession(object):
 
         return <bint> is_visible
 
-    def showBoundry(self, bint show=True):
+    def showBoundary(self):
         """Show the boundary.
 
         The boundary is drawn by the compositor which overlays the extents of
@@ -1969,10 +1973,83 @@ cdef class LibOVRSession(object):
 
         """
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_RequestBoundaryVisible(
-            self.ptrSession, <ovr_capi.ovrBool> show)
+            self.ptrSession, ovr_capi.ovrTrue)
 
-        if self.debugMode:
-            check_result(result)
+        return result
+
+    def hideBoundary(self):
+        """Hide the boundry."""
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_RequestBoundaryVisible(
+            self.ptrSession, ovr_capi.ovrFalse)
+
+        return result
+
+    def getBoundaryDimensions(self, str boundaryType='PlayArea'):
+        """Get the dimensions of the boundary.
+
+        Parameters
+        ----------
+        boundaryType : str
+            Boundary type, can be 'PlayArea' or 'Outer'.
+
+        Returns
+        -------
+        ndarray
+            Dimensions of the boundary meters [x, y, z].
+
+        """
+        cdef ovr_capi.ovrBoundaryType btype
+        if boundaryType == 'PlayArea':
+            btype = ovr_capi.ovrBoundary_PlayArea
+        elif boundaryType == 'Outer':
+            btype = ovr_capi.ovrBoundary_Outer
+        else:
+            raise ValueError("Invalid boundary type specified.")
+
+        cdef ovr_capi.ovrVector3f vec_out
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetBoundaryDimensions(
+                self.ptrSession, btype, &vec_out)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = np.asarray(
+            (vec_out.x, vec_out.y, vec_out.z), dtype=np.float32)
+
+        return to_return
+
+    def getBoundaryPoints(self, str boundaryType='PlayArea'):
+        """Get the floor points which define the boundary."""
+        pass  # TODO: make this work.
+
+    def getConnectedControllers(self):
+        """List of connected controllers.
+
+        Returns
+        -------
+        list
+            List of controller names. Check if a specific controller is
+            connected by checking the membership of its name in the list.
+
+        """
+        cdef unsigned int result = ovr_capi.ovr_GetConnectedControllerTypes(
+            self.ptrSession)
+
+        cdef list ctrl_types = list()
+        if (result & ovr_capi.ovrControllerType_XBox) == \
+                ovr_capi.ovrControllerType_XBox:
+            ctrl_types.append('Xbox')
+        elif (result & ovr_capi.ovrControllerType_Remote) == \
+                ovr_capi.ovrControllerType_Remote:
+            ctrl_types.append('Remote')
+        elif (result & ovr_capi.ovrControllerType_Touch) == \
+                ovr_capi.ovrControllerType_Touch:
+            ctrl_types.append('Touch')
+        elif (result & ovr_capi.ovrControllerType_LTouch) == \
+                ovr_capi.ovrControllerType_LTouch:
+            ctrl_types.append('LeftTouch')
+        elif (result & ovr_capi.ovrControllerType_RTouch) == \
+                ovr_capi.ovrControllerType_RTouch:
+            ctrl_types.append('RightTouch')
+
+        return ctrl_types
 
     def getInputState(self, str controller):
         """Get the current state of a input device.
@@ -2004,6 +2081,8 @@ cdef class LibOVRSession(object):
 
         if self.debugMode:
             check_result(result)
+
+        return to_return
 
     def setControllerVibration(self, str controller, str frequency, float amplitude):
         """Vibrate a controller.
@@ -2060,6 +2139,22 @@ cdef class LibOVRSession(object):
             check_result(result)
 
         return result
+
+    def getSessionStatus(self):
+        """Get the current session status.
+
+        Returns
+        -------
+        LibOVRSessionStatus
+            Object specifying the current state of the session.
+
+        """
+
+        cdef LibOVRSessionStatus to_return = LibOVRSessionStatus()
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetSessionStatus(
+            self.ptrSession, to_return.c_data)
+
+        return to_return
 
 
 cdef class LibOVRPose(object):
@@ -2499,7 +2594,7 @@ cdef class LibOVRPose(object):
         cdef ovr_math.Vector3f pos_in
 
         if isinstance(v, LibOVRPose):
-            pos_in = <ovr_math.Vector3f>(<LibOVRPose>v).c_data[0].Translation
+            pos_in = <ovr_math.Vector3f>((<LibOVRPose>v).c_data[0]).Position
         else:
             pos_in = ovr_math.Vector3f(<float>v[0], <float>v[1], <float>v[2])
 
@@ -2642,14 +2737,17 @@ cdef class LibOVRInputState(object):
 
     @property
     def buttons(self):
+        """Button state as integer."""
         return self.c_data[0].Buttons
 
     @property
     def touches(self):
+        """Touch state as integer."""
         return self.c_data[0].Touches
 
     @property
     def indexTrigger(self):
+        """Index trigger values."""
         cdef float index_trigger_left = self.c_data[0].IndexTrigger[0]
         cdef float index_trigger_right = self.c_data[0].IndexTrigger[1]
 
@@ -2657,6 +2755,7 @@ cdef class LibOVRInputState(object):
 
     @property
     def handTrigger(self):
+        """Hand trigger values."""
         cdef float hand_trigger_left = self.c_data[0].HandTrigger[0]
         cdef float hand_trigger_right = self.c_data[0].HandTrigger[1]
 
@@ -2664,6 +2763,7 @@ cdef class LibOVRInputState(object):
 
     @property
     def thumbstick(self):
+        """Thhumstick values."""
         cdef float thumbstick_x0 = self.c_data[0].Thumbstick[0].x
         cdef float thumbstick_y0 = self.c_data[0].Thumbstick[0].y
         cdef float thumbstick_x1 = self.c_data[0].Thumbstick[1].x
@@ -2673,6 +2773,7 @@ cdef class LibOVRInputState(object):
 
     @property
     def controllerType(self):
+        """Controller type this object references."""
         cdef int ctrl_type = <int>self.c_data[0].ControllerType
 
         if ctrl_type == ovr_capi.ovrControllerType_XBox:
@@ -2734,6 +2835,64 @@ cdef class LibOVRInputState(object):
         cdef float thumbstick_y1 = self.c_data[0].ThumbstickRaw[1].y
 
         return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
+
+    def getButtonPress(self, object buttons):
+        """Check if buttons were pressed.
+
+        Parameters
+        ----------
+        buttons : list, tuple, or str
+            Name or list of buttons to test.
+
+        Returns
+        -------
+        bool
+            True if all buttons in 'buttons' were pressed.
+
+        """
+        cdef unsigned int button_bits = 0x00000000
+        cdef int i, N
+        if isinstance(buttons, str):  # don't loop if a string is specified
+            button_bits |= _controller_buttons[buttons]
+        elif isinstance(buttons, (tuple, list)):
+            # loop over all names and combine them
+            N = <int>len(buttons)
+            for i in range(N):
+                button_bits |= _controller_buttons[buttons[i]]
+
+        cdef bint pressed = \
+            (self.c_data[0].Buttons & button_bits) == button_bits
+
+        return pressed
+
+    def getTouches(self, object touches):
+        """Check for touch states.
+
+        Parameters
+        ----------
+        touches : list, tuple, or str
+            Name or list of touches to test.
+
+        Returns
+        -------
+        bool
+            True if all touches in 'touches' are active.
+
+        """
+        cdef unsigned int touch_bits = 0x00000000
+        cdef int i, N
+        if isinstance(touches, str):  # don't loop if a string is specified
+            touch_bits |= _touch_states[touches]
+        elif isinstance(touches, (tuple, list)):
+            # loop over all names and combine them
+            N = <int> len(touches)
+            for i in range(N):
+                touch_bits |= _touch_states[touches[i]]
+
+        # test if the button was pressed
+        cdef bint touched = (self.c_data[0].Touches & touch_bits) == touch_bits
+
+        return touched
 
 
 cdef class LibOVRTrackerInfo(object):
@@ -2811,6 +2970,63 @@ cdef class LibOVRTrackerInfo(object):
     def farZ(self):
         """Far clipping plane of the sensor frustum in meters (`float`)."""
         return self.c_ovrTrackerDesc.FrustumFarZInMeters
+
+
+cdef class LibOVRSessionStatus(object):
+    """Class for session status information.
+
+    """
+    cdef ovr_capi.ovrSessionStatus* c_data
+    cdef ovr_capi.ovrSessionStatus c_ovrSessionStatus
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrSessionStatus
+
+    @property
+    def isVisible(self):
+        """True if the application has focus and visible in the HMD."""
+        return self.c_data.IsVisible == ovr_capi.ovrTrue
+
+    @property
+    def hmdPresent(self):
+        """True if the HMD is present."""
+        return self.c_data.HmdPresent == ovr_capi.ovrTrue
+
+    @property
+    def hmdMounted(self):
+        """True if the HMD is on the user's head."""
+        return self.c_data.HmdMounted == ovr_capi.ovrTrue
+
+    @property
+    def displayLost(self):
+        """True if the the display was lost."""
+        return self.c_data.DisplayLost == ovr_capi.ovrTrue
+
+    @property
+    def shouldQuit(self):
+        """True if the application was signaled to quit."""
+        return self.c_data.ShouldQuit == ovr_capi.ovrTrue
+
+    @property
+    def shouldRecenter(self):
+        """True if the application was signaled to re-center."""
+        return self.c_data.ShouldRecenter == ovr_capi.ovrTrue
+
+    @property
+    def hasInputFocus(self):
+        """True if the application has input focus."""
+        return self.c_data.HasInputFocus == ovr_capi.ovrTrue
+
+    @property
+    def overlayPresent(self):
+        """True if the system overlay is present."""
+        return self.c_data.OverlayPresent == ovr_capi.ovrTrue
+
+    @property
+    def depthRequested(self):
+        """True if the system requires a depth texture. Currently unused by
+        PsychXR."""
+        return self.c_data.DepthRequested == ovr_capi.ovrTrue
 
 
 # cpdef object getInputState(str controller, object stateOut=None):
