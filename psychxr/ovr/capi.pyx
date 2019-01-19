@@ -585,12 +585,28 @@ cdef class LibOVRSession(object):
 
         return result  # failed to initalize, return error code
 
-    def create(self):
+    @property
+    def isReady(self):
+        """True if a session has been started.
+
+        This should return True if 'createSession' was previously called and was
+        successful.
+
+        """
+        return self.ptrSession != NULL
+
+    def createSession(self):
         """Create a new session. Control is handed over to the application from
         Oculus Home.
 
         Starting a session will initialize and create a new session. Afterwards
         API functions will return valid values.
+
+        Returns
+        -------
+        int
+            Result of the 'ovr_Create' API call. A session was successfully
+            created if the result is :data:`LIBOVR_SUCCESS`.
 
         """
         result = ovr_capi.ovr_Create(&self.ptrSession, &self.ptrLuid)
@@ -622,8 +638,12 @@ cdef class LibOVRSession(object):
 
         return result
 
-    def destroy(self):
-        """Destroy all resources associated with this session.
+    def destroySession(self):
+        """Destroy a session and free all resources associated with it.
+
+        This destroys all texture swap chains and the session handle. This
+        should be done when closing the application, prior to calling 'shutdown'
+        or in the event of an error (such as the display being lost).
 
         """
         # free all swap chains
@@ -637,7 +657,7 @@ cdef class LibOVRSession(object):
         self.eyeLayer.ColorTexture[0] = self.eyeLayer.ColorTexture[1] = NULL
 
         # destroy the mirror texture
-        if self.mirrorTexture is NULL:
+        if self.mirrorTexture != NULL:
             ovr_capi.ovr_DestroyMirrorTexture(self.ptrSession, self.mirrorTexture)
 
         # destroy the current session and shutdown
@@ -976,102 +996,120 @@ cdef class LibOVRSession(object):
 
         return (sizeLeft.w, sizeLeft.h), (sizeRight.w, sizeRight.h)
 
-    def getSwapChainLengthGL(self, eye):
-        """Get the swap chain length for a given eye."""
-        cdef int out_length
+    def getSwapChainLengthGL(self, int swapChain):
+        """Get the length of a specified swap chain.
+
+        Parameters
+        ----------
+        swapChain : int
+            Swap chain handle to query. Must be a swap chain initialized by a
+            previous call to 'createTextureSwapChainGL'. Index values can range
+            between 0 and 31.
+
+        Returns
+        -------
+        tuple of int
+            Result of the 'ovr_GetTextureSwapChainLength' API call and the
+            length of that swap chain.
+
+        """
+        cdef int outLength
         cdef ovr_capi.ovrResult result = 0
 
         # check if there is a swap chain in the slot
-        if self.eyeLayer.ColorTexture[eye] == NULL:
+        if self.eyeLayer.ColorTexture[swapChain] == NULL:
             raise RuntimeError(
                 "Cannot get swap chain length, NULL eye buffer texture.")
 
         # get the current texture index within the swap chain
         result = ovr_capi.ovr_GetTextureSwapChainLength(
-            self.ptrSession, self.swapChains[eye], &out_length)
+            self.ptrSession, self.swapChains[swapChain], &outLength)
 
-        return out_length
+        return result, outLength
 
-    def getSwapChainCurrentIndex(self, eye):
-        """Get the current index of the swap chain for a given eye."""
-        cdef int current_idx = 0
-        cdef ovr_capi.ovrResult result = 0
-
-        # check if there is a swap chain in the slot
-        if self.eyeLayer.ColorTexture[eye] == NULL:
-            raise RuntimeError(
-                "Cannot get buffer ID, NULL eye buffer texture.")
-
-        # get the current texture index within the swap chain
-        result = ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
-            self.ptrSession, self.swapChains[eye], &current_idx)
-
-        return current_idx
-
-    def getTextureBufferGL(self, eye, index):
-        """Get the texture buffer as an OpenGL name at a specific index in the
-        swap chain for a given eye.
-
-        """
-        cdef unsigned int tex_id = 0
-        cdef ovr_capi.ovrResult result = 0
-
-        # get the next available texture ID from the swap chain
-        result = ovr_capi.ovr_GetTextureSwapChainBufferGL(
-            self.ptrSession, self.swapChains[eye], index, &tex_id)
-
-        return tex_id
-
-    def getNextTextureBufferGL(self, eye):
-        """Get the next available texture buffer as an OpenGL name in the swap
-        chain for a given eye.
-
-        Calling this automatically handles getting the next available swap chain
-        index. The index is incremented when 'commit_swap_chain' is called.
+    def getSwapChainCurrentIndex(self, swapChain):
+        """Get the current buffer index within the swap chain.
 
         Parameters
         ----------
-        eye : int
-            Swap chain belonging to a given eye to get the texture ID.
+        swapChain : int
+            Swap chain handle to query. Must be a swap chain initialized by a
+            previous call to 'createTextureSwapChainGL'. Index values can range
+            between 0 and 31.
 
         Returns
         -------
-        int
-            OpenGL texture handle.
+        tuple of int
+            Result of the 'ovr_GetTextureSwapChainCurrentIndex' API call and the
+            index of the buffer.
 
         """
         cdef int current_idx = 0
-        cdef unsigned int tex_id = 0
         cdef ovr_capi.ovrResult result = 0
 
         # check if there is a swap chain in the slot
-        if self.eyeLayer.ColorTexture[eye] == NULL:
+        if self.eyeLayer.ColorTexture[swapChain] == NULL:
             raise RuntimeError(
                 "Cannot get buffer ID, NULL eye buffer texture.")
 
         # get the current texture index within the swap chain
         result = ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
-            self.ptrSession, self.swapChains[eye], &current_idx)
+            self.ptrSession, self.swapChains[swapChain], &current_idx)
 
-        if self.debugMode:
-            check_result(result)
+        return result, current_idx
 
-        # get the next available texture ID from the swap chain
-        result = ovr_capi.ovr_GetTextureSwapChainBufferGL(
-            self.ptrSession, self.swapChains[eye], current_idx, &tex_id)
-
-        if self.debugMode:
-            check_result(result)
-
-        return tex_id
-
-    def createTextureSwapChainGL(self, eye, width, height, textureFormat='R8G8B8A8_UNORM_SRGB', levels=1):
-        """Initialize an texture swap chain for eye images.
+    def getTextureSwapChainBufferGL(self, int swapChain, int index):
+        """Get the texture buffer as an OpenGL name at a specific index in the
+        swap chain for a given swapChain.
 
         Parameters
         ----------
-        eye : int
-            Eye index to initialize.
+        swapChain : int
+            Swap chain handle to query. Must be a swap chain initialized by a
+            previous call to 'createTextureSwapChainGL'. Index values can range
+            between 0 and 31.
+        index : int
+            Index within the swap chain to retrieve its OpenGL texture name.
+
+        Returns
+        -------
+        tuple of ints
+            Result of the 'ovr_GetTextureSwapChainBufferGL' API call and the
+            OpenGL texture buffer name. A OpenGL buffer name is invalid when 0,
+            check the returned API call result for an error condition.
+
+        Examples
+        --------
+        Get the OpenGL texture buffer name associated with the swap chain index::
+
+        # get the current available index
+        result, currentIdx = hmd.getSwapChainCurrentIndex(swapChain)
+
+        # get the OpenGL buffer name
+        result, texId = hmd.getTextureSwapChainBufferGL(swapChain, currentIdx)
+
+        # bind the texture
+        GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0,
+            GL.GL_TEXTURE_2D, texId, 0)
+
+        """
+        cdef unsigned int tex_id = 0  # OpenGL texture handle
+
+        # get the next available texture ID from the swap chain
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetTextureSwapChainBufferGL(
+            self.ptrSession, self.swapChains[swapChain], index, &tex_id)
+
+        return result, tex_id
+
+    def createTextureSwapChainGL(self, swapChain, width, height, textureFormat='R8G8B8A8_UNORM_SRGB', levels=1):
+        """Create a texture swap chain for eye image buffers.
+
+        You can create up-to 32 swap chains, referenced by their index.
+
+        Parameters
+        ----------
+        swapChain : int
+            Index to initialize.
         textureFormat : str
             Texture format, valid texture formats are 'R8G8B8A8_UNORM',
             'R8G8B8A8_UNORM_SRGB', 'R16G16B16A16_FLOAT', and 'R11G11B10_FLOAT'.
@@ -1081,6 +1119,11 @@ cdef class LibOVRSession(object):
             Height of texture in pixels.
         levels : int
             Mip levels to use, default is 1.
+
+        Returns
+        -------
+        int
+            The result of the 'ovr_CreateTextureSwapChainGL' API call.
 
         """
         # configure the texture
@@ -1101,15 +1144,35 @@ cdef class LibOVRSession(object):
             ovr_capi.ovr_CreateTextureSwapChainGL(
                 self.ptrSession,
                 &swapConfig,
-                &self.swapChains[eye])
+                &self.swapChains[swapChain])
 
-        self.eyeLayer.ColorTexture[eye] = self.swapChains[eye]
+        #self.eyeLayer.ColorTexture[swapChain] = self.swapChains[swapChain]
+
+        return result
+
+    def setEyeColorTextureSwapChain(self, int eye, int swapChain):
+        """Set the color texture swap chain for a given eye.
+
+        Should be called after a successful 'createTextureSwapChainGL' call but
+        before any rendering is done.
+
+        Parameters
+        ----------
+        eye : int
+            Eye index.
+        swapChain : int
+            Swap chain handle to query. Must be a swap chain initialized by a
+            previous call to 'createTextureSwapChainGL'. Index values can range
+            between 0 and 31.
+
+        """
+        self.eyeLayer.ColorTexture[eye] = self.swapChains[swapChain]
 
     def createMirrorTexture(
             self,
             width,
             height,
-            texture_format='R8G8B8A8_UNORM_SRGB'):
+            textureFormat='R8G8B8A8_UNORM_SRGB'):
         """Create a mirror texture.
 
         This displays the content of the rendered images being presented on the
@@ -1122,7 +1185,7 @@ cdef class LibOVRSession(object):
             Width of texture in pixels.
         height : int
             Height of texture in pixels.
-        texture_format : str
+        textureFormat : str
             Texture format. Valid texture formats are: 'R8G8B8A8_UNORM',
             'R8G8B8A8_UNORM_SRGB', 'R16G16B16A16_FLOAT', and 'R11G11B10_FLOAT'.
 
@@ -1665,7 +1728,7 @@ cdef class LibOVRSession(object):
         cdef ovr_capi.ovrResult result = \
             ovr_capi.ovr_BeginFrame(self.ptrSession, frameIndex)
 
-        return <int> result
+        return <int>result
 
     def commitSwapChain(self, int eye):
         """Commit changes to a given eye's texture swap chain. When called, the
@@ -1704,7 +1767,7 @@ cdef class LibOVRSession(object):
         if self.debugMode:
             check_result(result)
 
-            return result
+        return <int>result
 
     def endFrame(self, unsigned int frameIndex=0):
         """Call when rendering a frame has completed. Buffers which have been
@@ -1923,8 +1986,22 @@ cdef class LibOVRSession(object):
 
     def getLastErrorInfo(self):
         """Get the last error code and information string reported by the API.
+
+        This function can be used when implementing custom error handlers.
+
+        Returns
+        -------
+        tuple of int, str
+            Tuple of the API call result and error string.
+
         """
-        pass
+        cdef ovr_capi.ovrErrorInfo lastErrorInfo  # store our last error here
+        ovr_capi.ovr_GetLastErrorInfo(&lastErrorInfo)
+
+        cdef ovr_capi.ovrResult result = lastErrorInfo.Result
+        cdef str errorString = lastErrorInfo.ErrorString.decode("utf-8")
+
+        return <int>result, errorString
 
     def setBoundaryColor(self, red, green, blue):
         """Set the boundary color.
