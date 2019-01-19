@@ -318,10 +318,6 @@ cdef class LibOVRSession(object):
     cdef ovr_capi.ovrSessionStatus sessionStatus
     cdef ovr_capi.ovrPerfStats perfStats
 
-    # tracking states
-
-    # controller states
-
     # error information
     cdef ovr_capi.ovrErrorInfo errorInfo  # store our last error here
 
@@ -331,6 +327,10 @@ cdef class LibOVRSession(object):
     # view objects
     cdef np.ndarray _viewport_left
     cdef np.ndarray _viewport_right
+
+    # geometric data
+    cdef ovr_math.Matrix4f[2] eyeProjectionMatrix
+    cdef ovr_math.Matrix4f[2] eyeViewMatrix
 
     def __init__(self, raiseErrors=False, timeout=100, *args, **kwargs):
         """Constructor for LibOVRSession.
@@ -1257,14 +1257,14 @@ cdef class LibOVRSession(object):
 
         return <int>result, <unsigned int>mirror_id
 
-    def getPoses(self, double abs_time, bint latency_marker=True):
+    def getPoses(self, double absTime, bint latencyMarker=True):
         """Get the current poses of the head and hands.
 
         Parameters
         ----------
-        abs_time : float
+        absTime : float
             Absolute time in seconds which the tracking state refers to.
-        latency_marker : bool
+        latencyMarker : bool
             Insert a latency marker for motion-to-photon calculation.
 
         Returns
@@ -1285,10 +1285,10 @@ cdef class LibOVRSession(object):
 
         """
         cdef ovr_capi.ovrBool use_marker = \
-            ovr_capi.ovrTrue if latency_marker else ovr_capi.ovrFalse
+            ovr_capi.ovrTrue if latencyMarker else ovr_capi.ovrFalse
 
         cdef ovr_capi.ovrTrackingState tracking_state = \
-            ovr_capi.ovr_GetTrackingState(self.ptrSession, abs_time, use_marker)
+            ovr_capi.ovr_GetTrackingState(self.ptrSession, absTime, use_marker)
 
         cdef LibOVRPoseState head_pose = LibOVRPoseState()
         head_pose.c_data[0] = tracking_state.HeadPose
@@ -1307,25 +1307,48 @@ cdef class LibOVRSession(object):
 
         return head_pose, left_hand_pose, right_hand_pose
 
-    def calcEyePoses(self, LibOVRPoseState head_pose):
-        """Calcuate eye poses using a given pose state.
+    def calcEyePoses(self, LibOVRPose headPose):
+        """Calculate eye poses using a given pose state.
 
         Eye poses are derived from the head pose stored in the pose state and
         the HMD to eye poses reported by LibOVR. Calculated eye poses are stored
-        and passed to the compositor when 'end_frame' is called for additional
+        and passed to the compositor when 'endFrame' is called for additional
         rendering.
 
-        You can access the computed poses via the 'render_poses' attribute.
+        You can access the computed poses via the 'renderPoses' attribute.
 
         """
         cdef ovr_capi.ovrPosef[2] hmdToEyePoses
         hmdToEyePoses[0] = self.eyeRenderDesc[0].HmdToEyePose
         hmdToEyePoses[1] = self.eyeRenderDesc[1].HmdToEyePose
 
+         # calculate the eye poses
         ovr_capi.ovr_CalcEyePoses2(
-            head_pose.c_data[0].ThePose,
+            headPose.c_data[0],
             hmdToEyePoses,
             self.eyeLayer.RenderPose)
+
+        # compute the eye transformation matrices from poses
+        cdef ovr_math.Vector3f pos
+        cdef ovr_math.Quatf ori
+        cdef ovr_math.Vector3f up
+        cdef ovr_math.Vector3f forward
+        cdef ovr_math.Matrix4f rm
+
+        cdef int eye = 0
+        for eye in range(ovr_capi.ovrEye_Count):
+            pos = <ovr_math.Vector3f>self.eyeLayer.RenderPose[eye].Position
+            ori = <ovr_math.Quatf>self.eyeLayer.RenderPose[eye].Orientation
+
+            if not ori.IsNormalized():  # make sure orientation is normalized
+                ori.Normalize()
+
+            rm = ovr_math.Matrix4f(ori)
+            up = rm.Transform(ovr_math.Vector3f(0., 1., 0.))
+            forward = rm.Transform(ovr_math.Vector3f(0., 0., -1.))
+
+            self.eyeViewMatrix[eye] = ovr_math.Matrix4f.LookAtRH(
+                pos, pos + forward, up)
 
     @property
     def hmdToEyePoses(self):
@@ -1473,8 +1496,8 @@ cdef class LibOVRSession(object):
             4x4 projection matrix.
 
         """
-        cdef ovr_capi.ovrMatrix4f projMat = \
-            ovr_capi.ovrMatrix4f_Projection(
+        self.eyeProjectionMatrix[eye] = \
+            <ovr_math.Matrix4f>ovr_capi.ovrMatrix4f_Projection(
                 self.eyeRenderDesc[eye].Fov,
                 nearClip,
                 farClip,
@@ -1488,7 +1511,7 @@ cdef class LibOVRSession(object):
         i = j = 0
         for i in range(4):
             for j in range(4):
-                mv[i, j] = projMat.M[i][j]
+                mv[i, j] = self.eyeProjectionMatrix[eye].M[i][j]
 
         return to_return
 
@@ -1543,7 +1566,8 @@ cdef class LibOVRSession(object):
             rm.Transform(ovr_math.Vector3f(0., 1., 0.))
         cdef ovr_math.Vector3f forward = \
             rm.Transform(ovr_math.Vector3f(0., 0., -1.))
-        cdef ovr_math.Matrix4f view_mat = ovr_math.Matrix4f.LookAtRH(
+
+        self.eyeViewMatrix[eye] = ovr_math.Matrix4f.LookAtRH(
             pos, pos + forward, up)
 
         # output array
@@ -1555,13 +1579,13 @@ cdef class LibOVRSession(object):
             to_return = np.zeros((16,), dtype=np.float32)
             for i in range(N):
                 for j in range(N):
-                    to_return[k] = view_mat.M[j][i]
+                    to_return[k] = self.eyeViewMatrix.M[j][i]
                     k += 1
         else:
             to_return = np.zeros((4, 4), dtype=np.float32)
             for i in range(N):
                 for j in range(N):
-                    to_return[i, j] = view_mat.M[i][j]
+                    to_return[i, j] = self.eyeViewMatrix.M[i][j]
 
         return to_return
 
@@ -1804,51 +1828,6 @@ cdef class LibOVRSession(object):
             check_result(result)
 
         return result
-
-    @property
-    def isVisible(self):
-        """Application has focus and is visible in the HMD."""
-        return <bint>self.sessionStatus.IsVisible
-
-    @property
-    def hmdPresent(self):
-        """HMD is present."""
-        return <bint>self.sessionStatus.HmdPresent
-
-    @property
-    def hmdMounted(self):
-        """HMD is being worn by the user."""
-        return <bint>self.sessionStatus.HmdMounted
-
-    @property
-    def displayLost(self):
-        """Display has been lost."""
-        return <bint>self.sessionStatus.DisplayLost
-
-    @property
-    def shouldQuit(self):
-        """The application should quit."""
-        return <bint>self.sessionStatus.ShouldQuit
-
-    @property
-    def shouldRecenter(self):
-        """The application should recenter."""
-        return <bint>self.sessionStatus.ShouldRecenter
-
-    @property
-    def hasInputFocus(self):
-        """The application has input focus."""
-        return <bint>self.sessionStatus.HasInputFocus
-
-    @property
-    def overlayPresent(self):
-        """The system overlay is present."""
-        return <bint>self.sessionStatus.OverlayPresent
-
-    @property
-    def depthRequested(self):
-        """Depth buffers are requested by the runtime."""
-        return <bint>self.sessionStatus.DepthRequested
 
     def resetFrameStats(self):
         """Reset frame statistics.
@@ -2267,10 +2246,10 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        ori : tuple, list, or ndarray of float
-            Orientation quaternion vector (x, y, z, w).
         pos : tuple, list, or ndarray of float
             Position vector (x, y, z).
+        ori : tuple, list, or ndarray of float
+            Orientation quaternion vector (x, y, z, w).
 
         Notes
         -----
@@ -2373,15 +2352,42 @@ cdef class LibOVRPose(object):
         """
         return self.inverted()
 
-    def getYawPitchRoll(self):
+    def setPosOri(self, object pos, object ori):
+        """Set the position and orientation."""
+        self.c_data[0].Position.x = <float>pos[0]
+        self.c_data[0].Position.y = <float>pos[1]
+        self.c_data[0].Position.z = <float>pos[2]
+
+        self.c_data[0].Orientation.x = <float>ori[0]
+        self.c_data[0].Orientation.y = <float>ori[1]
+        self.c_data[0].Orientation.z = <float>ori[2]
+        self.c_data[0].Orientation.w = <float>ori[3]
+
+    def getYawPitchRoll(self, LibOVRPose refPose=None):
         """Get the yaw, pitch, and roll of the orientation quaternion.
 
-        Computed values are referenced relative to the world axes.
+        Parameters
+        ----------
+        refPose : LibOVRPose or None
+            Reference pose to compute angles relative to. If None is specified,
+            computed values are referenced relative to the world axes.
+
+        Returns
+        -------
+        ndarray of floats
+            Yaw, pitch, and roll of the pose in degrees.
 
         """
         cdef float yaw, pitch, roll
-        (<ovr_math.Posef>self.c_data[0]).Rotation.GetYawPitchRoll(
-            &yaw, &pitch, &roll)
+        cdef ovr_math.Posef inPose = <ovr_math.Posef>self.c_data[0]
+        cdef ovr_math.Posef invRef
+
+        if refPose is not None:
+            invRef = (<ovr_math.Posef>refPose.c_data[0]).Inverted()
+            inPose = invRef * inPose
+
+        inPose.Rotation.GetYawPitchRoll(&yaw, &pitch, &roll)
+
         cdef np.ndarray[np.float32_t, ndim=1] to_return = \
             np.array((yaw, pitch, roll), dtype=np.float32)
 
