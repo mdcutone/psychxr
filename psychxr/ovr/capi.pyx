@@ -49,7 +49,7 @@ __all__ = [
 
 from .cimport ovr_capi
 from .cimport ovr_math
-from .math cimport *
+#from .math cimport *
 
 from libc.stdint cimport int32_t, uint32_t
 from libc.math cimport pow
@@ -79,12 +79,6 @@ cdef float maxf(float a, float b):
 # RuntimeError will be raised if the returned value indicates failure with the
 # associated message passed from LibOVR.
 #
-debug_mode = False
-
-# Store controller states.
-#
-cdef ovr_capi.ovrInputState _ctrl_states_[5]
-cdef ovr_capi.ovrInputState _ctrl_states_prev_[5]  # previous controller states
 
 # Look-up table of button values to test which are pressed.
 #
@@ -311,7 +305,7 @@ cdef class LibOVRSession(object):
     cdef ovr_capi.ovrEyeRenderDesc[2] eyeRenderDesc
 
     # texture swap chains, for eye views and mirror
-    cdef ovr_capi.ovrTextureSwapChain[2] swapChains  # fixme!
+    cdef ovr_capi.ovrTextureSwapChain[32] swapChains  # fixme!
     cdef ovr_capi.ovrMirrorTexture mirrorTexture
 
     # status and performance information
@@ -590,7 +584,7 @@ cdef class LibOVRSession(object):
         """True if a session has been started.
 
         This should return True if 'createSession' was previously called and was
-        successful.
+        successful. Will return false after 'destroySession' is called.
 
         """
         return self.ptrSession != NULL
@@ -1426,9 +1420,9 @@ cdef class LibOVRSession(object):
 
         Notes
         -----
-            The returned LibOVRPose objects reference data stored in the session
-            instance. Changing their values will immediately update render
-            poses.
+            The returned LibOVRPose objects are copies of data stored internally
+            by the session object. Setting renderPoses will recompute their
+            transformation matrices.
 
         """
         cdef LibOVRPose left_eye_pose = LibOVRPose()
@@ -1443,6 +1437,28 @@ cdef class LibOVRSession(object):
     def renderPoses(self, object value):
         self.eyeLayer.RenderPose[0] = (<LibOVRPose>value[0]).c_data[0]
         self.eyeLayer.RenderPose[1] = (<LibOVRPose>value[1]).c_data[0]
+
+        # re-compute the eye transformation matrices from poses
+        cdef ovr_math.Vector3f pos
+        cdef ovr_math.Quatf ori
+        cdef ovr_math.Vector3f up
+        cdef ovr_math.Vector3f forward
+        cdef ovr_math.Matrix4f rm
+
+        cdef int eye = 0
+        for eye in range(ovr_capi.ovrEye_Count):
+            pos = <ovr_math.Vector3f>self.eyeLayer.RenderPose[eye].Position
+            ori = <ovr_math.Quatf>self.eyeLayer.RenderPose[eye].Orientation
+
+            if not ori.IsNormalized():  # make sure orientation is normalized
+                ori.Normalize()
+
+            rm = ovr_math.Matrix4f(ori)
+            up = rm.Transform(ovr_math.Vector3f(0., 1., 0.))
+            forward = rm.Transform(ovr_math.Vector3f(0., 0., -1.))
+
+            self.eyeViewMatrix[eye] = ovr_math.Matrix4f.LookAtRH(
+                pos, pos + forward, up)
 
     def getMirrorTexture(self):
         """Get the mirror texture name.
@@ -1563,7 +1579,7 @@ cdef class LibOVRSession(object):
         """Compute a view matrix for a specified eye.
 
         View matrices are derived from the eye render poses calculated by the
-        last 'calcEyePoses' call.
+        last 'calcEyePoses' call or update to 'renderPoses'.
 
         Parameters
         ----------
@@ -1580,24 +1596,6 @@ cdef class LibOVRSession(object):
             4x4 view matrix (16x1 if flatten=True).
 
         """
-        cdef ovr_math.Vector3f pos = \
-            <ovr_math.Vector3f>self.eyeLayer.RenderPose[eye].Position
-        cdef ovr_math.Quatf ori = \
-            <ovr_math.Quatf>self.eyeLayer.RenderPose[eye].Orientation
-
-        if not ori.IsNormalized():  # make sure orientation is normalized
-            ori.Normalize()
-
-        cdef ovr_math.Matrix4f rm = ovr_math.Matrix4f(ori)
-        cdef ovr_math.Vector3f up = \
-            rm.Transform(ovr_math.Vector3f(0., 1., 0.))
-        cdef ovr_math.Vector3f forward = \
-            rm.Transform(ovr_math.Vector3f(0., 0., -1.))
-
-        self.eyeViewMatrix[eye] = ovr_math.Matrix4f.LookAtRH(
-            pos, pos + forward, up)
-
-        # output array
         cdef np.ndarray to_return
         cdef Py_ssize_t i, j, k, N
         i = j = k = 0
@@ -1606,13 +1604,13 @@ cdef class LibOVRSession(object):
             to_return = np.zeros((16,), dtype=np.float32)
             for i in range(N):
                 for j in range(N):
-                    to_return[k] = self.eyeViewMatrix.M[j][i]
+                    to_return[k] = self.eyeViewMatrix[eye].M[j][i]
                     k += 1
         else:
             to_return = np.zeros((4, 4), dtype=np.float32)
             for i in range(N):
                 for j in range(N):
-                    to_return[i, j] = self.eyeViewMatrix.M[i][j]
+                    to_return[i, j] = self.eyeViewMatrix[eye].M[i][j]
 
         return to_return
 
