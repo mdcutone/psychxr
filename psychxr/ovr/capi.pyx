@@ -52,6 +52,7 @@ from .cimport ovr_math
 from .math cimport *
 
 from libc.stdint cimport int32_t, uint32_t
+from libc.math cimport pow
 
 cimport numpy as np
 import numpy as np
@@ -1109,10 +1110,11 @@ cdef class LibOVRSession(object):
             width,
             height,
             texture_format='R8G8B8A8_UNORM_SRGB'):
-        """Create a mirror texture displaying the contents of the rendered
-        images being presented on the HMD. The image is automatically refreshed
-        to reflect the current content on the display. This displays the
-        post-distortion texture.
+        """Create a mirror texture.
+
+        This displays the content of the rendered images being presented on the
+        HMD. The image is automatically refreshed to reflect the current content
+        on the display. This displays the post-distortion texture.
 
         Parameters
         ----------
@@ -1123,6 +1125,11 @@ cdef class LibOVRSession(object):
         texture_format : str
             Texture format. Valid texture formats are: 'R8G8B8A8_UNORM',
             'R8G8B8A8_UNORM_SRGB', 'R16G16B16A16_FLOAT', and 'R11G11B10_FLOAT'.
+
+        Returns
+        -------
+        int
+            Result of API call 'ovr_CreateMirrorTextureGL'.
 
         """
         # additional options
@@ -1161,9 +1168,19 @@ cdef class LibOVRSession(object):
         if self.debugMode:
             check_result(result)
 
+        return <int>result
+
     @property
-    def mirrorTexture(self):
-        """Mirror texture ID."""
+    def getMirrorTexture(self):
+        """Mirror texture ID.
+
+        Returns
+        -------
+        tuple of int
+            Result of API call 'ovr_GetMirrorTextureBufferGL' and the mirror
+            texture ID. A mirror texture ID = 0 is invalid.
+
+        """
         cdef unsigned int mirror_id
 
         if self.mirrorTexture is NULL:  # no texture created
@@ -1175,7 +1192,7 @@ cdef class LibOVRSession(object):
                 self.mirrorTexture,
                 &mirror_id)
 
-        return <unsigned int>mirror_id
+        return <int>result, <unsigned int>mirror_id
 
     def getPoses(self, double abs_time, bint latency_marker=True):
         """Get the current poses of the head and hands.
@@ -1238,13 +1255,13 @@ cdef class LibOVRSession(object):
         You can access the computed poses via the 'render_poses' attribute.
 
         """
-        cdef ovr_capi.ovrPosef[2] hmd_to_eye_poses
-        hmd_to_eye_poses[0] = self.eyeRenderDesc[0].HmdToEyePose
-        hmd_to_eye_poses[1] = self.eyeRenderDesc[1].HmdToEyePose
+        cdef ovr_capi.ovrPosef[2] hmdToEyePoses
+        hmdToEyePoses[0] = self.eyeRenderDesc[0].HmdToEyePose
+        hmdToEyePoses[1] = self.eyeRenderDesc[1].HmdToEyePose
 
         ovr_capi.ovr_CalcEyePoses2(
             head_pose.c_data[0].ThePose,
-            hmd_to_eye_poses,
+            hmdToEyePoses,
             self.eyeLayer.RenderPose)
 
     @property
@@ -1304,23 +1321,24 @@ cdef class LibOVRSession(object):
         cdef LibOVRPose left_eye_pose = LibOVRPose()
         cdef LibOVRPose right_eye_pose = LibOVRPose()
 
-        left_eye_pose.c_data = &self.eyeLayer.RenderPose[0]
-        right_eye_pose.c_data = &self.eyeLayer.RenderPose[1]
+        left_eye_pose.c_data[0] = self.eyeLayer.RenderPose[0]
+        right_eye_pose.c_data[0] = self.eyeLayer.RenderPose[1]
 
         return left_eye_pose, right_eye_pose
 
     @renderPoses.setter
     def renderPoses(self, object value):
         self.eyeLayer.RenderPose[0] = (<LibOVRPose>value[0]).c_data[0]
-        self.eyeLayer.RenderPose[1] = (<LibOVRPose>value[1]).c_data[1]
+        self.eyeLayer.RenderPose[1] = (<LibOVRPose>value[1]).c_data[0]
 
     def getMirrorTexture(self):
-        """Get the mirror texture handle.
+        """Get the mirror texture name.
 
         Returns
         -------
-        int
-            OpenGL texture handle.
+        tuple of int
+            Result of the 'ovr_GetMirrorTextureBufferGL' API call and OpenGL
+            texture name.
 
         """
         cdef unsigned int mirror_id
@@ -1330,7 +1348,7 @@ cdef class LibOVRSession(object):
                 self.mirrorTexture,
                 &mirror_id)
 
-        return <unsigned int> mirror_id
+        return <int>result, <unsigned int>mirror_id
 
     def getTextureSwapChainBufferGL(self, int eye):
         """Get the next available swap chain buffer for a specified eye.
@@ -2185,7 +2203,7 @@ cdef class LibOVRPose(object):
         """
         pass  # nop
 
-    def __cinit__(self, ori=(0., 0., 0., 1.), pos=(0., 0., 0.)):
+    def __cinit__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
         self.c_data = &self.c_ovrPosef  # pointer to c_ovrPosef
 
         # numpy arrays for internal data
@@ -2262,13 +2280,13 @@ cdef class LibOVRPose(object):
 
         cdef LibOVRPose to_return = \
             LibOVRPose(
+                (pose_r.Translation.x,
+                 pose_r.Translation.y,
+                 pose_r.Translation.z),
                 (pose_r.Rotation.x,
                  pose_r.Rotation.y,
                  pose_r.Rotation.z,
-                 pose_r.Rotation.w),
-                (pose_r.Translation.x,
-                 pose_r.Translation.y,
-                 pose_r.Translation.z),)
+                 pose_r.Rotation.w))
 
         return to_return
 
@@ -2368,13 +2386,13 @@ cdef class LibOVRPose(object):
                 -(<ovr_math.Vector3f>self.c_data[0].Position))
         cdef LibOVRPose to_return = \
             LibOVRPose(
+                (self.c_data[0].Position.x,
+                 self.c_data[0].Position.y,
+                 self.c_data[0].Position.z),
                 (self.c_data[0].Orientation.x,
                  self.c_data[0].Orientation.y,
                  self.c_data[0].Orientation.z,
-                 self.c_data[0].Orientation.w),
-                (self.c_data[0].Position.x,
-                 self.c_data[0].Position.y,
-                 self.c_data[0].Position.z))
+                 self.c_data[0].Orientation.w))
 
     def rotate(self, object v):
         """Rotate a position vector.
@@ -2600,6 +2618,69 @@ cdef class LibOVRPose(object):
 
         cdef float to_return = \
             (<ovr_math.Posef>self.c_data[0]).Translation.Distance(pos_in)
+
+    def raycastSphere(self, object targetPose, float radius=0.5, float rayDir=(0., 0., -1.), float maxRange=None):
+        """Raycast to a sphere.
+
+        Project an invisible ray of finite or infinite length from this pose in
+        rayDir and check if it intersects with the targetPose bounding sphere.
+
+        Specifying maxRange as >0.0 casts a ray of finite length in world
+        units. The distance between the target and ray origin position are
+        checked prior to casting the ray; automatically failing if the ray can
+        never reach the edge of the bounding sphere centered about targetPose.
+        This avoids having to do the costly transformations required for
+        picking.
+
+        This raycast implementation can only determine if contact is being made
+        with the object's bounding sphere, not where on the object the ray
+        intersects. This method might not work for irregular or elongated
+        objects since bounding spheres may not approximate those shapes well. In
+        such cases, one may use multiple spheres at different locations and
+        radii to pick the same object.
+
+        Parameters
+        ----------
+        targetPose : tuple, list, or ndarray of floats
+            Coordinates of the center of the trarget sphere (x, y, z).
+        radius : float
+            The radius of the target.
+        rayDir : tuple, list, or ndarray of floats
+            Vector indicating the direction for the ray (default is -Z).
+        maxRange : float or None
+            The maximum range of the ray. Ray testing will fail automatically if
+            the target is out of range. The ray has infinite length if None is
+            specified.
+
+        Returns
+        -------
+        bool
+            True if the ray intersects anywhere on the bounding sphere, False in
+            every other condition.
+
+        """
+        cdef ovr_math.Vector3f targetPos = ovr_math.Vector3f(
+            <float>targetPose[0], <float>targetPose[1], <float>targetPose[2])
+        cdef ovr_math.Vector3f _rayDir = ovr_math.Vector3f(
+            <float>rayDir[0], <float>rayDir[1], <float>rayDir[2])
+        cdef ovr_math.Posef originPos = <ovr_math.Posef>self.c_data[0]
+
+        # if the ray is finite, does it ever touch the edge of the sphere?
+        cdef float targetDist
+        if maxRange is not None:
+            targetDist = targetPos.Distance(originPos.Translation) - radius
+            if targetDist > maxRange:
+                return False
+
+        # put the target in the caster's local coordinate system
+        cdef ovr_math.Vector3f offset = -originPos.InverseTransform(targetPos)
+
+        # find the discriminant
+        cdef float desc = pow(_rayDir.Dot(offset), 2.0) - \
+               (offset.Dot(offset) - pow(radius, 2.0))
+
+        # one or more roots? if so we are touching the sphere
+        return desc >= 0.0
 
 
 cdef class LibOVRPoseState(object):
