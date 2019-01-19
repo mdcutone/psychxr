@@ -1317,6 +1317,33 @@ cdef class LibOVRSession(object):
 
         You can access the computed poses via the 'renderPoses' attribute.
 
+        Parameters
+        ----------
+        headPose : LibOVRPose
+            Head pose.
+
+        Examples
+        --------
+
+        Compute the eye poses from tracker data::
+
+            t = hmd.getPredictedDisplayTime()
+            headPoseState, leftHandPoseState, rightHandPoseState = hmd.getPoses(t)
+
+            # check if tracking
+            if head.orientationTracked and head.positionTracked:
+                hmd.calcEyePoses(head.thePose)  # calculate eye poses
+            else:
+                # do something ...
+
+            # computed render poses appear here
+            renderPoseLeft, renderPoseRight = hmd.renderPoses
+
+        Use a custom head pose::
+
+            headPose = LibOVRPose((0., 1.5, 0.))  # eyes 1.5 meters off the ground
+            hmd.calcEyePoses(headPose)  # calculate eye poses
+
         """
         cdef ovr_capi.ovrPosef[2] hmdToEyePoses
         hmdToEyePoses[0] = self.eyeRenderDesc[0].HmdToEyePose
