@@ -125,6 +125,22 @@ cdef dict ctrl_touch_lut = {
     "LIndexPointing": ovr_capi.ovrTouch_LIndexPointing,
     "LThumbUp": ovr_capi.ovrTouch_LThumbUp}
 
+cdef dict _controller_type_enum = {
+    "Xbox": ovr_capi.ovrControllerType_XBox,
+    "Remote": ovr_capi.ovrControllerType_Remote,
+    "Touch": ovr_capi.ovrControllerType_Touch,
+    "LTouch": ovr_capi.ovrControllerType_LTouch,
+    "RTouch": ovr_capi.ovrControllerType_RTouch
+}
+
+cdef ovr_capi.ovrControllerType* libovr_controller_enum = [
+    ovr_capi.ovrControllerType_XBox,
+    ovr_capi.ovrControllerType_Remote,
+    ovr_capi.ovrControllerType_Touch,
+    ovr_capi.ovrControllerType_LTouch,
+    ovr_capi.ovrControllerType_RTouch
+]
+
 # Python accessible list of valid touch names.
 touch_names = [*ctrl_touch_lut.keys()]
 
@@ -314,6 +330,10 @@ cdef class LibOVRSession(object):
 
     # error information
     cdef ovr_capi.ovrErrorInfo errorInfo  # store our last error here
+
+    # controller states
+    cdef ovr_capi.ovrInputState[5] inputStates
+    cdef ovr_capi.ovrInputState[5] prevInputState
 
     # debug mode
     cdef bint debugMode
@@ -2150,8 +2170,8 @@ cdef class LibOVRSession(object):
 
         return ctrl_types
 
-    def getInputState(self, str controller):
-        """Get the current state of a input device.
+    def pollInput(self, str controller):
+        """Poll the input state of a controller.
 
         Parameters
         ----------
@@ -2159,29 +2179,95 @@ cdef class LibOVRSession(object):
             Controller name to poll. Valid names are: 'Xbox', 'Remote', 'Touch',
             'LeftTouch', and 'RightTouch'.
 
-        Returns
-        -------
-        LibOVRControllerState
-            Object storing controller state information.
-
         """
-        cdef dict _controller_types = {
-            'Xbox' : ovr_capi.ovrControllerType_XBox,
-            'Remote' : ovr_capi.ovrControllerType_Remote,
-            'Touch' : ovr_capi.ovrControllerType_Touch,
-            'LeftTouch' : ovr_capi.ovrControllerType_LTouch,
-            'RightTouch' : ovr_capi.ovrControllerType_RTouch}
+        # convert the string to an index
+        cdef dict idx = {'Xbox' : 0, 'Remote' : 1, 'Touch' : 2, 'LeftTouch' : 3,
+                         'RightTouch' : 4}
 
-        cdef LibOVRInputState to_return = LibOVRInputState()
+        # pointer to the current and previous input state
+        cdef ovr_capi.ovrInputState* previousInputState = \
+            self.prevInputState[idx]
+        cdef ovr_capi.ovrInputState* currentInputState = \
+            self.inputStates[idx]
+
+        # copy the current input state into the previous before updating
+        previousInputState[0] = currentInputState[0]
+
+        # get the current input state
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
             self.ptrSession,
-            <ovr_capi.ovrControllerType>_controller_types[controller],
-            to_return.c_data)
+            _controller_type_enum[idx],  # get the enum for the controller
+            currentInputState)
 
         if self.debugMode:
             check_result(result)
 
-        return to_return
+    def getButtons(self, str controller, object buttonNames, str testState='continuous'):
+        """Get the state of a specified button for a given controller.
+
+        Buttons to test are specified using their string names. Argument
+        'buttonNames' accepts a single string or a list. If a list is specified,
+        the returned value will reflect whether all buttons were triggered at
+        the time the controller was polled last.
+
+        An optional trigger mode may be specified which defines the button's
+        activation criteria. Be default, testState='continuous' which will
+        return the immediate state of the button is used. Using 'rising' will
+        return True once when the button is first pressed, whereas 'falling'
+        will return True once the button is released.
+
+        Parameters
+        ----------
+        controller : str
+            Controller name to poll. Valid names are: 'Xbox', 'Remote', 'Touch',
+            'LeftTouch', and 'RightTouch'.
+        buttonNames : tuple of str, list of str, or str
+            Button names to test for state changes.
+        testState : str
+            State to test buttons for. Valid states are 'rising', 'falling',
+            'continuous', 'pressed', and 'released'.
+
+        Returns
+        -------
+        bool
+            Result of the button press.
+
+        """
+        # convert the string to an index
+        cdef dict idx = {'Xbox' : 0, 'Remote' : 1, 'Touch' : 2, 'LeftTouch' : 3,
+                         'RightTouch' : 4}
+
+        # pointer to the current and previous input state
+        cdef ovr_capi.ovrButton curButtons = self.inputStates[idx].Buttons
+        cdef ovr_capi.ovrButton prvButtons = self.prevInputState[idx].Buttons
+
+        # generate a bit mask for testing button presses
+        cdef unsigned int button_bits = 0x00000000
+        cdef int i, N
+        if isinstance(buttonNames, str):  # don't loop if a string is specified
+            button_bits |= ctrl_button_lut[buttonNames]
+        elif isinstance(buttonNames, (tuple, list)):
+            # loop over all names and combine them
+            N = <int>len(buttonNames)
+            for i in range(N):
+                button_bits |= ctrl_button_lut[buttonNames[i]]
+
+        # test if the button was pressed
+        cdef bint stateResult = False
+        if testState == 'continuous':
+            stateResult = (curButtons & button_bits) == button_bits
+        elif testState == 'rising' or testState == 'pressed':
+            # rising edge, will trigger once when pressed
+            stateResult = (curButtons & button_bits) == button_bits and \
+                          (prvButtons & button_bits) != button_bits
+        elif testState == 'falling' or testState == 'released':
+            # falling edge, will trigger once when released
+            stateResult = (curButtons & button_bits) != button_bits and \
+                          (prvButtons & button_bits) == button_bits
+        else:
+            raise ValueError("Invalid trigger mode specified.")
+
+        return stateResult
 
     def setControllerVibration(self, str controller, str frequency, float amplitude):
         """Vibrate a controller.
@@ -2191,9 +2277,9 @@ cdef class LibOVRSession(object):
         for sustained vibration. Only controllers which support vibration can be
         used here.
 
-        There are only two frequencies permitted 'high' (1 Hz) and 'low'
-        (0.5 Hz), however, amplitude can vary from 0.0 to 1.0. Specifying
-        frequency='off' stops vibration.
+        There are only two frequencies permitted 'high' and 'low', however,
+        amplitude can vary from 0.0 to 1.0. Specifying frequency='off' stops
+        vibration.
 
         Parameters
         ----------
@@ -2831,6 +2917,26 @@ cdef class LibOVRPose(object):
                  interp.Rotation.w))
 
         return to_return
+
+    cdef toarray(self, float* arr):
+        """Copy position and orientation data to an array. 
+        
+        This function provides an interface to exchange pose data between API 
+        specific classes.
+        
+        Parameters
+        ----------
+        a : float* 
+            Pointer to the first element of the array.
+        
+        """
+        arr[0] = self.c_data[0].Position.x
+        arr[1] = self.c_data[0].Position.y
+        arr[2] = self.c_data[0].Position.z
+        arr[3] = self.c_data[0].Orientation.x
+        arr[4] = self.c_data[0].Orientation.y
+        arr[5] = self.c_data[0].Orientation.z
+        arr[6] = self.c_data[0].Orientation.w
 
 
 cdef class LibOVRPoseState(object):
