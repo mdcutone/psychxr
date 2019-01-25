@@ -2212,9 +2212,10 @@ cdef class LibOVRSession(object):
 
         An optional trigger mode may be specified which defines the button's
         activation criteria. Be default, testState='continuous' which will
-        return the immediate state of the button is used. Using 'rising' will
-        return True once when the button is first pressed, whereas 'falling'
-        will return True once the button is released.
+        return the immediate state of the button. Using 'rising' (and 'pressed')
+        will return True once when the button transitions to being pressed,
+        whereas 'falling' (and 'released') will return True once the button is
+        released.
 
         Parameters
         ----------
