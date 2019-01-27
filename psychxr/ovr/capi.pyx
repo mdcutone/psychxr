@@ -1,3 +1,4 @@
+# distutils: language=c++
 #  =============================================================================
 #  Python Interface Module for LibOVR
 #  =============================================================================
@@ -240,7 +241,7 @@ LIBOVR_SUCCESS_NOT_VISIBLE = ovr_capi.ovrSuccess_NotVisible
 LIBOVR_SUCCESS_DEVICE_UNAVAILABLE = ovr_capi.ovrSuccess_DeviceUnavailable
 LIBOVR_SUCCESS_BOUNDARY_INVALID = ovr_capi.ovrSuccess_BoundaryInvalid
 
-# return error code
+# return error code, not all of these are applicable
 LIBOVR_ERROR_MEMORY_ALLOCATION_FAILURE = ovr_capi.ovrError_MemoryAllocationFailure
 LIBOVR_ERROR_INVALID_SESSION = ovr_capi.ovrError_InvalidSession
 LIBOVR_ERROR_TIMEOUT = ovr_capi.ovrError_Timeout
@@ -249,7 +250,63 @@ LIBOVR_ERROR_INVALID_PARAMETER = ovr_capi.ovrError_InvalidParameter
 LIBOVR_ERROR_SERVICE_ERROR = ovr_capi.ovrError_ServiceError
 LIBOVR_ERROR_NO_HMD = ovr_capi.ovrError_NoHmd
 LIBOVR_ERROR_UNSUPPORTED = ovr_capi.ovrError_Unsupported
+LIBOVR_ERROR_DEVICE_UNAVAILABLE = ovr_capi.ovrError_DeviceUnavailable
+LIBOVR_ERROR_INVALID_HEADSET_ORIENTATION = ovr_capi.ovrError_InvalidHeadsetOrientation
+LIBOVR_ERROR_CLIENT_SKIPPED_DESTROY = ovr_capi.ovrError_ClientSkippedDestroy
+LIBOVR_ERROR_CLIENT_SKIPPED_SHUTDOWN = ovr_capi.ovrError_ClientSkippedShutdown
+LIBOVR_ERROR_SERVICE_DEADLOCK_DETECTED = ovr_capi.ovrError_ServiceDeadlockDetected
+LIBOVR_ERROR_INVALID_OPERATION = ovr_capi.ovrError_InvalidOperation
+LIBOVR_ERROR_INSUFFICENT_ARRAY_SIZE = ovr_capi.ovrError_InsufficientArraySize
+LIBOVR_ERROR_NO_EXTERNAL_CAMERA_INFO = ovr_capi.ovrError_NoExternalCameraInfo
+LIBOVR_ERROR_LOST_TRACKING = ovr_capi.ovrError_LostTracking
+LIBOVR_ERROR_EXTERNAL_CAMERA_INITIALIZED_FAILED = ovr_capi.ovrError_ExternalCameraInitializedFailed
+LIBOVR_ERROR_EXTERNAL_CAMERA_CAPTURE_FAILED = ovr_capi.ovrError_ExternalCameraCaptureFailed
+LIBOVR_ERROR_EXTERNAL_CAMERA_NAME_LISTS_BUFFER_SIZE = ovr_capi.ovrError_ExternalCameraNameListsBufferSize
+LIBOVR_ERROR_EXTERNAL_CAMERA_NAME_LISTS_MISMATCH = ovr_capi.ovrError_ExternalCameraNameListsMistmatch
+LIBOVR_ERROR_EXTERNAL_CAMERA_NOT_CALIBRATED = ovr_capi.ovrError_ExternalCameraNotCalibrated
+LIBOVR_ERROR_EXTERNAL_CAMERA_NAME_WRONG_SIZE = ovr_capi.ovrError_ExternalCameraNameWrongSize
+LIBOVR_ERROR_AUDIO_DEVICE_NOT_FOUND = ovr_capi.ovrError_AudioDeviceNotFound
+LIBOVR_ERROR_AUDIO_COM_ERROR = ovr_capi.ovrError_AudioComError
+LIBOVR_ERROR_INITIALIZE = ovr_capi.ovrError_Initialize
+LIBOVR_ERROR_LIB_LOAD = ovr_capi.ovrError_LibLoad
+LIBOVR_ERROR_SERVICE_CONNECTION = ovr_capi.ovrError_ServiceConnection
+LIBOVR_ERROR_SERVICE_VERSION = ovr_capi.ovrError_ServiceVersion
+LIBOVR_ERROR_INCOMPATIBLE_OS = ovr_capi.ovrError_IncompatibleOS
+LIBOVR_ERROR_DISPLAY_INIT = ovr_capi.ovrError_DisplayInit
+LIBOVR_ERROR_SERVER_START = ovr_capi.ovrError_ServerStart
+LIBOVR_ERROR_REINITIALIZATION = ovr_capi.ovrError_Reinitialization
+LIBOVR_ERROR_MISMATCHED_ADAPTERS = ovr_capi.ovrError_MismatchedAdapters
+LIBOVR_ERROR_LEAKING_RESOURCES = ovr_capi.ovrError_LeakingResources
+LIBOVR_ERROR_CLIENT_VERSION = ovr_capi.ovrError_ClientVersion
+LIBOVR_ERROR_OUT_OF_DATE_OS = ovr_capi.ovrError_OutOfDateOS
+LIBOVR_ERROR_OUT_OF_DATE_GFX_DRIVER = ovr_capi.ovrError_OutOfDateGfxDriver
+LIBOVR_ERROR_INCOMPATIBLE_OS = ovr_capi.ovrError_IncompatibleGPU
+LIBOVR_ERROR_NO_VALID_VR_DISPLAY_SYSTEM = ovr_capi.ovrError_NoValidVRDisplaySystem
+LIBOVR_ERROR_OBSOLETE = ovr_capi.ovrError_Obsolete
+LIBOVR_ERROR_DISABLED_OR_DEFAULT_ADAPTER = ovr_capi.ovrError_DisabledOrDefaultAdapter
+LIBOVR_ERROR_HYBRID_GRAPHICS_NOT_SUPPORTED = ovr_capi.ovrError_HybridGraphicsNotSupported
+LIBOVR_ERROR_DISPLAY_MANAGER_INIT = ovr_capi.ovrError_DisplayManagerInit
+LIBOVR_ERROR_TRACKER_DRIVER_INIT = ovr_capi.ovrError_TrackerDriverInit
+LIBOVR_ERROR_LIB_SIGN_CHECK = ovr_capi.ovrError_LibSignCheck
+LIBOVR_ERROR_LIB_PATH = ovr_capi.ovrError_LibPath
+LIBOVR_ERROR_LIB_SYMBOLS = ovr_capi.ovrError_LibSymbols
+LIBOVR_ERROR_REMOTE_SESSION = ovr_capi.ovrError_RemoteSession
+LIBOVR_ERROR_INITIALIZE_VULKAN = ovr_capi.ovrError_InitializeVulkan
+LIBOVR_ERROR_BLACKLISTED_GFX_DRIVER = ovr_capi.ovrError_BlacklistedGfxDriver
+LIBOVR_ERROR_DISPLAY_LOST = ovr_capi.ovrError_DisplayLost
 LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL = ovr_capi.ovrError_TextureSwapChainFull
+LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_INVALID = ovr_capi.ovrError_TextureSwapChainInvalid
+LIBOVR_ERROR_GRAPHICS_DEVICE_RESET = ovr_capi.ovrError_GraphicsDeviceReset
+LIBOVR_ERROR_DISPLAY_REMOVED = ovr_capi.ovrError_DisplayRemoved
+LIBOVR_ERROR_CONTENT_PROTECTION_NOT_AVAILABLE = ovr_capi.ovrError_ContentProtectionNotAvailable
+LIBOVR_ERROR_APPLICATION_VISIBLE = ovr_capi.ovrError_ApplicationInvisible
+LIBOVR_ERROR_DISALLOWED = ovr_capi.ovrError_Disallowed
+LIBOVR_ERROR_DISPLAY_PLUGGED_INCORRECTY = ovr_capi.ovrError_DisplayPluggedIncorrectly
+LIBOVR_ERROR_DISPLAY_LIMIT_REACHED = ovr_capi.ovrError_DisplayLimitReached
+LIBOVR_ERROR_RUNTIME_EXCEPTION = ovr_capi.ovrError_RuntimeException
+LIBOVR_ERROR_NO_CALIBRATION = ovr_capi.ovrError_NoCalibration
+LIBOVR_ERROR_OLD_VERSION = ovr_capi.ovrError_OldVersion
+LIBOVR_ERROR_MISFORMATTED_BLOCK = ovr_capi.ovrError_MisformattedBlock
 
 
 def LIBOVR_SUCCESS(int result):
@@ -337,9 +394,6 @@ cdef class LibOVRSession(object):
     # controller states
     cdef ovr_capi.ovrInputState[5] inputStates
     cdef ovr_capi.ovrInputState[5] prevInputState
-
-    # performance stats
-    cdef ovr_capi.ovrPerfStats perfStats
 
     # debug mode
     cdef bint debugMode
@@ -2040,18 +2094,19 @@ cdef class LibOVRSession(object):
     @property
     def frameStats(self):
         """Get all frame compositior frame statistics."""
-        cdef list toReturn = list()
-        cdef LibOVRCompFramePerfStat frameStat = None
-
-        cdef int statIdx = 0
-        cdef int numStats = self.perfStats.FrameStatsCount
-        cdef ovr_capi.ovrPerfStatsPerCompositorFrame* thisStat = NULL
-        for statIdx in range(numStats):
-            frameStat = dict()
-
-            toReturn.append(frameStat)
-
-        return toReturn
+        pass
+        # cdef list toReturn = list()
+        # cdef LibOVRCompFramePerfStat frameStat = None
+        #
+        # cdef int statIdx = 0
+        # cdef int numStats = self.perfStats.FrameStatsCount
+        # cdef ovr_capi.ovrPerfStatsPerCompositorFrame* thisStat = NULL
+        # for statIdx in range(numStats):
+        #     frameStat = dict()
+        #
+        #     toReturn.append(frameStat)
+        #
+        # return toReturn
 
 #     @property
 #     def HmdVsyncIndex(self):
@@ -2294,9 +2349,9 @@ cdef class LibOVRSession(object):
 
         # pointer to the current and previous input state
         cdef ovr_capi.ovrInputState* previousInputState = \
-            self.prevInputState[idx[controller]]
+            &self.prevInputState[idx[controller]]
         cdef ovr_capi.ovrInputState* currentInputState = \
-            self.inputStates[idx[controller]]
+            &self.inputStates[idx[controller]]
 
         # copy the current input state into the previous before updating
         previousInputState[0] = currentInputState[0]
@@ -2304,7 +2359,7 @@ cdef class LibOVRSession(object):
         # get the current input state
         cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
             self.ptrSession,
-            _controller_type_enum[idx],  # get the enum for the controller
+            _controller_type_enum[controller],  # get the enum for the controller
             currentInputState)
 
         if self.debugMode:
@@ -2348,9 +2403,9 @@ cdef class LibOVRSession(object):
                          'RightTouch' : 4}
 
         # pointer to the current and previous input state
-        cdef ovr_capi.ovrButton curButtons = \
+        cdef unsigned int curButtons = \
             self.inputStates[idx[controller]].Buttons
-        cdef ovr_capi.ovrButton prvButtons = \
+        cdef unsigned int prvButtons = \
             self.prevInputState[idx[controller]].Buttons
 
         # generate a bit mask for testing button presses
@@ -2381,8 +2436,83 @@ cdef class LibOVRSession(object):
 
         return stateResult
 
+    def getTouches(self, str controller, object touchNames, str testState='continuous'):
+        """Get touches for a specified device.
+
+        Touches reveal information about the user's hand pose, for instance,
+        whether a pointing or pinching gesture is being made. Oculus Touch
+        controllers are required for this functionality.
+
+        Touch points to test are specified using their string names. Argument
+        'touch_names' accepts a single string or a list. If a list is specified,
+        the returned value will reflect whether all touches were triggered at
+        the time the controller was polled last.
+
+        """
+        # convert the string to an index
+        cdef dict idx = {'Xbox' : 0, 'Remote' : 1, 'Touch' : 2, 'LeftTouch' : 3,
+                         'RightTouch' : 4}
+
+        # pointer to the current and previous input state
+        cdef unsigned int curTouches = \
+            self.inputStates[idx[controller]].Touches
+        cdef unsigned int prvTouches = \
+            self.prevInputState[idx[controller]].Touches
+
+        # generate a bit mask for testing button presses
+        cdef unsigned int touchBits = 0x00000000
+        cdef int i, N
+        if isinstance(touchNames, str):  # don't loop if a string is specified
+            touchBits |= ctrl_touch_lut[touchNames]
+        elif isinstance(touchNames, (tuple, list)):
+            # loop over all names and combine them
+            N = <int>len(touchNames)
+            for i in range(N):
+                touchBits |= ctrl_touch_lut[touchNames[i]]
+
+        # test if the button was pressed
+        cdef bint stateResult = False
+        if testState == 'continuous':
+            stateResult = (curTouches & touchBits) == touchBits
+        elif testState == 'rising' or testState == 'pressed':
+            # rising edge, will trigger once when pressed
+            stateResult = (curTouches & touchBits) == touchBits and \
+                          (prvTouches & touchBits) != touchBits
+        elif testState == 'falling' or testState == 'released':
+            # falling edge, will trigger once when released
+            stateResult = (curTouches & touchBits) != touchBits and \
+                          (prvTouches & touchBits) == touchBits
+        else:
+            raise ValueError("Invalid trigger mode specified.")
+
+        return stateResult
+
     def getThumbstickValues(self, str controller, bint deadzone=False):
-        pass
+        """Get thumbstick values."""
+        cdef dict idx = {'Xbox' : 0, 'Touch' : 2, 'LeftTouch' : 3,
+                         'RightTouch' : 4}
+
+        # pointer to the current and previous input state
+        cdef ovr_capi.ovrInputState* currentInputState = \
+            &self.inputStates[idx[controller]]
+
+        cdef float thumbstick_x0 = 0.0
+        cdef float thumbstick_y0 = 0.0
+        cdef float thumbstick_x1 = 0.0
+        cdef float thumbstick_y1 = 0.0
+
+        if deadzone:
+            thumbstick_x0 = currentInputState[0].Thumbstick[0].x
+            thumbstick_y0 = currentInputState[0].Thumbstick[0].y
+            thumbstick_x1 = currentInputState[0].Thumbstick[1].x
+            thumbstick_y1 = currentInputState[0].Thumbstick[1].y
+        else:
+            thumbstick_x0 = currentInputState[0].ThumbstickNoDeadzone[0].x
+            thumbstick_y0 = currentInputState[0].ThumbstickNoDeadzone[0].y
+            thumbstick_x1 = currentInputState[0].ThumbstickNoDeadzone[1].x
+            thumbstick_y1 = currentInputState[0].ThumbstickNoDeadzone[1].y
+
+        return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
 
     def getIndexTriggerValues(self, str controller, bint deadzone=False):
         """Get index trigger values."""
@@ -2400,11 +2530,33 @@ cdef class LibOVRSession(object):
         if deadzone:
             indexTriggerLeft = currentInputState[0].IndexTrigger[0]
             indexTriggerRight = currentInputState[0].IndexTrigger[1]
+        else:
+            indexTriggerLeft = currentInputState[0].IndexTriggerNoDeadzone[0]
+            indexTriggerRight = currentInputState[0].IndexTriggerNoDeadzone[1]
 
         return indexTriggerLeft, indexTriggerRight
 
     def getHandTriggerValues(self, str controller, bint deadzone=False):
-        pass
+        """Get hand trigger values."""
+        # convert the string to an index
+        cdef dict idx = {'Xbox' : 0, 'Touch' : 2, 'LeftTouch' : 3,
+                         'RightTouch' : 4}
+
+        # pointer to the current and previous input state
+        cdef ovr_capi.ovrInputState* currentInputState = \
+            &self.inputStates[idx[controller]]
+
+        cdef float indexTriggerLeft = 0.0
+        cdef float indexTriggerRight = 0.0
+
+        if deadzone:
+            indexTriggerLeft = currentInputState[0].HandTrigger[0]
+            indexTriggerRight = currentInputState[0].HandTrigger[1]
+        else:
+            indexTriggerLeft = currentInputState[0].HandTriggerNoDeadzone[0]
+            indexTriggerRight = currentInputState[0].HandTriggerNoDeadzone[1]
+
+        return indexTriggerLeft, indexTriggerRight
 
     def setControllerVibration(self, str controller, str frequency, float amplitude):
         """Vibrate a controller.
@@ -2980,7 +3132,7 @@ cdef class LibOVRPose(object):
         cdef float to_return = \
             (<ovr_math.Posef>self.c_data[0]).Translation.Distance(pos_in)
 
-    def raycastSphere(self, object targetPose, float radius=0.5, float rayDir=(0., 0., -1.), float maxRange=None):
+    def raycastSphere(self, object targetPose, float radius=0.5, object rayDir=(0., 0., -1.), float maxRange=0.0):
         """Raycast to a sphere.
 
         Project an invisible ray of finite or infinite length from this pose in
@@ -3008,10 +3160,10 @@ cdef class LibOVRPose(object):
             The radius of the target.
         rayDir : tuple, list, or ndarray of floats
             Vector indicating the direction for the ray (default is -Z).
-        maxRange : float or None
+        maxRange : float
             The maximum range of the ray. Ray testing will fail automatically if
             the target is out of range. The ray has infinite length if None is
-            specified.
+            specified. Ray is infinite if maxRange=0.0.
 
         Returns
         -------
@@ -3028,7 +3180,7 @@ cdef class LibOVRPose(object):
 
         # if the ray is finite, does it ever touch the edge of the sphere?
         cdef float targetDist
-        if maxRange is not None:
+        if maxRange != 0.0:
             targetDist = targetPos.Distance(originPos.Translation) - radius
             if targetDist > maxRange:
                 return False
