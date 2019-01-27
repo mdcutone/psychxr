@@ -56,6 +56,7 @@ from libc.math cimport pow
 
 cimport numpy as np
 import numpy as np
+import collections
 
 # -----------------
 # Initialize module
@@ -251,6 +252,18 @@ LIBOVR_ERROR_UNSUPPORTED = ovr_capi.ovrError_Unsupported
 LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL = ovr_capi.ovrError_TextureSwapChainFull
 
 
+def LIBOVR_SUCCESS(int result):
+    """Check if an API return indicates success."""
+    return <bint>ovr_capi.OVR_SUCCESS(result)
+
+def LIBOVR_UNQUALIFIED_SUCCESS(int result):
+    """Check if an API return indicates unqualified success."""
+    return <bint>ovr_capi.OVR_UNQUALIFIED_SUCCESS(result)
+
+def LIBOVR_FAILURE(int result):
+    """Check if an API return indicates failure (error)."""
+    return <bint>ovr_capi.OVR_FAILURE(result)
+
 def isOculusServiceRunning(int timeout_ms=100):
     """Check if the Oculus Runtime is loaded and running.
 
@@ -286,16 +299,6 @@ def isHmdConnected(int timeout_ms=100):
         timeout_ms)
 
     return <bint>result.IsOculusHMDConnected
-
-
-def libovr_success(result):
-    pass
-
-def libovr_failure(result):
-    pass
-
-def libovr_unqualified_success(result):
-    pass
 
 
 cdef class LibOVRSession(object):
@@ -334,6 +337,9 @@ cdef class LibOVRSession(object):
     # controller states
     cdef ovr_capi.ovrInputState[5] inputStates
     cdef ovr_capi.ovrInputState[5] prevInputState
+
+    # performance stats
+    cdef ovr_capi.ovrPerfStats perfStats
 
     # debug mode
     cdef bint debugMode
@@ -863,20 +869,20 @@ cdef class LibOVRSession(object):
         --------
         Setting eye render FOVs to symmetric (needed for mono rendering)::
 
-            hmd.eye_render_fovs = hmd.symmetric_eye_fovs
+            hmd.eyeRenderFOVs = hmd.symmetricEyeFOVs
 
         Getting the tangent angles::
 
-            left_fov, right_fov = hmd.eye_render_fovs
+            leftFov, rightFov = hmd.eyeRenderFOVs
             # left FOV tangent angles, do the same for the right
-            up_tan, down_tan, left_tan, right_tan =  left_fov
+            upTan, downTan, leftTan, rightTan =  leftFov
 
         Using custom values::
 
             # Up, Down, Left, Right tan angles
-            left_fov = [1.0, -1.0, -1.0, 1.0]
-            right_fov = [1.0, -1.0, -1.0, 1.0]
-            hmd.eye_render_fovs = left_fov, right_fov
+            leftFov = [1.0, -1.0, -1.0, 1.0]
+            rightFov = [1.0, -1.0, -1.0, 1.0]
+            hmd.eyeRenderFOVs = leftFov, rightFov
 
         """
         cdef np.ndarray left_fov = np.asarray([
@@ -1271,7 +1277,22 @@ cdef class LibOVRSession(object):
 
         return <int>result, <unsigned int>mirror_id
 
-    def getPoses(self, double absTime, bint latencyMarker=True):
+    def autoSetup(self, int numEyeBuffers=1, object mirrorSize=(800, 600), ):
+        """Automatically setup the session.
+
+        Parameters
+        ----------
+        numEyeBuffers : int
+            Number of eye buffers to use. If 1, a single buffer is used for both
+            eye textures. If 2, separate swap chains will be used for each eye.
+            The viewports will be configured accordingly.
+        mirrorSize : tuple of ints
+            Width and height of the mirror texture to create.
+
+        """
+        pass
+
+    def getTrackedPoses(self, double absTime, bint latencyMarker=True):
         """Get the current poses of the head and hands.
 
         Parameters
@@ -1290,12 +1311,12 @@ cdef class LibOVRSession(object):
         --------
         Getting the head pose and calculating eye render poses::
 
-            t = hmd.get_predicted_display_time()
-            head, left_hand, right_hand = hmd.get_poses(t)
+            t = hmd.getPredictedDisplayTime()
+            head, leftHand, rightHand = hmd.getTrackedPoses(t)
 
             # check if tracking
-            if head.orientation_tracked and head.position_tracked:
-                hmd.calc_eye_poses(head)  # calculate eye poses
+            if head.orientationTracked and head.positionTracked:
+                hmd.calcEyePose(head)  # calculate eye poses
 
         """
         cdef ovr_capi.ovrBool use_marker = \
@@ -1342,7 +1363,7 @@ cdef class LibOVRSession(object):
         Compute the eye poses from tracker data::
 
             t = hmd.getPredictedDisplayTime()
-            headPoseState, leftHandPoseState, rightHandPoseState = hmd.getPoses(t)
+            headPose, leftHandPose, rightHandPose = hmd.getTrackedPoses(t)
 
             # check if tracking
             if head.orientationTracked and head.positionTracked:
@@ -1983,6 +2004,14 @@ cdef class LibOVRSession(object):
 
         return to_return
 
+    def refreshPerformanceStats(self):
+        """Refresh performance statistics."""
+        cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetPerfStats(
+            self.ptrSession,
+            &self.perfStats)
+
+        return result
+
     @property
     def maxProvidedFrameStats(self):
         """Maximum number of frame stats provided."""
@@ -1991,21 +2020,88 @@ cdef class LibOVRSession(object):
     @property
     def frameStatsCount(self):
         """Number of frame stats available."""
-        pass
+        return self.perfStats.FrameStatsCount
 
     @property
     def anyFrameStatsDropped(self):
         """Have any frame stats been dropped?"""
-        pass
+        return self.perfStats.AnyFrameStatsDropped
 
     @property
     def adaptiveGpuPerformanceScale(self):
         """Adaptive GPU performance scaling factor."""
-        pass
+        return self.perfStats.AdaptiveGpuPerformanceScale
 
     @property
-    def isAswAvailable(self):
+    def aswIsAvailable(self):
         """Is ASW available?"""
+        return self.perfStats.AswIsAvailable
+
+    @property
+    def frameStats(self):
+        """Get all frame compositior frame statistics."""
+        cdef list toReturn = list()
+        cdef LibOVRCompFramePerfStat frameStat = None
+
+        cdef int statIdx = 0
+        cdef int numStats = self.perfStats.FrameStatsCount
+        cdef ovr_capi.ovrPerfStatsPerCompositorFrame* thisStat = NULL
+        for statIdx in range(numStats):
+            frameStat = dict()
+
+            toReturn.append(frameStat)
+
+        return toReturn
+
+#     @property
+#     def HmdVsyncIndex(self):
+#         return self.c_data[0].HmdVsyncIndex
+#
+#     @property
+#     def AppFrameIndex(self):
+#         return self.c_data[0].AppFrameIndex
+#
+#     @property
+#     def AppDroppedFrameCount(self):
+#         return self.c_data[0].AppDroppedFrameCount
+#
+#     @property
+#     def AppQueueAheadTime(self):
+#         return self.c_data[0].AppQueueAheadTime
+#
+#     @property
+#     def AppCpuElapsedTime(self):
+#         return self.c_data[0].AppCpuElapsedTime
+#
+#     @property
+#     def AppGpuElapsedTime(self):
+#         return self.c_data[0].AppGpuElapsedTime
+#
+#     @property
+#     def CompositorFrameIndex(self):
+#         return self.c_data[0].CompositorFrameIndex
+#
+#     @property
+#     def CompositorLatency(self):
+#         return self.c_data[0].CompositorLatency
+#
+#     @property
+#     def CompositorCpuElapsedTime(self):
+#         return self.c_data[0].CompositorCpuElapsedTime
+#
+#     @property
+#     def CompositorGpuElapsedTime(self):
+#         return self.c_data[0].CompositorGpuElapsedTime
+#
+#     @property
+#     def CompositorCpuStartToGpuEndElapsedTime(self):
+#         return self.c_data[0].CompositorCpuStartToGpuEndElapsedTime
+#
+#     @property
+#     def CompositorGpuEndToVsyncElapsedTime(self):
+#         return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
+
+    def getFrameStats(self, int count=1):
         pass
 
     def getLastErrorInfo(self):
@@ -2143,35 +2239,47 @@ cdef class LibOVRSession(object):
 
         Returns
         -------
-        list
-            List of controller names. Check if a specific controller is
-            connected by checking the membership of its name in the list.
+        tuple of int and list
+            List of connected controller names. Check if a specific controller
+            is available by checking the membership of its name in the list.
+
+        Examples
+        --------
+
+        Check if the Xbox gamepad is connected::
+
+            hasGamepad = "Xbox" in hmd.getConnectedControllers()
+
+        Check if the left and right touch controllers are both paired::
+
+            connected = hmd.getConnectedControllers()
+            isPaired = 'LeftTouch' in connected and 'RightTouch' in connected
 
         """
         cdef unsigned int result = ovr_capi.ovr_GetConnectedControllerTypes(
             self.ptrSession)
 
-        cdef list ctrl_types = list()
+        cdef list controllerTypes = list()
         if (result & ovr_capi.ovrControllerType_XBox) == \
                 ovr_capi.ovrControllerType_XBox:
-            ctrl_types.append('Xbox')
+            controllerTypes.append('Xbox')
         elif (result & ovr_capi.ovrControllerType_Remote) == \
                 ovr_capi.ovrControllerType_Remote:
-            ctrl_types.append('Remote')
+            controllerTypes.append('Remote')
         elif (result & ovr_capi.ovrControllerType_Touch) == \
                 ovr_capi.ovrControllerType_Touch:
-            ctrl_types.append('Touch')
+            controllerTypes.append('Touch')
         elif (result & ovr_capi.ovrControllerType_LTouch) == \
                 ovr_capi.ovrControllerType_LTouch:
-            ctrl_types.append('LeftTouch')
+            controllerTypes.append('LeftTouch')
         elif (result & ovr_capi.ovrControllerType_RTouch) == \
                 ovr_capi.ovrControllerType_RTouch:
-            ctrl_types.append('RightTouch')
+            controllerTypes.append('RightTouch')
 
-        return ctrl_types
+        return controllerTypes
 
-    def pollInput(self, str controller):
-        """Poll the input state of a controller.
+    def refreshInputState(self, str controller):
+        """Refresh the input state of a controller.
 
         Parameters
         ----------
@@ -2186,9 +2294,9 @@ cdef class LibOVRSession(object):
 
         # pointer to the current and previous input state
         cdef ovr_capi.ovrInputState* previousInputState = \
-            self.prevInputState[idx]
+            self.prevInputState[idx[controller]]
         cdef ovr_capi.ovrInputState* currentInputState = \
-            self.inputStates[idx]
+            self.inputStates[idx[controller]]
 
         # copy the current input state into the previous before updating
         previousInputState[0] = currentInputState[0]
@@ -2202,6 +2310,8 @@ cdef class LibOVRSession(object):
         if self.debugMode:
             check_result(result)
 
+        return result
+
     def getButtons(self, str controller, object buttonNames, str testState='continuous'):
         """Get the state of a specified button for a given controller.
 
@@ -2211,11 +2321,10 @@ cdef class LibOVRSession(object):
         the time the controller was polled last.
 
         An optional trigger mode may be specified which defines the button's
-        activation criteria. Be default, testState='continuous' which will
-        return the immediate state of the button. Using 'rising' (and 'pressed')
-        will return True once when the button transitions to being pressed,
-        whereas 'falling' (and 'released') will return True once the button is
-        released.
+        activation criteria. By default, testState='continuous' will return the
+        immediate state of the button. Using 'rising' (and 'pressed') will
+        return True once when the button transitions to being pressed, whereas
+        'falling' (and 'released') will return True once the button is released.
 
         Parameters
         ----------
@@ -2239,36 +2348,63 @@ cdef class LibOVRSession(object):
                          'RightTouch' : 4}
 
         # pointer to the current and previous input state
-        cdef ovr_capi.ovrButton curButtons = self.inputStates[idx].Buttons
-        cdef ovr_capi.ovrButton prvButtons = self.prevInputState[idx].Buttons
+        cdef ovr_capi.ovrButton curButtons = \
+            self.inputStates[idx[controller]].Buttons
+        cdef ovr_capi.ovrButton prvButtons = \
+            self.prevInputState[idx[controller]].Buttons
 
         # generate a bit mask for testing button presses
-        cdef unsigned int button_bits = 0x00000000
+        cdef unsigned int buttonBits = 0x00000000
         cdef int i, N
         if isinstance(buttonNames, str):  # don't loop if a string is specified
-            button_bits |= ctrl_button_lut[buttonNames]
+            buttonBits |= ctrl_button_lut[buttonNames]
         elif isinstance(buttonNames, (tuple, list)):
             # loop over all names and combine them
             N = <int>len(buttonNames)
             for i in range(N):
-                button_bits |= ctrl_button_lut[buttonNames[i]]
+                buttonBits |= ctrl_button_lut[buttonNames[i]]
 
         # test if the button was pressed
         cdef bint stateResult = False
         if testState == 'continuous':
-            stateResult = (curButtons & button_bits) == button_bits
+            stateResult = (curButtons & buttonBits) == buttonBits
         elif testState == 'rising' or testState == 'pressed':
             # rising edge, will trigger once when pressed
-            stateResult = (curButtons & button_bits) == button_bits and \
-                          (prvButtons & button_bits) != button_bits
+            stateResult = (curButtons & buttonBits) == buttonBits and \
+                          (prvButtons & buttonBits) != buttonBits
         elif testState == 'falling' or testState == 'released':
             # falling edge, will trigger once when released
-            stateResult = (curButtons & button_bits) != button_bits and \
-                          (prvButtons & button_bits) == button_bits
+            stateResult = (curButtons & buttonBits) != buttonBits and \
+                          (prvButtons & buttonBits) == buttonBits
         else:
             raise ValueError("Invalid trigger mode specified.")
 
         return stateResult
+
+    def getThumbstickValues(self, str controller, bint deadzone=False):
+        pass
+
+    def getIndexTriggerValues(self, str controller, bint deadzone=False):
+        """Get index trigger values."""
+        # convert the string to an index
+        cdef dict idx = {'Xbox' : 0, 'Remote' : 1, 'Touch' : 2, 'LeftTouch' : 3,
+                         'RightTouch' : 4}
+
+        # pointer to the current and previous input state
+        cdef ovr_capi.ovrInputState* currentInputState = \
+            &self.inputStates[idx[controller]]
+
+        cdef float indexTriggerLeft = 0.0
+        cdef float indexTriggerRight = 0.0
+
+        if deadzone:
+            indexTriggerLeft = currentInputState[0].IndexTrigger[0]
+            indexTriggerRight = currentInputState[0].IndexTrigger[1]
+
+        return indexTriggerLeft, indexTriggerRight
+
+    def getHandTriggerValues(self, str controller, bint deadzone=False):
+        pass
 
     def setControllerVibration(self, str controller, str frequency, float amplitude):
         """Vibrate a controller.
@@ -2308,6 +2444,8 @@ cdef class LibOVRSession(object):
             freq = 0.5
         elif frequency == 'high':
             freq = 1.0
+        else:
+            raise RuntimeError("Invalid frequency specified.")
 
         cdef dict _controller_types = {
             'Xbox' : ovr_capi.ovrControllerType_XBox,
@@ -2442,9 +2580,8 @@ cdef class LibOVRPose(object):
 
     def __mul__(LibOVRPose a, LibOVRPose b):
         """Multiplication operator (*) to combine poses."""
-        cdef ovr_math.Posef pose_a = <ovr_math.Posef>a.c_data[0]
-        cdef ovr_math.Posef pose_b = <ovr_math.Posef>b.c_data[0]
-        cdef ovr_math.Posef pose_r = pose_a * pose_b
+        cdef ovr_math.Posef pose_r = \
+            <ovr_math.Posef>a.c_data[0] * <ovr_math.Posef>b.c_data[0]
 
         cdef LibOVRPose to_return = \
             LibOVRPose(
@@ -2463,6 +2600,18 @@ cdef class LibOVRPose(object):
 
         """
         return self.inverted()
+
+    @property
+    def posOri(self):
+        return self.pos, self.ori
+
+    @posOri.setter
+    def posOri(self, value):
+        self.setPosOri(value[0], value[1])
+
+    def getPosOri(self):
+        """Get position and orientation."""
+        return self.pos, self.ori
 
     def setPosOri(self, object pos, object ori):
         """Set the position and orientation."""
@@ -2505,8 +2654,13 @@ cdef class LibOVRPose(object):
 
         return to_return
 
-    def matrix4x4(self):
+    def getMatrix4x4(self, bint inverse=False):
         """Convert this pose into a 4x4 transformation matrix.
+
+        Parameters
+        ----------
+        inverse : bool
+            If True, return the inverse of the matrix.
 
         Returns
         -------
@@ -2516,6 +2670,9 @@ cdef class LibOVRPose(object):
         """
         cdef ovr_math.Matrix4f m_pose = ovr_math.Matrix4f(
             <ovr_math.Posef>self.c_data[0])
+
+        if inverse:
+            m_pose.InvertHomogeneousTransform()
 
         cdef np.ndarray[np.float32_t, ndim=2] to_return = \
             np.zeros((4, 4), dtype=np.float32)
@@ -2530,10 +2687,15 @@ cdef class LibOVRPose(object):
 
         return to_return
 
-    def matrix1D(self):
+    def getMatrix1D(self, bint inverse=False):
         """Convert this pose into a 1D (flattened) transform matrix.
 
         This will output an array suitable for use with OpenGL.
+
+        Parameters
+        ----------
+        inverse : bool
+            If True, return the inverse of the matrix.
 
         Returns
         -------
@@ -2544,6 +2706,10 @@ cdef class LibOVRPose(object):
         """
         cdef ovr_math.Matrix4f m_pose = ovr_math.Matrix4f(
             <ovr_math.Posef>self.c_data[0])
+
+        if inverse:
+            m_pose.InvertHomogeneousTransform()
+
         cdef np.ndarray[np.float32_t, ndim=1] to_return = \
             np.zeros((16,), dtype=np.float32)
 
@@ -3802,121 +3968,58 @@ cdef class LibOVRSessionStatus(object):
 # Performance/Profiling Functions
 # -------------------------------
 #
-# cdef class ovrPerfStatsPerCompositorFrame(object):
-#     cdef ovr_capi.ovrPerfStatsPerCompositorFrame*c_data
-#     cdef ovr_capi.ovrPerfStatsPerCompositorFrame  c_ovrPerfStatsPerCompositorFrame
-#
-#     def __cinit__(self, *args, **kwargs):
-#         self.c_data = &self.c_ovrPerfStatsPerCompositorFrame
-#
-#     @property
-#     def HmdVsyncIndex(self):
-#         return self.c_data[0].HmdVsyncIndex
-#
-#     @property
-#     def AppFrameIndex(self):
-#         return self.c_data[0].AppFrameIndex
-#
-#     @property
-#     def AppDroppedFrameCount(self):
-#         return self.c_data[0].AppDroppedFrameCount
-#
-#     @property
-#     def AppQueueAheadTime(self):
-#         return self.c_data[0].AppQueueAheadTime
-#
-#     @property
-#     def AppCpuElapsedTime(self):
-#         return self.c_data[0].AppCpuElapsedTime
-#
-#     @property
-#     def AppGpuElapsedTime(self):
-#         return self.c_data[0].AppGpuElapsedTime
-#
-#     @property
-#     def CompositorFrameIndex(self):
-#         return self.c_data[0].CompositorFrameIndex
-#
-#     @property
-#     def CompositorLatency(self):
-#         return self.c_data[0].CompositorLatency
-#
-#     @property
-#     def CompositorCpuElapsedTime(self):
-#         return self.c_data[0].CompositorCpuElapsedTime
-#
-#     @property
-#     def CompositorGpuElapsedTime(self):
-#         return self.c_data[0].CompositorGpuElapsedTime
-#
-#     @property
-#     def CompositorCpuStartToGpuEndElapsedTime(self):
-#         return self.c_data[0].CompositorCpuStartToGpuEndElapsedTime
-#
-#     @property
-#     def CompositorGpuEndToVsyncElapsedTime(self):
-#         return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
-#
-#
-# cdef class ovrPerfStats(object):
-#     cdef ovr_capi.ovrPerfStats*c_data
-#     cdef ovr_capi.ovrPerfStats  c_ovrPerfStats
-#     cdef list perf_stats
-#
-#     def __cinit__(self, *args, **kwargs):
-#         self.c_data = &self.c_ovrPerfStats
-#
-#         # initialize performance stats list
-#         self.perf_stats = list()
-#         cdef int i, N
-#         N = <int> ovr_capi.ovrMaxProvidedFrameStats
-#         for i in range(N):
-#             self.perf_stats.append(ovrPerfStatsPerCompositorFrame())
-#             (<ovrPerfStatsPerCompositorFrame> self.perf_stats[i]).c_data[0] = \
-#                 self.c_data[0].FrameStats[i]
-#
-#     @property
-#     def FrameStatsCount(self):
-#         return self.c_data[0].FrameStatsCount
-#
-#     @property
-#     def AnyFrameStatsDropped(self):
-#         return <bint> self.c_data[0].AnyFrameStatsDropped
-#
-#     @property
-#     def FrameStats(self):
-#         cdef int i, N
-#         N = self.c_data[0].FrameStatsCount
-#         for i in range(N):
-#             (<ovrPerfStatsPerCompositorFrame> self.perf_stats[i]).c_data[0] = \
-#                 self.c_data[0].FrameStats[i]
-#
-#         return self.perf_stats
-#
-#     @property
-#     def AdaptiveGpuPerformanceScale(self):
-#         return <bint> self.c_data[0].AdaptiveGpuPerformanceScale
-#
-#     @property
-#     def AswIsAvailable(self):
-#         return <bint> self.c_data[0].AswIsAvailable
-#
-# cpdef ovrPerfStats getFrameStats():
-#     """Get most recent performance stats, returns an object with fields
-#     corresponding to various performance stats reported by the SDK.
-#
-#     :return: dict
-#
-#     """
-#     global _ptrSession_
-#
-#     cdef ovrPerfStats to_return = ovrPerfStats()
-#     cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetPerfStats(
-#         _ptrSession_,
-#         &(<ovrPerfStats> to_return).c_data[0])
-#
-#     if debug_mode:
-#         check_result(result)
-#
-#     return to_return
+cdef class LibOVRCompFramePerfStat(object):
+    cdef ovr_capi.ovrPerfStatsPerCompositorFrame* c_data
+    cdef ovr_capi.ovrPerfStatsPerCompositorFrame c_ovrPerfStatsPerCompositorFrame
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data = &self.c_ovrPerfStatsPerCompositorFrame
+
+    @property
+    def HmdVsyncIndex(self):
+        return self.c_data[0].HmdVsyncIndex
+
+    @property
+    def AppFrameIndex(self):
+        return self.c_data[0].AppFrameIndex
+
+    @property
+    def AppDroppedFrameCount(self):
+        return self.c_data[0].AppDroppedFrameCount
+
+    @property
+    def AppQueueAheadTime(self):
+        return self.c_data[0].AppQueueAheadTime
+
+    @property
+    def AppCpuElapsedTime(self):
+        return self.c_data[0].AppCpuElapsedTime
+
+    @property
+    def AppGpuElapsedTime(self):
+        return self.c_data[0].AppGpuElapsedTime
+
+    @property
+    def CompositorFrameIndex(self):
+        return self.c_data[0].CompositorFrameIndex
+
+    @property
+    def CompositorLatency(self):
+        return self.c_data[0].CompositorLatency
+
+    @property
+    def CompositorCpuElapsedTime(self):
+        return self.c_data[0].CompositorCpuElapsedTime
+
+    @property
+    def CompositorGpuElapsedTime(self):
+        return self.c_data[0].CompositorGpuElapsedTime
+
+    @property
+    def CompositorCpuStartToGpuEndElapsedTime(self):
+        return self.c_data[0].CompositorCpuStartToGpuEndElapsedTime
+
+    @property
+    def CompositorGpuEndToVsyncElapsedTime(self):
+        return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
 
