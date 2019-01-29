@@ -167,8 +167,8 @@ cdef dict _controller_type_enum = {
     "Xbox": ovr_capi.ovrControllerType_XBox,
     "Remote": ovr_capi.ovrControllerType_Remote,
     "Touch": ovr_capi.ovrControllerType_Touch,
-    "LTouch": ovr_capi.ovrControllerType_LTouch,
-    "RTouch": ovr_capi.ovrControllerType_RTouch
+    "LeftTouch": ovr_capi.ovrControllerType_LTouch,
+    "RightTouch": ovr_capi.ovrControllerType_RTouch
 }
 
 cdef ovr_capi.ovrControllerType* libovr_controller_enum = [
@@ -524,7 +524,7 @@ def destroySession():
 
     # free all swap chains
     cdef int i = 0
-    for i in range(32):
+    for i in range(8):
         ovr_capi.ovr_DestroyTextureSwapChain(_ptrSession, _swapChains[i])
         _swapChains[i] = NULL
 
@@ -700,7 +700,7 @@ def getMaxEyeFOVs():
 
     return fov_left, fov_right
 
-def getSymmetricEyeFOVs(self):
+def getSymmetricEyeFOVs():
     """Symmetric field-of-views (FOVs) for mono rendering.
 
     By default, the Rift uses off-axis FOVs. These frustum parameters make
@@ -719,7 +719,7 @@ def getSymmetricEyeFOVs(self):
     cdef ovr_capi.ovrFovPort fov_right = _hmdDesc.DefaultEyeFov[1]
 
     cdef ovr_capi.ovrFovPort fov_max
-    fov_max.UpTan = maxf(fov_left.UpTan, fov_right.Uptan)
+    fov_max.UpTan = maxf(fov_left.UpTan, fov_right.UpTan)
     fov_max.DownTan = maxf(fov_left.DownTan, fov_right.DownTan)
     fov_max.LeftTan = maxf(fov_left.LeftTan, fov_right.LeftTan)
     fov_max.RightTan = maxf(fov_left.RightTan, fov_right.RightTan)
@@ -1128,7 +1128,11 @@ def getTrackedPoses(double absTime, bint latencyMarker=True):
     right_hand_pose.c_data[0] = tracking_state.HandPoses[1]
     right_hand_pose.status_flags = tracking_state.HandStatusFlags[1]
 
-    return head_pose, left_hand_pose, right_hand_pose
+    cdef dict toReturn = {'Head': head_pose,
+                          'LeftHand': left_hand_pose,
+                          'RightHand': right_hand_pose}
+
+    return toReturn
 
 def calcEyePoses(LibOVRPose headPose):
     """Calculate eye poses using a given pose state.
@@ -1203,7 +1207,7 @@ def calcEyePoses(LibOVRPose headPose):
         forward = rm.Transform(ovr_math.Vector3f(0., 0., -1.))
         _eyeViewMatrix[eye] = ovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
 
-def getHmdToEyePoses(self):
+def getHmdToEyePoses():
     """HMD to eye poses (`tuple` of `LibOVRPose`).
 
     These are the prototype eye poses specified by LibOVR, defined only
@@ -1232,7 +1236,7 @@ def getHmdToEyePoses(self):
     cdef LibOVRPose rightHmdToEyePose = LibOVRPose()
 
     leftHmdToEyePose.c_data[0] = _eyeRenderDesc[0].HmdToEyePose
-    leftHmdToEyePose.c_data[1] = _eyeRenderDesc[1].HmdToEyePose
+    rightHmdToEyePose.c_data[0] = _eyeRenderDesc[1].HmdToEyePose
 
     return leftHmdToEyePose, rightHmdToEyePose
 
@@ -1337,16 +1341,6 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.1, float farClip=1000.0):
             mv[i, j] = _eyeProjectionMatrix[eye].M[i][j]
 
     return to_return
-
-# @property
-# def eyeRenderViewports(self):
-#     """Eye viewports."""
-#
-#     global _eyeLayer
-#     self._viewport_left.data = <char*>&_eyeLayer.Viewport[0]
-#     self._viewport_right.data = <char*>&_eyeLayer.Viewport[1]
-#
-#     return self._viewport_left, self._viewport_right
 
 def getEyeRenderViewport(int eye):
     global _eyeLayer
@@ -1481,11 +1475,11 @@ def hidePerfHud(self):
         _ptrSession, b"PerfHudMode", ovr_capi.ovrPerfHud_Off)
 
 @property
-def perfHudModes(self):
+def perfHudModes():
     """List of valid performance HUD modes."""
     return [*_performance_hud_modes]
 
-def setEyeViewport(self, eye, rect):
+def setEyeViewport(eye, rect):
     """Set the viewport for a given eye.
 
     Parameters
@@ -4501,9 +4495,6 @@ cdef class LibOVRPose(object):
     cdef ovr_capi.ovrPosef* c_data
     cdef ovr_capi.ovrPosef c_ovrPosef  # internal data
 
-    cdef np.ndarray _pos
-    cdef np.ndarray _ori
-
     def __init__(self, ori=(0., 0., 0., 1.), pos=(0., 0., 0.)):
         """Constructor for LibOVRPose.
 
@@ -4524,10 +4515,6 @@ cdef class LibOVRPose(object):
 
     def __cinit__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
         self.c_data = &self.c_ovrPosef  # pointer to c_ovrPosef
-
-        # numpy arrays for internal data
-        self._pos = np.empty((3,), dtype=np.float32)
-        self._ori = np.empty((4,), dtype=np.float32)
 
         self.c_data[0].Position.x = <float>pos[0]
         self.c_data[0].Position.y = <float>pos[1]
@@ -4557,8 +4544,9 @@ cdef class LibOVRPose(object):
             myPose.pos[2] += 1.
 
         """
-        self._pos.data = <char*>&self.c_data.Position.x
-        return self._pos
+        return np.array((self.c_data[0].Position.x,
+                         self.c_data[0].Position.y,
+                         self.c_data[0].Position.z), dtype=np.float32)
 
     @pos.setter
     def pos(self, object value):
@@ -4581,8 +4569,10 @@ cdef class LibOVRPose(object):
             The orientation quaternion should be normalized.
 
         """
-        self._ori.data = <char*>&self.c_data.Orientation.x
-        return self._ori
+        return np.array((self.c_data[0].Orientation.x,
+                         self.c_data[0].Orientation.y,
+                         self.c_data[0].Orientation.z,
+                         self.c_data[0].Orientation.w), dtype=np.float32)
 
     @ori.setter
     def ori(self, object value):
@@ -5128,10 +5118,6 @@ cdef class LibOVRPoseState(object):
     cdef ovr_capi.ovrPoseStatef c_ovrPoseStatef
 
     cdef LibOVRPose _pose
-    cdef np.ndarray _angular_vel
-    cdef np.ndarray _linear_vel
-    cdef np.ndarray _angular_acc
-    cdef np.ndarray _linear_acc
 
     cdef int status_flags
 
@@ -5141,12 +5127,6 @@ cdef class LibOVRPoseState(object):
         # the pose is accessed using a LibOVRPose object
         self._pose = LibOVRPose()
         self._pose.c_data = &self.c_data.ThePose
-
-        # numpy arrays which view internal dat
-        self._angular_vel = np.empty((3,), dtype=np.float32)
-        self._linear_vel = np.empty((3,), dtype=np.float32)
-        self._angular_acc = np.empty((3,), dtype=np.float32)
-        self._linear_acc = np.empty((3,), dtype=np.float32)
 
     @property
     def thePose(self):
@@ -5163,8 +5143,9 @@ cdef class LibOVRPoseState(object):
     @property
     def angularVelocity(self):
         """Angular velocity vector in radians/sec."""
-        self._angular_vel.data = <char*>&self.c_data.AngularVelocity.x
-        return self._angular_vel
+        return np.array((self.c_data.AngularVelocity.x,
+                         self.c_data.AngularVelocity.y,
+                         self.c_data.AngularVelocity.z), dtype=np.float32)
 
     @angularVelocity.setter
     def angularVelocity(self, object value):
@@ -5179,8 +5160,9 @@ cdef class LibOVRPoseState(object):
 
         This is only available if 'pos_tracked' is True.
         """
-        self._linear_vel.data = <char*>&self.c_data.LinearVelocity.x
-        return self._linear_vel
+        return np.array((self.c_data.LinearVelocity.x,
+                         self.c_data.LinearVelocity.y,
+                         self.c_data.LinearVelocity.z), dtype=np.float32)
 
     @linearVelocity.setter
     def linearVelocity(self, object value):
@@ -5191,8 +5173,9 @@ cdef class LibOVRPoseState(object):
     @property
     def angularAcceleration(self):
         """Angular acceleration vector in radians/s^2."""
-        self._angular_acc.data = <char*>&self.c_data.AngularAcceleration.x
-        return self._angular_acc
+        return np.array((self.c_data.AngularAcceleration.x,
+                         self.c_data.AngularAcceleration.y,
+                         self.c_data.AngularAcceleration.z), dtype=np.float32)
 
     @angularAcceleration.setter
     def angularAcceleration(self, object value):
@@ -5203,8 +5186,9 @@ cdef class LibOVRPoseState(object):
     @property
     def linearAcceleration(self):
         """Linear acceleration vector in meters/s^2."""
-        self._linear_acc.data = <char*>&self.c_data.LinearAcceleration.x
-        return self._linear_acc
+        return np.array((self.c_data.LinearAcceleration.x,
+                         self.c_data.LinearAcceleration.y,
+                         self.c_data.LinearAcceleration.z), dtype=np.float32)
 
     @linearAcceleration.setter
     def linearAcceleration(self, object value):
