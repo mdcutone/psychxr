@@ -287,7 +287,7 @@ LIBOVR_ERROR_SERVICE_ERROR = ovr_capi.ovrError_ServiceError
 LIBOVR_ERROR_NO_HMD = ovr_capi.ovrError_NoHmd
 LIBOVR_ERROR_UNSUPPORTED = ovr_capi.ovrError_Unsupported
 LIBOVR_ERROR_DEVICE_UNAVAILABLE = ovr_capi.ovrError_DeviceUnavailable
-LIBOVR_ERROR_INVALID_HEADSET_ORIENTATION = ovr_capi.ovrError_InvalidHeadsetOrientation
+LIBOVR_ERROR_INVALID_HEADSET_ORIENTATION = ovr_cap  i.ovrError_InvalidHeadsetOrientation
 LIBOVR_ERROR_CLIENT_SKIPPED_DESTROY = ovr_capi.ovrError_ClientSkippedDestroy
 LIBOVR_ERROR_CLIENT_SKIPPED_SHUTDOWN = ovr_capi.ovrError_ClientSkippedShutdown
 LIBOVR_ERROR_SERVICE_DEADLOCK_DETECTED = ovr_capi.ovrError_ServiceDeadlockDetected
@@ -374,7 +374,7 @@ def LIBOVR_FAILURE(int result):
     """Check if an API return indicates failure (error)."""
     return <bint>ovr_capi.OVR_FAILURE(result)
 
-def isOculusServiceRunning(int timeout_ms=100):
+def isOculusServiceRunning(int timeoutMS=100):
     """Check if the Oculus Runtime is loaded and running.
 
     Parameters
@@ -388,7 +388,7 @@ def isOculusServiceRunning(int timeout_ms=100):
 
     """
     cdef ovr_capi.ovrDetectResult result = ovr_capi.ovr_Detect(
-        timeout_ms)
+        timeoutMS)
 
     return <bint>result.IsOculusServiceRunning
 
@@ -409,6 +409,178 @@ def isHmdConnected(int timeout_ms=100):
         timeout_ms)
 
     return <bint>result.IsOculusHMDConnected
+
+def getUserHeight():
+    """User's calibrated height in meters.
+
+    Getter
+    ------
+    float
+        Distance from floor to the top of the user's head in meters reported
+        by LibOVR. If not set, the default value is 1.778 meters.
+
+    """
+    global _ptrSession
+    cdef float to_return = ovr_capi.ovr_GetFloat(
+        _ptrSession,
+        b"PlayerHeight",
+        <float> 1.778)
+
+    return to_return
+
+def getEyeHeight():
+    """Calibrated eye height from floor in meters.
+
+    Getter
+    ------
+    float
+        Distance from floor to the user's eye level in meters.
+
+    """
+    global _ptrSession
+    cdef float to_return = ovr_capi.ovr_GetFloat(
+        _ptrSession,
+        b"EyeHeight",
+        <float> 1.675)
+
+    return to_return
+
+def getNeckEyeDist():
+    """Distance from the neck to eyes in meters.
+
+    Getter
+    ------
+    float
+        Distance in meters.
+
+    """
+    global _ptrSession
+    cdef float vals[2]
+
+    cdef unsigned int ret = ovr_capi.ovr_GetFloatArray(
+        _ptrSession,
+        b"NeckEyeDistance",
+        vals,
+        <unsigned int>2)
+
+    return <float> vals[0], <float> vals[1]
+
+def getEyeToNoseDist():
+    """Distance between the nose and eyes in meters.
+
+    Getter
+    ------
+    float
+        Distance in meters.
+
+    """
+    global _ptrSession
+    cdef float vals[2]
+
+    cdef unsigned int ret = ovr_capi.ovr_GetFloatArray(
+        _ptrSession,
+        b"EyeToNoseDist",
+        vals,
+        <unsigned int> 2)
+
+    return <float>vals[0], <float> vals[1]
+
+def getProductName():
+    """Get the product name for this device.
+
+    Getter
+    ------
+    str
+        Product name string (utf-8).
+
+    """
+    global _hmdDesc
+    return _hmdDesc.ProductName.decode('utf-8')
+
+def getManufacturerName():
+    """Get the device manufacturer name.
+
+    Getter
+    ------
+    str
+        Manufacturer name string (utf-8).
+
+    """
+    global _hmdDesc
+    return _hmdDesc.Manufacturer.decode('utf-8')
+
+def getSerialNumber():
+    """Get the device serial number.
+
+    Getter
+    ------
+    str
+        Serial number (utf-8).
+
+    """
+    global _hmdDesc
+    return _hmdDesc.SerialNumber.decode('utf-8')
+
+def getScreenSize():
+    """Horizontal and vertical resolution of the display in pixels.
+
+    Getter
+    ------
+    ndarray of int
+        Resolution of the display [w, h].
+
+    """
+    global _hmdDesc
+    return np.asarray((_hmdDesc.Resolution.w, _hmdDesc.Resolution.h), dtype=int)
+
+def getRefreshRate():
+    """Nominal refresh rate in Hertz of the display.
+
+    Getter
+    ------
+    float
+        Refresh rate in Hz.
+
+    """
+    global _hmdDesc
+    return <float>_hmdDesc.DisplayRefreshRate
+
+def getHID():
+    """USB human interface device class identifiers.
+
+    Getter
+    ------
+    tuple
+        USB HIDs (vendor, product).
+
+    """
+    global _hmdDesc
+    return <int>_hmdDesc.VendorId, <int>_hmdDesc.ProductId
+
+def getFirmwareVersion():
+    """Firmware version for this device.
+
+    Getter
+    ------
+    tuple
+        Firmware version (major, minor).
+
+    """
+    global _hmdDesc
+    return <int>_hmdDesc.FirmwareMajor, <int>_hmdDesc.FirmwareMinor
+
+def getVersionString():
+    """LibOVRRT version as a string.
+
+    Getter
+    ------
+    str
+        Runtime version information as a UTF-8 encoded string.
+
+    """
+    global _hmdDesc
+    cdef const char* version = ovr_capi.ovr_GetVersionString()
+    return version.decode('utf-8')  # already UTF-8?
 
 def initialize(bint focusAware=False, int connectionTimeout=0):
     """Initialize the session.
@@ -4487,7 +4659,6 @@ def getSessionStatus():
 #
 #         return to_return
 
-
 cdef class LibOVRPose(object):
     """Class for rigid body pose data for LibOVR.
 
@@ -4604,8 +4775,21 @@ cdef class LibOVRPose(object):
         """
         return self.inverted()
 
+    def __str__(self):
+        return \
+            "LibOVRPose(({px}, {py}, {pz}), ({rx}, {ry}, {rz}, {rw}))".format(
+                px=self.c_data[0].Position.x,
+                py=self.c_data[0].Position.y,
+                pz=self.c_data[0].Position.z,
+                rx=self.c_data[0].Orientation.x,
+                ry=self.c_data[0].Orientation.y,
+                rz=self.c_data[0].Orientation.z,
+                rw=self.c_data[0].Orientation.w)
+
     @property
     def posOri(self):
+        """Position and orientation."""
+
         return self.pos, self.ori
 
     @posOri.setter
@@ -4626,6 +4810,31 @@ cdef class LibOVRPose(object):
         self.c_data[0].Orientation.y = <float>ori[1]
         self.c_data[0].Orientation.z = <float>ori[2]
         self.c_data[0].Orientation.w = <float>ori[3]
+
+    def getAtUp(self):
+        """Get the orientation as 'at' and 'up' vectors.
+
+        Examples
+        --------
+
+        Setting the listener orientation for 3D positional audio using PyOpenAL::
+
+            at, up = myPose.getAtUp()
+            Listener.set_orientation((at[0], at[1], at[2], up[0], up[1], up[2]))
+
+        """
+        cdef ovr_math.Vector3f at = ovr_math.Vector3f(0.0, 0.0, -1.0)
+        cdef ovr_math.Vector3f up = ovr_math.Vector3f(0.0, 1.0, 0.0)
+
+        at = (<ovr_math.Quatf>self.c_data[0].Orientation).Rotate(at)
+        up = (<ovr_math.Quatf>self.c_data[0].Orientation).Rotate(up)
+
+        cdef np.ndarray[np.float32_t, ndim=1] ret_at = \
+            np.array((at[0], at[1], at[2]), dtype=np.float32)
+        cdef np.ndarray[np.float32_t, ndim=1] ret_up = \
+            np.array((up[0], up[1], up[2]), dtype=np.float32)
+
+        return ret_at, ret_up
 
     def getYawPitchRoll(self, LibOVRPose refPose=None):
         """Get the yaw, pitch, and roll of the orientation quaternion.
