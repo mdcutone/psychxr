@@ -287,7 +287,7 @@ LIBOVR_ERROR_SERVICE_ERROR = ovr_capi.ovrError_ServiceError
 LIBOVR_ERROR_NO_HMD = ovr_capi.ovrError_NoHmd
 LIBOVR_ERROR_UNSUPPORTED = ovr_capi.ovrError_Unsupported
 LIBOVR_ERROR_DEVICE_UNAVAILABLE = ovr_capi.ovrError_DeviceUnavailable
-LIBOVR_ERROR_INVALID_HEADSET_ORIENTATION = ovr_cap  i.ovrError_InvalidHeadsetOrientation
+LIBOVR_ERROR_INVALID_HEADSET_ORIENTATION = ovr_capi.ovrError_InvalidHeadsetOrientation
 LIBOVR_ERROR_CLIENT_SKIPPED_DESTROY = ovr_capi.ovrError_ClientSkippedDestroy
 LIBOVR_ERROR_CLIENT_SKIPPED_SHUTDOWN = ovr_capi.ovrError_ClientSkippedShutdown
 LIBOVR_ERROR_SERVICE_DEADLOCK_DETECTED = ovr_capi.ovrError_ServiceDeadlockDetected
@@ -4817,22 +4817,25 @@ cdef class LibOVRPose(object):
         Examples
         --------
 
-        Setting the listener orientation for 3D positional audio using PyOpenAL::
+        Setting the listener orientation for 3D positional audio (PyOpenAL)::
 
             at, up = myPose.getAtUp()
             Listener.set_orientation((at[0], at[1], at[2], up[0], up[1], up[2]))
 
         """
-        cdef ovr_math.Vector3f at = ovr_math.Vector3f(0.0, 0.0, -1.0)
-        cdef ovr_math.Vector3f up = ovr_math.Vector3f(0.0, 1.0, 0.0)
-
-        at = (<ovr_math.Quatf>self.c_data[0].Orientation).Rotate(at)
-        up = (<ovr_math.Quatf>self.c_data[0].Orientation).Rotate(up)
+        cdef ovr_math.Vector3f at = \
+            (<ovr_math.Quatf>self.c_data[0].Orientation).Rotate(
+                ovr_math.Vector3f(0.0, 0.0, -1.0))
+        cdef ovr_math.Vector3f up = \
+            (<ovr_math.Quatf>self.c_data[0].Orientation).Rotate(
+                ovr_math.Vector3f(0.0, 1.0, 0.0))
 
         cdef np.ndarray[np.float32_t, ndim=1] ret_at = \
-            np.array((at[0], at[1], at[2]), dtype=np.float32)
+            np.array((<float>at[0], <float>at[1], <float>at[2]),
+                       dtype=np.float32)
         cdef np.ndarray[np.float32_t, ndim=1] ret_up = \
-            np.array((up[0], up[1], up[2]), dtype=np.float32)
+            np.array((<float>up[0], <float>up[1], <float>up[2]),
+                       dtype=np.float32)
 
         return ret_at, ret_up
 
