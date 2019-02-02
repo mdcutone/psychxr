@@ -1875,6 +1875,14 @@ def recenterTrackingOrigin():
 
     return result
 
+def trackerCount():
+    """Get the number of attached trackers."""
+    global _ptrSession
+    cdef unsigned int trackerCount = ovr_capi.ovr_GetTrackerCount(
+        _ptrSession)
+
+    return <int>trackerCount
+
 def getTrackerInfo(int trackerIndex):
     """Get information about a given tracker.
 
@@ -1887,6 +1895,9 @@ def getTrackerInfo(int trackerIndex):
     """
     cdef LibOVRTrackerInfo to_return = LibOVRTrackerInfo()
     global _ptrSession
+
+    # set the tracker index
+    to_return._trackerIndex = <unsigned int>trackerIndex
 
     # set the descriptor data
     to_return.c_ovrTrackerDesc = ovr_capi.ovr_GetTrackerDesc(
@@ -5446,9 +5457,16 @@ cdef class LibOVRTrackerInfo(object):
     cdef LibOVRPose _pose
     cdef LibOVRPose _leveledPose
 
+    cdef unsigned int _trackerIndex
+
     def __cinit__(self):
         self._pose = LibOVRPose()
         self._leveledPose = LibOVRPose()
+        self._trackerIndex = 0
+
+    @property
+    def trackerIndex(self):
+        return self._trackerIndex
 
     @property
     def pose(self):
