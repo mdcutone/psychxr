@@ -410,6 +410,21 @@ def isHmdConnected(int timeout_ms=100):
 
     return <bint>result.IsOculusHMDConnected
 
+def getHmdInfo():
+    """Get HMD information.
+
+    Returns
+    -------
+    LibOVRHmdInfo
+        HMD information.
+
+    """
+    global _hmdDesc
+    cdef LibOVRHmdInfo toReturn = LibOVRHmdInfo()
+    toReturn.c_data[0] = _hmdDesc
+
+    return toReturn
+
 def getUserHeight():
     """User's calibrated height in meters.
 
@@ -2635,62 +2650,6 @@ cdef class LibOVRPose(object):
         self.c_data[0].Orientation.z = <float>ori[2]
         self.c_data[0].Orientation.w = <float>ori[3]
 
-    @property
-    def pos(self):
-        """Position vector X, Y, Z (`ndarray` of `float`).
-
-        The returned object is a NumPy array which references data stored in an
-        internal structure (ovrPosef). The array is conformal with the internal
-        data's type (float32) and size (length 3).
-
-        Examples
-        --------
-        Set the position of the pose manually::
-
-            myPose.pos = [5., 6., 7.]
-
-        Add 1 unit to the position's Z component::
-
-            myPose.pos[2] += 1.
-
-        """
-        return np.array((self.c_data[0].Position.x,
-                         self.c_data[0].Position.y,
-                         self.c_data[0].Position.z), dtype=np.float32)
-
-    @pos.setter
-    def pos(self, object value):
-        self.c_data[0].Position.x = <float>value[0]
-        self.c_data[0].Position.y = <float>value[1]
-        self.c_data[0].Position.z = <float>value[2]
-
-    @property
-    def ori(self):
-        """Orientation quaternion X, Y, Z, W (`ndarray` of `float`).
-
-        Components X, Y, Z are imaginary and W is real.
-
-        The returned object is a NumPy array which references data stored in an
-        internal structure (ovrPosef). The array is conformal with the internal
-        data's type (float32) and size (length 3).
-
-        Notes
-        -----
-            The orientation quaternion should be normalized.
-
-        """
-        return np.array((self.c_data[0].Orientation.x,
-                         self.c_data[0].Orientation.y,
-                         self.c_data[0].Orientation.z,
-                         self.c_data[0].Orientation.w), dtype=np.float32)
-
-    @ori.setter
-    def ori(self, object value):
-        self.c_data[0].Orientation.x = <float>value[0]
-        self.c_data[0].Orientation.y = <float>value[1]
-        self.c_data[0].Orientation.z = <float>value[2]
-        self.c_data[0].Orientation.w = <float>value[3]
-
     def __mul__(LibOVRPose a, LibOVRPose b):
         """Multiplication operator (*) to combine poses."""
         cdef ovr_math.Posef pose_r = \
@@ -2724,6 +2683,62 @@ cdef class LibOVRPose(object):
                 ry=self.c_data[0].Orientation.y,
                 rz=self.c_data[0].Orientation.z,
                 rw=self.c_data[0].Orientation.w)
+
+    @property
+    def pos(self):
+        return self.getPos()
+
+    def getPos(self):
+        """Position vector X, Y, Z (`ndarray` of `float`).
+
+        The returned object is a NumPy array which references data stored in an
+        internal structure (ovrPosef). The array is conformal with the internal
+        data's type (float32) and size (length 3).
+
+        Examples
+        --------
+        Set the position of the pose manually::
+
+            myPose.pos = [5., 6., 7.]
+
+        """
+        return np.array((self.c_data[0].Position.x,
+                         self.c_data[0].Position.y,
+                         self.c_data[0].Position.z), dtype=np.float32)
+
+    def setPos(self, object pos):
+        self.c_data[0].Position.x = <float>pos[0]
+        self.c_data[0].Position.y = <float>pos[1]
+        self.c_data[0].Position.z = <float>pos[2]
+
+    @property
+    def ori(self):
+        return self.getOri()
+
+    def getOri(self):
+        """Orientation quaternion X, Y, Z, W (`ndarray` of `float`).
+
+        Components X, Y, Z are imaginary and W is real.
+
+        The returned object is a NumPy array which references data stored in an
+        internal structure (ovrPosef). The array is conformal with the internal
+        data's type (float32) and size (length 3).
+
+        Notes
+        -----
+            The orientation quaternion should be normalized.
+
+        """
+        return np.array((self.c_data[0].Orientation.x,
+                         self.c_data[0].Orientation.y,
+                         self.c_data[0].Orientation.z,
+                         self.c_data[0].Orientation.w), dtype=np.float32)
+
+    def setOri(self, object ori):
+        self.c_data[0].Orientation.x = <float>ori[0]
+        self.c_data[0].Orientation.y = <float>ori[1]
+        self.c_data[0].Orientation.z = <float>ori[2]
+        self.c_data[0].Orientation.w = <float>ori[3]
 
     @property
     def posOri(self):
@@ -3521,10 +3536,196 @@ cdef class LibOVRSessionStatus(object):
         return self.c_data.DepthRequested == ovr_capi.ovrTrue
 
 
-# -------------------------------
-# Performance/Profiling Functions
-# -------------------------------
-#
+class LibOVRHmdInfo(object):
+    """Class for HMD information."""
+
+    cdef ovr_capi.ovrHmdDesc* c_data
+    cdef ovr_capi.ovrHmdDesc c_ovrHmdDesc
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data = &self.c_ovrHmdDesc
+
+    def productName(self):
+        """Get the product name for this device.
+
+        Returns
+        -------
+        str
+            Product name string (utf-8).
+
+        """
+        return self.c_data[0].ProductName.decode('utf-8')
+
+    def manufacturer(self):
+        """Get the device manufacturer name.
+
+        Returns
+        -------
+        str
+            Manufacturer name string (utf-8).
+
+        """
+        return self.c_data[0].Manufacturer.decode('utf-8')
+
+    def serialNumber(self):
+        """Get the device serial number.
+
+        Returns
+        -------
+        str
+            Serial number (utf-8).
+
+        """
+        return self.c_data[0].SerialNumber.decode('utf-8')
+
+    def resolution(self):
+        """Horizontal and vertical resolution of the display in pixels.
+
+        Returns
+        -------
+        ndarray of int
+            Resolution of the display [w, h].
+
+        """
+        return np.asarray((self.c_data[0].Resolution.w,
+                           self.c_data[0].Resolution.h), dtype=int)
+
+    def refreshRate(self):
+        """Nominal refresh rate in Hertz of the display.
+
+        Returns
+        -------
+        float
+            Refresh rate in Hz.
+
+        """
+        return <float>self.c_data[0].DisplayRefreshRate
+
+    def hid(self):
+        """USB human interface device class identifiers.
+
+        Returns
+        -------
+        tuple
+            USB HIDs (vendor, product).
+
+        """
+        return <int>self.c_data[0].VendorId, <int>self.c_data[0].ProductId
+
+    def firmwareVersion(self):
+        """Firmware version for this device.
+
+        Returns
+        -------
+        tuple
+            Firmware version (major, minor).
+
+        """
+        return <int>self.c_data[0].FirmwareMajor, \
+               <int>self.c_data[0].FirmwareMinor
+
+    @property
+    def defaultEyeFOVs(self):
+        """Default or recommended eye field-of-views (FOVs) provided by the API.
+
+        Returns
+        -------
+        tuple of ndarray
+            Pair of left and right eye FOVs specified as tangent angles [Up,
+            Down, Left, Right].
+
+        """
+        cdef np.ndarray fovLeft = np.asarray([
+            self.c_data[0].DefaultEyeFov[0].UpTan,
+            self.c_data[0].DefaultEyeFov[0].DownTan,
+            self.c_data[0].DefaultEyeFov[0].LeftTan,
+            self.c_data[0].DefaultEyeFov[0].RightTan],
+            dtype=np.float32)
+
+        cdef np.ndarray fovRight = np.asarray([
+            self.c_data[0].DefaultEyeFov[1].UpTan,
+            self.c_data[0].DefaultEyeFov[1].DownTan,
+            self.c_data[0].DefaultEyeFov[1].LeftTan,
+            self.c_data[0].DefaultEyeFov[1].RightTan],
+            dtype=np.float32)
+
+        return fovLeft, fovRight
+
+    @property
+    def maxEyeFOVs(self):
+        """Maximum eye field-of-views (FOVs) provided by the API.
+
+        Returns
+        -------
+        tuple of ndarray
+            Pair of left and right eye FOVs specified as tangent angles in
+            radians [Up, Down, Left, Right].
+
+        """
+        cdef np.ndarray[float, ndim=1] fov_left = np.asarray([
+            self.c_data[0].MaxEyeFov[0].UpTan,
+            self.c_data[0].MaxEyeFov[0].DownTan,
+            self.c_data[0].MaxEyeFov[0].LeftTan,
+            self.c_data[0].MaxEyeFov[0].RightTan],
+            dtype=np.float32)
+
+        cdef np.ndarray[float, ndim=1] fov_right = np.asarray([
+            self.c_data[0].MaxEyeFov[1].UpTan,
+            self.c_data[0].MaxEyeFov[1].DownTan,
+            self.c_data[0].MaxEyeFov[1].LeftTan,
+            self.c_data[0].MaxEyeFov[1].RightTan],
+            dtype=np.float32)
+
+        return fov_left, fov_right
+
+    @property
+    def symmetricEyeFOVs(self):
+        """Symmetric field-of-views (FOVs) for mono rendering.
+
+        By default, the Rift uses off-axis FOVs. These frustum parameters make
+        it difficult to converge monoscopic stimuli.
+
+        Returns
+        -------
+        tuple of ndarray of float
+            Pair of left and right eye FOVs specified as tangent angles in
+            radians [Up, Down, Left, Right]. Both FOV objects will have the same
+            values.
+
+        """
+        cdef ovr_capi.ovrFovPort fov_left = self.c_data[0].DefaultEyeFov[0]
+        cdef ovr_capi.ovrFovPort fov_right = self.c_data[0].DefaultEyeFov[1]
+
+        cdef ovr_capi.ovrFovPort fov_max
+        fov_max.UpTan = maxf(fov_left.UpTan, fov_right.UpTan)
+        fov_max.DownTan = maxf(fov_left.DownTan, fov_right.DownTan)
+        fov_max.LeftTan = maxf(fov_left.LeftTan, fov_right.LeftTan)
+        fov_max.RightTan = maxf(fov_left.RightTan, fov_right.RightTan)
+
+        cdef float tan_half_fov_horz = maxf(fov_max.LeftTan, fov_max.RightTan)
+        cdef float tan_half_fov_vert = maxf(fov_max.DownTan, fov_max.UpTan)
+
+        cdef ovr_capi.ovrFovPort fov_both
+        fov_both.LeftTan = fov_both.RightTan = tan_half_fov_horz
+        fov_both.UpTan = fov_both.DownTan = tan_half_fov_horz
+
+        cdef np.ndarray[float, ndim=1] fov_left_out = np.asarray([
+            fov_both.UpTan,
+            fov_both.DownTan,
+            fov_both.LeftTan,
+            fov_both.RightTan],
+            dtype=np.float32)
+
+        cdef np.ndarray[float, ndim=1] fov_right_out = np.asarray([
+            fov_both.UpTan,
+            fov_both.DownTan,
+            fov_both.LeftTan,
+            fov_both.RightTan],
+            dtype=np.float32)
+
+        return fov_left_out, fov_right_out
+
+
 cdef class LibOVRCompFramePerfStat(object):
     cdef ovr_capi.ovrPerfStatsPerCompositorFrame* c_data
     cdef ovr_capi.ovrPerfStatsPerCompositorFrame c_ovrPerfStatsPerCompositorFrame
