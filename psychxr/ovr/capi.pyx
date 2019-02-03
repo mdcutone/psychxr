@@ -3537,7 +3537,7 @@ cdef class LibOVRSessionStatus(object):
 
 
 class LibOVRHmdInfo(object):
-    """Class for HMD information."""
+    """Class for HMD information returned by 'getHmdInfo()'."""
 
     cdef ovr_capi.ovrHmdDesc* c_data
     cdef ovr_capi.ovrHmdDesc c_ovrHmdDesc
