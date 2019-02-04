@@ -77,7 +77,12 @@ cdef libovr_capi.ovrMirrorTexture _mirrorTexture
 cdef libovr_capi.ovrLayerEyeFov _eyeLayer
 cdef libovr_capi.ovrEyeRenderDesc[2] _eyeRenderDesc
 
-# texture swap chains, for eye views and mirror
+# prepare the render layer
+_eyeLayer.Header.Type = libovr_capi.ovrLayerType_EyeFov
+_eyeLayer.Header.Flags = \
+    libovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft | \
+    libovr_capi.ovrLayerFlag_HighQuality
+_eyeLayer.ColorTexture[0] = _eyeLayer.ColorTexture[1] = NULL
 
 # status and performance information
 cdef libovr_capi.ovrSessionStatus _sessionStatus
@@ -686,13 +691,6 @@ def create():
 
         _eyeLayer.Fov[i] = _eyeRenderDesc[i].Fov
 
-    # prepare the render layer
-    _eyeLayer.Header.Type = libovr_capi.ovrLayerType_EyeFov
-    _eyeLayer.Header.Flags = \
-        libovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft | \
-        libovr_capi.ovrLayerFlag_HighQuality
-    _eyeLayer.ColorTexture[0] = _eyeLayer.ColorTexture[1] = NULL
-
     return result
 
 def destroyTextureSwapChain(int swapChain):
@@ -752,7 +750,36 @@ def headLocked(bint enable):
     else:
         _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HeadLocked
 
-def getEyeRenderFOV(int eye):
+def getPixelsPerTanAngleAtCenter(int eye):
+    """Get pixels per tan angle at te center of the display.
+
+    You must call 'setEyeRenderFov' first for values to be valid.
+
+    """
+    global _eyeRenderDesc
+
+    cdef libovr_capi.ovrVector2f toReturn = \
+        _eyeRenderDesc[eye].PixelsPerTanAngleAtCenter
+
+    return toReturn.x, toReturn.y
+
+def getDistortedViewport(int eye):
+    """Get the distorted viewport.
+
+    You must call 'setEyeRenderFov' first for values to be valid.
+
+    """
+    cdef libovr_capi.ovrRecti toReturn = \
+        _eyeRenderDesc[eye].DistortedViewport
+
+    cdef np.ndarray to_return = np.asarray([
+        toReturn.Pos.x,
+        toReturn.Pos.x,
+        toReturn.Size.w,
+        toReturn.Size.h],
+        dtype=np.int)
+
+def getEyeRenderFov(int eye):
     """Get the field-of-view to use for rendering.
 
     The FOV for a given eye are defined as a tuple of tangent angles (Up,
@@ -790,7 +817,7 @@ def getEyeRenderFOV(int eye):
 
     return to_return
 
-def setEyeRenderFOV(int eye, object fov):
+def setEyeRenderFov(int eye, object fov):
     """Set the field-of-view of a given eye. This is used to compute the
     projection matrix.
 
@@ -3355,12 +3382,12 @@ cdef class LibOVRTrackerInfo(object):
         return to_return
 
     @property
-    def horizontalFOV(self):
+    def horizontalFov(self):
         """Horizontal FOV of the sensor in radians (`float`)."""
         return self.c_ovrTrackerDesc.FrustumHFovInRadians
 
     @property
-    def verticalFOV(self):
+    def verticalFov(self):
         """Vertical FOV of the sensor in radians (`float`)."""
         return self.c_ovrTrackerDesc.FrustumVFovInRadians
 
@@ -3521,7 +3548,7 @@ cdef class LibOVRHmdInfo(object):
                <int>self.c_data[0].FirmwareMinor
 
     @property
-    def defaultEyeFOVs(self):
+    def defaultEyeFov(self):
         """Default or recommended eye field-of-views (FOVs) provided by the API.
 
         Returns
@@ -3548,7 +3575,7 @@ cdef class LibOVRHmdInfo(object):
         return fovLeft, fovRight
 
     @property
-    def maxEyeFOVs(self):
+    def maxEyeFov(self):
         """Maximum eye field-of-views (FOVs) provided by the API.
 
         Returns
@@ -3575,7 +3602,7 @@ cdef class LibOVRHmdInfo(object):
         return fov_left, fov_right
 
     @property
-    def symmetricEyeFOVs(self):
+    def symmetricEyeFov(self):
         """Symmetric field-of-views (FOVs) for mono rendering.
 
         By default, the Rift uses off-axis FOVs. These frustum parameters make
