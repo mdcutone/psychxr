@@ -3,7 +3,7 @@
 #  OVR C API (OVR_CAPI.h) Cython Declaration File 
 #  =============================================================================
 #
-#  ovr_capi.pxd
+#  libovr_capi.pxd
 #
 #  Copyright 2018 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University, 

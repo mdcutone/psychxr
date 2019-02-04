@@ -3,9 +3,9 @@
 #  Python Interface Module for LibOVR
 #  =============================================================================
 #
-#  capi.pxy
+#  libovr.pyx
 #
-#  Copyright 2018 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
+#  Copyright 2019 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University,
 #  Toronto, Canada
 #
@@ -49,9 +49,8 @@ __email__ = "cutonem@yorku.ca"
 #     'LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL'
 #     ]
 
-from .cimport ovr_capi
-from .cimport ovr_math
-#from .math cimport *
+from .cimport libovr_capi
+from .cimport libovr_math
 
 from libc.stdint cimport int32_t, uint32_t
 from libc.math cimport pow
@@ -66,45 +65,45 @@ import OpenGL as GL
 # Initialize module
 # -----------------
 #
-cdef ovr_capi.ovrInitParams _initParams  # initialization parameters
-cdef ovr_capi.ovrSession _ptrSession  # session pointer
-cdef ovr_capi.ovrGraphicsLuid _ptrLuid  # LUID
-cdef ovr_capi.ovrHmdDesc _hmdDesc  # HMD information descriptor
-cdef ovr_capi.ovrBoundaryLookAndFeel _boundryStyle
-cdef ovr_capi.ovrTextureSwapChain[8] _swapChains
-cdef ovr_capi.ovrMirrorTexture _mirrorTexture
+cdef libovr_capi.ovrInitParams _initParams  # initialization parameters
+cdef libovr_capi.ovrSession _ptrSession  # session pointer
+cdef libovr_capi.ovrGraphicsLuid _ptrLuid  # LUID
+cdef libovr_capi.ovrHmdDesc _hmdDesc  # HMD information descriptor
+cdef libovr_capi.ovrBoundaryLookAndFeel _boundryStyle
+cdef libovr_capi.ovrTextureSwapChain[8] _swapChains
+cdef libovr_capi.ovrMirrorTexture _mirrorTexture
 
 # VR related data persistent across frames
-cdef ovr_capi.ovrLayerEyeFov _eyeLayer
-cdef ovr_capi.ovrEyeRenderDesc[2] _eyeRenderDesc
+cdef libovr_capi.ovrLayerEyeFov _eyeLayer
+cdef libovr_capi.ovrEyeRenderDesc[2] _eyeRenderDesc
 
 # texture swap chains, for eye views and mirror
 
 # status and performance information
-cdef ovr_capi.ovrSessionStatus _sessionStatus
-cdef ovr_capi.ovrPerfStats _perfStats
+cdef libovr_capi.ovrSessionStatus _sessionStatus
+cdef libovr_capi.ovrPerfStats _perfStats
 cdef list compFrameStats
 
 # error information
-cdef ovr_capi.ovrErrorInfo _errorInfo  # store our last error here
+cdef libovr_capi.ovrErrorInfo _errorInfo  # store our last error here
 
 # controller states
-cdef ovr_capi.ovrInputState[5] _inputStates
-cdef ovr_capi.ovrInputState[5] _prevInputState
+cdef libovr_capi.ovrInputState[5] _inputStates
+cdef libovr_capi.ovrInputState[5] _prevInputState
 
 # debug mode
 cdef bint _debugMode
 
 # geometric data
-cdef ovr_math.Matrix4f[2] _eyeProjectionMatrix
-cdef ovr_math.Matrix4f[2] _eyeViewMatrix
+cdef libovr_math.Matrix4f[2] _eyeProjectionMatrix
+cdef libovr_math.Matrix4f[2] _eyeViewMatrix
 
 # Function to check for errors returned by OVRLib functions
 #
-cdef ovr_capi.ovrErrorInfo _last_error_info_  # store our last error here
+cdef libovr_capi.ovrErrorInfo _last_error_info_  # store our last error here
 def check_result(result):
-    if ovr_capi.OVR_FAILURE(result):
-        ovr_capi.ovr_GetLastErrorInfo(&_last_error_info_)
+    if libovr_capi.OVR_FAILURE(result):
+        libovr_capi.ovr_GetLastErrorInfo(&_last_error_info_)
         raise RuntimeError(
             str(result) + ": " + _last_error_info_.ErrorString.decode("utf-8"))
 
@@ -121,26 +120,26 @@ cdef float maxf(float a, float b):
 # Look-up table of button values to test which are pressed.
 #
 cdef dict ctrl_button_lut = {
-    "A": ovr_capi.ovrButton_A,
-    "B": ovr_capi.ovrButton_B,
-    "RThumb": ovr_capi.ovrButton_RThumb,
-    "RShoulder": ovr_capi.ovrButton_RShoulder,
-    "X": ovr_capi.ovrButton_X,
-    "Y": ovr_capi.ovrButton_Y,
-    "LThumb": ovr_capi.ovrButton_LThumb,
-    "LShoulder": ovr_capi.ovrButton_LThumb,
-    "Up": ovr_capi.ovrButton_Up,
-    "Down": ovr_capi.ovrButton_Down,
-    "Left": ovr_capi.ovrButton_Left,
-    "Right": ovr_capi.ovrButton_Right,
-    "Enter": ovr_capi.ovrButton_Enter,
-    "Back": ovr_capi.ovrButton_Back,
-    "VolUp": ovr_capi.ovrButton_VolUp,
-    "VolDown": ovr_capi.ovrButton_VolDown,
-    "Home": ovr_capi.ovrButton_Home,
-    "Private": ovr_capi.ovrButton_Private,
-    "RMask": ovr_capi.ovrButton_RMask,
-    "LMask": ovr_capi.ovrButton_LMask}
+    "A": libovr_capi.ovrButton_A,
+    "B": libovr_capi.ovrButton_B,
+    "RThumb": libovr_capi.ovrButton_RThumb,
+    "RShoulder": libovr_capi.ovrButton_RShoulder,
+    "X": libovr_capi.ovrButton_X,
+    "Y": libovr_capi.ovrButton_Y,
+    "LThumb": libovr_capi.ovrButton_LThumb,
+    "LShoulder": libovr_capi.ovrButton_LThumb,
+    "Up": libovr_capi.ovrButton_Up,
+    "Down": libovr_capi.ovrButton_Down,
+    "Left": libovr_capi.ovrButton_Left,
+    "Right": libovr_capi.ovrButton_Right,
+    "Enter": libovr_capi.ovrButton_Enter,
+    "Back": libovr_capi.ovrButton_Back,
+    "VolUp": libovr_capi.ovrButton_VolUp,
+    "VolDown": libovr_capi.ovrButton_VolDown,
+    "Home": libovr_capi.ovrButton_Home,
+    "Private": libovr_capi.ovrButton_Private,
+    "RMask": libovr_capi.ovrButton_RMask,
+    "LMask": libovr_capi.ovrButton_LMask}
 
 # Python accessible list of valid button names.
 button_names = [*ctrl_button_lut.keys()]
@@ -148,35 +147,35 @@ button_names = [*ctrl_button_lut.keys()]
 # Look-up table of controller touches.
 #
 cdef dict ctrl_touch_lut = {
-    "A": ovr_capi.ovrTouch_A,
-    "B": ovr_capi.ovrTouch_B,
-    "RThumb": ovr_capi.ovrTouch_RThumb,
-    "RThumbRest": ovr_capi.ovrTouch_RThumbRest,
-    "RIndexTrigger": ovr_capi.ovrTouch_RThumb,
-    "X": ovr_capi.ovrTouch_X,
-    "Y": ovr_capi.ovrTouch_Y,
-    "LThumb": ovr_capi.ovrTouch_LThumb,
-    "LThumbRest": ovr_capi.ovrTouch_LThumbRest,
-    "LIndexTrigger": ovr_capi.ovrTouch_LIndexTrigger,
-    "RIndexPointing": ovr_capi.ovrTouch_RIndexPointing,
-    "RThumbUp": ovr_capi.ovrTouch_RThumbUp,
-    "LIndexPointing": ovr_capi.ovrTouch_LIndexPointing,
-    "LThumbUp": ovr_capi.ovrTouch_LThumbUp}
+    "A": libovr_capi.ovrTouch_A,
+    "B": libovr_capi.ovrTouch_B,
+    "RThumb": libovr_capi.ovrTouch_RThumb,
+    "RThumbRest": libovr_capi.ovrTouch_RThumbRest,
+    "RIndexTrigger": libovr_capi.ovrTouch_RThumb,
+    "X": libovr_capi.ovrTouch_X,
+    "Y": libovr_capi.ovrTouch_Y,
+    "LThumb": libovr_capi.ovrTouch_LThumb,
+    "LThumbRest": libovr_capi.ovrTouch_LThumbRest,
+    "LIndexTrigger": libovr_capi.ovrTouch_LIndexTrigger,
+    "RIndexPointing": libovr_capi.ovrTouch_RIndexPointing,
+    "RThumbUp": libovr_capi.ovrTouch_RThumbUp,
+    "LIndexPointing": libovr_capi.ovrTouch_LIndexPointing,
+    "LThumbUp": libovr_capi.ovrTouch_LThumbUp}
 
 cdef dict _controller_type_enum = {
-    "Xbox": ovr_capi.ovrControllerType_XBox,
-    "Remote": ovr_capi.ovrControllerType_Remote,
-    "Touch": ovr_capi.ovrControllerType_Touch,
-    "LeftTouch": ovr_capi.ovrControllerType_LTouch,
-    "RightTouch": ovr_capi.ovrControllerType_RTouch
+    "Xbox": libovr_capi.ovrControllerType_XBox,
+    "Remote": libovr_capi.ovrControllerType_Remote,
+    "Touch": libovr_capi.ovrControllerType_Touch,
+    "LeftTouch": libovr_capi.ovrControllerType_LTouch,
+    "RightTouch": libovr_capi.ovrControllerType_RTouch
 }
 
-cdef ovr_capi.ovrControllerType* libovr_controller_enum = [
-    ovr_capi.ovrControllerType_XBox,
-    ovr_capi.ovrControllerType_Remote,
-    ovr_capi.ovrControllerType_Touch,
-    ovr_capi.ovrControllerType_LTouch,
-    ovr_capi.ovrControllerType_RTouch
+cdef libovr_capi.ovrControllerType* libovr_controller_enum = [
+    libovr_capi.ovrControllerType_XBox,
+    libovr_capi.ovrControllerType_Remote,
+    libovr_capi.ovrControllerType_Touch,
+    libovr_capi.ovrControllerType_LTouch,
+    libovr_capi.ovrControllerType_RTouch
 ]
 
 # Python accessible list of valid touch names.
@@ -184,173 +183,173 @@ touch_names = [*ctrl_touch_lut.keys()]
 
 # Performance information for profiling.
 #
-cdef ovr_capi.ovrPerfStats _perf_stats_
+cdef libovr_capi.ovrPerfStats _perf_stats_
 
 # Color texture formats supported by OpenGL, can be used for creating swap
 # chains.
 #
 cdef dict _supported_texture_formats = {
-    "R8G8B8A8_UNORM": ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM,
-    "R8G8B8A8_UNORM_SRGB": ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
-    "R16G16B16A16_FLOAT": ovr_capi.OVR_FORMAT_R16G16B16A16_FLOAT,
-    "R11G11B10_FLOAT": ovr_capi.OVR_FORMAT_R11G11B10_FLOAT
+    "R8G8B8A8_UNORM": libovr_capi.OVR_FORMAT_R8G8B8A8_UNORM,
+    "R8G8B8A8_UNORM_SRGB": libovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
+    "R16G16B16A16_FLOAT": libovr_capi.OVR_FORMAT_R16G16B16A16_FLOAT,
+    "R11G11B10_FLOAT": libovr_capi.OVR_FORMAT_R11G11B10_FLOAT
 }
 
 # Performance HUD modes
 #
 cdef dict _performance_hud_modes = {
-    "Off" : ovr_capi.ovrPerfHud_Off,
-    "PerfSummary": ovr_capi.ovrPerfHud_PerfSummary,
-    "AppRenderTiming" : ovr_capi.ovrPerfHud_AppRenderTiming,
-    "LatencyTiming" : ovr_capi.ovrPerfHud_LatencyTiming,
-    "CompRenderTiming" : ovr_capi.ovrPerfHud_CompRenderTiming,
-    "AswStats" : ovr_capi.ovrPerfHud_AswStats,
-    "VersionInfo" : ovr_capi.ovrPerfHud_VersionInfo
+    "Off" : libovr_capi.ovrPerfHud_Off,
+    "PerfSummary": libovr_capi.ovrPerfHud_PerfSummary,
+    "AppRenderTiming" : libovr_capi.ovrPerfHud_AppRenderTiming,
+    "LatencyTiming" : libovr_capi.ovrPerfHud_LatencyTiming,
+    "CompRenderTiming" : libovr_capi.ovrPerfHud_CompRenderTiming,
+    "AswStats" : libovr_capi.ovrPerfHud_AswStats,
+    "VersionInfo" : libovr_capi.ovrPerfHud_VersionInfo
 }
 
 # mirror texture options
 #
 cdef dict _mirror_texture_options = {
-    "Default" : ovr_capi.ovrMirrorOption_Default,
-    "PostDistortion" : ovr_capi.ovrMirrorOption_PostDistortion,
-    "LeftEyeOnly" : ovr_capi.ovrMirrorOption_LeftEyeOnly,
-    "RightEyeOnly" : ovr_capi.ovrMirrorOption_RightEyeOnly,
-    "IncludeGuardian" : ovr_capi.ovrMirrorOption_IncludeGuardian,
-    "IncludeNotifications" : ovr_capi.ovrMirrorOption_IncludeNotifications,
-    "IncludeSystemGui" : ovr_capi.ovrMirrorOption_IncludeSystemGui
+    "Default" : libovr_capi.ovrMirrorOption_Default,
+    "PostDistortion" : libovr_capi.ovrMirrorOption_PostDistortion,
+    "LeftEyeOnly" : libovr_capi.ovrMirrorOption_LeftEyeOnly,
+    "RightEyeOnly" : libovr_capi.ovrMirrorOption_RightEyeOnly,
+    "IncludeGuardian" : libovr_capi.ovrMirrorOption_IncludeGuardian,
+    "IncludeNotifications" : libovr_capi.ovrMirrorOption_IncludeNotifications,
+    "IncludeSystemGui" : libovr_capi.ovrMirrorOption_IncludeSystemGui
 }
 
 # Button values
 #
 cdef dict _controller_buttons = {
-    "A": ovr_capi.ovrButton_A,
-    "B": ovr_capi.ovrButton_B,
-    "RThumb": ovr_capi.ovrButton_RThumb,
-    "RShoulder": ovr_capi.ovrButton_RShoulder,
-    "X": ovr_capi.ovrButton_X,
-    "Y": ovr_capi.ovrButton_Y,
-    "LThumb": ovr_capi.ovrButton_LThumb,
-    "LShoulder": ovr_capi.ovrButton_LThumb,
-    "Up": ovr_capi.ovrButton_Up,
-    "Down": ovr_capi.ovrButton_Down,
-    "Left": ovr_capi.ovrButton_Left,
-    "Right": ovr_capi.ovrButton_Right,
-    "Enter": ovr_capi.ovrButton_Enter,
-    "Back": ovr_capi.ovrButton_Back,
-    "VolUp": ovr_capi.ovrButton_VolUp,
-    "VolDown": ovr_capi.ovrButton_VolDown,
-    "Home": ovr_capi.ovrButton_Home,
-    "Private": ovr_capi.ovrButton_Private,
-    "RMask": ovr_capi.ovrButton_RMask,
-    "LMask": ovr_capi.ovrButton_LMask}
+    "A": libovr_capi.ovrButton_A,
+    "B": libovr_capi.ovrButton_B,
+    "RThumb": libovr_capi.ovrButton_RThumb,
+    "RShoulder": libovr_capi.ovrButton_RShoulder,
+    "X": libovr_capi.ovrButton_X,
+    "Y": libovr_capi.ovrButton_Y,
+    "LThumb": libovr_capi.ovrButton_LThumb,
+    "LShoulder": libovr_capi.ovrButton_LThumb,
+    "Up": libovr_capi.ovrButton_Up,
+    "Down": libovr_capi.ovrButton_Down,
+    "Left": libovr_capi.ovrButton_Left,
+    "Right": libovr_capi.ovrButton_Right,
+    "Enter": libovr_capi.ovrButton_Enter,
+    "Back": libovr_capi.ovrButton_Back,
+    "VolUp": libovr_capi.ovrButton_VolUp,
+    "VolDown": libovr_capi.ovrButton_VolDown,
+    "Home": libovr_capi.ovrButton_Home,
+    "Private": libovr_capi.ovrButton_Private,
+    "RMask": libovr_capi.ovrButton_RMask,
+    "LMask": libovr_capi.ovrButton_LMask}
 
 # Touch states
 #
 cdef dict _touch_states = {
-    "A": ovr_capi.ovrTouch_A,
-    "B": ovr_capi.ovrTouch_B,
-    "RThumb": ovr_capi.ovrTouch_RThumb,
-    "RThumbRest": ovr_capi.ovrTouch_RThumbRest,
-    "RIndexTrigger": ovr_capi.ovrTouch_RThumb,
-    "X": ovr_capi.ovrTouch_X,
-    "Y": ovr_capi.ovrTouch_Y,
-    "LThumb": ovr_capi.ovrTouch_LThumb,
-    "LThumbRest": ovr_capi.ovrTouch_LThumbRest,
-    "LIndexTrigger": ovr_capi.ovrTouch_LIndexTrigger,
-    "RIndexPointing": ovr_capi.ovrTouch_RIndexPointing,
-    "RThumbUp": ovr_capi.ovrTouch_RThumbUp,
-    "LIndexPointing": ovr_capi.ovrTouch_LIndexPointing,
-    "LThumbUp": ovr_capi.ovrTouch_LThumbUp}
+    "A": libovr_capi.ovrTouch_A,
+    "B": libovr_capi.ovrTouch_B,
+    "RThumb": libovr_capi.ovrTouch_RThumb,
+    "RThumbRest": libovr_capi.ovrTouch_RThumbRest,
+    "RIndexTrigger": libovr_capi.ovrTouch_RThumb,
+    "X": libovr_capi.ovrTouch_X,
+    "Y": libovr_capi.ovrTouch_Y,
+    "LThumb": libovr_capi.ovrTouch_LThumb,
+    "LThumbRest": libovr_capi.ovrTouch_LThumbRest,
+    "LIndexTrigger": libovr_capi.ovrTouch_LIndexTrigger,
+    "RIndexPointing": libovr_capi.ovrTouch_RIndexPointing,
+    "RThumbUp": libovr_capi.ovrTouch_RThumbUp,
+    "LIndexPointing": libovr_capi.ovrTouch_LIndexPointing,
+    "LThumbUp": libovr_capi.ovrTouch_LThumbUp}
 
 # Controller types
 #
 cdef dict _controller_types = {
-    'Xbox' : ovr_capi.ovrControllerType_XBox,
-    'Remote' : ovr_capi.ovrControllerType_Remote,
-    'Touch' : ovr_capi.ovrControllerType_Touch,
-    'LeftTouch' : ovr_capi.ovrControllerType_LTouch,
-    'RightTouch' : ovr_capi.ovrControllerType_RTouch}
+    'Xbox' : libovr_capi.ovrControllerType_XBox,
+    'Remote' : libovr_capi.ovrControllerType_Remote,
+    'Touch' : libovr_capi.ovrControllerType_Touch,
+    'LeftTouch' : libovr_capi.ovrControllerType_LTouch,
+    'RightTouch' : libovr_capi.ovrControllerType_RTouch}
 
 # return success codes, values other than 'LIBOVR_SUCCESS' are conditional
-LIBOVR_SUCCESS = ovr_capi.ovrSuccess
-LIBOVR_SUCCESS_NOT_VISIBLE = ovr_capi.ovrSuccess_NotVisible
-LIBOVR_SUCCESS_DEVICE_UNAVAILABLE = ovr_capi.ovrSuccess_DeviceUnavailable
-LIBOVR_SUCCESS_BOUNDARY_INVALID = ovr_capi.ovrSuccess_BoundaryInvalid
+LIBOVR_SUCCESS = libovr_capi.ovrSuccess
+LIBOVR_SUCCESS_NOT_VISIBLE = libovr_capi.ovrSuccess_NotVisible
+LIBOVR_SUCCESS_DEVICE_UNAVAILABLE = libovr_capi.ovrSuccess_DeviceUnavailable
+LIBOVR_SUCCESS_BOUNDARY_INVALID = libovr_capi.ovrSuccess_BoundaryInvalid
 
 # return error code, not all of these are applicable
-LIBOVR_ERROR_MEMORY_ALLOCATION_FAILURE = ovr_capi.ovrError_MemoryAllocationFailure
-LIBOVR_ERROR_INVALID_SESSION = ovr_capi.ovrError_InvalidSession
-LIBOVR_ERROR_TIMEOUT = ovr_capi.ovrError_Timeout
-LIBOVR_ERROR_NOT_INITIALIZED = ovr_capi.ovrError_NotInitialized
-LIBOVR_ERROR_INVALID_PARAMETER = ovr_capi.ovrError_InvalidParameter
-LIBOVR_ERROR_SERVICE_ERROR = ovr_capi.ovrError_ServiceError
-LIBOVR_ERROR_NO_HMD = ovr_capi.ovrError_NoHmd
-LIBOVR_ERROR_UNSUPPORTED = ovr_capi.ovrError_Unsupported
-LIBOVR_ERROR_DEVICE_UNAVAILABLE = ovr_capi.ovrError_DeviceUnavailable
-LIBOVR_ERROR_INVALID_HEADSET_ORIENTATION = ovr_capi.ovrError_InvalidHeadsetOrientation
-LIBOVR_ERROR_CLIENT_SKIPPED_DESTROY = ovr_capi.ovrError_ClientSkippedDestroy
-LIBOVR_ERROR_CLIENT_SKIPPED_SHUTDOWN = ovr_capi.ovrError_ClientSkippedShutdown
-LIBOVR_ERROR_SERVICE_DEADLOCK_DETECTED = ovr_capi.ovrError_ServiceDeadlockDetected
-LIBOVR_ERROR_INVALID_OPERATION = ovr_capi.ovrError_InvalidOperation
-LIBOVR_ERROR_INSUFFICENT_ARRAY_SIZE = ovr_capi.ovrError_InsufficientArraySize
-LIBOVR_ERROR_NO_EXTERNAL_CAMERA_INFO = ovr_capi.ovrError_NoExternalCameraInfo
-LIBOVR_ERROR_LOST_TRACKING = ovr_capi.ovrError_LostTracking
-LIBOVR_ERROR_EXTERNAL_CAMERA_INITIALIZED_FAILED = ovr_capi.ovrError_ExternalCameraInitializedFailed
-LIBOVR_ERROR_EXTERNAL_CAMERA_CAPTURE_FAILED = ovr_capi.ovrError_ExternalCameraCaptureFailed
-LIBOVR_ERROR_EXTERNAL_CAMERA_NAME_LISTS_BUFFER_SIZE = ovr_capi.ovrError_ExternalCameraNameListsBufferSize
-LIBOVR_ERROR_EXTERNAL_CAMERA_NAME_LISTS_MISMATCH = ovr_capi.ovrError_ExternalCameraNameListsMistmatch
-LIBOVR_ERROR_EXTERNAL_CAMERA_NOT_CALIBRATED = ovr_capi.ovrError_ExternalCameraNotCalibrated
-LIBOVR_ERROR_EXTERNAL_CAMERA_NAME_WRONG_SIZE = ovr_capi.ovrError_ExternalCameraNameWrongSize
-LIBOVR_ERROR_AUDIO_DEVICE_NOT_FOUND = ovr_capi.ovrError_AudioDeviceNotFound
-LIBOVR_ERROR_AUDIO_COM_ERROR = ovr_capi.ovrError_AudioComError
-LIBOVR_ERROR_INITIALIZE = ovr_capi.ovrError_Initialize
-LIBOVR_ERROR_LIB_LOAD = ovr_capi.ovrError_LibLoad
-LIBOVR_ERROR_SERVICE_CONNECTION = ovr_capi.ovrError_ServiceConnection
-LIBOVR_ERROR_SERVICE_VERSION = ovr_capi.ovrError_ServiceVersion
-LIBOVR_ERROR_INCOMPATIBLE_OS = ovr_capi.ovrError_IncompatibleOS
-LIBOVR_ERROR_DISPLAY_INIT = ovr_capi.ovrError_DisplayInit
-LIBOVR_ERROR_SERVER_START = ovr_capi.ovrError_ServerStart
-LIBOVR_ERROR_REINITIALIZATION = ovr_capi.ovrError_Reinitialization
-LIBOVR_ERROR_MISMATCHED_ADAPTERS = ovr_capi.ovrError_MismatchedAdapters
-LIBOVR_ERROR_LEAKING_RESOURCES = ovr_capi.ovrError_LeakingResources
-LIBOVR_ERROR_CLIENT_VERSION = ovr_capi.ovrError_ClientVersion
-LIBOVR_ERROR_OUT_OF_DATE_OS = ovr_capi.ovrError_OutOfDateOS
-LIBOVR_ERROR_OUT_OF_DATE_GFX_DRIVER = ovr_capi.ovrError_OutOfDateGfxDriver
-LIBOVR_ERROR_INCOMPATIBLE_OS = ovr_capi.ovrError_IncompatibleGPU
-LIBOVR_ERROR_NO_VALID_VR_DISPLAY_SYSTEM = ovr_capi.ovrError_NoValidVRDisplaySystem
-LIBOVR_ERROR_OBSOLETE = ovr_capi.ovrError_Obsolete
-LIBOVR_ERROR_DISABLED_OR_DEFAULT_ADAPTER = ovr_capi.ovrError_DisabledOrDefaultAdapter
-LIBOVR_ERROR_HYBRID_GRAPHICS_NOT_SUPPORTED = ovr_capi.ovrError_HybridGraphicsNotSupported
-LIBOVR_ERROR_DISPLAY_MANAGER_INIT = ovr_capi.ovrError_DisplayManagerInit
-LIBOVR_ERROR_TRACKER_DRIVER_INIT = ovr_capi.ovrError_TrackerDriverInit
-LIBOVR_ERROR_LIB_SIGN_CHECK = ovr_capi.ovrError_LibSignCheck
-LIBOVR_ERROR_LIB_PATH = ovr_capi.ovrError_LibPath
-LIBOVR_ERROR_LIB_SYMBOLS = ovr_capi.ovrError_LibSymbols
-LIBOVR_ERROR_REMOTE_SESSION = ovr_capi.ovrError_RemoteSession
-LIBOVR_ERROR_INITIALIZE_VULKAN = ovr_capi.ovrError_InitializeVulkan
-LIBOVR_ERROR_BLACKLISTED_GFX_DRIVER = ovr_capi.ovrError_BlacklistedGfxDriver
-LIBOVR_ERROR_DISPLAY_LOST = ovr_capi.ovrError_DisplayLost
-LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL = ovr_capi.ovrError_TextureSwapChainFull
-LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_INVALID = ovr_capi.ovrError_TextureSwapChainInvalid
-LIBOVR_ERROR_GRAPHICS_DEVICE_RESET = ovr_capi.ovrError_GraphicsDeviceReset
-LIBOVR_ERROR_DISPLAY_REMOVED = ovr_capi.ovrError_DisplayRemoved
-LIBOVR_ERROR_CONTENT_PROTECTION_NOT_AVAILABLE = ovr_capi.ovrError_ContentProtectionNotAvailable
-LIBOVR_ERROR_APPLICATION_VISIBLE = ovr_capi.ovrError_ApplicationInvisible
-LIBOVR_ERROR_DISALLOWED = ovr_capi.ovrError_Disallowed
-LIBOVR_ERROR_DISPLAY_PLUGGED_INCORRECTY = ovr_capi.ovrError_DisplayPluggedIncorrectly
-LIBOVR_ERROR_DISPLAY_LIMIT_REACHED = ovr_capi.ovrError_DisplayLimitReached
-LIBOVR_ERROR_RUNTIME_EXCEPTION = ovr_capi.ovrError_RuntimeException
-LIBOVR_ERROR_NO_CALIBRATION = ovr_capi.ovrError_NoCalibration
-LIBOVR_ERROR_OLD_VERSION = ovr_capi.ovrError_OldVersion
-LIBOVR_ERROR_MISFORMATTED_BLOCK = ovr_capi.ovrError_MisformattedBlock
+LIBOVR_ERROR_MEMORY_ALLOCATION_FAILURE = libovr_capi.ovrError_MemoryAllocationFailure
+LIBOVR_ERROR_INVALID_SESSION = libovr_capi.ovrError_InvalidSession
+LIBOVR_ERROR_TIMEOUT = libovr_capi.ovrError_Timeout
+LIBOVR_ERROR_NOT_INITIALIZED = libovr_capi.ovrError_NotInitialized
+LIBOVR_ERROR_INVALID_PARAMETER = libovr_capi.ovrError_InvalidParameter
+LIBOVR_ERROR_SERVICE_ERROR = libovr_capi.ovrError_ServiceError
+LIBOVR_ERROR_NO_HMD = libovr_capi.ovrError_NoHmd
+LIBOVR_ERROR_UNSUPPORTED = libovr_capi.ovrError_Unsupported
+LIBOVR_ERROR_DEVICE_UNAVAILABLE = libovr_capi.ovrError_DeviceUnavailable
+LIBOVR_ERROR_INVALID_HEADSET_ORIENTATION = libovr_capi.ovrError_InvalidHeadsetOrientation
+LIBOVR_ERROR_CLIENT_SKIPPED_DESTROY = libovr_capi.ovrError_ClientSkippedDestroy
+LIBOVR_ERROR_CLIENT_SKIPPED_SHUTDOWN = libovr_capi.ovrError_ClientSkippedShutdown
+LIBOVR_ERROR_SERVICE_DEADLOCK_DETECTED = libovr_capi.ovrError_ServiceDeadlockDetected
+LIBOVR_ERROR_INVALID_OPERATION = libovr_capi.ovrError_InvalidOperation
+LIBOVR_ERROR_INSUFFICENT_ARRAY_SIZE = libovr_capi.ovrError_InsufficientArraySize
+LIBOVR_ERROR_NO_EXTERNAL_CAMERA_INFO = libovr_capi.ovrError_NoExternalCameraInfo
+LIBOVR_ERROR_LOST_TRACKING = libovr_capi.ovrError_LostTracking
+LIBOVR_ERROR_EXTERNAL_CAMERA_INITIALIZED_FAILED = libovr_capi.ovrError_ExternalCameraInitializedFailed
+LIBOVR_ERROR_EXTERNAL_CAMERA_CAPTURE_FAILED = libovr_capi.ovrError_ExternalCameraCaptureFailed
+LIBOVR_ERROR_EXTERNAL_CAMERA_NAME_LISTS_BUFFER_SIZE = libovr_capi.ovrError_ExternalCameraNameListsBufferSize
+LIBOVR_ERROR_EXTERNAL_CAMERA_NAME_LISTS_MISMATCH = libovr_capi.ovrError_ExternalCameraNameListsMistmatch
+LIBOVR_ERROR_EXTERNAL_CAMERA_NOT_CALIBRATED = libovr_capi.ovrError_ExternalCameraNotCalibrated
+LIBOVR_ERROR_EXTERNAL_CAMERA_NAME_WRONG_SIZE = libovr_capi.ovrError_ExternalCameraNameWrongSize
+LIBOVR_ERROR_AUDIO_DEVICE_NOT_FOUND = libovr_capi.ovrError_AudioDeviceNotFound
+LIBOVR_ERROR_AUDIO_COM_ERROR = libovr_capi.ovrError_AudioComError
+LIBOVR_ERROR_INITIALIZE = libovr_capi.ovrError_Initialize
+LIBOVR_ERROR_LIB_LOAD = libovr_capi.ovrError_LibLoad
+LIBOVR_ERROR_SERVICE_CONNECTION = libovr_capi.ovrError_ServiceConnection
+LIBOVR_ERROR_SERVICE_VERSION = libovr_capi.ovrError_ServiceVersion
+LIBOVR_ERROR_INCOMPATIBLE_OS = libovr_capi.ovrError_IncompatibleOS
+LIBOVR_ERROR_DISPLAY_INIT = libovr_capi.ovrError_DisplayInit
+LIBOVR_ERROR_SERVER_START = libovr_capi.ovrError_ServerStart
+LIBOVR_ERROR_REINITIALIZATION = libovr_capi.ovrError_Reinitialization
+LIBOVR_ERROR_MISMATCHED_ADAPTERS = libovr_capi.ovrError_MismatchedAdapters
+LIBOVR_ERROR_LEAKING_RESOURCES = libovr_capi.ovrError_LeakingResources
+LIBOVR_ERROR_CLIENT_VERSION = libovr_capi.ovrError_ClientVersion
+LIBOVR_ERROR_OUT_OF_DATE_OS = libovr_capi.ovrError_OutOfDateOS
+LIBOVR_ERROR_OUT_OF_DATE_GFX_DRIVER = libovr_capi.ovrError_OutOfDateGfxDriver
+LIBOVR_ERROR_INCOMPATIBLE_OS = libovr_capi.ovrError_IncompatibleGPU
+LIBOVR_ERROR_NO_VALID_VR_DISPLAY_SYSTEM = libovr_capi.ovrError_NoValidVRDisplaySystem
+LIBOVR_ERROR_OBSOLETE = libovr_capi.ovrError_Obsolete
+LIBOVR_ERROR_DISABLED_OR_DEFAULT_ADAPTER = libovr_capi.ovrError_DisabledOrDefaultAdapter
+LIBOVR_ERROR_HYBRID_GRAPHICS_NOT_SUPPORTED = libovr_capi.ovrError_HybridGraphicsNotSupported
+LIBOVR_ERROR_DISPLAY_MANAGER_INIT = libovr_capi.ovrError_DisplayManagerInit
+LIBOVR_ERROR_TRACKER_DRIVER_INIT = libovr_capi.ovrError_TrackerDriverInit
+LIBOVR_ERROR_LIB_SIGN_CHECK = libovr_capi.ovrError_LibSignCheck
+LIBOVR_ERROR_LIB_PATH = libovr_capi.ovrError_LibPath
+LIBOVR_ERROR_LIB_SYMBOLS = libovr_capi.ovrError_LibSymbols
+LIBOVR_ERROR_REMOTE_SESSION = libovr_capi.ovrError_RemoteSession
+LIBOVR_ERROR_INITIALIZE_VULKAN = libovr_capi.ovrError_InitializeVulkan
+LIBOVR_ERROR_BLACKLISTED_GFX_DRIVER = libovr_capi.ovrError_BlacklistedGfxDriver
+LIBOVR_ERROR_DISPLAY_LOST = libovr_capi.ovrError_DisplayLost
+LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL = libovr_capi.ovrError_TextureSwapChainFull
+LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_INVALID = libovr_capi.ovrError_TextureSwapChainInvalid
+LIBOVR_ERROR_GRAPHICS_DEVICE_RESET = libovr_capi.ovrError_GraphicsDeviceReset
+LIBOVR_ERROR_DISPLAY_REMOVED = libovr_capi.ovrError_DisplayRemoved
+LIBOVR_ERROR_CONTENT_PROTECTION_NOT_AVAILABLE = libovr_capi.ovrError_ContentProtectionNotAvailable
+LIBOVR_ERROR_APPLICATION_VISIBLE = libovr_capi.ovrError_ApplicationInvisible
+LIBOVR_ERROR_DISALLOWED = libovr_capi.ovrError_Disallowed
+LIBOVR_ERROR_DISPLAY_PLUGGED_INCORRECTY = libovr_capi.ovrError_DisplayPluggedIncorrectly
+LIBOVR_ERROR_DISPLAY_LIMIT_REACHED = libovr_capi.ovrError_DisplayLimitReached
+LIBOVR_ERROR_RUNTIME_EXCEPTION = libovr_capi.ovrError_RuntimeException
+LIBOVR_ERROR_NO_CALIBRATION = libovr_capi.ovrError_NoCalibration
+LIBOVR_ERROR_OLD_VERSION = libovr_capi.ovrError_OldVersion
+LIBOVR_ERROR_MISFORMATTED_BLOCK = libovr_capi.ovrError_MisformattedBlock
 
 # misc constants
-LIBOVR_EYE_LEFT = ovr_capi.ovrEye_Left
-LIBOVR_EYE_RIGHT = ovr_capi.ovrEye_Right
-LIBOVR_EYE_COUNT = ovr_capi.ovrEye_Count
-LIBOVR_HAND_LEFT = ovr_capi.ovrHand_Left
-LIBOVR_HAND_RIGHT = ovr_capi.ovrHand_Right
-LIBOVR_HAND_COUNT = ovr_capi.ovrHand_Count
+LIBOVR_EYE_LEFT = libovr_capi.ovrEye_Left
+LIBOVR_EYE_RIGHT = libovr_capi.ovrEye_Right
+LIBOVR_EYE_COUNT = libovr_capi.ovrEye_Count
+LIBOVR_HAND_LEFT = libovr_capi.ovrHand_Left
+LIBOVR_HAND_RIGHT = libovr_capi.ovrHand_Right
+LIBOVR_HAND_COUNT = libovr_capi.ovrHand_Count
 
 # swapchain handles
 LIBOVR_TEXTURE_SWAP_CHAIN0 = 0
@@ -364,15 +363,15 @@ LIBOVR_TEXTURE_SWAP_CHAIN7 = 7
 
 def LIBOVR_SUCCESS(int result):
     """Check if an API return indicates success."""
-    return <bint>ovr_capi.OVR_SUCCESS(result)
+    return <bint>libovr_capi.OVR_SUCCESS(result)
 
 def LIBOVR_UNQUALIFIED_SUCCESS(int result):
     """Check if an API return indicates unqualified success."""
-    return <bint>ovr_capi.OVR_UNQUALIFIED_SUCCESS(result)
+    return <bint>libovr_capi.OVR_UNQUALIFIED_SUCCESS(result)
 
 def LIBOVR_FAILURE(int result):
     """Check if an API return indicates failure (error)."""
-    return <bint>ovr_capi.OVR_FAILURE(result)
+    return <bint>libovr_capi.OVR_FAILURE(result)
 
 def isOculusServiceRunning(int timeoutMS=100):
     """Check if the Oculus Runtime is loaded and running.
@@ -387,7 +386,7 @@ def isOculusServiceRunning(int timeoutMS=100):
     bool
 
     """
-    cdef ovr_capi.ovrDetectResult result = ovr_capi.ovr_Detect(
+    cdef libovr_capi.ovrDetectResult result = libovr_capi.ovr_Detect(
         timeoutMS)
 
     return <bint>result.IsOculusServiceRunning
@@ -405,7 +404,7 @@ def isHmdConnected(int timeout_ms=100):
     bool
 
     """
-    cdef ovr_capi.ovrDetectResult result = ovr_capi.ovr_Detect(
+    cdef libovr_capi.ovrDetectResult result = libovr_capi.ovr_Detect(
         timeout_ms)
 
     return <bint>result.IsOculusHMDConnected
@@ -436,7 +435,7 @@ def getUserHeight():
 
     """
     global _ptrSession
-    cdef float to_return = ovr_capi.ovr_GetFloat(
+    cdef float to_return = libovr_capi.ovr_GetFloat(
         _ptrSession,
         b"PlayerHeight",
         <float> 1.778)
@@ -453,7 +452,7 @@ def getEyeHeight():
 
     """
     global _ptrSession
-    cdef float to_return = ovr_capi.ovr_GetFloat(
+    cdef float to_return = libovr_capi.ovr_GetFloat(
         _ptrSession,
         b"EyeHeight",
         <float> 1.675)
@@ -472,7 +471,7 @@ def getNeckEyeDist():
     global _ptrSession
     cdef float vals[2]
 
-    cdef unsigned int ret = ovr_capi.ovr_GetFloatArray(
+    cdef unsigned int ret = libovr_capi.ovr_GetFloatArray(
         _ptrSession,
         b"NeckEyeDistance",
         vals,
@@ -492,7 +491,7 @@ def getEyeToNoseDist():
     global _ptrSession
     cdef float vals[2]
 
-    cdef unsigned int ret = ovr_capi.ovr_GetFloatArray(
+    cdef unsigned int ret = libovr_capi.ovr_GetFloatArray(
         _ptrSession,
         b"EyeToNoseDist",
         vals,
@@ -594,7 +593,7 @@ def getVersionString():
 
     """
     global _hmdDesc
-    cdef const char* version = ovr_capi.ovr_GetVersionString()
+    cdef const char* version = libovr_capi.ovr_GetVersionString()
     return version.decode('utf-8')  # already UTF-8?
 
 def initialize(bint focusAware=False, int connectionTimeout=0):
@@ -631,23 +630,23 @@ def initialize(bint focusAware=False, int connectionTimeout=0):
         'ovr_Initialize' returns an error.
 
     """
-    cdef int32_t flags = ovr_capi.ovrInit_RequestVersion
+    cdef int32_t flags = libovr_capi.ovrInit_RequestVersion
     if focusAware is True:
-        flags |= ovr_capi.ovrInit_FocusAware
+        flags |= libovr_capi.ovrInit_FocusAware
 
     #if debug is True:
-    #    flags |= ovr_capi.ovrInit_Debug
+    #    flags |= libovr_capi.ovrInit_Debug
     global _initParams
     _initParams.Flags = flags
     _initParams.RequestedMinorVersion = 25
     _initParams.LogCallback = NULL  # not used yet
     _initParams.ConnectionTimeoutMS = <uint32_t>connectionTimeout
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_Initialize(
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_Initialize(
         &_initParams)
 
     return result  # failed to initalize, return error code
 
-def createSession():
+def create():
     """Create a new session. Control is handed over to the application from
     Oculus Home.
 
@@ -667,63 +666,59 @@ def createSession():
     global _hmdDesc
     global _eyeRenderDesc
 
-    result = ovr_capi.ovr_Create(&_ptrSession, &_ptrLuid)
+    result = libovr_capi.ovr_Create(&_ptrSession, &_ptrLuid)
     check_result(result)
-    if ovr_capi.OVR_FAILURE(result):
+    if libovr_capi.OVR_FAILURE(result):
         return result  # failed to create session, return error code
 
     # if we got to this point, everything should be fine
     # get HMD descriptor
-    _hmdDesc = ovr_capi.ovr_GetHmdDesc(_ptrSession)
+    _hmdDesc = libovr_capi.ovr_GetHmdDesc(_ptrSession)
 
     # configure the eye render descriptor to use the recommended FOV, this
     # can be changed later
     cdef Py_ssize_t i = 0
-    for i in range(ovr_capi.ovrEye_Count):
-        _eyeRenderDesc[i] = ovr_capi.ovr_GetRenderDesc(
+    for i in range(libovr_capi.ovrEye_Count):
+        _eyeRenderDesc[i] = libovr_capi.ovr_GetRenderDesc(
             _ptrSession,
-            <ovr_capi.ovrEyeType>i,
+            <libovr_capi.ovrEyeType>i,
             _hmdDesc.DefaultEyeFov[i])
 
         _eyeLayer.Fov[i] = _eyeRenderDesc[i].Fov
 
     # prepare the render layer
-    _eyeLayer.Header.Type = ovr_capi.ovrLayerType_EyeFov
+    _eyeLayer.Header.Type = libovr_capi.ovrLayerType_EyeFov
     _eyeLayer.Header.Flags = \
-        ovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft | \
-        ovr_capi.ovrLayerFlag_HighQuality
+        libovr_capi.ovrLayerFlag_TextureOriginAtBottomLeft | \
+        libovr_capi.ovrLayerFlag_HighQuality
     _eyeLayer.ColorTexture[0] = _eyeLayer.ColorTexture[1] = NULL
 
     return result
 
-def destroySession():
-    """Destroy a session and free all resources associated with it.
-
-    This destroys all texture swap chains and the session handle. This
-    should be done when closing the application, prior to calling 'shutdown'
-    or in the event of an error (such as the display being lost).
-
-    """
+def destroyTextureSwapChain(int swapChain):
+    """Destroy a texture swap chain."""
     global _ptrSession
     global _swapChains
+    libovr_capi.ovr_DestroyTextureSwapChain(_ptrSession, _swapChains[swapChain])
+    _swapChains[swapChain] = NULL
+
+def destroyMirrorTexture():
+    """Destroy the mirror texture."""
+    global _ptrSession
     global _mirrorTexture
+    if _mirrorTexture != NULL:
+        libovr_capi.ovr_DestroyMirrorTexture(_ptrSession, _mirrorTexture)
+
+def destroy():
+    """Destroy a session.
+    """
+    global _ptrSession
     global _eyeLayer
-
-    # free all swap chains
-    cdef int i = 0
-    for i in range(8):
-        ovr_capi.ovr_DestroyTextureSwapChain(_ptrSession, _swapChains[i])
-        _swapChains[i] = NULL
-
     # null eye textures in eye layer
     _eyeLayer.ColorTexture[0] = _eyeLayer.ColorTexture[1] = NULL
 
-    # destroy the mirror texture
-    if _mirrorTexture != NULL:
-        ovr_capi.ovr_DestroyMirrorTexture(_ptrSession, _mirrorTexture)
-
     # destroy the current session and shutdown
-    ovr_capi.ovr_Destroy(_ptrSession)
+    libovr_capi.ovr_Destroy(_ptrSession)
 
 def shutdown():
     """End the current session.
@@ -733,16 +728,16 @@ def shutdown():
     must be called after every successful 'initialize' call.
 
     """
-    ovr_capi.ovr_Shutdown()
+    libovr_capi.ovr_Shutdown()
 
 def highQuality(bint enable):
     """Enable high quality mode.
     """
     global _eyeLayer
     if enable:
-        _eyeLayer.Header.Flags |= ovr_capi.ovrLayerFlag_HighQuality
+        _eyeLayer.Header.Flags |= libovr_capi.ovrLayerFlag_HighQuality
     else:
-        _eyeLayer.Header.Flags &= ~ovr_capi.ovrLayerFlag_HighQuality
+        _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HighQuality
 
 def headLocked(bint enable):
     """True when head-locked mode is enabled.
@@ -753,9 +748,9 @@ def headLocked(bint enable):
     """
     global _eyeLayer
     if enable:
-        _eyeLayer.Header.Flags |= ovr_capi.ovrLayerFlag_HeadLocked
+        _eyeLayer.Header.Flags |= libovr_capi.ovrLayerFlag_HeadLocked
     else:
-        _eyeLayer.Header.Flags &= ~ovr_capi.ovrLayerFlag_HeadLocked
+        _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HeadLocked
 
 def getEyeRenderFOV(int eye):
     """Get the field-of-view to use for rendering.
@@ -825,122 +820,19 @@ def setEyeRenderFOV(int eye, object fov):
     global _eyeRenderDesc
     global _eyeLayer
 
-    cdef ovr_capi.ovrFovPort fov_in
+    cdef libovr_capi.ovrFovPort fov_in
     fov_in.UpTan = <float>fov[0]
     fov_in.DownTan = <float>fov[1]
     fov_in.LeftTan = <float>fov[2]
     fov_in.RightTan = <float>fov[3]
 
-    _eyeRenderDesc[<int>eye] = ovr_capi.ovr_GetRenderDesc(
+    _eyeRenderDesc[<int>eye] = libovr_capi.ovr_GetRenderDesc(
         _ptrSession,
-        <ovr_capi.ovrEyeType>eye,
+        <libovr_capi.ovrEyeType>eye,
         fov_in)
 
     # set in eye layer too
     _eyeLayer.Fov[eye] = _eyeRenderDesc[eye].Fov
-
-
-def getDefaultEyeFOVs():
-    """Default or recommended eye field-of-views (FOVs) provided by the API.
-
-    Returns
-    -------
-    tuple of ndarray
-        Pair of left and right eye FOVs specified as tangent angles [Up,
-        Down, Left, Right].
-
-    """
-    global _hmdDesc
-    cdef np.ndarray fovLeft = np.asarray([
-        _hmdDesc.DefaultEyeFov[0].UpTan,
-        _hmdDesc.DefaultEyeFov[0].DownTan,
-        _hmdDesc.DefaultEyeFov[0].LeftTan,
-        _hmdDesc.DefaultEyeFov[0].RightTan],
-        dtype=np.float32)
-
-    cdef np.ndarray fovRight = np.asarray([
-        _hmdDesc.DefaultEyeFov[1].UpTan,
-        _hmdDesc.DefaultEyeFov[1].DownTan,
-        _hmdDesc.DefaultEyeFov[1].LeftTan,
-        _hmdDesc.DefaultEyeFov[1].RightTan],
-        dtype=np.float32)
-
-    return fovLeft, fovRight
-
-
-def getMaxEyeFOVs():
-    """Maximum eye field-of-views (FOVs) provided by the API.
-
-    Returns
-    -------
-    tuple of ndarray
-        Pair of left and right eye FOVs specified as tangent angles in
-        radians [Up, Down, Left, Right].
-
-    """
-    global _hmdDesc
-    cdef np.ndarray[float, ndim=1] fov_left = np.asarray([
-        _hmdDesc.MaxEyeFov[0].UpTan,
-        _hmdDesc.MaxEyeFov[0].DownTan,
-        _hmdDesc.MaxEyeFov[0].LeftTan,
-        _hmdDesc.MaxEyeFov[0].RightTan],
-        dtype=np.float32)
-
-    cdef np.ndarray[float, ndim=1] fov_right = np.asarray([
-        _hmdDesc.MaxEyeFov[1].UpTan,
-        _hmdDesc.MaxEyeFov[1].DownTan,
-        _hmdDesc.MaxEyeFov[1].LeftTan,
-        _hmdDesc.MaxEyeFov[1].RightTan],
-        dtype=np.float32)
-
-    return fov_left, fov_right
-
-def getSymmetricEyeFOVs():
-    """Symmetric field-of-views (FOVs) for mono rendering.
-
-    By default, the Rift uses off-axis FOVs. These frustum parameters make
-    it difficult to converge monoscopic stimuli.
-
-    Returns
-    -------
-    tuple of ndarray of float
-        Pair of left and right eye FOVs specified as tangent angles in
-        radians [Up, Down, Left, Right]. Both FOV objects will have the same
-        values.
-
-    """
-    global _hmdDesc
-    cdef ovr_capi.ovrFovPort fov_left = _hmdDesc.DefaultEyeFov[0]
-    cdef ovr_capi.ovrFovPort fov_right = _hmdDesc.DefaultEyeFov[1]
-
-    cdef ovr_capi.ovrFovPort fov_max
-    fov_max.UpTan = maxf(fov_left.UpTan, fov_right.UpTan)
-    fov_max.DownTan = maxf(fov_left.DownTan, fov_right.DownTan)
-    fov_max.LeftTan = maxf(fov_left.LeftTan, fov_right.LeftTan)
-    fov_max.RightTan = maxf(fov_left.RightTan, fov_right.RightTan)
-
-    cdef float tan_half_fov_horz = maxf(fov_max.LeftTan, fov_max.RightTan)
-    cdef float tan_half_fov_vert = maxf(fov_max.DownTan, fov_max.UpTan)
-
-    cdef ovr_capi.ovrFovPort fov_both
-    fov_both.LeftTan = fov_both.RightTan = tan_half_fov_horz
-    fov_both.UpTan = fov_both.DownTan = tan_half_fov_horz
-
-    cdef np.ndarray[float, ndim=1] fov_left_out = np.asarray([
-        fov_both.UpTan,
-        fov_both.DownTan,
-        fov_both.LeftTan,
-        fov_both.RightTan],
-        dtype=np.float32)
-
-    cdef np.ndarray[float, ndim=1] fov_right_out = np.asarray([
-        fov_both.UpTan,
-        fov_both.DownTan,
-        fov_both.LeftTan,
-        fov_both.RightTan],
-        dtype=np.float32)
-
-    return fov_left_out, fov_right_out
 
 def calcEyeBufferSizes(texelsPerPixel=1.0):
     """Get the recommended buffer (texture) sizes for eye buffers.
@@ -988,15 +880,15 @@ def calcEyeBufferSizes(texelsPerPixel=1.0):
     global _ptrSession
     global _eyeRenderDesc
 
-    cdef ovr_capi.ovrSizei sizeLeft = ovr_capi.ovr_GetFovTextureSize(
+    cdef libovr_capi.ovrSizei sizeLeft = libovr_capi.ovr_GetFovTextureSize(
         _ptrSession,
-        <ovr_capi.ovrEyeType>0,
+        <libovr_capi.ovrEyeType>0,
         _eyeRenderDesc[0].Fov,
         <float>texelsPerPixel)
 
-    cdef ovr_capi.ovrSizei sizeRight = ovr_capi.ovr_GetFovTextureSize(
+    cdef libovr_capi.ovrSizei sizeRight = libovr_capi.ovr_GetFovTextureSize(
         _ptrSession,
-        <ovr_capi.ovrEyeType>1,
+        <libovr_capi.ovrEyeType>1,
         _eyeRenderDesc[1].Fov,
         <float>texelsPerPixel)
 
@@ -1019,7 +911,7 @@ def getSwapChainLengthGL(int swapChain):
 
     """
     cdef int outLength
-    cdef ovr_capi.ovrResult result = 0
+    cdef libovr_capi.ovrResult result = 0
     global _swapChains
     global _ptrSession
     global _eyeLayer
@@ -1030,7 +922,7 @@ def getSwapChainLengthGL(int swapChain):
             "Cannot get swap chain length, NULL eye buffer texture.")
 
     # get the current texture index within the swap chain
-    result = ovr_capi.ovr_GetTextureSwapChainLength(
+    result = libovr_capi.ovr_GetTextureSwapChainLength(
         _ptrSession, _swapChains[swapChain], &outLength)
 
     return result, outLength
@@ -1052,7 +944,7 @@ def getSwapChainCurrentIndex(int swapChain):
 
     """
     cdef int current_idx = 0
-    cdef ovr_capi.ovrResult result = 0
+    cdef libovr_capi.ovrResult result = 0
     global _swapChains
     global _eyeLayer
     global _ptrSession
@@ -1063,7 +955,7 @@ def getSwapChainCurrentIndex(int swapChain):
             "Cannot get buffer ID, NULL eye buffer texture.")
 
     # get the current texture index within the swap chain
-    result = ovr_capi.ovr_GetTextureSwapChainCurrentIndex(
+    result = libovr_capi.ovr_GetTextureSwapChainCurrentIndex(
         _ptrSession, _swapChains[swapChain], &current_idx)
 
     return result, current_idx
@@ -1109,7 +1001,7 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
     global _ptrSession
 
     # get the next available texture ID from the swap chain
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetTextureSwapChainBufferGL(
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetTextureSwapChainBufferGL(
         _ptrSession, _swapChains[swapChain], index, &tex_id)
 
     return result, tex_id
@@ -1154,21 +1046,21 @@ def createTextureSwapChainGL(int swapChain, int width, int height, str textureFo
     global _ptrSession
 
     # configure the texture
-    cdef ovr_capi.ovrTextureSwapChainDesc swapConfig
-    swapConfig.Type = ovr_capi.ovrTexture_2D
+    cdef libovr_capi.ovrTextureSwapChainDesc swapConfig
+    swapConfig.Type = libovr_capi.ovrTexture_2D
     swapConfig.Format = _supported_texture_formats[textureFormat]
     swapConfig.ArraySize = 1
     swapConfig.Width = <int>width
     swapConfig.Height = <int>height
     swapConfig.MipLevels = <int>levels
     swapConfig.SampleCount = 1
-    swapConfig.StaticImage = ovr_capi.ovrFalse
-    swapConfig.MiscFlags = ovr_capi.ovrTextureMisc_None
-    swapConfig.BindFlags = ovr_capi.ovrTextureBind_None
+    swapConfig.StaticImage = libovr_capi.ovrFalse
+    swapConfig.MiscFlags = libovr_capi.ovrTextureMisc_None
+    swapConfig.BindFlags = libovr_capi.ovrTextureBind_None
 
     # create the swap chain
-    cdef ovr_capi.ovrResult result = \
-        ovr_capi.ovr_CreateTextureSwapChainGL(
+    cdef libovr_capi.ovrResult result = \
+        libovr_capi.ovr_CreateTextureSwapChainGL(
             _ptrSession,
             &swapConfig,
             &_swapChains[swapChain])
@@ -1247,38 +1139,38 @@ def createMirrorTexture(width, height, textureFormat='R8G8B8A8_UNORM_SRGB'):
 
     """
     # additional options
-    #cdef unsigned int mirror_options = ovr_capi.ovrMirrorOption_Default
+    #cdef unsigned int mirror_options = libovr_capi.ovrMirrorOption_Default
     # set the mirror texture mode
     #if mirrorMode == 'Default':
-    #    mirror_options = <ovr_capi.ovrMirrorOptions>ovr_capi.ovrMirrorOption_Default
+    #    mirror_options = <libovr_capi.ovrMirrorOptions>libovr_capi.ovrMirrorOption_Default
     #elif mirrorMode == 'PostDistortion':
-    #    mirror_options = <ovr_capi.ovrMirrorOptions>ovr_capi.ovrMirrorOption_PostDistortion
+    #    mirror_options = <libovr_capi.ovrMirrorOptions>libovr_capi.ovrMirrorOption_PostDistortion
     #elif mirrorMode == 'LeftEyeOnly':
-    #    mirror_options = <ovr_capi.ovrMirrorOptions>ovr_capi.ovrMirrorOption_LeftEyeOnly
+    #    mirror_options = <libovr_capi.ovrMirrorOptions>libovr_capi.ovrMirrorOption_LeftEyeOnly
     #elif mirrorMode == 'RightEyeOnly':
-    #    mirror_options = <ovr_capi.ovrMirrorOptions>ovr_capi.ovrMirrorOption_RightEyeOnly
+    #    mirror_options = <libovr_capi.ovrMirrorOptions>libovr_capi.ovrMirrorOption_RightEyeOnly
     #else:
     #    raise RuntimeError("Invalid 'mirrorMode' mode specified.")
 
     #if include_guardian:
-    #    mirror_options |= ovr_capi.ovrMirrorOption_IncludeGuardian
+    #    mirror_options |= libovr_capi.ovrMirrorOption_IncludeGuardian
     #if include_notifications:
-    #    mirror_options |= ovr_capi.ovrMirrorOption_IncludeNotifications
+    #    mirror_options |= libovr_capi.ovrMirrorOption_IncludeNotifications
     #if include_system_gui:
-    #    mirror_options |= ovr_capi.ovrMirrorOption_IncludeSystemGui
+    #    mirror_options |= libovr_capi.ovrMirrorOption_IncludeSystemGui
 
     # create the descriptor
-    cdef ovr_capi.ovrMirrorTextureDesc mirrorDesc
+    cdef libovr_capi.ovrMirrorTextureDesc mirrorDesc
     global _ptrSession
     global _mirrorTexture
 
-    mirrorDesc.Format = ovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+    mirrorDesc.Format = libovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
     mirrorDesc.Width = <int>width
     mirrorDesc.Height = <int>height
-    mirrorDesc.MiscFlags = ovr_capi.ovrTextureMisc_None
-    mirrorDesc.MirrorOptions = ovr_capi.ovrMirrorOption_Default
+    mirrorDesc.MiscFlags = libovr_capi.ovrTextureMisc_None
+    mirrorDesc.MirrorOptions = libovr_capi.ovrMirrorOption_Default
 
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_CreateMirrorTextureGL(
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_CreateMirrorTextureGL(
         _ptrSession, &mirrorDesc, &_mirrorTexture)
 
     return <int>result
@@ -1316,8 +1208,8 @@ def getMirrorTexture():
     if _mirrorTexture == NULL:  # no texture created
         return None
 
-    cdef ovr_capi.ovrResult result = \
-        ovr_capi.ovr_GetMirrorTextureBufferGL(
+    cdef libovr_capi.ovrResult result = \
+        libovr_capi.ovr_GetMirrorTextureBufferGL(
             _ptrSession,
             _mirrorTexture,
             &mirror_id)
@@ -1356,11 +1248,11 @@ def getTrackedPoses(double absTime, bint latencyMarker=True):
     global _ptrSession
     global _eyeLayer
 
-    cdef ovr_capi.ovrBool use_marker = \
-        ovr_capi.ovrTrue if latencyMarker else ovr_capi.ovrFalse
+    cdef libovr_capi.ovrBool use_marker = \
+        libovr_capi.ovrTrue if latencyMarker else libovr_capi.ovrFalse
 
-    cdef ovr_capi.ovrTrackingState tracking_state = \
-        ovr_capi.ovr_GetTrackingState(_ptrSession, absTime, use_marker)
+    cdef libovr_capi.ovrTrackingState tracking_state = \
+        libovr_capi.ovr_GetTrackingState(_ptrSession, absTime, use_marker)
 
     cdef LibOVRPoseState head_pose = LibOVRPoseState()
     head_pose.c_data[0] = tracking_state.HeadPose
@@ -1428,35 +1320,35 @@ def calcEyePoses(LibOVRPose headPose):
     global _eyeRenderDesc
     global _eyeViewMatrix
 
-    cdef ovr_capi.ovrPosef[2] hmdToEyePoses
+    cdef libovr_capi.ovrPosef[2] hmdToEyePoses
     hmdToEyePoses[0] = _eyeRenderDesc[0].HmdToEyePose
     hmdToEyePoses[1] = _eyeRenderDesc[1].HmdToEyePose
 
      # calculate the eye poses
-    ovr_capi.ovr_CalcEyePoses2(
+    libovr_capi.ovr_CalcEyePoses2(
         headPose.c_data[0],
         hmdToEyePoses,
         _eyeLayer.RenderPose)
 
     # compute the eye transformation matrices from poses
-    cdef ovr_math.Vector3f pos
-    cdef ovr_math.Quatf ori
-    cdef ovr_math.Vector3f up
-    cdef ovr_math.Vector3f forward
-    cdef ovr_math.Matrix4f rm
+    cdef libovr_math.Vector3f pos
+    cdef libovr_math.Quatf ori
+    cdef libovr_math.Vector3f up
+    cdef libovr_math.Vector3f forward
+    cdef libovr_math.Matrix4f rm
 
     cdef int eye = 0
-    for eye in range(ovr_capi.ovrEye_Count):
-        pos = <ovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position
-        ori = <ovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
+    for eye in range(libovr_capi.ovrEye_Count):
+        pos = <libovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position
+        ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
 
         if not ori.IsNormalized():  # make sure orientation is normalized
             ori.Normalize()
 
-        rm = ovr_math.Matrix4f(ori)
-        up = rm.Transform(ovr_math.Vector3f(0., 1., 0.))
-        forward = rm.Transform(ovr_math.Vector3f(0., 0., -1.))
-        _eyeViewMatrix[eye] = ovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+        rm = libovr_math.Matrix4f(ori)
+        up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
+        forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
+        _eyeViewMatrix[eye] = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
 
 def getHmdToEyePoses():
     """HMD to eye poses.
@@ -1536,24 +1428,24 @@ def setEyeRenderPoses(object value):
     _eyeLayer.RenderPose[1] = (<LibOVRPose>value[1]).c_data[0]
 
     # re-compute the eye transformation matrices from poses
-    cdef ovr_math.Vector3f pos
-    cdef ovr_math.Quatf ori
-    cdef ovr_math.Vector3f up
-    cdef ovr_math.Vector3f forward
-    cdef ovr_math.Matrix4f rm
+    cdef libovr_math.Vector3f pos
+    cdef libovr_math.Quatf ori
+    cdef libovr_math.Vector3f up
+    cdef libovr_math.Vector3f forward
+    cdef libovr_math.Matrix4f rm
 
     cdef int eye = 0
-    for eye in range(ovr_capi.ovrEye_Count):
-        pos = <ovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position
-        ori = <ovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
+    for eye in range(libovr_capi.ovrEye_Count):
+        pos = <libovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position
+        ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
 
         if not ori.IsNormalized():  # make sure orientation is normalized
             ori.Normalize()
 
-        rm = ovr_math.Matrix4f(ori)
-        up = rm.Transform(ovr_math.Vector3f(0., 1., 0.))
-        forward = rm.Transform(ovr_math.Vector3f(0., 0., -1.))
-        _eyeViewMatrix[eye] = ovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+        rm = libovr_math.Matrix4f(ori)
+        up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
+        forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
+        _eyeViewMatrix[eye] = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
 
 def getEyeProjectionMatrix(int eye, float nearClip=0.1, float farClip=1000.0):
     """Compute the projection matrix.
@@ -1580,11 +1472,11 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.1, float farClip=1000.0):
     global _eyeRenderDesc
 
     _eyeProjectionMatrix[eye] = \
-        <ovr_math.Matrix4f>ovr_capi.ovrMatrix4f_Projection(
+        <libovr_math.Matrix4f>libovr_capi.ovrMatrix4f_Projection(
             _eyeRenderDesc[eye].Fov,
             nearClip,
             farClip,
-            ovr_capi.ovrProjection_ClipRangeOpenGL)
+            libovr_capi.ovrProjection_ClipRangeOpenGL)
 
     cdef np.ndarray to_return = np.zeros((4, 4), dtype=np.float32)
 
@@ -1718,7 +1610,7 @@ def getPredictedDisplayTime(unsigned int frame_index=0):
 
     """
     global _ptrSession
-    cdef double t_sec = ovr_capi.ovr_GetPredictedDisplayTime(
+    cdef double t_sec = libovr_capi.ovr_GetPredictedDisplayTime(
         _ptrSession,
         frame_index)
 
@@ -1733,7 +1625,7 @@ def timeInSeconds():
         Time in seconds.
 
     """
-    cdef double t_sec = ovr_capi.ovr_GetTimeInSeconds()
+    cdef double t_sec = libovr_capi.ovr_GetTimeInSeconds()
 
     return t_sec
 
@@ -1762,7 +1654,7 @@ def perfHudMode(str mode):
     except KeyError:
         raise KeyError("Invalid performance HUD mode specified.")
 
-    cdef ovr_capi.ovrBool ret = ovr_capi.ovr_SetInt(
+    cdef libovr_capi.ovrBool ret = libovr_capi.ovr_SetInt(
         _ptrSession, b"PerfHudMode", perfHudMode)
 
 def hidePerfHud(self):
@@ -1773,8 +1665,8 @@ def hidePerfHud(self):
 
     """
     global _ptrSession
-    cdef ovr_capi.ovrBool ret = ovr_capi.ovr_SetInt(
-        _ptrSession, b"PerfHudMode", ovr_capi.ovrPerfHud_Off)
+    cdef libovr_capi.ovrBool ret = libovr_capi.ovr_SetInt(
+        _ptrSession, b"PerfHudMode", libovr_capi.ovrPerfHud_Off)
 
 def perfHudModes():
     """List of valid performance HUD modes."""
@@ -1790,7 +1682,7 @@ def getEyeViewport(eye):
 
     """
     global _eyeLayer
-    cdef ovr_capi.ovrRecti viewportRect = \
+    cdef libovr_capi.ovrRecti viewportRect = \
         _eyeLayer.Viewport[eye]
     cdef np.ndarray to_return = np.asarray(
         [viewportRect.Pos.x,
@@ -1814,7 +1706,7 @@ def setEyeViewport(eye, rect):
 
     """
     global _eyeLayer
-    cdef ovr_capi.ovrRecti viewportRect
+    cdef libovr_capi.ovrRecti viewportRect
     viewportRect.Pos.x = <int>rect[0]
     viewportRect.Pos.y = <int>rect[1]
     viewportRect.Size.w = <int>rect[2]
@@ -1841,8 +1733,8 @@ def waitToBeginFrame(unsigned int frameIndex=0):
 
     """
     global _ptrSession
-    cdef ovr_capi.ovrResult result = \
-        ovr_capi.ovr_WaitToBeginFrame(_ptrSession, frameIndex)
+    cdef libovr_capi.ovrResult result = \
+        libovr_capi.ovr_WaitToBeginFrame(_ptrSession, frameIndex)
 
     return <int>result
 
@@ -1862,8 +1754,8 @@ def beginFrame(unsigned int frameIndex=0):
 
     """
     global _ptrSession
-    cdef ovr_capi.ovrResult result = \
-        ovr_capi.ovr_BeginFrame(_ptrSession, frameIndex)
+    cdef libovr_capi.ovrResult result = \
+        libovr_capi.ovr_BeginFrame(_ptrSession, frameIndex)
 
     return <int>result
 
@@ -1894,7 +1786,7 @@ def commitSwapChain(int eye):
     """
     global _swapChains
     global _ptrSession
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_CommitTextureSwapChain(
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_CommitTextureSwapChain(
         _ptrSession,
         _swapChains[eye])
 
@@ -1926,8 +1818,8 @@ def endFrame(unsigned int frameIndex=0):
     global _ptrSession
     global _eyeLayer
 
-    cdef ovr_capi.ovrLayerHeader* layers = &_eyeLayer.Header
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_EndFrame(
+    cdef libovr_capi.ovrLayerHeader* layers = &_eyeLayer.Header
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_EndFrame(
         _ptrSession,
         frameIndex,
         NULL,
@@ -1946,7 +1838,7 @@ def resetFrameStats():
 
     """
     global _ptrSession
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetPerfStats(_ptrSession)
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_ResetPerfStats(_ptrSession)
 
     return result
 
@@ -1959,23 +1851,23 @@ def getTrackingOriginType():
 
     """
     global _ptrSession
-    cdef ovr_capi.ovrTrackingOrigin origin = \
-        ovr_capi.ovr_GetTrackingOriginType(_ptrSession)
+    cdef libovr_capi.ovrTrackingOrigin origin = \
+        libovr_capi.ovr_GetTrackingOriginType(_ptrSession)
 
-    if origin == ovr_capi.ovrTrackingOrigin_FloorLevel:
+    if origin == libovr_capi.ovrTrackingOrigin_FloorLevel:
         return 'floor'
-    elif origin == ovr_capi.ovrTrackingOrigin_EyeLevel:
+    elif origin == libovr_capi.ovrTrackingOrigin_EyeLevel:
         return 'eye'
 
 def setTrackingOriginType(str value):
-    cdef ovr_capi.ovrResult result
+    cdef libovr_capi.ovrResult result
     global _ptrSession
     if value == 'floor':
-        result = ovr_capi.ovr_SetTrackingOriginType(
-            _ptrSession, ovr_capi.ovrTrackingOrigin_FloorLevel)
+        result = libovr_capi.ovr_SetTrackingOriginType(
+            _ptrSession, libovr_capi.ovrTrackingOrigin_FloorLevel)
     elif value == 'eye':
-        result = ovr_capi.ovr_SetTrackingOriginType(
-            _ptrSession, ovr_capi.ovrTrackingOrigin_EyeLevel)
+        result = libovr_capi.ovr_SetTrackingOriginType(
+            _ptrSession, libovr_capi.ovrTrackingOrigin_EyeLevel)
 
     return result
 
@@ -1988,7 +1880,7 @@ def recenterTrackingOrigin():
 
     """
     global _ptrSession
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_RecenterTrackingOrigin(
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_RecenterTrackingOrigin(
         _ptrSession)
 
     return result
@@ -1996,7 +1888,7 @@ def recenterTrackingOrigin():
 def trackerCount():
     """Get the number of attached trackers."""
     global _ptrSession
-    cdef unsigned int trackerCount = ovr_capi.ovr_GetTrackerCount(
+    cdef unsigned int trackerCount = libovr_capi.ovr_GetTrackerCount(
         _ptrSession)
 
     return <int>trackerCount
@@ -2018,10 +1910,10 @@ def getTrackerInfo(int trackerIndex):
     to_return._trackerIndex = <unsigned int>trackerIndex
 
     # set the descriptor data
-    to_return.c_ovrTrackerDesc = ovr_capi.ovr_GetTrackerDesc(
+    to_return.c_ovrTrackerDesc = libovr_capi.ovr_GetTrackerDesc(
         _ptrSession, <unsigned int>trackerIndex)
     # get the tracker pose
-    to_return.c_ovrTrackerPose = ovr_capi.ovr_GetTrackerPose(
+    to_return.c_ovrTrackerPose = libovr_capi.ovr_GetTrackerPose(
         _ptrSession, <unsigned int>trackerIndex)
 
     return to_return
@@ -2034,7 +1926,7 @@ def refreshPerformanceStats():
     """
     global _ptrSession
     global _perfStats
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetPerfStats(
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetPerfStats(
         _ptrSession,
         &_perfStats)
 
@@ -2091,10 +1983,10 @@ def getLastErrorInfo():
         Tuple of the API call result and error string.
 
     """
-    cdef ovr_capi.ovrErrorInfo lastErrorInfo  # store our last error here
-    ovr_capi.ovr_GetLastErrorInfo(&lastErrorInfo)
+    cdef libovr_capi.ovrErrorInfo lastErrorInfo  # store our last error here
+    libovr_capi.ovr_GetLastErrorInfo(&lastErrorInfo)
 
-    cdef ovr_capi.ovrResult result = lastErrorInfo.Result
+    cdef libovr_capi.ovrResult result = lastErrorInfo.Result
     cdef str errorString = lastErrorInfo.ErrorString.decode("utf-8")
 
     return <int>result, errorString
@@ -2118,14 +2010,14 @@ def setBoundaryColor(self, red, green, blue):
     global _boundryStyle
     global _ptrSession
 
-    cdef ovr_capi.ovrColorf color
+    cdef libovr_capi.ovrColorf color
     color.r = <float>red
     color.g = <float>green
     color.b = <float>blue
 
     _boundryStyle.Color = color
 
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_SetBoundaryLookAndFeel(
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_SetBoundaryLookAndFeel(
         _ptrSession,
         &_boundryStyle)
 
@@ -2136,7 +2028,7 @@ def resetBoundaryColor():
 
     """
     global _ptrSession
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_ResetBoundaryLookAndFeel(
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_ResetBoundaryLookAndFeel(
         _ptrSession)
 
     return result
@@ -2149,8 +2041,8 @@ def getBoundryVisible():
 
     """
     global _ptrSession
-    cdef ovr_capi.ovrBool is_visible
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetBoundaryVisible(
+    cdef libovr_capi.ovrBool is_visible
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetBoundaryVisible(
         _ptrSession, &is_visible)
 
     return result, is_visible
@@ -2163,16 +2055,16 @@ def showBoundary():
 
     """
     global _ptrSession
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_RequestBoundaryVisible(
-        _ptrSession, ovr_capi.ovrTrue)
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_RequestBoundaryVisible(
+        _ptrSession, libovr_capi.ovrTrue)
 
     return result
 
 def hideBoundary():
     """Hide the boundry."""
     global _ptrSession
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_RequestBoundaryVisible(
-        _ptrSession, ovr_capi.ovrFalse)
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_RequestBoundaryVisible(
+        _ptrSession, libovr_capi.ovrFalse)
 
     return result
 
@@ -2191,16 +2083,16 @@ def getBoundaryDimensions(str boundaryType='PlayArea'):
 
     """
     global _ptrSession
-    cdef ovr_capi.ovrBoundaryType btype
+    cdef libovr_capi.ovrBoundaryType btype
     if boundaryType == 'PlayArea':
-        btype = ovr_capi.ovrBoundary_PlayArea
+        btype = libovr_capi.ovrBoundary_PlayArea
     elif boundaryType == 'Outer':
-        btype = ovr_capi.ovrBoundary_Outer
+        btype = libovr_capi.ovrBoundary_Outer
     else:
         raise ValueError("Invalid boundary type specified.")
 
-    cdef ovr_capi.ovrVector3f vec_out
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetBoundaryDimensions(
+    cdef libovr_capi.ovrVector3f vec_out
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetBoundaryDimensions(
             _ptrSession, btype, &vec_out)
 
     cdef np.ndarray[np.float32_t, ndim=1] to_return = np.asarray(
@@ -2235,24 +2127,24 @@ def getConnectedControllers():
 
     """
     global _ptrSession
-    cdef unsigned int result = ovr_capi.ovr_GetConnectedControllerTypes(
+    cdef unsigned int result = libovr_capi.ovr_GetConnectedControllerTypes(
         _ptrSession)
 
     cdef list controllerTypes = list()
-    if (result & ovr_capi.ovrControllerType_XBox) == \
-            ovr_capi.ovrControllerType_XBox:
+    if (result & libovr_capi.ovrControllerType_XBox) == \
+            libovr_capi.ovrControllerType_XBox:
         controllerTypes.append('Xbox')
-    elif (result & ovr_capi.ovrControllerType_Remote) == \
-            ovr_capi.ovrControllerType_Remote:
+    elif (result & libovr_capi.ovrControllerType_Remote) == \
+            libovr_capi.ovrControllerType_Remote:
         controllerTypes.append('Remote')
-    elif (result & ovr_capi.ovrControllerType_Touch) == \
-            ovr_capi.ovrControllerType_Touch:
+    elif (result & libovr_capi.ovrControllerType_Touch) == \
+            libovr_capi.ovrControllerType_Touch:
         controllerTypes.append('Touch')
-    elif (result & ovr_capi.ovrControllerType_LTouch) == \
-            ovr_capi.ovrControllerType_LTouch:
+    elif (result & libovr_capi.ovrControllerType_LTouch) == \
+            libovr_capi.ovrControllerType_LTouch:
         controllerTypes.append('LeftTouch')
-    elif (result & ovr_capi.ovrControllerType_RTouch) == \
-            ovr_capi.ovrControllerType_RTouch:
+    elif (result & libovr_capi.ovrControllerType_RTouch) == \
+            libovr_capi.ovrControllerType_RTouch:
         controllerTypes.append('RightTouch')
 
     return result, controllerTypes
@@ -2276,16 +2168,16 @@ def updateInputState(str controller):
                      'RightTouch' : 4}
 
     # pointer to the current and previous input state
-    cdef ovr_capi.ovrInputState* previousInputState = \
+    cdef libovr_capi.ovrInputState* previousInputState = \
         &_prevInputState[idx[controller]]
-    cdef ovr_capi.ovrInputState* currentInputState = \
+    cdef libovr_capi.ovrInputState* currentInputState = \
         &_inputStates[idx[controller]]
 
     # copy the current input state into the previous before updating
     previousInputState[0] = currentInputState[0]
 
     # get the current input state
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetInputState(
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetInputState(
         _ptrSession,
         _controller_type_enum[controller],  # get the enum for the controller
         currentInputState)
@@ -2311,7 +2203,7 @@ def getInputTime(str controller):
                      'RightTouch' : 4}
 
     # pointer to the current and previous input state
-    cdef ovr_capi.ovrInputState* currentInputState = \
+    cdef libovr_capi.ovrInputState* currentInputState = \
         &_inputStates[idx[controller]]
 
     return currentInputState.TimeInSeconds
@@ -2470,7 +2362,7 @@ def getThumbstickValues(str controller, bint deadzone=False):
     global _inputStates
 
     # pointer to the current and previous input state
-    cdef ovr_capi.ovrInputState* currentInputState = \
+    cdef libovr_capi.ovrInputState* currentInputState = \
         &_inputStates[idx[controller]]
 
     cdef float thumbstick_x0 = 0.0
@@ -2500,7 +2392,7 @@ def getIndexTriggerValues(str controller, bint deadzone=False):
     global _inputStates
 
     # pointer to the current and previous input state
-    cdef ovr_capi.ovrInputState* currentInputState = \
+    cdef libovr_capi.ovrInputState* currentInputState = \
         &_inputStates[idx[controller]]
 
     cdef float indexTriggerLeft = 0.0
@@ -2524,7 +2416,7 @@ def getHandTriggerValues(str controller, bint deadzone=False):
     global _inputStates
 
     # pointer to the current and previous input state
-    cdef ovr_capi.ovrInputState* currentInputState = \
+    cdef libovr_capi.ovrInputState* currentInputState = \
         &_inputStates[idx[controller]]
 
     cdef float indexTriggerLeft = 0.0
@@ -2583,14 +2475,14 @@ def setControllerVibration(str controller, str frequency, float amplitude):
         raise RuntimeError("Invalid frequency specified.")
 
     cdef dict _controller_types = {
-        'Xbox' : ovr_capi.ovrControllerType_XBox,
-        'Touch' : ovr_capi.ovrControllerType_Touch,
-        'LeftTouch' : ovr_capi.ovrControllerType_LTouch,
-        'RightTouch' : ovr_capi.ovrControllerType_RTouch}
+        'Xbox' : libovr_capi.ovrControllerType_XBox,
+        'Touch' : libovr_capi.ovrControllerType_Touch,
+        'LeftTouch' : libovr_capi.ovrControllerType_LTouch,
+        'RightTouch' : libovr_capi.ovrControllerType_RTouch}
 
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_SetControllerVibration(
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_SetControllerVibration(
         _ptrSession,
-        <ovr_capi.ovrControllerType>_controller_types[controller],
+        <libovr_capi.ovrControllerType>_controller_types[controller],
         freq,
         amplitude)
 
@@ -2607,18 +2499,22 @@ def getSessionStatus():
     """
     global _ptrSession
     cdef LibOVRSessionStatus to_return = LibOVRSessionStatus()
-    cdef ovr_capi.ovrResult result = ovr_capi.ovr_GetSessionStatus(
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetSessionStatus(
         _ptrSession, to_return.c_data)
 
     return to_return
+
+def updateFrameStats():
+    """Update frame statistics."""
+    pass
 
 
 cdef class LibOVRPose(object):
     """Class for rigid body pose data for LibOVR.
 
     """
-    cdef ovr_capi.ovrPosef* c_data
-    cdef ovr_capi.ovrPosef c_ovrPosef  # internal data
+    cdef libovr_capi.ovrPosef* c_data
+    cdef libovr_capi.ovrPosef c_ovrPosef  # internal data
 
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
         """Constructor for LibOVRPose.
@@ -2652,8 +2548,8 @@ cdef class LibOVRPose(object):
 
     def __mul__(LibOVRPose a, LibOVRPose b):
         """Multiplication operator (*) to combine poses."""
-        cdef ovr_math.Posef pose_r = \
-            <ovr_math.Posef>a.c_data[0] * <ovr_math.Posef>b.c_data[0]
+        cdef libovr_math.Posef pose_r = \
+            <libovr_math.Posef>a.c_data[0] * <libovr_math.Posef>b.c_data[0]
 
         cdef LibOVRPose to_return = \
             LibOVRPose(
@@ -2777,12 +2673,12 @@ cdef class LibOVRPose(object):
             Listener.set_orientation((at[0], at[1], at[2], up[0], up[1], up[2]))
 
         """
-        cdef ovr_math.Vector3f at = \
-            (<ovr_math.Quatf>self.c_data[0].Orientation).Rotate(
-                ovr_math.Vector3f(0.0, 0.0, -1.0))
-        cdef ovr_math.Vector3f up = \
-            (<ovr_math.Quatf>self.c_data[0].Orientation).Rotate(
-                ovr_math.Vector3f(0.0, 1.0, 0.0))
+        cdef libovr_math.Vector3f at = \
+            (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
+                libovr_math.Vector3f(0.0, 0.0, -1.0))
+        cdef libovr_math.Vector3f up = \
+            (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
+                libovr_math.Vector3f(0.0, 1.0, 0.0))
 
         cdef np.ndarray[np.float32_t, ndim=1] ret_at = \
             np.array((<float>at[0], <float>at[1], <float>at[2]),
@@ -2809,11 +2705,11 @@ cdef class LibOVRPose(object):
 
         """
         cdef float yaw, pitch, roll
-        cdef ovr_math.Posef inPose = <ovr_math.Posef>self.c_data[0]
-        cdef ovr_math.Posef invRef
+        cdef libovr_math.Posef inPose = <libovr_math.Posef>self.c_data[0]
+        cdef libovr_math.Posef invRef
 
         if refPose is not None:
-            invRef = (<ovr_math.Posef>refPose.c_data[0]).Inverted()
+            invRef = (<libovr_math.Posef>refPose.c_data[0]).Inverted()
             inPose = invRef * inPose
 
         inPose.Rotation.GetYawPitchRoll(&yaw, &pitch, &roll)
@@ -2837,8 +2733,8 @@ cdef class LibOVRPose(object):
             4x4 transformation matrix.
 
         """
-        cdef ovr_math.Matrix4f m_pose = ovr_math.Matrix4f(
-            <ovr_math.Posef>self.c_data[0])
+        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
+            <libovr_math.Posef>self.c_data[0])
 
         if inverse:
             m_pose.InvertHomogeneousTransform()
@@ -2873,8 +2769,8 @@ cdef class LibOVRPose(object):
             major order with a 'float32' data type.
 
         """
-        cdef ovr_math.Matrix4f m_pose = ovr_math.Matrix4f(
-            <ovr_math.Posef>self.c_data[0])
+        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
+            <libovr_math.Posef>self.c_data[0])
 
         if inverse:
             m_pose.InvertHomogeneousTransform()
@@ -2898,7 +2794,7 @@ cdef class LibOVRPose(object):
         """Normalize this pose.
 
         """
-        (<ovr_math.Posef>self.c_data[0]).Normalize()
+        (<libovr_math.Posef>self.c_data[0]).Normalize()
 
     def inverted(self):
         """Get the inverse of the pose.
@@ -2909,11 +2805,11 @@ cdef class LibOVRPose(object):
             Inverted pose.
 
         """
-        cdef ovr_math.Quatf inv_ori = \
-            (<ovr_math.Quatf>self.c_data[0].Orientation).Inverted()
-        cdef ovr_math.Vector3f inv_pos = \
-            (<ovr_math.Quatf>inv_ori).Rotate(
-                -(<ovr_math.Vector3f>self.c_data[0].Position))
+        cdef libovr_math.Quatf inv_ori = \
+            (<libovr_math.Quatf>self.c_data[0].Orientation).Inverted()
+        cdef libovr_math.Vector3f inv_pos = \
+            (<libovr_math.Quatf>inv_ori).Rotate(
+                -(<libovr_math.Vector3f>self.c_data[0].Position))
         cdef LibOVRPose to_return = \
             LibOVRPose(
                 (self.c_data[0].Position.x,
@@ -2938,10 +2834,10 @@ cdef class LibOVRPose(object):
             Vector rotated by the pose's orientation.
 
         """
-        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef ovr_math.Vector3f rotated_pos = \
-            (<ovr_math.Posef>self.c_data[0]).Rotate(pos_in)
+        cdef libovr_math.Vector3f rotated_pos = \
+            (<libovr_math.Posef>self.c_data[0]).Rotate(pos_in)
 
         cdef np.ndarray[np.float32_t, ndim=1] to_return = \
             np.array((rotated_pos.x, rotated_pos.y, rotated_pos.z),
@@ -2963,10 +2859,10 @@ cdef class LibOVRPose(object):
             Vector rotated by the pose's inverse orientation.
 
         """
-        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef ovr_math.Vector3f inv_rotated_pos = \
-            (<ovr_math.Posef>self.c_data[0]).InverseRotate(pos_in)
+        cdef libovr_math.Vector3f inv_rotated_pos = \
+            (<libovr_math.Posef>self.c_data[0]).InverseRotate(pos_in)
 
         cdef np.ndarray[np.float32_t, ndim=1] to_return = \
             np.array((inv_rotated_pos.x, inv_rotated_pos.y, inv_rotated_pos.z),
@@ -2988,10 +2884,10 @@ cdef class LibOVRPose(object):
             Vector translated by the pose's position.
 
         """
-        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef ovr_math.Vector3f translated_pos = \
-            (<ovr_math.Posef>self.c_data[0]).Translate(pos_in)
+        cdef libovr_math.Vector3f translated_pos = \
+            (<libovr_math.Posef>self.c_data[0]).Translate(pos_in)
 
         cdef np.ndarray[np.float32_t, ndim=1] to_return = \
             np.array((translated_pos.x, translated_pos.y, translated_pos.z),
@@ -3013,10 +2909,10 @@ cdef class LibOVRPose(object):
             Vector transformed by the pose's position and orientation.
 
         """
-        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef ovr_math.Vector3f transformed_pos = \
-            (<ovr_math.Posef>self.c_data[0]).Transform(pos_in)
+        cdef libovr_math.Vector3f transformed_pos = \
+            (<libovr_math.Posef>self.c_data[0]).Transform(pos_in)
 
         cdef np.ndarray[np.float32_t, ndim=1] to_return = \
             np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
@@ -3039,10 +2935,10 @@ cdef class LibOVRPose(object):
             orientation.
 
         """
-        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef ovr_math.Vector3f transformed_pos = \
-            (<ovr_math.Posef>self.c_data[0]).InverseTransform(pos_in)
+        cdef libovr_math.Vector3f transformed_pos = \
+            (<libovr_math.Posef>self.c_data[0]).InverseTransform(pos_in)
 
         cdef np.ndarray[np.float32_t, ndim=1] to_return = \
             np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
@@ -3064,10 +2960,10 @@ cdef class LibOVRPose(object):
             Vector transformed by the pose's position and orientation.
 
         """
-        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef ovr_math.Vector3f transformed_pos = \
-            (<ovr_math.Posef>self.c_data[0]).TransformNormal(pos_in)
+        cdef libovr_math.Vector3f transformed_pos = \
+            (<libovr_math.Posef>self.c_data[0]).TransformNormal(pos_in)
 
         cdef np.ndarray[np.float32_t, ndim=1] to_return = \
             np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
@@ -3089,10 +2985,10 @@ cdef class LibOVRPose(object):
             Vector transformed by the pose's position and orientation.
 
         """
-        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef ovr_math.Vector3f transformed_pos = \
-            (<ovr_math.Posef>self.c_data[0]).InverseTransformNormal(pos_in)
+        cdef libovr_math.Vector3f transformed_pos = \
+            (<libovr_math.Posef>self.c_data[0]).InverseTransformNormal(pos_in)
 
         cdef np.ndarray[np.float32_t, ndim=1] to_return = \
             np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
@@ -3114,10 +3010,10 @@ cdef class LibOVRPose(object):
             Vector transformed by the pose's position and orientation.
 
         """
-        cdef ovr_math.Vector3f pos_in = ovr_math.Vector3f(
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef ovr_math.Vector3f transformed_pos = \
-            (<ovr_math.Posef>self.c_data[0]).Apply(pos_in)
+        cdef libovr_math.Vector3f transformed_pos = \
+            (<libovr_math.Posef>self.c_data[0]).Apply(pos_in)
 
         cdef np.ndarray[np.float32_t, ndim=1] to_return = \
             np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
@@ -3139,15 +3035,15 @@ cdef class LibOVRPose(object):
             Distance to a point or Pose.
 
         """
-        cdef ovr_math.Vector3f pos_in
+        cdef libovr_math.Vector3f pos_in
 
         if isinstance(v, LibOVRPose):
-            pos_in = <ovr_math.Vector3f>((<LibOVRPose>v).c_data[0]).Position
+            pos_in = <libovr_math.Vector3f>((<LibOVRPose>v).c_data[0]).Position
         else:
-            pos_in = ovr_math.Vector3f(<float>v[0], <float>v[1], <float>v[2])
+            pos_in = libovr_math.Vector3f(<float>v[0], <float>v[1], <float>v[2])
 
         cdef float to_return = \
-            (<ovr_math.Posef>self.c_data[0]).Translation.Distance(pos_in)
+            (<libovr_math.Posef>self.c_data[0]).Translation.Distance(pos_in)
 
     def raycastSphere(self, object targetPose, float radius=0.5, object rayDir=(0., 0., -1.), float maxRange=0.0):
         """Raycast to a sphere.
@@ -3189,11 +3085,11 @@ cdef class LibOVRPose(object):
             every other condition.
 
         """
-        cdef ovr_math.Vector3f targetPos = ovr_math.Vector3f(
+        cdef libovr_math.Vector3f targetPos = libovr_math.Vector3f(
             <float>targetPose[0], <float>targetPose[1], <float>targetPose[2])
-        cdef ovr_math.Vector3f _rayDir = ovr_math.Vector3f(
+        cdef libovr_math.Vector3f _rayDir = libovr_math.Vector3f(
             <float>rayDir[0], <float>rayDir[1], <float>rayDir[2])
-        cdef ovr_math.Posef originPos = <ovr_math.Posef>self.c_data[0]
+        cdef libovr_math.Posef originPos = <libovr_math.Posef>self.c_data[0]
 
         # if the ray is finite, does it ever touch the edge of the sphere?
         cdef float targetDist
@@ -3203,7 +3099,7 @@ cdef class LibOVRPose(object):
                 return False
 
         # put the target in the caster's local coordinate system
-        cdef ovr_math.Vector3f offset = -originPos.InverseTransform(targetPos)
+        cdef libovr_math.Vector3f offset = -originPos.InverseTransform(targetPos)
 
         # find the discriminant
         cdef float desc = pow(_rayDir.Dot(offset), 2.0) - \
@@ -3234,13 +3130,13 @@ cdef class LibOVRPose(object):
             Interpolated pose at 's'.
 
         """
-        cdef ovr_math.Posef _toPose = <ovr_math.Posef>toPose.c_data[0]
-        cdef ovr_math.Posef interp
+        cdef libovr_math.Posef _toPose = <libovr_math.Posef>toPose.c_data[0]
+        cdef libovr_math.Posef interp
 
         if not fast:
-            interp = (<ovr_math.Posef>self.c_data[0]).Lerp(_toPose, s)
+            interp = (<libovr_math.Posef>self.c_data[0]).Lerp(_toPose, s)
         else:
-            interp = (<ovr_math.Posef>self.c_data[0]).FastLerp(_toPose, s)
+            interp = (<libovr_math.Posef>self.c_data[0]).FastLerp(_toPose, s)
 
         cdef LibOVRPose to_return = \
             LibOVRPose(
@@ -3280,8 +3176,8 @@ cdef class LibOVRPoseState(object):
     by the LibOVR runtime.
 
     """
-    cdef ovr_capi.ovrPoseStatef* c_data
-    cdef ovr_capi.ovrPoseStatef c_ovrPoseStatef
+    cdef libovr_capi.ovrPoseStatef* c_data
+    cdef libovr_capi.ovrPoseStatef c_ovrPoseStatef
 
     cdef LibOVRPose _pose
 
@@ -3370,21 +3266,21 @@ cdef class LibOVRPoseState(object):
     @property
     def orientationTracked(self):
         """True if the orientation was tracked when sampled."""
-        return <bint>((ovr_capi.ovrStatus_OrientationTracked &
-             self.status_flags) == ovr_capi.ovrStatus_OrientationTracked)
+        return <bint>((libovr_capi.ovrStatus_OrientationTracked &
+             self.status_flags) == libovr_capi.ovrStatus_OrientationTracked)
 
     @property
     def positionTracked(self):
         """True if the position was tracked when sampled."""
-        return <bint>((ovr_capi.ovrStatus_PositionTracked &
-             self.status_flags) == ovr_capi.ovrStatus_PositionTracked)
+        return <bint>((libovr_capi.ovrStatus_PositionTracked &
+             self.status_flags) == libovr_capi.ovrStatus_PositionTracked)
 
     @property
     def fullyTracked(self):
         """True if position and orientation were tracked when sampled."""
         cdef int32_t full_tracking_flags = \
-            ovr_capi.ovrStatus_OrientationTracked | \
-            ovr_capi.ovrStatus_PositionTracked
+            libovr_capi.ovrStatus_OrientationTracked | \
+            libovr_capi.ovrStatus_PositionTracked
         return <bint>((self.status_flags & full_tracking_flags) ==
                       full_tracking_flags)
 
@@ -3393,9 +3289,9 @@ cdef class LibOVRTrackerInfo(object):
     """Class for information about camera based tracking sensors.
 
     """
-    cdef ovr_capi.ovrTrackerPose* c_data
-    cdef ovr_capi.ovrTrackerPose c_ovrTrackerPose
-    cdef ovr_capi.ovrTrackerDesc c_ovrTrackerDesc
+    cdef libovr_capi.ovrTrackerPose* c_data
+    cdef libovr_capi.ovrTrackerPose c_ovrTrackerPose
+    cdef libovr_capi.ovrTrackerDesc c_ovrTrackerDesc
 
     cdef LibOVRPose _pose
     cdef LibOVRPose _leveledPose
@@ -3429,14 +3325,14 @@ cdef class LibOVRTrackerInfo(object):
     @property
     def isConnected(self):
         """True if the sensor is connected and available (`bool`)."""
-        return <bint>((ovr_capi.ovrTracker_Connected &
-             self.c_ovrTrackerPose.TrackerFlags) == ovr_capi.ovrTracker_Connected)
+        return <bint>((libovr_capi.ovrTracker_Connected &
+             self.c_ovrTrackerPose.TrackerFlags) == libovr_capi.ovrTracker_Connected)
 
     @property
     def isPoseTracked(self):
         """True if the sensor has a valid pose (`bool`)."""
-        return <bint>((ovr_capi.ovrTracker_PoseTracked &
-             self.c_ovrTrackerPose.TrackerFlags) == ovr_capi.ovrTracker_PoseTracked)
+        return <bint>((libovr_capi.ovrTracker_PoseTracked &
+             self.c_ovrTrackerPose.TrackerFlags) == libovr_capi.ovrTracker_PoseTracked)
 
     @property
     def frustum(self):
@@ -3483,8 +3379,8 @@ cdef class LibOVRSessionStatus(object):
     """Class for session status information.
 
     """
-    cdef ovr_capi.ovrSessionStatus* c_data
-    cdef ovr_capi.ovrSessionStatus c_ovrSessionStatus
+    cdef libovr_capi.ovrSessionStatus* c_data
+    cdef libovr_capi.ovrSessionStatus c_ovrSessionStatus
 
     def __cinit__(self):
         self.c_data = &self.c_ovrSessionStatus
@@ -3492,55 +3388,55 @@ cdef class LibOVRSessionStatus(object):
     @property
     def isVisible(self):
         """True if the application has focus and visible in the HMD."""
-        return self.c_data.IsVisible == ovr_capi.ovrTrue
+        return self.c_data.IsVisible == libovr_capi.ovrTrue
 
     @property
     def hmdPresent(self):
         """True if the HMD is present."""
-        return self.c_data.HmdPresent == ovr_capi.ovrTrue
+        return self.c_data.HmdPresent == libovr_capi.ovrTrue
 
     @property
     def hmdMounted(self):
         """True if the HMD is on the user's head."""
-        return self.c_data.HmdMounted == ovr_capi.ovrTrue
+        return self.c_data.HmdMounted == libovr_capi.ovrTrue
 
     @property
     def displayLost(self):
         """True if the the display was lost."""
-        return self.c_data.DisplayLost == ovr_capi.ovrTrue
+        return self.c_data.DisplayLost == libovr_capi.ovrTrue
 
     @property
     def shouldQuit(self):
         """True if the application was signaled to quit."""
-        return self.c_data.ShouldQuit == ovr_capi.ovrTrue
+        return self.c_data.ShouldQuit == libovr_capi.ovrTrue
 
     @property
     def shouldRecenter(self):
         """True if the application was signaled to re-center."""
-        return self.c_data.ShouldRecenter == ovr_capi.ovrTrue
+        return self.c_data.ShouldRecenter == libovr_capi.ovrTrue
 
     @property
     def hasInputFocus(self):
         """True if the application has input focus."""
-        return self.c_data.HasInputFocus == ovr_capi.ovrTrue
+        return self.c_data.HasInputFocus == libovr_capi.ovrTrue
 
     @property
     def overlayPresent(self):
         """True if the system overlay is present."""
-        return self.c_data.OverlayPresent == ovr_capi.ovrTrue
+        return self.c_data.OverlayPresent == libovr_capi.ovrTrue
 
     @property
     def depthRequested(self):
         """True if the system requires a depth texture. Currently unused by
         PsychXR."""
-        return self.c_data.DepthRequested == ovr_capi.ovrTrue
+        return self.c_data.DepthRequested == libovr_capi.ovrTrue
 
 
-class LibOVRHmdInfo(object):
+cdef class LibOVRHmdInfo(object):
     """Class for HMD information returned by 'getHmdInfo()'."""
 
-    cdef ovr_capi.ovrHmdDesc* c_data
-    cdef ovr_capi.ovrHmdDesc c_ovrHmdDesc
+    cdef libovr_capi.ovrHmdDesc* c_data
+    cdef libovr_capi.ovrHmdDesc c_ovrHmdDesc
 
     def __cinit__(self, *args, **kwargs):
         self.c_data = &self.c_ovrHmdDesc
@@ -3693,10 +3589,10 @@ class LibOVRHmdInfo(object):
             values.
 
         """
-        cdef ovr_capi.ovrFovPort fov_left = self.c_data[0].DefaultEyeFov[0]
-        cdef ovr_capi.ovrFovPort fov_right = self.c_data[0].DefaultEyeFov[1]
+        cdef libovr_capi.ovrFovPort fov_left = self.c_data[0].DefaultEyeFov[0]
+        cdef libovr_capi.ovrFovPort fov_right = self.c_data[0].DefaultEyeFov[1]
 
-        cdef ovr_capi.ovrFovPort fov_max
+        cdef libovr_capi.ovrFovPort fov_max
         fov_max.UpTan = maxf(fov_left.UpTan, fov_right.UpTan)
         fov_max.DownTan = maxf(fov_left.DownTan, fov_right.DownTan)
         fov_max.LeftTan = maxf(fov_left.LeftTan, fov_right.LeftTan)
@@ -3705,7 +3601,7 @@ class LibOVRHmdInfo(object):
         cdef float tan_half_fov_horz = maxf(fov_max.LeftTan, fov_max.RightTan)
         cdef float tan_half_fov_vert = maxf(fov_max.DownTan, fov_max.UpTan)
 
-        cdef ovr_capi.ovrFovPort fov_both
+        cdef libovr_capi.ovrFovPort fov_both
         fov_both.LeftTan = fov_both.RightTan = tan_half_fov_horz
         fov_both.UpTan = fov_both.DownTan = tan_half_fov_horz
 
@@ -3727,8 +3623,8 @@ class LibOVRHmdInfo(object):
 
 
 cdef class LibOVRCompFramePerfStat(object):
-    cdef ovr_capi.ovrPerfStatsPerCompositorFrame* c_data
-    cdef ovr_capi.ovrPerfStatsPerCompositorFrame c_ovrPerfStatsPerCompositorFrame
+    cdef libovr_capi.ovrPerfStatsPerCompositorFrame* c_data
+    cdef libovr_capi.ovrPerfStatsPerCompositorFrame c_ovrPerfStatsPerCompositorFrame
 
     def __cinit__(self, *args, **kwargs):
         self.c_data = &self.c_ovrPerfStatsPerCompositorFrame

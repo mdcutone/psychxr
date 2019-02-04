@@ -119,13 +119,13 @@ else:
 # add configured extensions
 ext_modules = []
 if _build_libovr_ == '1':
-    cythonize("psychxr/ovr/capi.pyx",
+    cythonize("psychxr/ovr/libovr.pyx",
               include_path=_sdk_data_['libovr']['include'],
               compiler_directives = {'embedsignature': True})
     ext_modules.extend([
         Extension(
-            "psychxr.ovr.capi",
-            ["psychxr/ovr/capi"+".cpp"],
+            "psychxr.ovr.libovr",
+            ["psychxr/ovr/libovr"+".cpp"],
             include_dirs=_include_dir_ + _sdk_data_['libovr']['include'],
             libraries=_libraries_ + _sdk_data_['libovr']['libs'],
             library_dirs=_lib_dirs_ + _sdk_data_['libovr']['lib_dir'],

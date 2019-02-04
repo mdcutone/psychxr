@@ -1,4 +1,5 @@
 # distutils: language=c++
+# Oculus SDK Math functions and C++ classes
 from libcpp cimport bool
 
 cdef extern from "OVR_Math.h" namespace "OVR":
