@@ -35,7 +35,7 @@ __credits__ = ["Laurie M. Wilcox"]
 __copyright__ = "Copyright 2019 Matthew D. Cutone"
 __license__ = "MIT"
 __version__ = "0.2.0"
-__status__ = "Production"
+__status__ = "Beta"
 __maintainer__ = "Matthew D. Cutone"
 __email__ = "cutonem@yorku.ca"
 
@@ -57,9 +57,6 @@ from libc.math cimport pow
 
 cimport numpy as np
 import numpy as np
-import collections
-
-import OpenGL as GL
 
 # -----------------
 # Initialize module
@@ -116,76 +113,6 @@ def check_result(result):
 cdef float maxf(float a, float b):
     return a if a >= b else b
 
-# Enable error checking on OVRLib functions by setting 'debug_mode=True'. All
-# LibOVR functions that return a 'ovrResult' type will be checked. A
-# RuntimeError will be raised if the returned value indicates failure with the
-# associated message passed from LibOVR.
-#
-
-# Look-up table of button values to test which are pressed.
-#
-cdef dict ctrl_button_lut = {
-    "A": libovr_capi.ovrButton_A,
-    "B": libovr_capi.ovrButton_B,
-    "RThumb": libovr_capi.ovrButton_RThumb,
-    "RShoulder": libovr_capi.ovrButton_RShoulder,
-    "X": libovr_capi.ovrButton_X,
-    "Y": libovr_capi.ovrButton_Y,
-    "LThumb": libovr_capi.ovrButton_LThumb,
-    "LShoulder": libovr_capi.ovrButton_LThumb,
-    "Up": libovr_capi.ovrButton_Up,
-    "Down": libovr_capi.ovrButton_Down,
-    "Left": libovr_capi.ovrButton_Left,
-    "Right": libovr_capi.ovrButton_Right,
-    "Enter": libovr_capi.ovrButton_Enter,
-    "Back": libovr_capi.ovrButton_Back,
-    "VolUp": libovr_capi.ovrButton_VolUp,
-    "VolDown": libovr_capi.ovrButton_VolDown,
-    "Home": libovr_capi.ovrButton_Home,
-    "Private": libovr_capi.ovrButton_Private,
-    "RMask": libovr_capi.ovrButton_RMask,
-    "LMask": libovr_capi.ovrButton_LMask}
-
-# Python accessible list of valid button names.
-button_names = [*ctrl_button_lut.keys()]
-
-# Look-up table of controller touches.
-#
-cdef dict ctrl_touch_lut = {
-    "A": libovr_capi.ovrTouch_A,
-    "B": libovr_capi.ovrTouch_B,
-    "RThumb": libovr_capi.ovrTouch_RThumb,
-    "RThumbRest": libovr_capi.ovrTouch_RThumbRest,
-    "RIndexTrigger": libovr_capi.ovrTouch_RThumb,
-    "X": libovr_capi.ovrTouch_X,
-    "Y": libovr_capi.ovrTouch_Y,
-    "LThumb": libovr_capi.ovrTouch_LThumb,
-    "LThumbRest": libovr_capi.ovrTouch_LThumbRest,
-    "LIndexTrigger": libovr_capi.ovrTouch_LIndexTrigger,
-    "RIndexPointing": libovr_capi.ovrTouch_RIndexPointing,
-    "RThumbUp": libovr_capi.ovrTouch_RThumbUp,
-    "LIndexPointing": libovr_capi.ovrTouch_LIndexPointing,
-    "LThumbUp": libovr_capi.ovrTouch_LThumbUp}
-
-cdef dict _controller_type_enum = {
-    "Xbox": libovr_capi.ovrControllerType_XBox,
-    "Remote": libovr_capi.ovrControllerType_Remote,
-    "Touch": libovr_capi.ovrControllerType_Touch,
-    "LeftTouch": libovr_capi.ovrControllerType_LTouch,
-    "RightTouch": libovr_capi.ovrControllerType_RTouch
-}
-
-cdef libovr_capi.ovrControllerType* libovr_controller_enum = [
-    libovr_capi.ovrControllerType_XBox,
-    libovr_capi.ovrControllerType_Remote,
-    libovr_capi.ovrControllerType_Touch,
-    libovr_capi.ovrControllerType_LTouch,
-    libovr_capi.ovrControllerType_RTouch
-]
-
-# Python accessible list of valid touch names.
-touch_names = [*ctrl_touch_lut.keys()]
-
 # Performance information for profiling.
 #
 cdef libovr_capi.ovrPerfStats _perf_stats_
@@ -222,6 +149,16 @@ cdef dict _mirror_texture_options = {
     "IncludeGuardian" : libovr_capi.ovrMirrorOption_IncludeGuardian,
     "IncludeNotifications" : libovr_capi.ovrMirrorOption_IncludeNotifications,
     "IncludeSystemGui" : libovr_capi.ovrMirrorOption_IncludeSystemGui
+}
+
+# controller enums associated with each string identifier
+#
+cdef dict _controller_type_enum = {
+    "Xbox": libovr_capi.ovrControllerType_XBox,
+    "Remote": libovr_capi.ovrControllerType_Remote,
+    "Touch": libovr_capi.ovrControllerType_Touch,
+    "LeftTouch": libovr_capi.ovrControllerType_LTouch,
+    "RightTouch": libovr_capi.ovrControllerType_RTouch
 }
 
 # Button values
@@ -540,7 +477,7 @@ def getSerialNumber():
     global _hmdDesc
     return _hmdDesc.SerialNumber.decode('utf-8')
 
-def getScreenSize():
+def getResolution():
     """Horizontal and vertical resolution of the display in pixels.
 
     Returns
@@ -861,7 +798,7 @@ def setEyeRenderFov(int eye, object fov):
     # set in eye layer too
     _eyeLayer.Fov[eye] = _eyeRenderDesc[eye].Fov
 
-def calcEyeBufferSizes(texelsPerPixel=1.0):
+def calcEyeBufferSizes(float texelsPerPixel=1.0):
     """Get the recommended buffer (texture) sizes for eye buffers.
 
     Should be called after 'eye_render_fovs' is set. Returns left and
@@ -1699,7 +1636,7 @@ def perfHudModes():
     """List of valid performance HUD modes."""
     return [*_performance_hud_modes]
 
-def getEyeViewport(eye):
+def getEyeViewport(int eye):
     """Get the viewport for a given eye.
 
     Parameters
@@ -1720,7 +1657,7 @@ def getEyeViewport(eye):
 
     return to_return
 
-def setEyeViewport(eye, rect):
+def setEyeViewport(int eye, object rect):
     """Set the viewport for a given eye.
 
     Parameters
@@ -1969,35 +1906,54 @@ def refreshPerformanceStats():
 
     return result
 
-# @property
-# def maxProvidedFrameStats(self):
-#     """Maximum number of frame stats provided."""
-#     return 5
-#
-# @property
-# def getFrameStatsCount(self):
-#     """Number of frame stats available."""
-#     return self.perfStats.FrameStatsCount
-#
-# @property
-# def anyFrameStatsDropped(self):
-#     """Have any frame stats been dropped?"""
-#     return self.perfStats.AnyFrameStatsDropped
-#
-# @property
-# def adaptiveGpuPerformanceScale(self):
-#     """Adaptive GPU performance scaling factor."""
-#     return self.perfStats.AdaptiveGpuPerformanceScale
-#
-# @property
-# def aswIsAvailable(self):
-#     """Is ASW available?"""
-#     return self.perfStats.AswIsAvailable
-#
-# @property
-# def frameStats(self):
-#     """Get all frame compositior frame statistics."""
-#     return self.compFrameStats
+def updatePerfStats():
+    """Update performance stats.
+
+    Returns
+    -------
+    int
+        Result of the 'ovr_GetPerfStats' LibOVR API call.
+
+    """
+    global _ptrSession
+    global _perfStats
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetPerfStats(
+        _ptrSession, &_perfStats)
+
+    return result
+
+def getAdaptiveGpuPerformanceScale():
+    """Get the adaptive GPU performance scale.
+
+    Returns
+    -------
+    float
+
+    """
+    global _perfStats
+    return _perfStats.AdaptiveGpuPerformanceScale
+
+def getFrameStatsCount():
+    """Get the number of queued compositor statistics.
+
+    Returns
+    -------
+    int
+
+    """
+    global _perfStats
+    return _perfStats.FrameStatsCount
+
+def checkAswIsAvailable():
+    """Check if ASW is available.
+
+    Returns
+    -------
+    bool
+
+    """
+    global _perfStats
+    return <bint>_perfStats.AswIsAvailable
 
 def getLastErrorInfo():
     """Get the last error code and information string reported by the API.
@@ -2285,12 +2241,12 @@ def getButtons(str controller, object buttonNames, str testState='continuous'):
     cdef unsigned int buttonBits = 0x00000000
     cdef int i, N
     if isinstance(buttonNames, str):  # don't loop if a string is specified
-        buttonBits |= ctrl_button_lut[buttonNames]
+        buttonBits |= _controller_buttons[buttonNames]
     elif isinstance(buttonNames, (tuple, list)):
         # loop over all names and combine them
         N = <int>len(buttonNames)
         for i in range(N):
-            buttonBits |= ctrl_button_lut[buttonNames[i]]
+            buttonBits |= _controller_buttons[buttonNames[i]]
 
     # test if the button was pressed
     cdef bint stateResult = False
@@ -2357,12 +2313,12 @@ def getTouches(str controller, object touchNames, str testState='continuous'):
     cdef unsigned int touchBits = 0x00000000
     cdef int i, N
     if isinstance(touchNames, str):  # don't loop if a string is specified
-        touchBits |= ctrl_touch_lut[touchNames]
+        touchBits |= _touch_states[touchNames]
     elif isinstance(touchNames, (tuple, list)):
         # loop over all names and combine them
         N = <int>len(touchNames)
         for i in range(N):
-            touchBits |= ctrl_touch_lut[touchNames[i]]
+            touchBits |= _touch_states[touchNames[i]]
 
     # test if the button was pressed
     cdef bint stateResult = False
