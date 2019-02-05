@@ -1723,7 +1723,7 @@ def beginFrame(unsigned int frameIndex=0):
 
     return <int>result
 
-def commitSwapChain(int eye):
+def commitTextureSwapChain(int eye):
     """Commit changes to a given eye's texture swap chain. When called, the
     runtime is notified that the texture is ready for use, and the swap
     chain index is incremented.
