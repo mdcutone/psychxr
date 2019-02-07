@@ -99,6 +99,7 @@ cdef bint _debugMode
 # geometric data
 cdef libovr_math.Matrix4f[2] _eyeProjectionMatrix
 cdef libovr_math.Matrix4f[2] _eyeViewMatrix
+cdef libovr_math.Matrix4f[2] _eyeViewProjectionMatrix
 
 # Function to check for errors returned by OVRLib functions
 #
@@ -1283,6 +1284,8 @@ def calcEyePoses(LibOVRPose headPose):
     global _eyeLayer
     global _eyeRenderDesc
     global _eyeViewMatrix
+    global _eyeProjectionMatrix
+    global _eyeViewProjectionMatrix
 
     cdef libovr_capi.ovrPosef[2] hmdToEyePoses
     hmdToEyePoses[0] = _eyeRenderDesc[0].HmdToEyePose
@@ -1313,6 +1316,7 @@ def calcEyePoses(LibOVRPose headPose):
         up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
         forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
         _eyeViewMatrix[eye] = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+        _eyeViewProjectionMatrix[eye] = _eyeViewMatrix[eye] * _eyeProjectionMatrix[eye]
 
 def getHmdToEyePoses():
     """HMD to eye poses.
@@ -2491,6 +2495,59 @@ def updateFrameStats():
     """Update frame statistics."""
     pass
 
+def checkPointVisible(object point):
+    """Check if a point in world/scene coordinates is visible on the HMD screen.
+
+    Parameters
+    ----------
+    point : tuple, list, or ndarray of float
+        Point to test [X, Y, Z] with dimensions in meters.
+
+    Returns
+    -------
+    bool
+        True if the point projects to the screen.
+
+    """
+    cdef libovr_math.Vector4f vecIn
+    cdef libovr_math.Vector4f pointHCS
+    cdef float[3] pointNDC
+
+    if isinstance(point, LibOVRPose):
+        vecIn = libovr_math.Vector4f(point.c_data[0].Position.x,
+                                     point.c_data[0].Position.y,
+                                     point.c_data[0].Position.z,
+                                     1.0)
+    else:
+        vecIn = libovr_math.Vector4f(<float>point[0],
+                                     <float>point[1],
+                                     <float>point[2],
+                                     1.0)
+
+    # convert from world coordinates to NDC
+    cdef int eye = 0
+    for eye in range(libovr_capi.ovrEye_Count):
+        pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
+
+        if pointHCS.w < 0.0001:
+            return False
+
+        pointNDC[0] = pointHCS.x
+        pointNDC[1] = pointHCS.y
+        pointNDC[2] = pointHCS.z
+
+        pointNDC[0] /= pointHCS.w
+        pointNDC[1] /= pointHCS.w
+        pointNDC[2] /= pointHCS.w
+
+        if -1.0 > pointNDC[0] > 1.0:
+            return False
+        elif -1.0 > pointNDC[1] > 1.0:
+            return False
+        elif -1.0 > pointNDC[2] > 1.0:
+            return False
+
+    return True
 
 cdef class LibOVRPose(object):
     """Class for rigid body pose data for LibOVR.
