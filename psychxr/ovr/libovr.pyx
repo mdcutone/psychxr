@@ -2495,13 +2495,17 @@ def updateFrameStats():
     """Update frame statistics."""
     pass
 
-def checkPointVisible(object point):
+def checkPointsVisible(object points, str condition='any'):
     """Check if a point in world/scene coordinates is visible on the HMD screen.
 
     Parameters
     ----------
-    point : tuple, list, or ndarray of float
-        Point to test [X, Y, Z] with dimensions in meters.
+    points : tuple, list, or ndarray
+        Array of points to test. If any are not visible the function returns
+        False immediately.
+    condition : str
+        Condition to check. If 'any' returns True if any of the points are
+        visible. If 'all', returns True only if all the points are visible.
 
     Returns
     -------
@@ -2509,45 +2513,62 @@ def checkPointVisible(object point):
         True if the point projects to the screen.
 
     """
+    # input values to 2D memory view
+    cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
+        np.asarray(points, dtype=np.float32)
+    cdef float[:,:] mvPoints = pointsIn
+
+    # intermediates
     cdef libovr_math.Vector4f vecIn
     cdef libovr_math.Vector4f pointHCS
     cdef float[3] pointNDC
 
-    if isinstance(point, LibOVRPose):
-        vecIn = libovr_math.Vector4f(point.c_data[0].Position.x,
-                                     point.c_data[0].Position.y,
-                                     point.c_data[0].Position.z,
-                                     1.0)
+    cdef int checkAll
+    if condition == 'all':
+        checkAll = 1
+    elif condition == 'any':
+        checkAll = 0
     else:
-        vecIn = libovr_math.Vector4f(<float>point[0],
-                                     <float>point[1],
-                                     <float>point[2],
-                                     1.0)
+        raise ValueError("Invalid condition specified.")
 
-    # convert from world coordinates to NDC
     cdef int eye = 0
-    for eye in range(libovr_capi.ovrEye_Count):
-        pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
+    cdef Py_ssize_t pt = 0
+    cdef Py_ssize_t N = mvPoints.shape[1]
+    for pt in range(N):
+        for eye in range(libovr_capi.ovrEye_Count):
+            vecIn.x = mvPoints[pt, 0]
+            vecIn.y = mvPoints[pt, 1]
+            vecIn.z = mvPoints[pt, 2]
+            pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
 
-        if pointHCS.w < 0.0001:
-            return False
+            if pointHCS.w < 0.0001:
+                return False
 
-        pointNDC[0] = pointHCS.x
-        pointNDC[1] = pointHCS.y
-        pointNDC[2] = pointHCS.z
+            pointNDC[0] = pointHCS.x
+            pointNDC[1] = pointHCS.y
+            pointNDC[2] = pointHCS.z
 
-        pointNDC[0] /= pointHCS.w
-        pointNDC[1] /= pointHCS.w
-        pointNDC[2] /= pointHCS.w
+            pointNDC[0] /= pointHCS.w
+            pointNDC[1] /= pointHCS.w
+            pointNDC[2] /= pointHCS.w
 
-        if -1.0 > pointNDC[0] > 1.0:
-            return False
-        elif -1.0 > pointNDC[1] > 1.0:
-            return False
-        elif -1.0 > pointNDC[2] > 1.0:
-            return False
+            if checkAll:
+                if -1.0 > pointNDC[0] > 1.0:
+                    return False
+                elif -1.0 > pointNDC[1] > 1.0:
+                    return False
+                elif -1.0 > pointNDC[2] > 1.0:
+                    return False
+            else:
+                if -1.0 <= pointNDC[0] <= 1.0:
+                    return True
+                elif -1.0 <= pointNDC[1] <= 1.0:
+                    return True
+                elif -1.0 <= pointNDC[2] <= 1.0:
+                    return True
 
-    return True
+    return True if checkAll else False
+
 
 cdef class LibOVRPose(object):
     """Class for rigid body pose data for LibOVR.
@@ -3142,8 +3163,8 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Vector3f offset = -originPos.InverseTransform(targetPos)
 
         # find the discriminant
-        cdef float desc = pow(_rayDir.Dot(offset), 2.0) - \
-               (offset.Dot(offset) - pow(radius, 2.0))
+        cdef float desc = <float>pow(_rayDir.Dot(offset), 2.0) - \
+               (offset.Dot(offset) - <float>pow(radius, 2.0))
 
         # one or more roots? if so we are touching the sphere
         return desc >= 0.0
