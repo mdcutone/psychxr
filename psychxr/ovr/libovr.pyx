@@ -3717,7 +3717,8 @@ def testPointsVisible(object points, str condition='any'):
             vecIn.z = mvPoints[pt, 2]
             pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
 
-            if pointHCS.w < 0.0001:
+            # too close to the singularity for perspective division, fail
+            if pointHCS.w < 0.0001 and checkAll == 1:
                 return False
 
             pointNDC[0] = pointHCS.x
