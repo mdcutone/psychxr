@@ -304,6 +304,1176 @@ LIBOVR_TEXTURE_SWAP_CHAIN5 = 5
 LIBOVR_TEXTURE_SWAP_CHAIN6 = 6
 LIBOVR_TEXTURE_SWAP_CHAIN7 = 7
 
+
+cdef class LibOVRPose(object):
+    """Class for rigid body pose data for LibOVR.
+
+    """
+    cdef libovr_capi.ovrPosef* c_data
+    cdef libovr_capi.ovrPosef c_ovrPosef  # internal data
+
+    def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+        """Constructor for LibOVRPose.
+
+        Parameters
+        ----------
+        pos : tuple, list, or ndarray of float
+            Position vector (x, y, z).
+        ori : tuple, list, or ndarray of float
+            Orientation quaternion vector (x, y, z, w).
+
+        Notes
+        -----
+        Values for vectors are stored internally as 32-bit floating point
+        numbers.
+
+        """
+        pass  # nop
+
+    def __cinit__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+        self.c_data = &self.c_ovrPosef  # pointer to c_ovrPosef
+
+        self.c_data[0].Position.x = <float>pos[0]
+        self.c_data[0].Position.y = <float>pos[1]
+        self.c_data[0].Position.z = <float>pos[2]
+
+        self.c_data[0].Orientation.x = <float>ori[0]
+        self.c_data[0].Orientation.y = <float>ori[1]
+        self.c_data[0].Orientation.z = <float>ori[2]
+        self.c_data[0].Orientation.w = <float>ori[3]
+
+    def __mul__(LibOVRPose a, LibOVRPose b):
+        """Multiplication operator (*) to combine poses."""
+        cdef libovr_math.Posef pose_r = \
+            <libovr_math.Posef>a.c_data[0] * <libovr_math.Posef>b.c_data[0]
+
+        cdef LibOVRPose to_return = \
+            LibOVRPose(
+                (pose_r.Translation.x,
+                 pose_r.Translation.y,
+                 pose_r.Translation.z),
+                (pose_r.Rotation.x,
+                 pose_r.Rotation.y,
+                 pose_r.Rotation.z,
+                 pose_r.Rotation.w))
+
+        return to_return
+
+    def __invert__(self):
+        """Invert operator (~) to invert a pose.
+
+        """
+        return self.inverted()
+
+    def __str__(self):
+        return \
+            "LibOVRPose(({px}, {py}, {pz}), ({rx}, {ry}, {rz}, {rw}))".format(
+                px=self.c_data[0].Position.x,
+                py=self.c_data[0].Position.y,
+                pz=self.c_data[0].Position.z,
+                rx=self.c_data[0].Orientation.x,
+                ry=self.c_data[0].Orientation.y,
+                rz=self.c_data[0].Orientation.z,
+                rw=self.c_data[0].Orientation.w)
+
+    @property
+    def pos(self):
+        return self.getPos()
+
+    def getPos(self):
+        """Position vector X, Y, Z (`ndarray` of `float`).
+
+        The returned object is a NumPy array which references data stored in an
+        internal structure (ovrPosef). The array is conformal with the internal
+        data's type (float32) and size (length 3).
+
+        Examples
+        --------
+        Set the position of the pose manually::
+
+            myPose.pos = [5., 6., 7.]
+
+        """
+        return np.array((self.c_data[0].Position.x,
+                         self.c_data[0].Position.y,
+                         self.c_data[0].Position.z), dtype=np.float32)
+
+    def setPos(self, object pos):
+        self.c_data[0].Position.x = <float>pos[0]
+        self.c_data[0].Position.y = <float>pos[1]
+        self.c_data[0].Position.z = <float>pos[2]
+
+    @property
+    def ori(self):
+        return self.getOri()
+
+    def getOri(self):
+        """Orientation quaternion X, Y, Z, W (`ndarray` of `float`).
+
+        Components X, Y, Z are imaginary and W is real.
+
+        The returned object is a NumPy array which references data stored in an
+        internal structure (ovrPosef). The array is conformal with the internal
+        data's type (float32) and size (length 3).
+
+        Notes
+        -----
+            The orientation quaternion should be normalized.
+
+        """
+        return np.array((self.c_data[0].Orientation.x,
+                         self.c_data[0].Orientation.y,
+                         self.c_data[0].Orientation.z,
+                         self.c_data[0].Orientation.w), dtype=np.float32)
+
+    def setOri(self, object ori):
+        self.c_data[0].Orientation.x = <float>ori[0]
+        self.c_data[0].Orientation.y = <float>ori[1]
+        self.c_data[0].Orientation.z = <float>ori[2]
+        self.c_data[0].Orientation.w = <float>ori[3]
+
+    @property
+    def posOri(self):
+        """Position and orientation."""
+
+        return self.pos, self.ori
+
+    @posOri.setter
+    def posOri(self, value):
+        self.setPosOri(value[0], value[1])
+
+    def getPosOri(self):
+        """Get position and orientation."""
+        return self.pos, self.ori
+
+    def setPosOri(self, object pos, object ori):
+        """Set the position and orientation."""
+        self.c_data[0].Position.x = <float>pos[0]
+        self.c_data[0].Position.y = <float>pos[1]
+        self.c_data[0].Position.z = <float>pos[2]
+
+        self.c_data[0].Orientation.x = <float>ori[0]
+        self.c_data[0].Orientation.y = <float>ori[1]
+        self.c_data[0].Orientation.z = <float>ori[2]
+        self.c_data[0].Orientation.w = <float>ori[3]
+
+    def getAtUp(self):
+        """Get the orientation as 'at' and 'up' vectors.
+
+        Examples
+        --------
+
+        Setting the listener orientation for 3D positional audio (PyOpenAL)::
+
+            at, up = myPose.getAtUp()
+            Listener.set_orientation((at[0], at[1], at[2], up[0], up[1], up[2]))
+
+        """
+        cdef libovr_math.Vector3f at = \
+            (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
+                libovr_math.Vector3f(0.0, 0.0, -1.0))
+        cdef libovr_math.Vector3f up = \
+            (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
+                libovr_math.Vector3f(0.0, 1.0, 0.0))
+
+        cdef np.ndarray[np.float32_t, ndim=1] ret_at = \
+            np.array((<float>at[0], <float>at[1], <float>at[2]),
+                       dtype=np.float32)
+        cdef np.ndarray[np.float32_t, ndim=1] ret_up = \
+            np.array((<float>up[0], <float>up[1], <float>up[2]),
+                       dtype=np.float32)
+
+        return ret_at, ret_up
+
+    def getYawPitchRoll(self, LibOVRPose refPose=None):
+        """Get the yaw, pitch, and roll of the orientation quaternion.
+
+        Parameters
+        ----------
+        refPose : LibOVRPose or None
+            Reference pose to compute angles relative to. If None is specified,
+            computed values are referenced relative to the world axes.
+
+        Returns
+        -------
+        ndarray of floats
+            Yaw, pitch, and roll of the pose in degrees.
+
+        """
+        cdef float yaw, pitch, roll
+        cdef libovr_math.Posef inPose = <libovr_math.Posef>self.c_data[0]
+        cdef libovr_math.Posef invRef
+
+        if refPose is not None:
+            invRef = (<libovr_math.Posef>refPose.c_data[0]).Inverted()
+            inPose = invRef * inPose
+
+        inPose.Rotation.GetYawPitchRoll(&yaw, &pitch, &roll)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((yaw, pitch, roll), dtype=np.float32)
+
+        return to_return
+
+    def getMatrix4x4(self, bint inverse=False):
+        """Convert this pose into a 4x4 transformation matrix.
+
+        Parameters
+        ----------
+        inverse : bool
+            If True, return the inverse of the matrix.
+
+        Returns
+        -------
+        ndarray
+            4x4 transformation matrix.
+
+        """
+        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
+            <libovr_math.Posef>self.c_data[0])
+
+        if inverse:
+            m_pose.InvertHomogeneousTransform()
+
+        cdef np.ndarray[np.float32_t, ndim=2] to_return = \
+            np.zeros((4, 4), dtype=np.float32)
+
+        # fast copy matrix to numpy array
+        cdef float [:, :] mv = to_return
+        cdef Py_ssize_t i, j
+        i = j = 0
+        for i in range(4):
+            for j in range(4):
+                mv[i, j] = m_pose.M[i][j]
+
+        return to_return
+
+    def getMatrix1d(self, bint inverse=False):
+        """Convert this pose into a 1D (flattened) transform matrix.
+
+        This will output an array suitable for use with OpenGL.
+
+        Parameters
+        ----------
+        inverse : bool
+            If True, return the inverse of the matrix.
+
+        Returns
+        -------
+        ndarray
+            4x4 transformation matrix flattened to a 1D array assuming column
+            major order with a 'float32' data type.
+
+        """
+        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
+            <libovr_math.Posef>self.c_data[0])
+
+        if inverse:
+            m_pose.InvertHomogeneousTransform()
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.zeros((16,), dtype=np.float32)
+
+        # fast copy matrix to numpy array
+        cdef float [:] mv = to_return
+        cdef Py_ssize_t i, j, k, N
+        i = j = k = 0
+        N = 4
+        for i in range(N):
+            for j in range(N):
+                mv[k] = m_pose.M[j][i]  # row -> column major order
+                k += 1
+
+        return to_return
+
+    def normalize(self):
+        """Normalize this pose.
+
+        """
+        (<libovr_math.Posef>self.c_data[0]).Normalize()
+
+    def inverted(self):
+        """Get the inverse of the pose.
+
+        Returns
+        -------
+        LibOVRPose
+            Inverted pose.
+
+        """
+        cdef libovr_math.Quatf inv_ori = \
+            (<libovr_math.Quatf>self.c_data[0].Orientation).Inverted()
+        cdef libovr_math.Vector3f inv_pos = \
+            (<libovr_math.Quatf>inv_ori).Rotate(
+                -(<libovr_math.Vector3f>self.c_data[0].Position))
+        cdef LibOVRPose to_return = \
+            LibOVRPose(
+                (self.c_data[0].Position.x,
+                 self.c_data[0].Position.y,
+                 self.c_data[0].Position.z),
+                (self.c_data[0].Orientation.x,
+                 self.c_data[0].Orientation.y,
+                 self.c_data[0].Orientation.z,
+                 self.c_data[0].Orientation.w))
+
+    def rotate(self, object v):
+        """Rotate a position vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to rotate.
+
+        Returns
+        -------
+        ndarray
+            Vector rotated by the pose's orientation.
+
+        """
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef libovr_math.Vector3f rotated_pos = \
+            (<libovr_math.Posef>self.c_data[0]).Rotate(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((rotated_pos.x, rotated_pos.y, rotated_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def inverseRotate(self, object v):
+        """Inverse rotate a position vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to rotate.
+
+        Returns
+        -------
+        ndarray
+            Vector rotated by the pose's inverse orientation.
+
+        """
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef libovr_math.Vector3f inv_rotated_pos = \
+            (<libovr_math.Posef>self.c_data[0]).InverseRotate(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((inv_rotated_pos.x, inv_rotated_pos.y, inv_rotated_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def translate(self, object v):
+        """Translate a position vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to translate (x, y, z).
+
+        Returns
+        -------
+        ndarray
+            Vector translated by the pose's position.
+
+        """
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef libovr_math.Vector3f translated_pos = \
+            (<libovr_math.Posef>self.c_data[0]).Translate(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((translated_pos.x, translated_pos.y, translated_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def transform(self, object v):
+        """Transform a position vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the pose's position and orientation.
+
+        """
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef libovr_math.Vector3f transformed_pos = \
+            (<libovr_math.Posef>self.c_data[0]).Transform(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def inverseTransform(self, object v):
+        """Inverse transform a position vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the inverse of the pose's position and
+            orientation.
+
+        """
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef libovr_math.Vector3f transformed_pos = \
+            (<libovr_math.Posef>self.c_data[0]).InverseTransform(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def transformNormal(self, object v):
+        """Transform a normal vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the pose's position and orientation.
+
+        """
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef libovr_math.Vector3f transformed_pos = \
+            (<libovr_math.Posef>self.c_data[0]).TransformNormal(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def inverseTransformNormal(self, object v):
+        """Inverse transform a normal vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the pose's position and orientation.
+
+        """
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef libovr_math.Vector3f transformed_pos = \
+            (<libovr_math.Posef>self.c_data[0]).InverseTransformNormal(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def apply(self, object v):
+        """Apply a transform to a position vector.
+
+        Parameters
+        ----------
+        v : tuple, list, or ndarray of float
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the pose's position and orientation.
+
+        """
+        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
+            <float>v[0], <float>v[1], <float>v[2])
+        cdef libovr_math.Vector3f transformed_pos = \
+            (<libovr_math.Posef>self.c_data[0]).Apply(pos_in)
+
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
+            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
+                     dtype=np.float32)
+
+        return to_return
+
+    def distanceTo(self, object v):
+        """Distance to a point or pose from this pose.
+
+        Parameters
+        ----------
+        v : tuple, list, ndarray, or LibOVRPose
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        float
+            Distance to a point or Pose.
+
+        """
+        cdef libovr_math.Vector3f pos_in
+
+        if isinstance(v, LibOVRPose):
+            pos_in = <libovr_math.Vector3f>((<LibOVRPose>v).c_data[0]).Position
+        else:
+            pos_in = libovr_math.Vector3f(<float>v[0], <float>v[1], <float>v[2])
+
+        cdef float to_return = \
+            (<libovr_math.Posef>self.c_data[0]).Translation.Distance(pos_in)
+
+    def raycastSphere(self, object targetPose, float radius=0.5, object rayDir=(0., 0., -1.), float maxRange=0.0):
+        """Raycast to a sphere.
+
+        Project an invisible ray of finite or infinite length from this pose in
+        rayDir and check if it intersects with the targetPose bounding sphere.
+
+        Specifying maxRange as >0.0 casts a ray of finite length in world
+        units. The distance between the target and ray origin position are
+        checked prior to casting the ray; automatically failing if the ray can
+        never reach the edge of the bounding sphere centered about targetPose.
+        This avoids having to do the costly transformations required for
+        picking.
+
+        This raycast implementation can only determine if contact is being made
+        with the object's bounding sphere, not where on the object the ray
+        intersects. This method might not work for irregular or elongated
+        objects since bounding spheres may not approximate those shapes well. In
+        such cases, one may use multiple spheres at different locations and
+        radii to pick the same object.
+
+        Parameters
+        ----------
+        targetPose : tuple, list, or ndarray of floats
+            Coordinates of the center of the target sphere (x, y, z).
+        radius : float
+            The radius of the target.
+        rayDir : tuple, list, or ndarray of floats
+            Vector indicating the direction for the ray (default is -Z).
+        maxRange : float
+            The maximum range of the ray. Ray testing will fail automatically if
+            the target is out of range. The ray has infinite length if None is
+            specified. Ray is infinite if maxRange=0.0.
+
+        Returns
+        -------
+        bool
+            True if the ray intersects anywhere on the bounding sphere, False in
+            every other condition.
+
+        """
+        cdef libovr_math.Vector3f targetPos = libovr_math.Vector3f(
+            <float>targetPose[0], <float>targetPose[1], <float>targetPose[2])
+        cdef libovr_math.Vector3f _rayDir = libovr_math.Vector3f(
+            <float>rayDir[0], <float>rayDir[1], <float>rayDir[2])
+        cdef libovr_math.Posef originPos = <libovr_math.Posef>self.c_data[0]
+
+        # if the ray is finite, does it ever touch the edge of the sphere?
+        cdef float targetDist
+        if maxRange != 0.0:
+            targetDist = targetPos.Distance(originPos.Translation) - radius
+            if targetDist > maxRange:
+                return False
+
+        # put the target in the caster's local coordinate system
+        cdef libovr_math.Vector3f offset = -originPos.InverseTransform(targetPos)
+
+        # find the discriminant
+        cdef float desc = <float>pow(_rayDir.Dot(offset), 2.0) - \
+               (offset.Dot(offset) - <float>pow(radius, 2.0))
+
+        # one or more roots? if so we are touching the sphere
+        return desc >= 0.0
+
+    def interp(self, LibOVRPose toPose, float s, bint fast=False):
+        """Interpolate between poses.
+
+        Linear interpolation is used on position (Lerp) while the orientation
+        has spherical linear interpolation (Slerp) applied.
+
+        Parameters
+        ----------
+        toPose : LibOVRPose
+            End pose.
+        s : float
+            Interpolation factor between in interval 0.0 and 1.0.
+        fast : bool
+            If True, use fast interpolation which is quicker but less accurate
+            over larger distances.
+
+        Returns
+        -------
+        LibOVRPose
+            Interpolated pose at 's'.
+
+        """
+        cdef libovr_math.Posef _toPose = <libovr_math.Posef>toPose.c_data[0]
+        cdef libovr_math.Posef interp
+
+        if not fast:
+            interp = (<libovr_math.Posef>self.c_data[0]).Lerp(_toPose, s)
+        else:
+            interp = (<libovr_math.Posef>self.c_data[0]).FastLerp(_toPose, s)
+
+        cdef LibOVRPose to_return = \
+            LibOVRPose(
+                (interp.Translation.x,
+                 interp.Translation.y,
+                 interp.Translation.z),
+                (interp.Rotation.x,
+                 interp.Rotation.y,
+                 interp.Rotation.z,
+                 interp.Rotation.w))
+
+        return to_return
+
+    cdef toarray(self, float* arr):
+        """Copy position and orientation data to an array. 
+        
+        This function provides an interface to exchange pose data between API 
+        specific classes.
+        
+        Parameters
+        ----------
+        a : float* 
+            Pointer to the first element of the array.
+        
+        """
+        arr[0] = self.c_data[0].Position.x
+        arr[1] = self.c_data[0].Position.y
+        arr[2] = self.c_data[0].Position.z
+        arr[3] = self.c_data[0].Orientation.x
+        arr[4] = self.c_data[0].Orientation.y
+        arr[5] = self.c_data[0].Orientation.z
+        arr[6] = self.c_data[0].Orientation.w
+
+
+cdef class LibOVRPoseState(object):
+    """Class for data about rigid body configuration with derivatives computed
+    by the LibOVR runtime.
+
+    """
+    cdef libovr_capi.ovrPoseStatef* c_data
+    cdef libovr_capi.ovrPoseStatef c_ovrPoseStatef
+
+    cdef LibOVRPose _pose
+
+    cdef int status_flags
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrPoseStatef  # pointer to ovrPoseStatef
+
+        # the pose is accessed using a LibOVRPose object
+        self._pose = LibOVRPose()
+        self._pose.c_data = &self.c_data.ThePose
+
+    @property
+    def thePose(self):
+        """Body pose.
+
+        Returns
+        -------
+        LibOVRPose
+            Rigid body pose data with position and orientation information.
+
+        """
+        return self._pose
+
+    @property
+    def angularVelocity(self):
+        """Angular velocity vector in radians/sec."""
+        return np.array((self.c_data.AngularVelocity.x,
+                         self.c_data.AngularVelocity.y,
+                         self.c_data.AngularVelocity.z), dtype=np.float32)
+
+    @angularVelocity.setter
+    def angularVelocity(self, object value):
+        """Angular velocity vector in radians/sec."""
+        self.c_data[0].AngularVelocity.x = <float>value[0]
+        self.c_data[0].AngularVelocity.y = <float>value[1]
+        self.c_data[0].AngularVelocity.z = <float>value[2]
+
+    @property
+    def linearVelocity(self):
+        """Linear velocity vector in meters/sec.
+
+        This is only available if 'pos_tracked' is True.
+        """
+        return np.array((self.c_data.LinearVelocity.x,
+                         self.c_data.LinearVelocity.y,
+                         self.c_data.LinearVelocity.z), dtype=np.float32)
+
+    @linearVelocity.setter
+    def linearVelocity(self, object value):
+        self.c_data[0].LinearVelocity.x = <float>value[0]
+        self.c_data[0].LinearVelocity.y = <float>value[1]
+        self.c_data[0].LinearVelocity.z = <float>value[2]
+
+    @property
+    def angularAcceleration(self):
+        """Angular acceleration vector in radians/s^2."""
+        return np.array((self.c_data.AngularAcceleration.x,
+                         self.c_data.AngularAcceleration.y,
+                         self.c_data.AngularAcceleration.z), dtype=np.float32)
+
+    @angularAcceleration.setter
+    def angularAcceleration(self, object value):
+        self.c_data[0].AngularAcceleration.x = <float>value[0]
+        self.c_data[0].AngularAcceleration.y = <float>value[1]
+        self.c_data[0].AngularAcceleration.z = <float>value[2]
+
+    @property
+    def linearAcceleration(self):
+        """Linear acceleration vector in meters/s^2."""
+        return np.array((self.c_data.LinearAcceleration.x,
+                         self.c_data.LinearAcceleration.y,
+                         self.c_data.LinearAcceleration.z), dtype=np.float32)
+
+    @linearAcceleration.setter
+    def linearAcceleration(self, object value):
+        self.c_data[0].LinearAcceleration.x = <float>value[0]
+        self.c_data[0].LinearAcceleration.y = <float>value[1]
+        self.c_data[0].LinearAcceleration.z = <float>value[2]
+
+    @property
+    def timeInSeconds(self):
+        """Absolute time this data refers to in seconds."""
+        return <double>self.c_data[0].TimeInSeconds
+
+    @property
+    def orientationTracked(self):
+        """True if the orientation was tracked when sampled."""
+        return <bint>((libovr_capi.ovrStatus_OrientationTracked &
+             self.status_flags) == libovr_capi.ovrStatus_OrientationTracked)
+
+    @property
+    def positionTracked(self):
+        """True if the position was tracked when sampled."""
+        return <bint>((libovr_capi.ovrStatus_PositionTracked &
+             self.status_flags) == libovr_capi.ovrStatus_PositionTracked)
+
+    @property
+    def fullyTracked(self):
+        """True if position and orientation were tracked when sampled."""
+        cdef int32_t full_tracking_flags = \
+            libovr_capi.ovrStatus_OrientationTracked | \
+            libovr_capi.ovrStatus_PositionTracked
+        return <bint>((self.status_flags & full_tracking_flags) ==
+                      full_tracking_flags)
+
+
+cdef class LibOVRTrackerInfo(object):
+    """Class for information about camera based tracking sensors.
+
+    """
+    cdef libovr_capi.ovrTrackerPose* c_data
+    cdef libovr_capi.ovrTrackerPose c_ovrTrackerPose
+    cdef libovr_capi.ovrTrackerDesc c_ovrTrackerDesc
+
+    cdef LibOVRPose _pose
+    cdef LibOVRPose _leveledPose
+
+    cdef unsigned int _trackerIndex
+
+    def __cinit__(self):
+        self._pose = LibOVRPose()
+        self._leveledPose = LibOVRPose()
+        self._trackerIndex = 0
+
+    @property
+    def trackerIndex(self):
+        """Tracker index this objects refers to."""
+        return self._trackerIndex
+
+    @property
+    def pose(self):
+        """The pose of the sensor (`LibOVRPose`)."""
+        self._pose.c_data[0] = self.c_ovrTrackerPose.Pose
+
+        return self._pose
+
+    @property
+    def leveledPose(self):
+        """Gravity aligned pose of the sensor (`LibOVRPose`)."""
+        self._leveledPose.c_data[0] = self.c_ovrTrackerPose.LeveledPose
+
+        return self._leveledPose
+
+    @property
+    def isConnected(self):
+        """True if the sensor is connected and available (`bool`)."""
+        return <bint>((libovr_capi.ovrTracker_Connected &
+             self.c_ovrTrackerPose.TrackerFlags) == libovr_capi.ovrTracker_Connected)
+
+    @property
+    def isPoseTracked(self):
+        """True if the sensor has a valid pose (`bool`)."""
+        return <bint>((libovr_capi.ovrTracker_PoseTracked &
+             self.c_ovrTrackerPose.TrackerFlags) == libovr_capi.ovrTracker_PoseTracked)
+
+    @property
+    def frustum(self):
+        """Frustum parameters of the sensor as an array (`ndarray`).
+
+        Returns
+        -------
+        ndarray
+            Frustum parameters [HFovInRadians, VFovInRadians, NearZInMeters,
+            FarZInMeters].
+
+        """
+        cdef np.ndarray to_return = np.asarray([
+            self.c_ovrTrackerDesc.FrustumHFovInRadians,
+            self.c_ovrTrackerDesc.FrustumVFovInRadians,
+            self.c_ovrTrackerDesc.FrustumNearZInMeters,
+            self.c_ovrTrackerDesc.FrustumFarZInMeters],
+            dtype=np.float32)
+
+        return to_return
+
+    @property
+    def horizontalFov(self):
+        """Horizontal FOV of the sensor in radians (`float`)."""
+        return self.c_ovrTrackerDesc.FrustumHFovInRadians
+
+    @property
+    def verticalFov(self):
+        """Vertical FOV of the sensor in radians (`float`)."""
+        return self.c_ovrTrackerDesc.FrustumVFovInRadians
+
+    @property
+    def nearZ(self):
+        """Near clipping plane of the sensor frustum in meters (`float`)."""
+        return self.c_ovrTrackerDesc.FrustumNearZInMeters
+
+    @property
+    def farZ(self):
+        """Far clipping plane of the sensor frustum in meters (`float`)."""
+        return self.c_ovrTrackerDesc.FrustumFarZInMeters
+
+
+cdef class LibOVRSessionStatus(object):
+    """Class for session status information.
+
+    """
+    cdef libovr_capi.ovrSessionStatus* c_data
+    cdef libovr_capi.ovrSessionStatus c_ovrSessionStatus
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrSessionStatus
+
+    @property
+    def isVisible(self):
+        """True if the application has focus and visible in the HMD."""
+        return self.c_data.IsVisible == libovr_capi.ovrTrue
+
+    @property
+    def hmdPresent(self):
+        """True if the HMD is present."""
+        return self.c_data.HmdPresent == libovr_capi.ovrTrue
+
+    @property
+    def hmdMounted(self):
+        """True if the HMD is on the user's head."""
+        return self.c_data.HmdMounted == libovr_capi.ovrTrue
+
+    @property
+    def displayLost(self):
+        """True if the the display was lost."""
+        return self.c_data.DisplayLost == libovr_capi.ovrTrue
+
+    @property
+    def shouldQuit(self):
+        """True if the application was signaled to quit."""
+        return self.c_data.ShouldQuit == libovr_capi.ovrTrue
+
+    @property
+    def shouldRecenter(self):
+        """True if the application was signaled to re-center."""
+        return self.c_data.ShouldRecenter == libovr_capi.ovrTrue
+
+    @property
+    def hasInputFocus(self):
+        """True if the application has input focus."""
+        return self.c_data.HasInputFocus == libovr_capi.ovrTrue
+
+    @property
+    def overlayPresent(self):
+        """True if the system overlay is present."""
+        return self.c_data.OverlayPresent == libovr_capi.ovrTrue
+
+    @property
+    def depthRequested(self):
+        """True if the system requires a depth texture. Currently unused by
+        PsychXR."""
+        return self.c_data.DepthRequested == libovr_capi.ovrTrue
+
+
+cdef class LibOVRHmdInfo(object):
+    """Class for HMD information returned by 'getHmdInfo()'."""
+
+    cdef libovr_capi.ovrHmdDesc* c_data
+    cdef libovr_capi.ovrHmdDesc c_ovrHmdDesc
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data = &self.c_ovrHmdDesc
+
+    def productName(self):
+        """Get the product name for this device.
+
+        Returns
+        -------
+        str
+            Product name string (utf-8).
+
+        """
+        return self.c_data[0].ProductName.decode('utf-8')
+
+    def manufacturer(self):
+        """Get the device manufacturer name.
+
+        Returns
+        -------
+        str
+            Manufacturer name string (utf-8).
+
+        """
+        return self.c_data[0].Manufacturer.decode('utf-8')
+
+    def serialNumber(self):
+        """Get the device serial number.
+
+        Returns
+        -------
+        str
+            Serial number (utf-8).
+
+        """
+        return self.c_data[0].SerialNumber.decode('utf-8')
+
+    def resolution(self):
+        """Horizontal and vertical resolution of the display in pixels.
+
+        Returns
+        -------
+        ndarray of int
+            Resolution of the display [w, h].
+
+        """
+        return np.asarray((self.c_data[0].Resolution.w,
+                           self.c_data[0].Resolution.h), dtype=int)
+
+    def refreshRate(self):
+        """Nominal refresh rate in Hertz of the display.
+
+        Returns
+        -------
+        float
+            Refresh rate in Hz.
+
+        """
+        return <float>self.c_data[0].DisplayRefreshRate
+
+    def hid(self):
+        """USB human interface device class identifiers.
+
+        Returns
+        -------
+        tuple
+            USB HIDs (vendor, product).
+
+        """
+        return <int>self.c_data[0].VendorId, <int>self.c_data[0].ProductId
+
+    def firmwareVersion(self):
+        """Firmware version for this device.
+
+        Returns
+        -------
+        tuple
+            Firmware version (major, minor).
+
+        """
+        return <int>self.c_data[0].FirmwareMajor, \
+               <int>self.c_data[0].FirmwareMinor
+
+    @property
+    def defaultEyeFov(self):
+        """Default or recommended eye field-of-views (FOVs) provided by the API.
+
+        Returns
+        -------
+        tuple of ndarray
+            Pair of left and right eye FOVs specified as tangent angles [Up,
+            Down, Left, Right].
+
+        """
+        cdef np.ndarray fovLeft = np.asarray([
+            self.c_data[0].DefaultEyeFov[0].UpTan,
+            self.c_data[0].DefaultEyeFov[0].DownTan,
+            self.c_data[0].DefaultEyeFov[0].LeftTan,
+            self.c_data[0].DefaultEyeFov[0].RightTan],
+            dtype=np.float32)
+
+        cdef np.ndarray fovRight = np.asarray([
+            self.c_data[0].DefaultEyeFov[1].UpTan,
+            self.c_data[0].DefaultEyeFov[1].DownTan,
+            self.c_data[0].DefaultEyeFov[1].LeftTan,
+            self.c_data[0].DefaultEyeFov[1].RightTan],
+            dtype=np.float32)
+
+        return fovLeft, fovRight
+
+    @property
+    def maxEyeFov(self):
+        """Maximum eye field-of-views (FOVs) provided by the API.
+
+        Returns
+        -------
+        tuple of ndarray
+            Pair of left and right eye FOVs specified as tangent angles in
+            radians [Up, Down, Left, Right].
+
+        """
+        cdef np.ndarray[float, ndim=1] fov_left = np.asarray([
+            self.c_data[0].MaxEyeFov[0].UpTan,
+            self.c_data[0].MaxEyeFov[0].DownTan,
+            self.c_data[0].MaxEyeFov[0].LeftTan,
+            self.c_data[0].MaxEyeFov[0].RightTan],
+            dtype=np.float32)
+
+        cdef np.ndarray[float, ndim=1] fov_right = np.asarray([
+            self.c_data[0].MaxEyeFov[1].UpTan,
+            self.c_data[0].MaxEyeFov[1].DownTan,
+            self.c_data[0].MaxEyeFov[1].LeftTan,
+            self.c_data[0].MaxEyeFov[1].RightTan],
+            dtype=np.float32)
+
+        return fov_left, fov_right
+
+    @property
+    def symmetricEyeFov(self):
+        """Symmetric field-of-views (FOVs) for mono rendering.
+
+        By default, the Rift uses off-axis FOVs. These frustum parameters make
+        it difficult to converge monoscopic stimuli.
+
+        Returns
+        -------
+        tuple of ndarray of float
+            Pair of left and right eye FOVs specified as tangent angles in
+            radians [Up, Down, Left, Right]. Both FOV objects will have the same
+            values.
+
+        """
+        cdef libovr_capi.ovrFovPort fov_left = self.c_data[0].DefaultEyeFov[0]
+        cdef libovr_capi.ovrFovPort fov_right = self.c_data[0].DefaultEyeFov[1]
+
+        cdef libovr_capi.ovrFovPort fov_max
+        fov_max.UpTan = maxf(fov_left.UpTan, fov_right.UpTan)
+        fov_max.DownTan = maxf(fov_left.DownTan, fov_right.DownTan)
+        fov_max.LeftTan = maxf(fov_left.LeftTan, fov_right.LeftTan)
+        fov_max.RightTan = maxf(fov_left.RightTan, fov_right.RightTan)
+
+        cdef float tan_half_fov_horz = maxf(fov_max.LeftTan, fov_max.RightTan)
+        cdef float tan_half_fov_vert = maxf(fov_max.DownTan, fov_max.UpTan)
+
+        cdef libovr_capi.ovrFovPort fov_both
+        fov_both.LeftTan = fov_both.RightTan = tan_half_fov_horz
+        fov_both.UpTan = fov_both.DownTan = tan_half_fov_horz
+
+        cdef np.ndarray[float, ndim=1] fov_left_out = np.asarray([
+            fov_both.UpTan,
+            fov_both.DownTan,
+            fov_both.LeftTan,
+            fov_both.RightTan],
+            dtype=np.float32)
+
+        cdef np.ndarray[float, ndim=1] fov_right_out = np.asarray([
+            fov_both.UpTan,
+            fov_both.DownTan,
+            fov_both.LeftTan,
+            fov_both.RightTan],
+            dtype=np.float32)
+
+        return fov_left_out, fov_right_out
+
+
+cdef class LibOVRCompFramePerfStat(object):
+    cdef libovr_capi.ovrPerfStatsPerCompositorFrame* c_data
+    cdef libovr_capi.ovrPerfStatsPerCompositorFrame c_ovrPerfStatsPerCompositorFrame
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data = &self.c_ovrPerfStatsPerCompositorFrame
+
+    @property
+    def hmdVsyncIndex(self):
+        return self.c_data[0].HmdVsyncIndex
+
+    @property
+    def appFrameIndex(self):
+        return self.c_data[0].AppFrameIndex
+
+    @property
+    def appDroppedFrameCount(self):
+        return self.c_data[0].AppDroppedFrameCount
+
+    @property
+    def appQueueAheadTime(self):
+        return self.c_data[0].AppQueueAheadTime
+
+    @property
+    def appCpuElapsedTime(self):
+        return self.c_data[0].AppCpuElapsedTime
+
+    @property
+    def appGpuElapsedTime(self):
+        return self.c_data[0].AppGpuElapsedTime
+
+    @property
+    def compositorFrameIndex(self):
+        return self.c_data[0].CompositorFrameIndex
+
+    @property
+    def compositorLatency(self):
+        return self.c_data[0].CompositorLatency
+
+    @property
+    def compositorCpuElapsedTime(self):
+        return self.c_data[0].CompositorCpuElapsedTime
+
+    @property
+    def compositorGpuElapsedTime(self):
+        return self.c_data[0].CompositorGpuElapsedTime
+
+    @property
+    def compositorCpuStartToGpuEndElapsedTime(self):
+        return self.c_data[0].CompositorCpuStartToGpuEndElapsedTime
+
+    @property
+    def compositorGpuEndToVsyncElapsedTime(self):
+        return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
+
+
 def LIBOVR_SUCCESS(int result):
     """Check if an API return indicates success."""
     return <bint>libovr_capi.OVR_SUCCESS(result)
@@ -2495,17 +3665,19 @@ def updateFrameStats():
     """Update frame statistics."""
     pass
 
-def checkPointsVisible(object points, str condition='any'):
+def testPointsVisible(object points, str condition='any'):
     """Check if a point in world/scene coordinates is visible on the HMD screen.
+
+    This can be used to determine whether or not something should be drawn by
+    passing its position or bounding box points.
 
     Parameters
     ----------
     points : tuple, list, or ndarray
-        Array of points to test. If any are not visible the function returns
-        False immediately.
+        2D array of points to test. Each coordinate should be in format
+        [x, y ,z], where dimensions are in meters.
     condition : str
-        Condition to check. If 'any' returns True if any of the points are
-        visible. If 'all', returns True only if all the points are visible.
+        Condition to check. Can be 'any' or 'all'.
 
     Returns
     -------
@@ -2516,6 +3688,10 @@ def checkPointsVisible(object points, str condition='any'):
     # input values to 2D memory view
     cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
         np.asarray(points, dtype=np.float32)
+
+    if points.shape[1] != 3:
+        raise ValueError("Invalid number of columns, must be 3.")
+
     cdef float[:,:] mvPoints = pointsIn
 
     # intermediates
@@ -2568,1173 +3744,3 @@ def checkPointsVisible(object points, str condition='any'):
                     return True
 
     return True if checkAll else False
-
-
-cdef class LibOVRPose(object):
-    """Class for rigid body pose data for LibOVR.
-
-    """
-    cdef libovr_capi.ovrPosef* c_data
-    cdef libovr_capi.ovrPosef c_ovrPosef  # internal data
-
-    def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
-        """Constructor for LibOVRPose.
-
-        Parameters
-        ----------
-        pos : tuple, list, or ndarray of float
-            Position vector (x, y, z).
-        ori : tuple, list, or ndarray of float
-            Orientation quaternion vector (x, y, z, w).
-
-        Notes
-        -----
-        Values for vectors are stored internally as 32-bit floating point
-        numbers.
-
-        """
-        pass  # nop
-
-    def __cinit__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
-        self.c_data = &self.c_ovrPosef  # pointer to c_ovrPosef
-
-        self.c_data[0].Position.x = <float>pos[0]
-        self.c_data[0].Position.y = <float>pos[1]
-        self.c_data[0].Position.z = <float>pos[2]
-
-        self.c_data[0].Orientation.x = <float>ori[0]
-        self.c_data[0].Orientation.y = <float>ori[1]
-        self.c_data[0].Orientation.z = <float>ori[2]
-        self.c_data[0].Orientation.w = <float>ori[3]
-
-    def __mul__(LibOVRPose a, LibOVRPose b):
-        """Multiplication operator (*) to combine poses."""
-        cdef libovr_math.Posef pose_r = \
-            <libovr_math.Posef>a.c_data[0] * <libovr_math.Posef>b.c_data[0]
-
-        cdef LibOVRPose to_return = \
-            LibOVRPose(
-                (pose_r.Translation.x,
-                 pose_r.Translation.y,
-                 pose_r.Translation.z),
-                (pose_r.Rotation.x,
-                 pose_r.Rotation.y,
-                 pose_r.Rotation.z,
-                 pose_r.Rotation.w))
-
-        return to_return
-
-    def __invert__(self):
-        """Invert operator (~) to invert a pose.
-
-        """
-        return self.inverted()
-
-    def __str__(self):
-        return \
-            "LibOVRPose(({px}, {py}, {pz}), ({rx}, {ry}, {rz}, {rw}))".format(
-                px=self.c_data[0].Position.x,
-                py=self.c_data[0].Position.y,
-                pz=self.c_data[0].Position.z,
-                rx=self.c_data[0].Orientation.x,
-                ry=self.c_data[0].Orientation.y,
-                rz=self.c_data[0].Orientation.z,
-                rw=self.c_data[0].Orientation.w)
-
-    @property
-    def pos(self):
-        return self.getPos()
-
-    def getPos(self):
-        """Position vector X, Y, Z (`ndarray` of `float`).
-
-        The returned object is a NumPy array which references data stored in an
-        internal structure (ovrPosef). The array is conformal with the internal
-        data's type (float32) and size (length 3).
-
-        Examples
-        --------
-        Set the position of the pose manually::
-
-            myPose.pos = [5., 6., 7.]
-
-        """
-        return np.array((self.c_data[0].Position.x,
-                         self.c_data[0].Position.y,
-                         self.c_data[0].Position.z), dtype=np.float32)
-
-    def setPos(self, object pos):
-        self.c_data[0].Position.x = <float>pos[0]
-        self.c_data[0].Position.y = <float>pos[1]
-        self.c_data[0].Position.z = <float>pos[2]
-
-    @property
-    def ori(self):
-        return self.getOri()
-
-    def getOri(self):
-        """Orientation quaternion X, Y, Z, W (`ndarray` of `float`).
-
-        Components X, Y, Z are imaginary and W is real.
-
-        The returned object is a NumPy array which references data stored in an
-        internal structure (ovrPosef). The array is conformal with the internal
-        data's type (float32) and size (length 3).
-
-        Notes
-        -----
-            The orientation quaternion should be normalized.
-
-        """
-        return np.array((self.c_data[0].Orientation.x,
-                         self.c_data[0].Orientation.y,
-                         self.c_data[0].Orientation.z,
-                         self.c_data[0].Orientation.w), dtype=np.float32)
-
-    def setOri(self, object ori):
-        self.c_data[0].Orientation.x = <float>ori[0]
-        self.c_data[0].Orientation.y = <float>ori[1]
-        self.c_data[0].Orientation.z = <float>ori[2]
-        self.c_data[0].Orientation.w = <float>ori[3]
-
-    @property
-    def posOri(self):
-        """Position and orientation."""
-
-        return self.pos, self.ori
-
-    @posOri.setter
-    def posOri(self, value):
-        self.setPosOri(value[0], value[1])
-
-    def getPosOri(self):
-        """Get position and orientation."""
-        return self.pos, self.ori
-
-    def setPosOri(self, object pos, object ori):
-        """Set the position and orientation."""
-        self.c_data[0].Position.x = <float>pos[0]
-        self.c_data[0].Position.y = <float>pos[1]
-        self.c_data[0].Position.z = <float>pos[2]
-
-        self.c_data[0].Orientation.x = <float>ori[0]
-        self.c_data[0].Orientation.y = <float>ori[1]
-        self.c_data[0].Orientation.z = <float>ori[2]
-        self.c_data[0].Orientation.w = <float>ori[3]
-
-    def getAtUp(self):
-        """Get the orientation as 'at' and 'up' vectors.
-
-        Examples
-        --------
-
-        Setting the listener orientation for 3D positional audio (PyOpenAL)::
-
-            at, up = myPose.getAtUp()
-            Listener.set_orientation((at[0], at[1], at[2], up[0], up[1], up[2]))
-
-        """
-        cdef libovr_math.Vector3f at = \
-            (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
-                libovr_math.Vector3f(0.0, 0.0, -1.0))
-        cdef libovr_math.Vector3f up = \
-            (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
-                libovr_math.Vector3f(0.0, 1.0, 0.0))
-
-        cdef np.ndarray[np.float32_t, ndim=1] ret_at = \
-            np.array((<float>at[0], <float>at[1], <float>at[2]),
-                       dtype=np.float32)
-        cdef np.ndarray[np.float32_t, ndim=1] ret_up = \
-            np.array((<float>up[0], <float>up[1], <float>up[2]),
-                       dtype=np.float32)
-
-        return ret_at, ret_up
-
-    def getYawPitchRoll(self, LibOVRPose refPose=None):
-        """Get the yaw, pitch, and roll of the orientation quaternion.
-
-        Parameters
-        ----------
-        refPose : LibOVRPose or None
-            Reference pose to compute angles relative to. If None is specified,
-            computed values are referenced relative to the world axes.
-
-        Returns
-        -------
-        ndarray of floats
-            Yaw, pitch, and roll of the pose in degrees.
-
-        """
-        cdef float yaw, pitch, roll
-        cdef libovr_math.Posef inPose = <libovr_math.Posef>self.c_data[0]
-        cdef libovr_math.Posef invRef
-
-        if refPose is not None:
-            invRef = (<libovr_math.Posef>refPose.c_data[0]).Inverted()
-            inPose = invRef * inPose
-
-        inPose.Rotation.GetYawPitchRoll(&yaw, &pitch, &roll)
-
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((yaw, pitch, roll), dtype=np.float32)
-
-        return to_return
-
-    def getMatrix4x4(self, bint inverse=False):
-        """Convert this pose into a 4x4 transformation matrix.
-
-        Parameters
-        ----------
-        inverse : bool
-            If True, return the inverse of the matrix.
-
-        Returns
-        -------
-        ndarray
-            4x4 transformation matrix.
-
-        """
-        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
-
-        if inverse:
-            m_pose.InvertHomogeneousTransform()
-
-        cdef np.ndarray[np.float32_t, ndim=2] to_return = \
-            np.zeros((4, 4), dtype=np.float32)
-
-        # fast copy matrix to numpy array
-        cdef float [:, :] mv = to_return
-        cdef Py_ssize_t i, j
-        i = j = 0
-        for i in range(4):
-            for j in range(4):
-                mv[i, j] = m_pose.M[i][j]
-
-        return to_return
-
-    def getMatrix1d(self, bint inverse=False):
-        """Convert this pose into a 1D (flattened) transform matrix.
-
-        This will output an array suitable for use with OpenGL.
-
-        Parameters
-        ----------
-        inverse : bool
-            If True, return the inverse of the matrix.
-
-        Returns
-        -------
-        ndarray
-            4x4 transformation matrix flattened to a 1D array assuming column
-            major order with a 'float32' data type.
-
-        """
-        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
-
-        if inverse:
-            m_pose.InvertHomogeneousTransform()
-
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.zeros((16,), dtype=np.float32)
-
-        # fast copy matrix to numpy array
-        cdef float [:] mv = to_return
-        cdef Py_ssize_t i, j, k, N
-        i = j = k = 0
-        N = 4
-        for i in range(N):
-            for j in range(N):
-                mv[k] = m_pose.M[j][i]  # row -> column major order
-                k += 1
-
-        return to_return
-
-    def normalize(self):
-        """Normalize this pose.
-
-        """
-        (<libovr_math.Posef>self.c_data[0]).Normalize()
-
-    def inverted(self):
-        """Get the inverse of the pose.
-
-        Returns
-        -------
-        LibOVRPose
-            Inverted pose.
-
-        """
-        cdef libovr_math.Quatf inv_ori = \
-            (<libovr_math.Quatf>self.c_data[0].Orientation).Inverted()
-        cdef libovr_math.Vector3f inv_pos = \
-            (<libovr_math.Quatf>inv_ori).Rotate(
-                -(<libovr_math.Vector3f>self.c_data[0].Position))
-        cdef LibOVRPose to_return = \
-            LibOVRPose(
-                (self.c_data[0].Position.x,
-                 self.c_data[0].Position.y,
-                 self.c_data[0].Position.z),
-                (self.c_data[0].Orientation.x,
-                 self.c_data[0].Orientation.y,
-                 self.c_data[0].Orientation.z,
-                 self.c_data[0].Orientation.w))
-
-    def rotate(self, object v):
-        """Rotate a position vector.
-
-        Parameters
-        ----------
-        v : tuple, list, or ndarray of float
-            Vector to rotate.
-
-        Returns
-        -------
-        ndarray
-            Vector rotated by the pose's orientation.
-
-        """
-        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
-            <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f rotated_pos = \
-            (<libovr_math.Posef>self.c_data[0]).Rotate(pos_in)
-
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((rotated_pos.x, rotated_pos.y, rotated_pos.z),
-                     dtype=np.float32)
-
-        return to_return
-
-    def inverseRotate(self, object v):
-        """Inverse rotate a position vector.
-
-        Parameters
-        ----------
-        v : tuple, list, or ndarray of float
-            Vector to rotate.
-
-        Returns
-        -------
-        ndarray
-            Vector rotated by the pose's inverse orientation.
-
-        """
-        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
-            <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f inv_rotated_pos = \
-            (<libovr_math.Posef>self.c_data[0]).InverseRotate(pos_in)
-
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((inv_rotated_pos.x, inv_rotated_pos.y, inv_rotated_pos.z),
-                     dtype=np.float32)
-
-        return to_return
-
-    def translate(self, object v):
-        """Translate a position vector.
-
-        Parameters
-        ----------
-        v : tuple, list, or ndarray of float
-            Vector to translate (x, y, z).
-
-        Returns
-        -------
-        ndarray
-            Vector translated by the pose's position.
-
-        """
-        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
-            <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f translated_pos = \
-            (<libovr_math.Posef>self.c_data[0]).Translate(pos_in)
-
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((translated_pos.x, translated_pos.y, translated_pos.z),
-                     dtype=np.float32)
-
-        return to_return
-
-    def transform(self, object v):
-        """Transform a position vector.
-
-        Parameters
-        ----------
-        v : tuple, list, or ndarray of float
-            Vector to transform (x, y, z).
-
-        Returns
-        -------
-        ndarray
-            Vector transformed by the pose's position and orientation.
-
-        """
-        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
-            <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f transformed_pos = \
-            (<libovr_math.Posef>self.c_data[0]).Transform(pos_in)
-
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
-                     dtype=np.float32)
-
-        return to_return
-
-    def inverseTransform(self, object v):
-        """Inverse transform a position vector.
-
-        Parameters
-        ----------
-        v : tuple, list, or ndarray of float
-            Vector to transform (x, y, z).
-
-        Returns
-        -------
-        ndarray
-            Vector transformed by the inverse of the pose's position and
-            orientation.
-
-        """
-        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
-            <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f transformed_pos = \
-            (<libovr_math.Posef>self.c_data[0]).InverseTransform(pos_in)
-
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
-                     dtype=np.float32)
-
-        return to_return
-
-    def transformNormal(self, object v):
-        """Transform a normal vector.
-
-        Parameters
-        ----------
-        v : tuple, list, or ndarray of float
-            Vector to transform (x, y, z).
-
-        Returns
-        -------
-        ndarray
-            Vector transformed by the pose's position and orientation.
-
-        """
-        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
-            <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f transformed_pos = \
-            (<libovr_math.Posef>self.c_data[0]).TransformNormal(pos_in)
-
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
-                     dtype=np.float32)
-
-        return to_return
-
-    def inverseTransformNormal(self, object v):
-        """Inverse transform a normal vector.
-
-        Parameters
-        ----------
-        v : tuple, list, or ndarray of float
-            Vector to transform (x, y, z).
-
-        Returns
-        -------
-        ndarray
-            Vector transformed by the pose's position and orientation.
-
-        """
-        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
-            <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f transformed_pos = \
-            (<libovr_math.Posef>self.c_data[0]).InverseTransformNormal(pos_in)
-
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
-                     dtype=np.float32)
-
-        return to_return
-
-    def apply(self, object v):
-        """Apply a transform to a position vector.
-
-        Parameters
-        ----------
-        v : tuple, list, or ndarray of float
-            Vector to transform (x, y, z).
-
-        Returns
-        -------
-        ndarray
-            Vector transformed by the pose's position and orientation.
-
-        """
-        cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
-            <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f transformed_pos = \
-            (<libovr_math.Posef>self.c_data[0]).Apply(pos_in)
-
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
-                     dtype=np.float32)
-
-        return to_return
-
-    def distanceTo(self, object v):
-        """Distance to a point or pose from this pose.
-
-        Parameters
-        ----------
-        v : tuple, list, ndarray, or LibOVRPose
-            Vector to transform (x, y, z).
-
-        Returns
-        -------
-        float
-            Distance to a point or Pose.
-
-        """
-        cdef libovr_math.Vector3f pos_in
-
-        if isinstance(v, LibOVRPose):
-            pos_in = <libovr_math.Vector3f>((<LibOVRPose>v).c_data[0]).Position
-        else:
-            pos_in = libovr_math.Vector3f(<float>v[0], <float>v[1], <float>v[2])
-
-        cdef float to_return = \
-            (<libovr_math.Posef>self.c_data[0]).Translation.Distance(pos_in)
-
-    def raycastSphere(self, object targetPose, float radius=0.5, object rayDir=(0., 0., -1.), float maxRange=0.0):
-        """Raycast to a sphere.
-
-        Project an invisible ray of finite or infinite length from this pose in
-        rayDir and check if it intersects with the targetPose bounding sphere.
-
-        Specifying maxRange as >0.0 casts a ray of finite length in world
-        units. The distance between the target and ray origin position are
-        checked prior to casting the ray; automatically failing if the ray can
-        never reach the edge of the bounding sphere centered about targetPose.
-        This avoids having to do the costly transformations required for
-        picking.
-
-        This raycast implementation can only determine if contact is being made
-        with the object's bounding sphere, not where on the object the ray
-        intersects. This method might not work for irregular or elongated
-        objects since bounding spheres may not approximate those shapes well. In
-        such cases, one may use multiple spheres at different locations and
-        radii to pick the same object.
-
-        Parameters
-        ----------
-        targetPose : tuple, list, or ndarray of floats
-            Coordinates of the center of the target sphere (x, y, z).
-        radius : float
-            The radius of the target.
-        rayDir : tuple, list, or ndarray of floats
-            Vector indicating the direction for the ray (default is -Z).
-        maxRange : float
-            The maximum range of the ray. Ray testing will fail automatically if
-            the target is out of range. The ray has infinite length if None is
-            specified. Ray is infinite if maxRange=0.0.
-
-        Returns
-        -------
-        bool
-            True if the ray intersects anywhere on the bounding sphere, False in
-            every other condition.
-
-        """
-        cdef libovr_math.Vector3f targetPos = libovr_math.Vector3f(
-            <float>targetPose[0], <float>targetPose[1], <float>targetPose[2])
-        cdef libovr_math.Vector3f _rayDir = libovr_math.Vector3f(
-            <float>rayDir[0], <float>rayDir[1], <float>rayDir[2])
-        cdef libovr_math.Posef originPos = <libovr_math.Posef>self.c_data[0]
-
-        # if the ray is finite, does it ever touch the edge of the sphere?
-        cdef float targetDist
-        if maxRange != 0.0:
-            targetDist = targetPos.Distance(originPos.Translation) - radius
-            if targetDist > maxRange:
-                return False
-
-        # put the target in the caster's local coordinate system
-        cdef libovr_math.Vector3f offset = -originPos.InverseTransform(targetPos)
-
-        # find the discriminant
-        cdef float desc = <float>pow(_rayDir.Dot(offset), 2.0) - \
-               (offset.Dot(offset) - <float>pow(radius, 2.0))
-
-        # one or more roots? if so we are touching the sphere
-        return desc >= 0.0
-
-    def interp(self, LibOVRPose toPose, float s, bint fast=False):
-        """Interpolate between poses.
-
-        Linear interpolation is used on position (Lerp) while the orientation
-        has spherical linear interpolation (Slerp) applied.
-
-        Parameters
-        ----------
-        toPose : LibOVRPose
-            End pose.
-        s : float
-            Interpolation factor between in interval 0.0 and 1.0.
-        fast : bool
-            If True, use fast interpolation which is quicker but less accurate
-            over larger distances.
-
-        Returns
-        -------
-        LibOVRPose
-            Interpolated pose at 's'.
-
-        """
-        cdef libovr_math.Posef _toPose = <libovr_math.Posef>toPose.c_data[0]
-        cdef libovr_math.Posef interp
-
-        if not fast:
-            interp = (<libovr_math.Posef>self.c_data[0]).Lerp(_toPose, s)
-        else:
-            interp = (<libovr_math.Posef>self.c_data[0]).FastLerp(_toPose, s)
-
-        cdef LibOVRPose to_return = \
-            LibOVRPose(
-                (interp.Translation.x,
-                 interp.Translation.y,
-                 interp.Translation.z),
-                (interp.Rotation.x,
-                 interp.Rotation.y,
-                 interp.Rotation.z,
-                 interp.Rotation.w))
-
-        return to_return
-
-    cdef toarray(self, float* arr):
-        """Copy position and orientation data to an array. 
-        
-        This function provides an interface to exchange pose data between API 
-        specific classes.
-        
-        Parameters
-        ----------
-        a : float* 
-            Pointer to the first element of the array.
-        
-        """
-        arr[0] = self.c_data[0].Position.x
-        arr[1] = self.c_data[0].Position.y
-        arr[2] = self.c_data[0].Position.z
-        arr[3] = self.c_data[0].Orientation.x
-        arr[4] = self.c_data[0].Orientation.y
-        arr[5] = self.c_data[0].Orientation.z
-        arr[6] = self.c_data[0].Orientation.w
-
-
-cdef class LibOVRPoseState(object):
-    """Class for data about rigid body configuration with derivatives computed
-    by the LibOVR runtime.
-
-    """
-    cdef libovr_capi.ovrPoseStatef* c_data
-    cdef libovr_capi.ovrPoseStatef c_ovrPoseStatef
-
-    cdef LibOVRPose _pose
-
-    cdef int status_flags
-
-    def __cinit__(self):
-        self.c_data = &self.c_ovrPoseStatef  # pointer to ovrPoseStatef
-
-        # the pose is accessed using a LibOVRPose object
-        self._pose = LibOVRPose()
-        self._pose.c_data = &self.c_data.ThePose
-
-    @property
-    def thePose(self):
-        """Body pose.
-
-        Returns
-        -------
-        LibOVRPose
-            Rigid body pose data with position and orientation information.
-
-        """
-        return self._pose
-
-    @property
-    def angularVelocity(self):
-        """Angular velocity vector in radians/sec."""
-        return np.array((self.c_data.AngularVelocity.x,
-                         self.c_data.AngularVelocity.y,
-                         self.c_data.AngularVelocity.z), dtype=np.float32)
-
-    @angularVelocity.setter
-    def angularVelocity(self, object value):
-        """Angular velocity vector in radians/sec."""
-        self.c_data[0].AngularVelocity.x = <float>value[0]
-        self.c_data[0].AngularVelocity.y = <float>value[1]
-        self.c_data[0].AngularVelocity.z = <float>value[2]
-
-    @property
-    def linearVelocity(self):
-        """Linear velocity vector in meters/sec.
-
-        This is only available if 'pos_tracked' is True.
-        """
-        return np.array((self.c_data.LinearVelocity.x,
-                         self.c_data.LinearVelocity.y,
-                         self.c_data.LinearVelocity.z), dtype=np.float32)
-
-    @linearVelocity.setter
-    def linearVelocity(self, object value):
-        self.c_data[0].LinearVelocity.x = <float>value[0]
-        self.c_data[0].LinearVelocity.y = <float>value[1]
-        self.c_data[0].LinearVelocity.z = <float>value[2]
-
-    @property
-    def angularAcceleration(self):
-        """Angular acceleration vector in radians/s^2."""
-        return np.array((self.c_data.AngularAcceleration.x,
-                         self.c_data.AngularAcceleration.y,
-                         self.c_data.AngularAcceleration.z), dtype=np.float32)
-
-    @angularAcceleration.setter
-    def angularAcceleration(self, object value):
-        self.c_data[0].AngularAcceleration.x = <float>value[0]
-        self.c_data[0].AngularAcceleration.y = <float>value[1]
-        self.c_data[0].AngularAcceleration.z = <float>value[2]
-
-    @property
-    def linearAcceleration(self):
-        """Linear acceleration vector in meters/s^2."""
-        return np.array((self.c_data.LinearAcceleration.x,
-                         self.c_data.LinearAcceleration.y,
-                         self.c_data.LinearAcceleration.z), dtype=np.float32)
-
-    @linearAcceleration.setter
-    def linearAcceleration(self, object value):
-        self.c_data[0].LinearAcceleration.x = <float>value[0]
-        self.c_data[0].LinearAcceleration.y = <float>value[1]
-        self.c_data[0].LinearAcceleration.z = <float>value[2]
-
-    @property
-    def timeInSeconds(self):
-        """Absolute time this data refers to in seconds."""
-        return <double>self.c_data[0].TimeInSeconds
-
-    @property
-    def orientationTracked(self):
-        """True if the orientation was tracked when sampled."""
-        return <bint>((libovr_capi.ovrStatus_OrientationTracked &
-             self.status_flags) == libovr_capi.ovrStatus_OrientationTracked)
-
-    @property
-    def positionTracked(self):
-        """True if the position was tracked when sampled."""
-        return <bint>((libovr_capi.ovrStatus_PositionTracked &
-             self.status_flags) == libovr_capi.ovrStatus_PositionTracked)
-
-    @property
-    def fullyTracked(self):
-        """True if position and orientation were tracked when sampled."""
-        cdef int32_t full_tracking_flags = \
-            libovr_capi.ovrStatus_OrientationTracked | \
-            libovr_capi.ovrStatus_PositionTracked
-        return <bint>((self.status_flags & full_tracking_flags) ==
-                      full_tracking_flags)
-
-
-cdef class LibOVRTrackerInfo(object):
-    """Class for information about camera based tracking sensors.
-
-    """
-    cdef libovr_capi.ovrTrackerPose* c_data
-    cdef libovr_capi.ovrTrackerPose c_ovrTrackerPose
-    cdef libovr_capi.ovrTrackerDesc c_ovrTrackerDesc
-
-    cdef LibOVRPose _pose
-    cdef LibOVRPose _leveledPose
-
-    cdef unsigned int _trackerIndex
-
-    def __cinit__(self):
-        self._pose = LibOVRPose()
-        self._leveledPose = LibOVRPose()
-        self._trackerIndex = 0
-
-    @property
-    def trackerIndex(self):
-        """Tracker index this objects refers to."""
-        return self._trackerIndex
-
-    @property
-    def pose(self):
-        """The pose of the sensor (`LibOVRPose`)."""
-        self._pose.c_data[0] = self.c_ovrTrackerPose.Pose
-
-        return self._pose
-
-    @property
-    def leveledPose(self):
-        """Gravity aligned pose of the sensor (`LibOVRPose`)."""
-        self._leveledPose.c_data[0] = self.c_ovrTrackerPose.LeveledPose
-
-        return self._leveledPose
-
-    @property
-    def isConnected(self):
-        """True if the sensor is connected and available (`bool`)."""
-        return <bint>((libovr_capi.ovrTracker_Connected &
-             self.c_ovrTrackerPose.TrackerFlags) == libovr_capi.ovrTracker_Connected)
-
-    @property
-    def isPoseTracked(self):
-        """True if the sensor has a valid pose (`bool`)."""
-        return <bint>((libovr_capi.ovrTracker_PoseTracked &
-             self.c_ovrTrackerPose.TrackerFlags) == libovr_capi.ovrTracker_PoseTracked)
-
-    @property
-    def frustum(self):
-        """Frustum parameters of the sensor as an array (`ndarray`).
-
-        Returns
-        -------
-        ndarray
-            Frustum parameters [HFovInRadians, VFovInRadians, NearZInMeters,
-            FarZInMeters].
-
-        """
-        cdef np.ndarray to_return = np.asarray([
-            self.c_ovrTrackerDesc.FrustumHFovInRadians,
-            self.c_ovrTrackerDesc.FrustumVFovInRadians,
-            self.c_ovrTrackerDesc.FrustumNearZInMeters,
-            self.c_ovrTrackerDesc.FrustumFarZInMeters],
-            dtype=np.float32)
-
-        return to_return
-
-    @property
-    def horizontalFov(self):
-        """Horizontal FOV of the sensor in radians (`float`)."""
-        return self.c_ovrTrackerDesc.FrustumHFovInRadians
-
-    @property
-    def verticalFov(self):
-        """Vertical FOV of the sensor in radians (`float`)."""
-        return self.c_ovrTrackerDesc.FrustumVFovInRadians
-
-    @property
-    def nearZ(self):
-        """Near clipping plane of the sensor frustum in meters (`float`)."""
-        return self.c_ovrTrackerDesc.FrustumNearZInMeters
-
-    @property
-    def farZ(self):
-        """Far clipping plane of the sensor frustum in meters (`float`)."""
-        return self.c_ovrTrackerDesc.FrustumFarZInMeters
-
-
-cdef class LibOVRSessionStatus(object):
-    """Class for session status information.
-
-    """
-    cdef libovr_capi.ovrSessionStatus* c_data
-    cdef libovr_capi.ovrSessionStatus c_ovrSessionStatus
-
-    def __cinit__(self):
-        self.c_data = &self.c_ovrSessionStatus
-
-    @property
-    def isVisible(self):
-        """True if the application has focus and visible in the HMD."""
-        return self.c_data.IsVisible == libovr_capi.ovrTrue
-
-    @property
-    def hmdPresent(self):
-        """True if the HMD is present."""
-        return self.c_data.HmdPresent == libovr_capi.ovrTrue
-
-    @property
-    def hmdMounted(self):
-        """True if the HMD is on the user's head."""
-        return self.c_data.HmdMounted == libovr_capi.ovrTrue
-
-    @property
-    def displayLost(self):
-        """True if the the display was lost."""
-        return self.c_data.DisplayLost == libovr_capi.ovrTrue
-
-    @property
-    def shouldQuit(self):
-        """True if the application was signaled to quit."""
-        return self.c_data.ShouldQuit == libovr_capi.ovrTrue
-
-    @property
-    def shouldRecenter(self):
-        """True if the application was signaled to re-center."""
-        return self.c_data.ShouldRecenter == libovr_capi.ovrTrue
-
-    @property
-    def hasInputFocus(self):
-        """True if the application has input focus."""
-        return self.c_data.HasInputFocus == libovr_capi.ovrTrue
-
-    @property
-    def overlayPresent(self):
-        """True if the system overlay is present."""
-        return self.c_data.OverlayPresent == libovr_capi.ovrTrue
-
-    @property
-    def depthRequested(self):
-        """True if the system requires a depth texture. Currently unused by
-        PsychXR."""
-        return self.c_data.DepthRequested == libovr_capi.ovrTrue
-
-
-cdef class LibOVRHmdInfo(object):
-    """Class for HMD information returned by 'getHmdInfo()'."""
-
-    cdef libovr_capi.ovrHmdDesc* c_data
-    cdef libovr_capi.ovrHmdDesc c_ovrHmdDesc
-
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrHmdDesc
-
-    def productName(self):
-        """Get the product name for this device.
-
-        Returns
-        -------
-        str
-            Product name string (utf-8).
-
-        """
-        return self.c_data[0].ProductName.decode('utf-8')
-
-    def manufacturer(self):
-        """Get the device manufacturer name.
-
-        Returns
-        -------
-        str
-            Manufacturer name string (utf-8).
-
-        """
-        return self.c_data[0].Manufacturer.decode('utf-8')
-
-    def serialNumber(self):
-        """Get the device serial number.
-
-        Returns
-        -------
-        str
-            Serial number (utf-8).
-
-        """
-        return self.c_data[0].SerialNumber.decode('utf-8')
-
-    def resolution(self):
-        """Horizontal and vertical resolution of the display in pixels.
-
-        Returns
-        -------
-        ndarray of int
-            Resolution of the display [w, h].
-
-        """
-        return np.asarray((self.c_data[0].Resolution.w,
-                           self.c_data[0].Resolution.h), dtype=int)
-
-    def refreshRate(self):
-        """Nominal refresh rate in Hertz of the display.
-
-        Returns
-        -------
-        float
-            Refresh rate in Hz.
-
-        """
-        return <float>self.c_data[0].DisplayRefreshRate
-
-    def hid(self):
-        """USB human interface device class identifiers.
-
-        Returns
-        -------
-        tuple
-            USB HIDs (vendor, product).
-
-        """
-        return <int>self.c_data[0].VendorId, <int>self.c_data[0].ProductId
-
-    def firmwareVersion(self):
-        """Firmware version for this device.
-
-        Returns
-        -------
-        tuple
-            Firmware version (major, minor).
-
-        """
-        return <int>self.c_data[0].FirmwareMajor, \
-               <int>self.c_data[0].FirmwareMinor
-
-    @property
-    def defaultEyeFov(self):
-        """Default or recommended eye field-of-views (FOVs) provided by the API.
-
-        Returns
-        -------
-        tuple of ndarray
-            Pair of left and right eye FOVs specified as tangent angles [Up,
-            Down, Left, Right].
-
-        """
-        cdef np.ndarray fovLeft = np.asarray([
-            self.c_data[0].DefaultEyeFov[0].UpTan,
-            self.c_data[0].DefaultEyeFov[0].DownTan,
-            self.c_data[0].DefaultEyeFov[0].LeftTan,
-            self.c_data[0].DefaultEyeFov[0].RightTan],
-            dtype=np.float32)
-
-        cdef np.ndarray fovRight = np.asarray([
-            self.c_data[0].DefaultEyeFov[1].UpTan,
-            self.c_data[0].DefaultEyeFov[1].DownTan,
-            self.c_data[0].DefaultEyeFov[1].LeftTan,
-            self.c_data[0].DefaultEyeFov[1].RightTan],
-            dtype=np.float32)
-
-        return fovLeft, fovRight
-
-    @property
-    def maxEyeFov(self):
-        """Maximum eye field-of-views (FOVs) provided by the API.
-
-        Returns
-        -------
-        tuple of ndarray
-            Pair of left and right eye FOVs specified as tangent angles in
-            radians [Up, Down, Left, Right].
-
-        """
-        cdef np.ndarray[float, ndim=1] fov_left = np.asarray([
-            self.c_data[0].MaxEyeFov[0].UpTan,
-            self.c_data[0].MaxEyeFov[0].DownTan,
-            self.c_data[0].MaxEyeFov[0].LeftTan,
-            self.c_data[0].MaxEyeFov[0].RightTan],
-            dtype=np.float32)
-
-        cdef np.ndarray[float, ndim=1] fov_right = np.asarray([
-            self.c_data[0].MaxEyeFov[1].UpTan,
-            self.c_data[0].MaxEyeFov[1].DownTan,
-            self.c_data[0].MaxEyeFov[1].LeftTan,
-            self.c_data[0].MaxEyeFov[1].RightTan],
-            dtype=np.float32)
-
-        return fov_left, fov_right
-
-    @property
-    def symmetricEyeFov(self):
-        """Symmetric field-of-views (FOVs) for mono rendering.
-
-        By default, the Rift uses off-axis FOVs. These frustum parameters make
-        it difficult to converge monoscopic stimuli.
-
-        Returns
-        -------
-        tuple of ndarray of float
-            Pair of left and right eye FOVs specified as tangent angles in
-            radians [Up, Down, Left, Right]. Both FOV objects will have the same
-            values.
-
-        """
-        cdef libovr_capi.ovrFovPort fov_left = self.c_data[0].DefaultEyeFov[0]
-        cdef libovr_capi.ovrFovPort fov_right = self.c_data[0].DefaultEyeFov[1]
-
-        cdef libovr_capi.ovrFovPort fov_max
-        fov_max.UpTan = maxf(fov_left.UpTan, fov_right.UpTan)
-        fov_max.DownTan = maxf(fov_left.DownTan, fov_right.DownTan)
-        fov_max.LeftTan = maxf(fov_left.LeftTan, fov_right.LeftTan)
-        fov_max.RightTan = maxf(fov_left.RightTan, fov_right.RightTan)
-
-        cdef float tan_half_fov_horz = maxf(fov_max.LeftTan, fov_max.RightTan)
-        cdef float tan_half_fov_vert = maxf(fov_max.DownTan, fov_max.UpTan)
-
-        cdef libovr_capi.ovrFovPort fov_both
-        fov_both.LeftTan = fov_both.RightTan = tan_half_fov_horz
-        fov_both.UpTan = fov_both.DownTan = tan_half_fov_horz
-
-        cdef np.ndarray[float, ndim=1] fov_left_out = np.asarray([
-            fov_both.UpTan,
-            fov_both.DownTan,
-            fov_both.LeftTan,
-            fov_both.RightTan],
-            dtype=np.float32)
-
-        cdef np.ndarray[float, ndim=1] fov_right_out = np.asarray([
-            fov_both.UpTan,
-            fov_both.DownTan,
-            fov_both.LeftTan,
-            fov_both.RightTan],
-            dtype=np.float32)
-
-        return fov_left_out, fov_right_out
-
-
-cdef class LibOVRCompFramePerfStat(object):
-    cdef libovr_capi.ovrPerfStatsPerCompositorFrame* c_data
-    cdef libovr_capi.ovrPerfStatsPerCompositorFrame c_ovrPerfStatsPerCompositorFrame
-
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrPerfStatsPerCompositorFrame
-
-    @property
-    def hmdVsyncIndex(self):
-        return self.c_data[0].HmdVsyncIndex
-
-    @property
-    def appFrameIndex(self):
-        return self.c_data[0].AppFrameIndex
-
-    @property
-    def appDroppedFrameCount(self):
-        return self.c_data[0].AppDroppedFrameCount
-
-    @property
-    def appQueueAheadTime(self):
-        return self.c_data[0].AppQueueAheadTime
-
-    @property
-    def appCpuElapsedTime(self):
-        return self.c_data[0].AppCpuElapsedTime
-
-    @property
-    def appGpuElapsedTime(self):
-        return self.c_data[0].AppGpuElapsedTime
-
-    @property
-    def compositorFrameIndex(self):
-        return self.c_data[0].CompositorFrameIndex
-
-    @property
-    def compositorLatency(self):
-        return self.c_data[0].CompositorLatency
-
-    @property
-    def compositorCpuElapsedTime(self):
-        return self.c_data[0].CompositorCpuElapsedTime
-
-    @property
-    def compositorGpuElapsedTime(self):
-        return self.c_data[0].CompositorGpuElapsedTime
-
-    @property
-    def compositorCpuStartToGpuEndElapsedTime(self):
-        return self.c_data[0].CompositorCpuStartToGpuEndElapsedTime
-
-    @property
-    def compositorGpuEndToVsyncElapsedTime(self):
-        return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
-
