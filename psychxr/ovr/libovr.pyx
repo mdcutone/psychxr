@@ -3175,7 +3175,7 @@ def getLastErrorInfo():
 
     return <int>result, errorString
 
-def setBoundaryColor(self, red, green, blue):
+def setBoundaryColor(float red, float green, float blue):
     """Set the boundary color.
 
     The boundary is drawn by the compositor which overlays the extents of
@@ -3284,7 +3284,7 @@ def getBoundaryDimensions(str boundaryType='PlayArea'):
 
     return result, to_return
 
-def getBoundaryPoints(self, str boundaryType='PlayArea'):
+def getBoundaryPoints(str boundaryType='PlayArea'):
     """Get the floor points which define the boundary."""
     pass  # TODO: make this work.
 
@@ -3692,8 +3692,9 @@ def updateFrameStats():
     """Update frame statistics."""
     pass
 
-def testPointsVisible(object points, str condition='any'):
-    """Check if a point in world/scene coordinates is visible on the HMD screen.
+def testPointsInFrustum(object points, str condition='any'):
+    """Check if points in world/scene coordinates are within the viewing
+    frustum of either eye.
 
     This can be used to determine whether or not something should be drawn by
     passing its position or bounding box points.
@@ -3704,12 +3705,26 @@ def testPointsVisible(object points, str condition='any'):
         2D array of points to test. Each coordinate should be in format
         [x, y ,z], where dimensions are in meters.
     condition : str
-        Condition to check. Can be 'any' or 'all'.
+        Condition to check. Can be 'any' or 'all' of the points. If 'any' the
+        function returns True immediately if a point falls within the frustum.
+        When 'all' is used, the function returns False when it comes across a
+        point which falls outside of the frustum.
 
     Returns
     -------
     bool
-        True if the point projects to the screen.
+        True if the point falls within either eye's frustum.
+
+    Examples
+    --------
+    Test if points fall within a viewing frustum::
+
+        points = [[1.2, -0.2, -5.6], [-0.01, 0.0, -10.0]]
+        isVisible = ovr.testPointsInFrustum(points)
+
+    Notes
+    -----
+    Passing a 2D Numpy array with dtype=float32 is recommended to avoid copying.
 
     """
     # input values to 2D memory view
