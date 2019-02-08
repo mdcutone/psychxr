@@ -2586,6 +2586,7 @@ def setEyeRenderPoses(object value):
 
     global _eyeLayer
     global _eyeViewMatrix
+    global _eyeViewProjectionMatrix
 
     _eyeLayer.RenderPose[0] = (<LibOVRPose>value[0]).c_data[0]
     _eyeLayer.RenderPose[1] = (<LibOVRPose>value[1]).c_data[0]
@@ -2609,6 +2610,7 @@ def setEyeRenderPoses(object value):
         up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
         forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
         _eyeViewMatrix[eye] = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+        _eyeViewProjectionMatrix[eye] = _eyeViewMatrix[eye] * _eyeProjectionMatrix[eye]
 
 def getEyeProjectionMatrix(int eye, float nearClip=0.1, float farClip=1000.0):
     """Compute the projection matrix.
