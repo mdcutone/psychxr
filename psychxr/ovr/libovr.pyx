@@ -378,6 +378,7 @@ cdef class LibOVRPose(object):
 
     @property
     def pos(self):
+        """Position vector X, Y, Z (`ndarray` of `float`)."""
         return self.getPos()
 
     def getPos(self):
@@ -434,13 +435,9 @@ cdef class LibOVRPose(object):
 
     @property
     def posOri(self):
-        """Position and orientation."""
+        """Position and orientation (read-only)."""
 
         return self.pos, self.ori
-
-    @posOri.setter
-    def posOri(self, value):
-        self.setPosOri(value[0], value[1])
 
     def getPosOri(self):
         """Get position and orientation."""
@@ -657,11 +654,11 @@ cdef class LibOVRPose(object):
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f inv_rotated_pos = \
+        cdef libovr_math.Vector3f invRotatedPos = \
             (<libovr_math.Posef>self.c_data[0]).InverseRotate(pos_in)
 
         cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((inv_rotated_pos.x, inv_rotated_pos.y, inv_rotated_pos.z),
+            np.array((invRotatedPos.x, invRotatedPos.y, invRotatedPos.z),
                      dtype=np.float32)
 
         return to_return
@@ -954,7 +951,7 @@ cdef class LibOVRPose(object):
         
         Parameters
         ----------
-        a : float* 
+        arr : float* 
             Pointer to the first element of the array.
         
         """
@@ -965,6 +962,9 @@ cdef class LibOVRPose(object):
         arr[4] = self.c_data[0].Orientation.y
         arr[5] = self.c_data[0].Orientation.z
         arr[6] = self.c_data[0].Orientation.w
+
+    cdef fromarray(self, float* arr):
+        pass
 
 
 cdef class LibOVRPoseState(object):
@@ -990,13 +990,12 @@ cdef class LibOVRPoseState(object):
     def thePose(self):
         """Body pose.
 
-        Returns
-        -------
-        LibOVRPose
-            Rigid body pose data with position and orientation information.
-
         """
         return self._pose
+
+    @thePose.setter
+    def thePose(self, LibOVRPose value):
+        self._pose.c_data[0] = value.c_data[0]  # copy into
 
     @property
     def angularVelocity(self):
@@ -1079,6 +1078,32 @@ cdef class LibOVRPoseState(object):
             libovr_capi.ovrStatus_PositionTracked
         return <bint>((self.status_flags & full_tracking_flags) ==
                       full_tracking_flags)
+
+    def timeIntegrate(self, float dt):
+        """Time integrate rigid body motion derivatives.
+
+        Parameters
+        ----------
+        dt : float
+            Time delta in seconds.
+
+        Returns
+        -------
+        LibOVRPose
+
+        """
+        cdef libovr_math.Posef res = \
+            (<libovr_math.Posef>self.c_data[0].ThePose).TimeIntegrate(
+                self.c_data[0].LinearVelocity,
+                self.c_data[0].AngularVelocity,
+                self.c_data[0].LinearAcceleration,
+                self.c_data[0].AngularAcceleration,
+                dt)
+        cdef LibOVRPose toReturn = LibOVRPose(
+            (res.Translation.x, res.Translation.y, res.Translation.z),
+            (res.Rotation.x, res.Rotation.y, res.Rotation.z, res.Rotation.w))
+
+        return toReturn
 
 
 cdef class LibOVRTrackerInfo(object):
@@ -2733,7 +2758,7 @@ def getEyeViewMatrix(int eye, bint flatten=False):
 
     return to_return
 
-def getPredictedDisplayTime(unsigned int frame_index=0):
+def getPredictedDisplayTime(unsigned int frameIndex=0):
     """Get the predicted time a frame will be displayed.
 
     Parameters
@@ -2750,7 +2775,7 @@ def getPredictedDisplayTime(unsigned int frame_index=0):
     global _ptrSession
     cdef double t_sec = libovr_capi.ovr_GetPredictedDisplayTime(
         _ptrSession,
-        frame_index)
+        frameIndex)
 
     return t_sec
 
@@ -2795,7 +2820,7 @@ def perfHudMode(str mode):
     cdef libovr_capi.ovrBool ret = libovr_capi.ovr_SetInt(
         _ptrSession, b"PerfHudMode", perfHudMode)
 
-def hidePerfHud(self):
+def hidePerfHud():
     """Hide the performance HUD.
 
     This is a convenience function that is equivalent to calling
