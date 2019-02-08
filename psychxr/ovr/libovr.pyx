@@ -30,6 +30,10 @@
 """This file exposes LibOVR functions to Python.
 
 """
+# ------------------
+# Module information
+#-------------------
+#
 __author__ = "Matthew D. Cutone"
 __credits__ = ["Laurie M. Wilcox"]
 __copyright__ = "Copyright 2019 Matthew D. Cutone"
@@ -39,15 +43,190 @@ __status__ = "Beta"
 __maintainer__ = "Matthew D. Cutone"
 __email__ = "cutonem@yorku.ca"
 
-# exports
-# __all__ = [
-#     'LibOVRSession', 'LibOVRPose', 'LibOVRPoseState', 'createSession', 'initialize',
-#     'LibOVRTrackerInfo', 'LibOVRSessionStatus', 'isOculusServiceRunning',
-#     'LIBOVR_SUCCESS', 'LIBOVR_UNQUALIFIED_SUCCESS', 'LIBOVR_FAILURE',
-#     'isHmdConnected', 'LIBOVR_SUCCESS', 'LIBOVR_SUCCESS_NOT_VISIBLE',
-#     'LIBOVR_SUCCESS_BOUNDARY_INVALID', 'LIBOVR_SUCCESS_DEVICE_UNAVAILABLE',
-#     'LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL'
-#     ]
+# ----------------
+# Exported objects
+# ----------------
+#
+__all__ = [
+    'LIBOVR_SUCCESS',
+    'LIBOVR_SUCCESS_NOT_VISIBLE',
+    'LIBOVR_SUCCESS_DEVICE_UNAVAILABLE',
+    'LIBOVR_SUCCESS_BOUNDARY_INVALID',
+    'LIBOVR_ERROR_MEMORY_ALLOCATION_FAILURE',
+    'LIBOVR_ERROR_INVALID_SESSION',
+    'LIBOVR_ERROR_TIMEOUT',
+    'LIBOVR_ERROR_NOT_INITIALIZED',
+    'LIBOVR_ERROR_INVALID_PARAMETER',
+    'LIBOVR_ERROR_SERVICE_ERROR',
+    'LIBOVR_ERROR_NO_HMD',
+    'LIBOVR_ERROR_UNSUPPORTED',
+    'LIBOVR_ERROR_DEVICE_UNAVAILABLE',
+    'LIBOVR_ERROR_INVALID_HEADSET_ORIENTATION',
+    'LIBOVR_ERROR_CLIENT_SKIPPED_DESTROY',
+    'LIBOVR_ERROR_CLIENT_SKIPPED_SHUTDOWN',
+    'LIBOVR_ERROR_SERVICE_DEADLOCK_DETECTED',
+    'LIBOVR_ERROR_INSUFFICENT_ARRAY_SIZE',
+    'LIBOVR_ERROR_NO_EXTERNAL_CAMERA_INFO',
+    'LIBOVR_ERROR_LOST_TRACKING',
+    'LIBOVR_ERROR_EXTERNAL_CAMERA_INITIALIZED_FAILED',
+    'LIBOVR_ERROR_EXTERNAL_CAMERA_CAPTURE_FAILED',
+    'LIBOVR_ERROR_EXTERNAL_CAMERA_NAME_LISTS_BUFFER_SIZE',
+    'LIBOVR_ERROR_EXTERNAL_CAMERA_NAME_LISTS_MISMATCH',
+    'LIBOVR_ERROR_EXTERNAL_CAMERA_NOT_CALIBRATED',
+    'LIBOVR_ERROR_EXTERNAL_CAMERA_NAME_WRONG_SIZE',
+    'LIBOVR_ERROR_AUDIO_DEVICE_NOT_FOUND',
+    'LIBOVR_ERROR_AUDIO_COM_ERROR',
+    'LIBOVR_ERROR_INITIALIZE',
+    'LIBOVR_ERROR_LIB_LOAD',
+    'LIBOVR_ERROR_SERVICE_CONNECTION',
+    'LIBOVR_ERROR_SERVICE_VERSION',
+    'LIBOVR_ERROR_INCOMPATIBLE_OS',
+    'LIBOVR_ERROR_DISPLAY_INIT',
+    'LIBOVR_ERROR_SERVER_START',
+    'LIBOVR_ERROR_REINITIALIZATION',
+    'LIBOVR_ERROR_MISMATCHED_ADAPTERS',
+    'LIBOVR_ERROR_LEAKING_RESOURCES',
+    'LIBOVR_ERROR_CLIENT_VERSION',
+    'LIBOVR_ERROR_OUT_OF_DATE_OS',
+    'LIBOVR_ERROR_OUT_OF_DATE_GFX_DRIVER',
+    'LIBOVR_ERROR_INCOMPATIBLE_OS',
+    'LIBOVR_ERROR_NO_VALID_VR_DISPLAY_SYSTEM',
+    'LIBOVR_ERROR_OBSOLETE',
+    'LIBOVR_ERROR_DISABLED_OR_DEFAULT_ADAPTER',
+    'LIBOVR_ERROR_HYBRID_GRAPHICS_NOT_SUPPORTED',
+    'LIBOVR_ERROR_DISPLAY_MANAGER_INIT',
+    'LIBOVR_ERROR_TRACKER_DRIVER_INIT',
+    'LIBOVR_ERROR_LIB_SIGN_CHECK',
+    'LIBOVR_ERROR_LIB_PATH',
+    'LIBOVR_ERROR_LIB_SYMBOLS',
+    'LIBOVR_ERROR_REMOTE_SESSION',
+    'LIBOVR_ERROR_INITIALIZE_VULKAN',
+    'LIBOVR_ERROR_BLACKLISTED_GFX_DRIVER',
+    'LIBOVR_ERROR_DISPLAY_LOST',
+    'LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL',
+    'LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_INVALID',
+    'LIBOVR_ERROR_GRAPHICS_DEVICE_RESET',
+    'LIBOVR_ERROR_DISPLAY_REMOVED',
+    'LIBOVR_ERROR_CONTENT_PROTECTION_NOT_AVAILABLE',
+    'LIBOVR_ERROR_APPLICATION_VISIBLE',
+    'LIBOVR_ERROR_DISALLOWED',
+    'LIBOVR_ERROR_DISPLAY_PLUGGED_INCORRECTY',
+    'LIBOVR_ERROR_DISPLAY_LIMIT_REACHED',
+    'LIBOVR_ERROR_RUNTIME_EXCEPTION',
+    'LIBOVR_ERROR_NO_CALIBRATION',
+    'LIBOVR_ERROR_OLD_VERSION',
+    'LIBOVR_ERROR_MISFORMATTED_BLOCK',
+    'LIBOVR_EYE_LEFT',
+    'LIBOVR_EYE_RIGHT',
+    'LIBOVR_EYE_COUNT',
+    'LIBOVR_HAND_LEFT',
+    'LIBOVR_HAND_RIGHT',
+    'LIBOVR_HAND_COUNT',
+    'LIBOVR_TEXTURE_SWAP_CHAIN0',
+    'LIBOVR_TEXTURE_SWAP_CHAIN1',
+    'LIBOVR_TEXTURE_SWAP_CHAIN2',
+    'LIBOVR_TEXTURE_SWAP_CHAIN3',
+    'LIBOVR_TEXTURE_SWAP_CHAIN4',
+    'LIBOVR_TEXTURE_SWAP_CHAIN5',
+    'LIBOVR_TEXTURE_SWAP_CHAIN6',
+    'LIBOVR_TEXTURE_SWAP_CHAIN7',
+    'LIBOVR_FORMAT_R8G8B8A8_UNORM',
+    'LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB',
+    'LIBOVR_FORMAT_R16G16B16A16_FLOAT',
+    'LIBOVR_FORMAT_R11G11B10_FLOAT',
+    'LIBOVR_MAX_PROVIDED_FRAME_STATS',
+    'LibOVRPose',
+    'LibOVRTrackingState',
+    'LibOVRTrackerInfo',
+    'LibOVRSessionStatus',
+    'LibOVRHmdInfo',
+    'LibOVRFrameStat',
+    'success',
+    'unqualifedSuccess',
+    'failure',
+    'isOculusServiceRunning',
+    'isHmdConnected',
+    'getHmdInfo',
+    'getUserHeight',
+    'getEyeHeight',
+    'getNeckEyeDist',
+    'getEyeToNoseDist',
+    'initialize',
+    'create',
+    'destroyTextureSwapChain',
+    'destroyMirrorTexture',
+    'destroy',
+    'shutdown',
+    'getGraphicsLUID',
+    'setHighQuality',
+    'setHeadLocked',
+    'getPixelsPerTanAngleAtCenter',
+    'getDistortedViewport',
+    'getEyeRenderFov',
+    'setEyeRenderFov',
+    'calcEyeBufferSize',
+    'getSwapChainLengthGL',
+    'getSwapChainCurrentIndex',
+    'getTextureSwapChainBufferGL',
+    'createTextureSwapChainGL',
+    'setEyeColorTextureSwapChain',
+    'createMirrorTexture',
+    'getMirrorTexture',
+    'getTrackedPoses',
+    'calcEyePoses',
+    'getHmdToEyePoses',
+    'setHmdToEyePoses',
+    'getEyeRenderPoses',
+    'setEyeRenderPoses',
+    'getEyeProjectionMatrix',
+    'getEyeRenderViewport',
+    'setEyeRenderViewport',
+    'getEyeViewMatrix',
+    'getPredictedDisplayTime',
+    'timeInSeconds',
+    'perfHudMode',
+    'hidePerfHud',
+    'perfHudModes',
+    'getEyeViewport',
+    'setEyeViewport',
+    'waitToBeginFrame',
+    'beginFrame',
+    'commitTextureSwapChain',
+    'endFrame',
+    'resetFrameStats',
+    'getTrackingOriginType',
+    'setTrackingOriginType',
+    'recenterTrackingOrigin',
+    'trackerCount',
+    'getTrackerInfo',
+    'updatePerfStats',
+    'getAdaptiveGpuPerformanceScale',
+    'getFrameStatsCount',
+    'anyFrameStatsDropped',
+    'checkAswIsAvailable',
+    'getVisibleProcessId',
+    'checkAppLastFrameDropped',
+    'checkCompLastFrameDropped',
+    'getFrameStats',
+    'getLastErrorInfo',
+    'setBoundaryColor',
+    'resetBoundaryColor',
+    'getBoundryVisible',
+    'showBoundary',
+    'hideBoundary',
+    'getBoundaryDimensions',
+    'getConnectedControllers',
+    'updateInputState',
+    'getInputTime',
+    'getButtons',
+    'getTouches',
+    'getThumbstickValues',
+    'getIndexTriggerValues',
+    'getHandTriggerValues',
+    'setControllerVibration',
+    'getSessionStatus',
+    'testPointsInFrustum'
+]
 
 from .cimport libovr_capi
 from .cimport libovr_math
@@ -210,6 +389,10 @@ cdef dict _controller_types = {
     'LeftTouch' : libovr_capi.ovrControllerType_LTouch,
     'RightTouch' : libovr_capi.ovrControllerType_RTouch}
 
+# ---------
+# Constants
+# ---------
+#
 # return success codes, values other than 'LIBOVR_SUCCESS' are conditional
 LIBOVR_SUCCESS = libovr_capi.ovrSuccess
 LIBOVR_SUCCESS_NOT_VISIBLE = libovr_capi.ovrSuccess_NotVisible
@@ -291,7 +474,7 @@ LIBOVR_HAND_LEFT = libovr_capi.ovrHand_Left
 LIBOVR_HAND_RIGHT = libovr_capi.ovrHand_Right
 LIBOVR_HAND_COUNT = libovr_capi.ovrHand_Count
 
-# swapchain handles
+# swapchain handles, more than enough for now
 LIBOVR_TEXTURE_SWAP_CHAIN0 = 0
 LIBOVR_TEXTURE_SWAP_CHAIN1 = 1
 LIBOVR_TEXTURE_SWAP_CHAIN2 = 2
@@ -903,10 +1086,11 @@ cdef class LibOVRPose(object):
             if targetDist > maxRange:
                 return False
 
-        # put the target in the caster's local coordinate system
+        # put the target in the ray caster's local coordinate system
         cdef libovr_math.Vector3f offset = -originPos.InverseTransform(targetPos)
 
-        # find the discriminant
+        # find the discriminant, this is based on the method described here:
+        # http://antongerdelan.net/opengl/raycasting.html
         cdef float desc = <float>pow(_rayDir.Dot(offset), 2.0) - \
                (offset.Dot(offset) - <float>pow(radius, 2.0))
 
@@ -975,11 +1159,11 @@ cdef class LibOVRPose(object):
         arr[5] = self.c_data[0].Orientation.z
         arr[6] = self.c_data[0].Orientation.w
 
-    cdef fromarray(self, float* arr):
-        pass
+    #cdef fromarray(self, float* arr):
+    #    pass
 
 
-cdef class LibOVRPoseState(object):
+cdef class LibOVRTrackingState(object):
     """Class for data about rigid body configuration with derivatives computed
     by the LibOVR runtime.
 
@@ -999,14 +1183,14 @@ cdef class LibOVRPoseState(object):
         self._pose.c_data = &self.c_data.ThePose
 
     @property
-    def thePose(self):
-        """Body pose.
+    def pose(self):
+        """Rigid body pose.
 
         """
         return self._pose
 
-    @thePose.setter
-    def thePose(self, LibOVRPose value):
+    @pose.setter
+    def pose(self, LibOVRPose value):
         self._pose.c_data[0] = value.c_data[0]  # copy into
 
     @property
@@ -1092,7 +1276,8 @@ cdef class LibOVRPoseState(object):
                       full_tracking_flags)
 
     def timeIntegrate(self, float dt):
-        """Time integrate rigid body motion derivatives.
+        """Time integrate rigid body motion derivatives referenced by the
+        current pose.
 
         Parameters
         ----------
@@ -1106,10 +1291,10 @@ cdef class LibOVRPoseState(object):
         """
         cdef libovr_math.Posef res = \
             (<libovr_math.Posef>self.c_data[0].ThePose).TimeIntegrate(
-                self.c_data[0].LinearVelocity,
-                self.c_data[0].AngularVelocity,
-                self.c_data[0].LinearAcceleration,
-                self.c_data[0].AngularAcceleration,
+                <libovr_math.Vector3f>self.c_data[0].LinearVelocity,
+                <libovr_math.Vector3f>self.c_data[0].AngularVelocity,
+                <libovr_math.Vector3f>self.c_data[0].LinearAcceleration,
+                <libovr_math.Vector3f>self.c_data[0].AngularAcceleration,
                 dt)
         cdef LibOVRPose toReturn = LibOVRPose(
             (res.Translation.x, res.Translation.y, res.Translation.z),
@@ -1455,7 +1640,7 @@ cdef class LibOVRHmdInfo(object):
         return fov_left_out, fov_right_out
 
 
-cdef class LibOVRFramePerfStat(object):
+cdef class LibOVRFrameStat(object):
     cdef libovr_capi.ovrPerfStatsPerCompositorFrame* c_data
     cdef libovr_capi.ovrPerfStatsPerCompositorFrame c_ovrPerfStatsPerCompositorFrame
 
@@ -1511,15 +1696,15 @@ cdef class LibOVRFramePerfStat(object):
         return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
 
 
-def LIBOVR_SUCCESS(int result):
+def success(int result):
     """Check if an API return indicates success."""
     return <bint>libovr_capi.OVR_SUCCESS(result)
 
-def LIBOVR_UNQUALIFIED_SUCCESS(int result):
+def unqualifedSuccess(int result):
     """Check if an API return indicates unqualified success."""
     return <bint>libovr_capi.OVR_UNQUALIFIED_SUCCESS(result)
 
-def LIBOVR_FAILURE(int result):
+def failure(int result):
     """Check if an API return indicates failure (error)."""
     return <bint>libovr_capi.OVR_FAILURE(result)
 
@@ -1649,103 +1834,6 @@ def getEyeToNoseDist():
 
     return <float>vals[0], <float> vals[1]
 
-def getProductName():
-    """Get the product name for this device.
-
-    Returns
-    -------
-    str
-        Product name string (utf-8).
-
-    """
-    global _hmdDesc
-    return _hmdDesc.ProductName.decode('utf-8')
-
-def getManufacturerName():
-    """Get the device manufacturer name.
-
-    Returns
-    -------
-    str
-        Manufacturer name string (utf-8).
-
-    """
-    global _hmdDesc
-    return _hmdDesc.Manufacturer.decode('utf-8')
-
-def getSerialNumber():
-    """Get the device serial number.
-
-    Returns
-    -------
-    str
-        Serial number (utf-8).
-
-    """
-    global _hmdDesc
-    return _hmdDesc.SerialNumber.decode('utf-8')
-
-def getResolution():
-    """Horizontal and vertical resolution of the display in pixels.
-
-    Returns
-    -------
-    ndarray of int
-        Resolution of the display [w, h].
-
-    """
-    global _hmdDesc
-    return np.asarray((_hmdDesc.Resolution.w, _hmdDesc.Resolution.h), dtype=int)
-
-def getRefreshRate():
-    """Nominal refresh rate in Hertz of the display.
-
-    Returns
-    -------
-    float
-        Refresh rate in Hz.
-
-    """
-    global _hmdDesc
-    return <float>_hmdDesc.DisplayRefreshRate
-
-def getHID():
-    """USB human interface device class identifiers.
-
-    Returns
-    -------
-    tuple
-        USB HIDs (vendor, product).
-
-    """
-    global _hmdDesc
-    return <int>_hmdDesc.VendorId, <int>_hmdDesc.ProductId
-
-def getFirmwareVersion():
-    """Firmware version for this device.
-
-    Returns
-    -------
-    tuple
-        Firmware version (major, minor).
-
-    """
-    global _hmdDesc
-    return <int>_hmdDesc.FirmwareMajor, <int>_hmdDesc.FirmwareMinor
-
-def getVersionString():
-    """LibOVRRT version as a string.
-
-    Returns
-    -------
-    str
-        Runtime version information as a UTF-8 encoded string.
-
-    """
-    global _hmdDesc
-    cdef const char* version = libovr_capi.ovr_GetVersionString()
-    return version.decode('utf-8')  # already UTF-8?
-
 def initialize(bint focusAware=False, int connectionTimeout=0):
     """Initialize the session.
 
@@ -1773,12 +1861,6 @@ def initialize(bint focusAware=False, int connectionTimeout=0):
         - :data:`LIBOVR_ERROR_SERVER_START`:  Cannot start a server.
         - :data:`LIBOVR_ERROR_REINITIALIZATION`: Reinitialized with a different version.
 
-    Raises
-    ------
-    RuntimeError
-        Raised if 'debugMode' is True and the API call to
-        'ovr_Initialize' returns an error.
-
     """
     cdef int32_t flags = libovr_capi.ovrInit_RequestVersion
     if focusAware is True:
@@ -1788,7 +1870,7 @@ def initialize(bint focusAware=False, int connectionTimeout=0):
     #    flags |= libovr_capi.ovrInit_Debug
     global _initParams
     _initParams.Flags = flags
-    _initParams.RequestedMinorVersion = 25
+    _initParams.RequestedMinorVersion = libovr_capi.OVR_MINOR_VERSION
     _initParams.LogCallback = NULL  # not used yet
     _initParams.ConnectionTimeoutMS = <uint32_t>connectionTimeout
     cdef libovr_capi.ovrResult result = libovr_capi.ovr_Initialize(
@@ -1878,7 +1960,7 @@ def getGraphicsLUID():
     global _gfxLuid
     return _gfxLuid.Reserved.decode('utf-8')
 
-def highQuality(bint enable):
+def setHighQuality(bint enable):
     """Enable high quality mode.
     """
     global _eyeLayer
@@ -1887,7 +1969,7 @@ def highQuality(bint enable):
     else:
         _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HighQuality
 
-def headLocked(bint enable):
+def setHeadLocked(bint enable):
     """True when head-locked mode is enabled.
 
     This is disabled by default when a session is started. Enable this if you
@@ -2428,18 +2510,18 @@ def getTrackedPoses(double absTime, bint latencyMarker=True):
     cdef libovr_capi.ovrTrackingState tracking_state = \
         libovr_capi.ovr_GetTrackingState(_ptrSession, absTime, use_marker)
 
-    cdef LibOVRPoseState head_pose = LibOVRPoseState()
+    cdef LibOVRTrackingState head_pose = LibOVRTrackingState()
     head_pose.c_data[0] = tracking_state.HeadPose
     head_pose.status_flags = tracking_state.StatusFlags
 
     # for computing app photon-to-motion latency
     _eyeLayer.SensorSampleTime = tracking_state.HeadPose.TimeInSeconds
 
-    cdef LibOVRPoseState left_hand_pose = LibOVRPoseState()
+    cdef LibOVRTrackingState left_hand_pose = LibOVRTrackingState()
     left_hand_pose.c_data[0] = tracking_state.HandPoses[0]
     left_hand_pose.status_flags = tracking_state.HandStatusFlags[0]
 
-    cdef LibOVRPoseState right_hand_pose = LibOVRPoseState()
+    cdef LibOVRTrackingState right_hand_pose = LibOVRTrackingState()
     right_hand_pose.c_data[0] = tracking_state.HandPoses[1]
     right_hand_pose.status_flags = tracking_state.HandStatusFlags[1]
 
@@ -3249,7 +3331,7 @@ def getFrameStats(int frameStatIndex=0):
 
     Returns
     -------
-    LibOVRFramePerfStat
+    LibOVRFrameStat
         Frame statistics from the compositor.
 
     Notes
@@ -3264,7 +3346,7 @@ def getFrameStats(int frameStatIndex=0):
     if 0 > frameStatIndex >= _frameStats.FrameStatsCount:
         raise IndexError("Frame stats index out of range.")
 
-    cdef LibOVRFramePerfStat stat = LibOVRFramePerfStat()
+    cdef LibOVRFrameStat stat = LibOVRFrameStat()
     stat.c_data[0] = _frameStats.FrameStats[0]
 
     return stat
