@@ -384,15 +384,21 @@ cdef class LibOVRPose(object):
     def getPos(self):
         """Position vector X, Y, Z (`ndarray` of `float`).
 
-        The returned object is a NumPy array which references data stored in an
-        internal structure (ovrPosef). The array is conformal with the internal
-        data's type (float32) and size (length 3).
+        The returned object is a NumPy array which contains a copy of the data
+        stored in an internal structure (ovrPosef). The array is conformal with
+        the internal data's type (float32) and size (length 3).
 
         Examples
         --------
         Set the position of the pose manually::
 
             myPose.pos = [5., 6., 7.]
+
+        Notes
+        -----
+        Q: Why is there no property setter for 'pos'?
+        A: It confused people that setting values of the returned array didn't
+        update anything.
 
         """
         return np.array((self.c_data[0].Position.x,
@@ -3705,28 +3711,17 @@ def testPointsInFrustum(object points, str condition='any'):
         2D array of points to test. Each coordinate should be in format
         [x, y ,z], where dimensions are in meters.
     condition : str
-        Condition to check. Can be 'any' or 'all' of the points. If 'any' the
-        function returns True immediately if a point falls within the frustum.
-        When 'all' is used, the function returns False when it comes across a
-        point which falls outside of the frustum.
+        Condition to check. Can be 'any' or 'all'.
 
     Returns
     -------
     bool
-        True if the point falls within either eye's frustum.
-
-    Examples
-    --------
-    Test if points fall within a viewing frustum::
-
-        points = [[1.2, -0.2, -5.6], [-0.01, 0.0, -10.0]]
-        isVisible = ovr.testPointsInFrustum(points)
-
-    Notes
-    -----
-    Passing a 2D Numpy array with dtype=float32 is recommended to avoid copying.
+        True if the point projects to the screen.
 
     """
+    # eventually we're going to move this function if we decide to support more
+    # HMDs. This really isn't something specific to LibOVR.
+
     # input values to 2D memory view
     cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
         np.asarray(points, dtype=np.float32)
