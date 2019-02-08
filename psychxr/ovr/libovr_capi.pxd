@@ -34,6 +34,17 @@ with version 1.24 (retrieved 04.15.2018) of the Oculus Rift(TM) PC SDK.
 """
 from libc.stdint cimport uintptr_t, uint32_t, int32_t
 
+cdef extern from "OVR_Version.h":
+    cdef int OVR_PRODUCT_VERSION
+    cdef int OVR_MAJOR_VERSION
+    cdef int OVR_MINOR_VERSION
+    cdef int OVR_PATCH_VERSION
+    cdef int OVR_BUILD_NUMBER
+    cdef int OVR_DLL_COMPATIBLE_VERSION
+    cdef int OVR_MIN_REQUESTABLE_MINOR_VERSION
+    cdef int OVR_FEATURE_VERSION
+
+
 cdef extern from "OVR_ErrorCode.h":
     ctypedef int32_t ovrResult
 

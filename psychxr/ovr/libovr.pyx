@@ -64,7 +64,7 @@ import numpy as np
 #
 cdef libovr_capi.ovrInitParams _initParams  # initialization parameters
 cdef libovr_capi.ovrSession _ptrSession  # session pointer
-cdef libovr_capi.ovrGraphicsLuid _ptrLuid  # LUID
+cdef libovr_capi.ovrGraphicsLuid _gfxLuid  # LUID
 cdef libovr_capi.ovrHmdDesc _hmdDesc  # HMD information descriptor
 cdef libovr_capi.ovrBoundaryLookAndFeel _boundryStyle
 cdef libovr_capi.ovrTextureSwapChain[8] _swapChains
@@ -83,7 +83,8 @@ _eyeLayer.ColorTexture[0] = _eyeLayer.ColorTexture[1] = NULL
 
 # status and performance information
 cdef libovr_capi.ovrSessionStatus _sessionStatus
-cdef libovr_capi.ovrPerfStats _perfStats
+cdef libovr_capi.ovrPerfStats _frameStats
+cdef libovr_capi.ovrPerfStatsPerCompositorFrame _lastFrameStats
 cdef list compFrameStats
 
 # error information
@@ -113,10 +114,6 @@ def check_result(result):
 # helper functions
 cdef float maxf(float a, float b):
     return a if a >= b else b
-
-# Performance information for profiling.
-#
-cdef libovr_capi.ovrPerfStats _perf_stats_
 
 # Color texture formats supported by OpenGL, can be used for creating swap
 # chains.
@@ -303,6 +300,15 @@ LIBOVR_TEXTURE_SWAP_CHAIN4 = 4
 LIBOVR_TEXTURE_SWAP_CHAIN5 = 5
 LIBOVR_TEXTURE_SWAP_CHAIN6 = 6
 LIBOVR_TEXTURE_SWAP_CHAIN7 = 7
+
+# texture formats
+LIBOVR_FORMAT_R8G8B8A8_UNORM = libovr_capi.OVR_FORMAT_R8G8B8A8_UNORM
+LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB = libovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+LIBOVR_FORMAT_R16G16B16A16_FLOAT =  libovr_capi.OVR_FORMAT_R16G16B16A16_FLOAT
+LIBOVR_FORMAT_R11G11B10_FLOAT = libovr_capi.OVR_FORMAT_R11G11B10_FLOAT
+
+# performance
+LIBOVR_MAX_PROVIDED_FRAME_STATS = libovr_capi.ovrMaxProvidedFrameStats
 
 
 cdef class LibOVRPose(object):
@@ -1449,7 +1455,7 @@ cdef class LibOVRHmdInfo(object):
         return fov_left_out, fov_right_out
 
 
-cdef class LibOVRCompFramePerfStat(object):
+cdef class LibOVRFramePerfStat(object):
     cdef libovr_capi.ovrPerfStatsPerCompositorFrame* c_data
     cdef libovr_capi.ovrPerfStatsPerCompositorFrame c_ovrPerfStatsPerCompositorFrame
 
@@ -1805,12 +1811,12 @@ def create():
 
     """
     global _ptrSession
-    global _ptrLuid
+    global _gfxLuid
     global _eyeLayer
     global _hmdDesc
     global _eyeRenderDesc
 
-    result = libovr_capi.ovr_Create(&_ptrSession, &_ptrLuid)
+    result = libovr_capi.ovr_Create(&_ptrSession, &_gfxLuid)
     check_result(result)
     if libovr_capi.OVR_FAILURE(result):
         return result  # failed to create session, return error code
@@ -1867,6 +1873,11 @@ def shutdown():
     """
     libovr_capi.ovr_Shutdown()
 
+def getGraphicsLUID():
+    """The graphics device LUID."""
+    global _gfxLuid
+    return _gfxLuid.Reserved.decode('utf-8')
+
 def highQuality(bint enable):
     """Enable high quality mode.
     """
@@ -1908,15 +1919,16 @@ def getDistortedViewport(int eye):
     You must call 'setEyeRenderFov' first for values to be valid.
 
     """
-    cdef libovr_capi.ovrRecti toReturn = \
-        _eyeRenderDesc[eye].DistortedViewport
+    cdef libovr_capi.ovrRecti distVp = _eyeRenderDesc[eye].DistortedViewport
 
-    cdef np.ndarray to_return = np.asarray([
-        toReturn.Pos.x,
-        toReturn.Pos.x,
-        toReturn.Size.w,
-        toReturn.Size.h],
+    cdef np.ndarray toReturn = np.asarray([
+        distVp.Pos.x,
+        distVp.Pos.x,
+        distVp.Size.w,
+        distVp.Size.h],
         dtype=np.int)
+
+    return toReturn
 
 def getEyeRenderFov(int eye):
     """Get the field-of-view to use for rendering.
@@ -2000,20 +2012,22 @@ def setEyeRenderFov(int eye, object fov):
     # set in eye layer too
     _eyeLayer.Fov[eye] = _eyeRenderDesc[eye].Fov
 
-def calcEyeBufferSizes(float texelsPerPixel=1.0):
+def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
     """Get the recommended buffer (texture) sizes for eye buffers.
 
-    Should be called after 'eye_render_fovs' is set. Returns left and
-    right buffer resolutions (w, h). The values can be used when configuring
-    a framebuffer for rendering to the HMD eye buffers.
+    Should be called after 'setEyerenderFovs'. Returns buffer resolutions in
+    pixels (w, h). The values can be used when configuring a framebuffer or swap
+    chain for rendering.
 
     Parameters
     ----------
+    eye: int
+        Eye index. Use either :data:LIBOVR_EYE_LEFT or :data:LIBOVR_EYE_RIGHT.
     texelsPerPixel : float
-        Display pixels per texture pixels at the center of the display.
-        Use a value less than 1.0 to improve performance at the cost of
-        resolution. Specifying a larger texture is possible, but not
-        recommended by the manufacturer.
+        Display pixels per texture pixels at the center of the display. Use a
+        value less than 1.0 to improve performance at the cost of resolution.
+        Specifying a larger texture is possible, but not recommended by the
+        manufacturer.
 
     Returns
     -------
@@ -2029,7 +2043,7 @@ def calcEyeBufferSizes(float texelsPerPixel=1.0):
         ovr.setEyeRenderFOV(ovr.LIBOVR_EYE_LEFT, leftFov)
         ovr.setEyeRenderFOV(ovr.LIBOVR_EYE_RIGHT, rightFov)
 
-        leftBufferSize, rightBufferSize = ovr.calcEyeBufferSizes()
+        leftBufferSize, rightBufferSize = ovr.calcEyeBufferSize()
         leftW leftH = leftBufferSize
         rightW, rightH = rightBufferSize
         # combined size if using a single texture buffer for both eyes
@@ -2038,27 +2052,21 @@ def calcEyeBufferSizes(float texelsPerPixel=1.0):
 
     Notes
     -----
-    This function returns the recommended texture resolution for each eye.
-    If you are using a single buffer for both eyes, that buffer should be
-    as wide as the combined width of both returned size.
+    This function returns the recommended texture resolution for a specified
+    eye. If you are using a single buffer for both eyes, that buffer should be
+    as wide as the combined width of both eye's values.
 
     """
     global _ptrSession
     global _eyeRenderDesc
 
-    cdef libovr_capi.ovrSizei sizeLeft = libovr_capi.ovr_GetFovTextureSize(
+    cdef libovr_capi.ovrSizei buffSize = libovr_capi.ovr_GetFovTextureSize(
         _ptrSession,
         <libovr_capi.ovrEyeType>0,
         _eyeRenderDesc[0].Fov,
         <float>texelsPerPixel)
 
-    cdef libovr_capi.ovrSizei sizeRight = libovr_capi.ovr_GetFovTextureSize(
-        _ptrSession,
-        <libovr_capi.ovrEyeType>1,
-        _eyeRenderDesc[1].Fov,
-        <float>texelsPerPixel)
-
-    return (sizeLeft.w, sizeLeft.h), (sizeRight.w, sizeRight.h)
+    return buffSize.w, buffSize.h
 
 def getSwapChainLengthGL(int swapChain):
     """Get the length of a specified swap chain.
@@ -2516,8 +2524,10 @@ def calcEyePoses(LibOVRPose headPose):
         rm = libovr_math.Matrix4f(ori)
         up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
         forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
-        _eyeViewMatrix[eye] = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
-        _eyeViewProjectionMatrix[eye] = _eyeViewMatrix[eye] * _eyeProjectionMatrix[eye]
+        _eyeViewMatrix[eye] = \
+            libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+        _eyeViewProjectionMatrix[eye] = \
+            _eyeViewMatrix[eye] * _eyeProjectionMatrix[eye]
 
 def getHmdToEyePoses():
     """HMD to eye poses.
@@ -2615,8 +2625,10 @@ def setEyeRenderPoses(object value):
         rm = libovr_math.Matrix4f(ori)
         up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
         forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
-        _eyeViewMatrix[eye] = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
-        _eyeViewProjectionMatrix[eye] = _eyeViewMatrix[eye] * _eyeProjectionMatrix[eye]
+        _eyeViewMatrix[eye] = \
+            libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+        _eyeViewProjectionMatrix[eye] = \
+            _eyeViewMatrix[eye] * _eyeProjectionMatrix[eye]
 
 def getEyeProjectionMatrix(int eye, float nearClip=0.1, float farClip=1000.0):
     """Compute the projection matrix.
@@ -2654,9 +2666,10 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.1, float farClip=1000.0):
     # fast copy matrix to numpy array
     cdef float [:, :] mv = to_return
     cdef Py_ssize_t i, j
+    cdef Py_ssize_t N = 4
     i = j = 0
-    for i in range(4):
-        for j in range(4):
+    for i in range(N):
+        for j in range(N):
             mv[i, j] = _eyeProjectionMatrix[eye].M[i][j]
 
     return to_return
@@ -3089,32 +3102,10 @@ def getTrackerInfo(int trackerIndex):
 
     return to_return
 
-def refreshPerformanceStats():
-    """Refresh performance statistics.
-
-    Should be called after 'endFrame'.
-
-    """
-    global _ptrSession
-    global _perfStats
-    cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetPerfStats(
-        _ptrSession,
-        &_perfStats)
-
-    # clear
-    cdef list compFrameStats = list()
-
-    cdef int statIdx = 0
-    cdef int numStats = _perfStats.FrameStatsCount
-    for statIdx in range(numStats):
-        frameStat = LibOVRCompFramePerfStat()
-        frameStat.c_data[0] = _perfStats.FrameStats[statIdx]
-        compFrameStats.append(frameStat)
-
-    return result
-
 def updatePerfStats():
     """Update performance stats.
+
+    For best results, call once after 'waitToBeginFrame'.
 
     Returns
     -------
@@ -3123,9 +3114,16 @@ def updatePerfStats():
 
     """
     global _ptrSession
-    global _perfStats
+    global _frameStats
+    global _lastFrameStats
+
+    if _frameStats.FrameStatsCount > 0:
+        if _frameStats.HmdVsyncIndex > 0:
+            # copy last frame stats
+            _lastFrameStats = _frameStats.FrameStats[0]
+
     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetPerfStats(
-        _ptrSession, &_perfStats)
+        _ptrSession, &_frameStats)
 
     return result
 
@@ -3137,8 +3135,8 @@ def getAdaptiveGpuPerformanceScale():
     float
 
     """
-    global _perfStats
-    return _perfStats.AdaptiveGpuPerformanceScale
+    global _frameStats
+    return _frameStats.AdaptiveGpuPerformanceScale
 
 def getFrameStatsCount():
     """Get the number of queued compositor statistics.
@@ -3148,8 +3146,22 @@ def getFrameStatsCount():
     int
 
     """
-    global _perfStats
-    return _perfStats.FrameStatsCount
+    global _frameStats
+    return _frameStats.FrameStatsCount
+
+def anyFrameStatsDropped():
+    """Check if frame stats were dropped.
+
+    This occurs when 'updatePerfStats' is called fewer than once every 5 frames.
+
+    Returns
+    -------
+    bool
+        True if frame statistics were dropped.
+
+    """
+    global _frameStats
+    return <bint>_frameStats.AnyFrameStatsDropped
 
 def checkAswIsAvailable():
     """Check if ASW is available.
@@ -3159,8 +3171,103 @@ def checkAswIsAvailable():
     bool
 
     """
-    global _perfStats
-    return <bint>_perfStats.AswIsAvailable
+    global _frameStats
+    return <bint>_frameStats.AswIsAvailable
+
+def getVisibleProcessId():
+    """Process ID which the performance stats are currently being polled.
+
+    Result
+    ------
+    int
+        Process ID.
+
+    """
+    global _frameStats
+    return <int>_frameStats.VisibleProcessId
+
+def checkAppLastFrameDropped():
+    """Check if the application dropped a frame.
+
+    Returns
+    -------
+    bool
+        True if the application missed the HMD's flip deadline last frame.
+
+    """
+    global _lastFrameStats
+    global _frameStats
+
+    if _frameStats.FrameStatsCount > 0:
+        if _frameStats.HmdVsyncIndex > 0:
+            return _frameStats.FrameStats[0].AppDroppedFrameCount > \
+                   _lastFrameStats.AppDroppedFrameCount
+
+    return False
+
+def checkCompLastFrameDropped():
+    """Check if the compositor dropped a frame.
+
+    Returns
+    -------
+    bool
+        True if the compositor missed the HMD's flip deadline last frame.
+
+    """
+    global _lastFrameStats
+    global _frameStats
+
+    if _frameStats.FrameStatsCount > 0:
+        if _frameStats.HmdVsyncIndex > 0:
+            return _frameStats.FrameStats[0].CompositorDroppedFrameCount > \
+                   _lastFrameStats.CompositorDroppedFrameCount
+
+    return False
+
+# def getFrameStats():
+#     """Get a list of frame stats."""
+#     global _perfStats
+#
+#     cdef list toReturn = list()
+#     cdef LibOVRFramePerfStat stat
+#     cdef Py_ssize_t N = <Py_ssize_t>_perfStats.FrameStatsCount
+#     cdef Py_ssize_t i = 0
+#     for i in range(N):
+#         stat = LibOVRFramePerfStat()
+#         stat.c_data[0] = _perfStats.FrameStats[i]
+#         toReturn.append(stat)
+#
+#     return toReturn
+
+def getFrameStats(int frameStatIndex=0):
+    """Get detailed compositor frame statistics.
+
+    Parameters
+    ----------
+    frameStatIndex : int (default 0)
+        Frame statistics index to retrieve.
+
+    Returns
+    -------
+    LibOVRFramePerfStat
+        Frame statistics from the compositor.
+
+    Notes
+    -----
+    If 'updatePerfStats' was called less than once per frame, more than one
+    frame statistic will be available. Check 'getFrameStatsCount' for the number
+    of queued stats and use an index >0 to access them.
+
+    """
+    global _frameStats
+
+    if 0 > frameStatIndex >= _frameStats.FrameStatsCount:
+        raise IndexError("Frame stats index out of range.")
+
+    cdef LibOVRFramePerfStat stat = LibOVRFramePerfStat()
+    stat.c_data[0] = _frameStats.FrameStats[0]
+
+    return stat
 
 def getLastErrorInfo():
     """Get the last error code and information string reported by the API.
@@ -3290,9 +3397,9 @@ def getBoundaryDimensions(str boundaryType='PlayArea'):
 
     return result, to_return
 
-def getBoundaryPoints(str boundaryType='PlayArea'):
-    """Get the floor points which define the boundary."""
-    pass  # TODO: make this work.
+#def getBoundaryPoints(str boundaryType='PlayArea'):
+#    """Get the floor points which define the boundary."""
+#    pass  # TODO: make this work.
 
 def getConnectedControllers():
     """List of connected controllers.
@@ -3694,10 +3801,6 @@ def getSessionStatus():
 
     return to_return
 
-def updateFrameStats():
-    """Update frame statistics."""
-    pass
-
 def testPointsInFrustum(object points, str condition='any'):
     """Check if points in world/scene coordinates are within the viewing
     frustum of either eye.
@@ -3755,8 +3858,11 @@ def testPointsInFrustum(object points, str condition='any'):
             pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
 
             # too close to the singularity for perspective division, fail
-            if pointHCS.w < 0.0001 and checkAll == 1:
-                return False
+            if pointHCS.w < 0.0001:
+                if not checkAll:
+                    return False
+                else:
+                    continue
 
             pointNDC[0] = pointHCS.x
             pointNDC[1] = pointHCS.y
