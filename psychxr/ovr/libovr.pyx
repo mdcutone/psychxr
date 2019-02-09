@@ -172,7 +172,7 @@ cdef dict _controller_buttons = {
     "X": libovr_capi.ovrButton_X,
     "Y": libovr_capi.ovrButton_Y,
     "LThumb": libovr_capi.ovrButton_LThumb,
-    "LShoulder": libovr_capi.ovrButton_LThumb,
+    "LShoulder": libovr_capi.ovrButton_LShoulder,
     "Up": libovr_capi.ovrButton_Up,
     "Down": libovr_capi.ovrButton_Down,
     "Left": libovr_capi.ovrButton_Left,
@@ -185,6 +185,27 @@ cdef dict _controller_buttons = {
     "Private": libovr_capi.ovrButton_Private,
     "RMask": libovr_capi.ovrButton_RMask,
     "LMask": libovr_capi.ovrButton_LMask}
+
+LIBOVR_BUTTON_A = libovr_capi.ovrButton_A
+LIBOVR_BUTTON_B = libovr_capi.ovrButton_B
+LIBOVR_BUTTON_RTHUMB = libovr_capi.ovrButton_RThumb
+LIBOVR_BUTTON_RSHOULDER = libovr_capi.ovrButton_RShoulder
+LIBOVR_BUTTON_X = libovr_capi.ovrButton_X
+LIBOVR_BUTTON_Y = libovr_capi.ovrButton_Y
+LIBOVR_BUTTON_LTHUMB = libovr_capi.ovrButton_LThumb
+LIBOVR_BUTTON_LSHOULDER = libovr_capi.ovrButton_LShoulder
+LIBOVR_BUTTON_UP = libovr_capi.ovrButton_Up
+LIBOVR_BUTTON_DOWN = libovr_capi.ovrButton_Down
+LIBOVR_BUTTON_LEFT = libovr_capi.ovrButton_Left
+LIBOVR_BUTTON_RIGHT = libovr_capi.ovrButton_Right
+LIBOVR_BUTTON_ENTER = libovr_capi.ovrButton_Enter
+LIBOVR_BUTTON_BACK = libovr_capi.ovrButton_Back
+LIBOVR_BUTTON_VOLUP = libovr_capi.ovrButton_VolUp
+LIBOVR_BUTTON_VOLDOWN = libovr_capi.ovrButton_VolDown
+LIBOVR_BUTTON_HOME = libovr_capi.ovrButton_Home
+LIBOVR_BUTTON_PRIVATE = libovr_capi.ovrButton_Private
+LIBOVR_BUTTON_RMASK = libovr_capi.ovrButton_RMask
+LIBOVR_BUTTON_LMASK = libovr_capi.ovrButton_LMask
 
 # Touch states
 #
@@ -204,6 +225,20 @@ cdef dict _touch_states = {
     "LIndexPointing": libovr_capi.ovrTouch_LIndexPointing,
     "LThumbUp": libovr_capi.ovrTouch_LThumbUp}
 
+LIBOVR_TOUCH_A = libovr_capi.ovrTouch_A
+LIBOVR_TOUCH_B = libovr_capi.ovrTouch_B
+LIBOVR_TOUCH_RTHUMB = libovr_capi.ovrTouch_RThumb
+LIBOVR_TOUCH_RTHUMBREST = libovr_capi.ovrTouch_RThumbRest
+LIBOVR_TOUCH_X = libovr_capi.ovrTouch_X
+LIBOVR_TOUCH_Y = libovr_capi.ovrTouch_Y
+LIBOVR_TOUCH_LTHUMB = libovr_capi.ovrTouch_LThumb
+LIBOVR_TOUCH_RTHUMBREST = libovr_capi.ovrTouch_LThumbRest
+LIBOVR_TOUCH_LINDEXTRIGGER = libovr_capi.ovrTouch_LIndexTrigger
+LIBOVR_TOUCH_RINDEXPOINTING = libovr_capi.ovrTouch_RIndexPointing
+LIBOVR_TOUCH_RTHUMBUP = libovr_capi.ovrTouch_RThumbUp
+LIBOVR_TOUCH_LINDEXPOINTING = libovr_capi.ovrTouch_LIndexPointing
+LIBOVR_TOUCH_LTHUMBUP = libovr_capi.ovrTouch_LThumbUp
+
 # Controller types
 #
 cdef dict _controller_types = {
@@ -212,6 +247,13 @@ cdef dict _controller_types = {
     'Touch' : libovr_capi.ovrControllerType_Touch,
     'LeftTouch' : libovr_capi.ovrControllerType_LTouch,
     'RightTouch' : libovr_capi.ovrControllerType_RTouch}
+
+# controller types
+LIBOVR_CONTROLLER_TYPE_XBOX = libovr_capi.ovrControllerType_XBox
+LIBOVR_CONTROLLER_TYPE_REMOTE = libovr_capi.ovrControllerType_Remote
+LIBOVR_CONTROLLER_TYPE_TOUCH = libovr_capi.ovrControllerType_Touch
+LIBOVR_CONTROLLER_TYPE_LTOUCH = libovr_capi.ovrControllerType_LTouch
+LIBOVR_CONTROLLER_TYPE_RTOUCH = libovr_capi.ovrControllerType_RTouch
 
 # return success codes, values other than 'LIBOVR_SUCCESS' are conditional
 LIBOVR_SUCCESS = libovr_capi.ovrSuccess
@@ -1194,6 +1236,77 @@ cdef class LibOVRTrackerInfo(object):
     def farZ(self):
         """Far clipping plane of the sensor frustum in meters (`float`)."""
         return self.c_ovrTrackerDesc.FrustumFarZInMeters
+
+
+cdef class LibOVRInputState(object):
+    """Class for controller input state.
+
+    """
+    cdef libovr_capi.ovrInputState c_ovrInputState
+    cdef unsigned int _lastButtons
+    cdef unsigned int _lastTouches
+
+    def __cinit__(self):
+        pass
+
+    @property
+    def timeInSeconds(self):
+        return self.c_ovrInputState.TimeInSeconds
+
+    @property
+    def indexTrigger(self):
+        return self.c_ovrInputState.IndexTrigger[0], self.c_ovrInputState.IndexTrigger[1]
+
+    @property
+    def handTrigger(self):
+        return self.c_ovrInputState.HandTrigger[0], self.c_ovrInputState.HandTrigger[1]
+
+    @property
+    def thumbstick(self):
+        cdef float xLeft = self.c_ovrInputState.Thumbstick[0].x
+        cdef float yLeft = self.c_ovrInputState.Thumbstick[0].y
+        cdef float xRight = self.c_ovrInputState.Thumbstick[1].x
+        cdef float yRight = self.c_ovrInputState.Thumbstick[1].y
+
+        return (xLeft, yLeft), (xRight, yRight)
+
+    @property
+    def indexTriggerNoDeadzone(self):
+        return self.c_ovrInputState.IndexTriggerNoDeadzone[0], \
+               self.c_ovrInputState.IndexTriggerNoDeadzone[1]
+
+    @property
+    def handTriggerNoDeadzone(self):
+        return self.c_ovrInputState.HandTriggerNoDeadzone[0], \
+               self.c_ovrInputState.HandTriggerNoDeadzone[1]
+
+    @property
+    def thumbstickNoDeadzone(self):
+        cdef float xLeft = self.c_ovrInputState.ThumbstickNoDeadzone[0].x
+        cdef float yLeft = self.c_ovrInputState.ThumbstickNoDeadzone[0].y
+        cdef float xRight = self.c_ovrInputState.ThumbstickNoDeadzone[1].x
+        cdef float yRight = self.c_ovrInputState.ThumbstickNoDeadzone[1].y
+
+        return (xLeft, yLeft), (xRight, yRight)
+
+    @property
+    def indexTriggerRaw(self):
+        return self.c_ovrInputState.IndexTriggerRaw[0], \
+               self.c_ovrInputState.IndexTriggerRaw[1]
+
+    @property
+    def handTriggerRaw(self):
+        return self.c_ovrInputState.HandTriggerRaw[0], \
+               self.c_ovrInputState.HandTriggerRaw[1]
+
+    @property
+    def thumbstickNoDeadzone(self):
+        cdef float xLeft = self.c_ovrInputState.ThumbstickRaw[0].x
+        cdef float yLeft = self.c_ovrInputState.ThumbstickRaw[0].y
+        cdef float xRight = self.c_ovrInputState.ThumbstickRaw[1].x
+        cdef float yRight = self.c_ovrInputState.ThumbstickRaw[1].y
+
+        return (xLeft, yLeft), (xRight, yRight)
 
 
 cdef class LibOVRSessionStatus(object):
@@ -3392,7 +3505,7 @@ def getInputTime(str controller):
 
     return currentInputState.TimeInSeconds
 
-def getButtons(str controller, object buttonNames, str testState='continuous'):
+def getButton(int controller, int button, str testState='continuous'):
     """Get the state of a specified button for a given controller.
 
     Buttons to test are specified using their string names. Argument
@@ -3408,11 +3521,37 @@ def getButtons(str controller, object buttonNames, str testState='continuous'):
 
     Parameters
     ----------
-    controller : str
-        Controller name to poll. Valid names are: 'Xbox', 'Remote', 'Touch',
-        'LeftTouch', and 'RightTouch'.
-    buttonNames : tuple of str, list of str, or str
-        Button names to test for state changes.
+    controller : int
+        Controller name. Valid values are:
+            - :data:LIBOVR_CONTROLLER_TYPE_XBOX
+            - :data:LIBOVR_CONTROLLER_TYPE_REMOTE
+            - :data:LIBOVR_CONTROLLER_TYPE_TOUCH
+            - :data:LIBOVR_CONTROLLER_TYPE_LTOUCH
+            - :data:LIBOVR_CONTROLLER_TYPE_RTOUCH
+    button : int
+        Button to check. Values can be ORed together to test for multiple button
+        presses. If a given controller does not have a particular button, False
+        will always be returned. Valid button values are:
+            - :data:LIBOVR_BUTTON_A
+            - :data:LIBOVR_BUTTON_B
+            - :data:LIBOVR_BUTTON_RTHUMB
+            - :data:LIBOVR_BUTTON_RSHOULDER
+            - :data:LIBOVR_BUTTON_X
+            - :data:LIBOVR_BUTTON_Y
+            - :data:LIBOVR_BUTTON_LTHUMB
+            - :data:LIBOVR_BUTTON_LSHOULDER
+            - :data:LIBOVR_BUTTON_UP
+            - :data:LIBOVR_BUTTON_DOWN
+            - :data:LIBOVR_BUTTON_LEFT
+            - :data:LIBOVR_BUTTON_RIGHT
+            - :data:LIBOVR_BUTTON_ENTER
+            - :data:LIBOVR_BUTTON_BACK
+            - :data:LIBOVR_BUTTON_VOLUP
+            - :data:LIBOVR_BUTTON_VOLDOWN
+            - :data:LIBOVR_BUTTON_HOME
+            - :data:LIBOVR_BUTTON_PRIVATE
+            - :data:LIBOVR_BUTTON_RMASK
+            - :data:LIBOVR_BUTTON_LMASK
     testState : str
         State to test buttons for. Valid states are 'rising', 'falling',
         'continuous', 'pressed', and 'released'.
@@ -3422,45 +3561,57 @@ def getButtons(str controller, object buttonNames, str testState='continuous'):
     tuple of bool and float
         Result of the button press and the time in seconds it was polled.
 
+    Examples
+    --------
+    Check if the 'X' button on the touch controllers was pressed::
+
+        isPressed = ovr.getButtons(ovr.LIBOVR_CONTROLLER_TYPE_TOUCH,
+            ovr.LIBOVR_BUTTON_X, 'pressed')
+
+    Test for multiple buttons ('X' and 'Y') released::
+
+        buttons = ovr.LIBOVR_BUTTON_X | ovr.LIBOVR_BUTTON_Y
+        controller = ovr.LIBOVR_CONTROLLER_TYPE_TOUCH
+        isReleased = ovr.getButtons(controller, buttons, 'released')
+
     """
     global _prevInputState
     global _inputStates
 
-    # convert the string to an index
-    cdef dict idx = {'Xbox' : 0, 'Remote' : 1, 'Touch' : 2, 'LeftTouch' : 3,
-                     'RightTouch' : 4}
+    # get the controller index in the states array
+    cdef int idx
+    if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
+        idx = 0
+    elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
+        idx = 1
+    elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
+        idx = 2
+    elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
+        idx = 3
+    elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
+        idx = 4
+    else:
+        raise ValueError("Invalid controller type specified.")
 
-    cdef double t_sec = _inputStates[idx[controller]].TimeInSeconds
+    # get the time the controller was polled
+    cdef double t_sec = _inputStates[idx].TimeInSeconds
 
     # pointer to the current and previous input state
-    cdef unsigned int curButtons = \
-        _inputStates[idx[controller]].Buttons
-    cdef unsigned int prvButtons = \
-        _prevInputState[idx[controller]].Buttons
-
-    # generate a bit mask for testing button presses
-    cdef unsigned int buttonBits = 0x00000000
-    cdef int i, N
-    if isinstance(buttonNames, str):  # don't loop if a string is specified
-        buttonBits |= _controller_buttons[buttonNames]
-    elif isinstance(buttonNames, (tuple, list)):
-        # loop over all names and combine them
-        N = <int>len(buttonNames)
-        for i in range(N):
-            buttonBits |= _controller_buttons[buttonNames[i]]
+    cdef unsigned int curButtons = _inputStates[idx].Buttons
+    cdef unsigned int prvButtons = _prevInputState[idx].Buttons
 
     # test if the button was pressed
     cdef bint stateResult = False
     if testState == 'continuous':
-        stateResult = (curButtons & buttonBits) == buttonBits
+        stateResult = (curButtons & button) == button
     elif testState == 'rising' or testState == 'pressed':
         # rising edge, will trigger once when pressed
-        stateResult = (curButtons & buttonBits) == buttonBits and \
-                      (prvButtons & buttonBits) != buttonBits
+        stateResult = (curButtons & button) == button and \
+                      (prvButtons & button) != button
     elif testState == 'falling' or testState == 'released':
         # falling edge, will trigger once when released
-        stateResult = (curButtons & buttonBits) != buttonBits and \
-                      (prvButtons & buttonBits) == buttonBits
+        stateResult = (curButtons & button) != button and \
+                      (prvButtons & button) == button
     else:
         raise ValueError("Invalid trigger mode specified.")
 
