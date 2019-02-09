@@ -256,6 +256,7 @@ cdef libovr_capi.ovrMirrorTexture _mirrorTexture
 cdef libovr_capi.ovrLayerEyeFov _eyeLayer
 cdef libovr_capi.ovrEyeRenderDesc[2] _eyeRenderDesc
 cdef libovr_capi.ovrTrackingState _trackingState
+cdef libovr_capi.ovrViewScaleDesc _viewScale
 
 # prepare the render layer
 _eyeLayer.Header.Type = libovr_capi.ovrLayerType_EyeFov
@@ -659,13 +660,18 @@ cdef class LibOVRPose(object):
     def getAtUp(self):
         """Get the orientation as 'at' and 'up' vectors.
 
+        Returns
+        -------
+        tuple
+            Vectors for 'at' and 'up'.
+
         Examples
         --------
 
         Setting the listener orientation for 3D positional audio (PyOpenAL)::
 
             at, up = myPose.getAtUp()
-            Listener.set_orientation((at[0], at[1], at[2], up[0], up[1], up[2]))
+            myListener.set_orientation((*at, *up))
 
         """
         cdef libovr_math.Vector3f at = \
