@@ -32,7 +32,18 @@ extensions to access them. The declarations in the file are contemporaneous
 with version 1.24 (retrieved 04.15.2018) of the Oculus Rift(TM) PC SDK. 
 
 """
-from libc.stdint cimport uintptr_t, uint32_t, int32_t
+from libc.stdint cimport uintptr_t, uint32_t, int32_t, uint16_t
+
+cdef extern from "OVR_Version.h":
+    cdef int OVR_PRODUCT_VERSION
+    cdef int OVR_MAJOR_VERSION
+    cdef int OVR_MINOR_VERSION
+    cdef int OVR_PATCH_VERSION
+    cdef int OVR_BUILD_NUMBER
+    cdef int OVR_DLL_COMPATIBLE_VERSION
+    cdef int OVR_MIN_REQUESTABLE_MINOR_VERSION
+    cdef int OVR_FEATURE_VERSION
+
 
 cdef extern from "OVR_ErrorCode.h":
     ctypedef int32_t ovrResult
@@ -116,6 +127,7 @@ cdef extern from "OVR_ErrorCode.h":
     ctypedef struct ovrErrorInfo:
         ovrResult Result
         char[512] ErrorString
+
 
 cdef inline int OVR_SUCCESS(ovrResult result):
     return result >= ovrSuccessType.ovrSuccess
@@ -367,6 +379,32 @@ cdef extern from "OVR_CAPI.h":
     ctypedef ovrTextureSwapChainData* ovrTextureSwapChain
     ctypedef struct ovrMirrorTextureData
     ctypedef ovrMirrorTextureData* ovrMirrorTexture
+
+    ctypedef enum ovrFovStencilType:
+        ovrFovStencil_HiddenArea = 0,
+        ovrFovStencil_VisibleArea = 1,
+        ovrFovStencil_BorderLine = 2,
+        ovrFovStencil_VisibleRectangle = 3
+
+    ctypedef enum ovrFovStencilFlags:
+        ovrFovStencilFlag_MeshOriginAtBottomLeft = 0x01
+
+    ctypedef struct ovrFovStencilDesc:
+        ovrFovStencilType StencilType
+        uint32_t StencilFlags
+        ovrEyeType Eye
+        ovrFovPort FovPort
+        ovrQuatf HmdToEyeRotation
+
+    ctypedef struct ovrFovStencilMeshBuffer:
+        int AllocVertexCount
+        int UsedVertexCount
+        ovrVector2f* VertexBuffer
+        int AllocIndexCount
+        int UsedIndexCount
+        uint16_t* IndexBuffer
+
+    cdef ovrResult ovr_GetFovStencil(ovrSession session, const ovrFovStencilDesc* fovStencilDesc, ovrFovStencilMeshBuffer* meshBuffer)
 
     ctypedef enum ovrButton:
         ovrButton_A = 0x00000001,
