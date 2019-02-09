@@ -134,6 +134,9 @@ __all__ = [
     'LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB',
     'LIBOVR_FORMAT_R16G16B16A16_FLOAT',
     'LIBOVR_FORMAT_R11G11B10_FLOAT',
+    'LIBOVR_FORMAT_D16_UNORM',
+    'LIBOVR_FORMAT_D24_UNORM_S8_UINT',
+    'LIBOVR_FORMAT_D32_FLOAT',
     'LIBOVR_MAX_PROVIDED_FRAME_STATS',
     'LibOVRPose',
     'LibOVRTrackingState',
@@ -252,6 +255,7 @@ cdef libovr_capi.ovrMirrorTexture _mirrorTexture
 # VR related data persistent across frames
 cdef libovr_capi.ovrLayerEyeFov _eyeLayer
 cdef libovr_capi.ovrEyeRenderDesc[2] _eyeRenderDesc
+cdef libovr_capi.ovrTrackingState _trackingState
 
 # prepare the render layer
 _eyeLayer.Header.Type = libovr_capi.ovrLayerType_EyeFov
@@ -484,11 +488,14 @@ LIBOVR_TEXTURE_SWAP_CHAIN5 = 5
 LIBOVR_TEXTURE_SWAP_CHAIN6 = 6
 LIBOVR_TEXTURE_SWAP_CHAIN7 = 7
 
-# texture formats
+# texture formats, color and depth
 LIBOVR_FORMAT_R8G8B8A8_UNORM = libovr_capi.OVR_FORMAT_R8G8B8A8_UNORM
 LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB = libovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
 LIBOVR_FORMAT_R16G16B16A16_FLOAT =  libovr_capi.OVR_FORMAT_R16G16B16A16_FLOAT
 LIBOVR_FORMAT_R11G11B10_FLOAT = libovr_capi.OVR_FORMAT_R11G11B10_FLOAT
+LIBOVR_FORMAT_D16_UNORM = libovr_capi.OVR_FORMAT_D16_UNORM
+LIBOVR_FORMAT_D24_UNORM_S8_UINT = libovr_capi.OVR_FORMAT_D24_UNORM_S8_UINT
+LIBOVR_FORMAT_D32_FLOAT = libovr_capi.OVR_FORMAT_D32_FLOAT
 
 # performance
 LIBOVR_MAX_PROVIDED_FRAME_STATS = libovr_capi.ovrMaxProvidedFrameStats
@@ -1172,7 +1179,6 @@ cdef class LibOVRTrackingState(object):
     cdef libovr_capi.ovrPoseStatef c_ovrPoseStatef
 
     cdef LibOVRPose _pose
-
     cdef int status_flags
 
     def __cinit__(self):
@@ -2262,7 +2268,7 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
 
     return result, tex_id
 
-def createTextureSwapChainGL(int swapChain, int width, int height, str textureFormat='R8G8B8A8_UNORM_SRGB', int levels=1):
+def createTextureSwapChainGL(int swapChain, int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB, int levels=1):
     """Create a texture swap chain for eye image buffers.
 
     You can create up-to 32 swap chains, referenced by their index.
@@ -2271,9 +2277,16 @@ def createTextureSwapChainGL(int swapChain, int width, int height, str textureFo
     ----------
     swapChain : int
         Swap chain handle to initialize, usually 'LIBOVR_SWAP_CHAIN*'.
-    textureFormat : str
-        Texture format, valid texture formats are 'R8G8B8A8_UNORM',
-        'R8G8B8A8_UNORM_SRGB', 'R16G16B16A16_FLOAT', and 'R11G11B10_FLOAT'.
+    textureFormat : int
+        Texture format to use. Valid color texture formats are:
+            - :data:LIBOVR_FORMAT_R8G8B8A8_UNORM
+            - :data:LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB
+            - :data:LIBOVR_FORMAT_R16G16B16A16_FLOAT
+            - :data:LIBOVR_FORMAT_R11G11B10_FLOAT
+        Depth texture formats:
+            - :data:LIBOVR_FORMAT_D16_UNORM
+            - :data:LIBOVR_FORMAT_D24_UNORM_S8_UINT
+            - :data:LIBOVR_FORMAT_D32_FLOAT
     width : int
         Width of texture in pixels.
     height : int
@@ -2304,13 +2317,13 @@ def createTextureSwapChainGL(int swapChain, int width, int height, str textureFo
     # configure the texture
     cdef libovr_capi.ovrTextureSwapChainDesc swapConfig
     swapConfig.Type = libovr_capi.ovrTexture_2D
-    swapConfig.Format = _supported_texture_formats[textureFormat]
+    swapConfig.Format = <libovr_capi.ovrTextureFormat>textureFormat
     swapConfig.ArraySize = 1
     swapConfig.Width = <int>width
     swapConfig.Height = <int>height
     swapConfig.MipLevels = <int>levels
     swapConfig.SampleCount = 1
-    swapConfig.StaticImage = libovr_capi.ovrFalse
+    swapConfig.StaticImage = libovr_capi.ovrFalse  # always buffered
     swapConfig.MiscFlags = libovr_capi.ovrTextureMisc_None
     swapConfig.BindFlags = libovr_capi.ovrTextureBind_None
 
@@ -2371,7 +2384,7 @@ def setEyeColorTextureSwapChain(int eye, int swapChain):
 
     _eyeLayer.ColorTexture[eye] = _swapChains[swapChain]
 
-def createMirrorTexture(width, height, textureFormat='R8G8B8A8_UNORM_SRGB'):
+def createMirrorTexture(int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB):
     """Create a mirror texture.
 
     This displays the content of the rendered images being presented on the
@@ -2384,9 +2397,12 @@ def createMirrorTexture(width, height, textureFormat='R8G8B8A8_UNORM_SRGB'):
         Width of texture in pixels.
     height : int
         Height of texture in pixels.
-    textureFormat : str
-        Texture format. Valid texture formats are: 'R8G8B8A8_UNORM',
-        'R8G8B8A8_UNORM_SRGB', 'R16G16B16A16_FLOAT', and 'R11G11B10_FLOAT'.
+    textureFormat : int
+        Color texture format to use, valid texture formats are:
+            - :data:LIBOVR_FORMAT_R8G8B8A8_UNORM,
+            - :data:LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB,
+            - :data:LIBOVR_FORMAT_R16G16B16A16_FLOAT, and
+            - :data:LIBOVR_FORMAT_R11G11B10_FLOAT
 
     Returns
     -------
@@ -2420,7 +2436,7 @@ def createMirrorTexture(width, height, textureFormat='R8G8B8A8_UNORM_SRGB'):
     global _ptrSession
     global _mirrorTexture
 
-    mirrorDesc.Format = libovr_capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
+    mirrorDesc.Format = <libovr_capi.ovrTextureFormat>textureFormat
     mirrorDesc.Width = <int>width
     mirrorDesc.Height = <int>height
     mirrorDesc.MiscFlags = libovr_capi.ovrTextureMisc_None
@@ -2503,27 +2519,28 @@ def getTrackedPoses(double absTime, bint latencyMarker=True):
     """
     global _ptrSession
     global _eyeLayer
+    global _trackingState
 
     cdef libovr_capi.ovrBool use_marker = \
         libovr_capi.ovrTrue if latencyMarker else libovr_capi.ovrFalse
 
-    cdef libovr_capi.ovrTrackingState tracking_state = \
-        libovr_capi.ovr_GetTrackingState(_ptrSession, absTime, use_marker)
+    _trackingState = libovr_capi.ovr_GetTrackingState(
+        _ptrSession, absTime, use_marker)
 
     cdef LibOVRTrackingState head_pose = LibOVRTrackingState()
-    head_pose.c_data[0] = tracking_state.HeadPose
-    head_pose.status_flags = tracking_state.StatusFlags
+    head_pose.c_data[0] = _trackingState.HeadPose
+    head_pose.status_flags = _trackingState.StatusFlags
 
     # for computing app photon-to-motion latency
-    _eyeLayer.SensorSampleTime = tracking_state.HeadPose.TimeInSeconds
+    _eyeLayer.SensorSampleTime = _trackingState.HeadPose.TimeInSeconds
 
     cdef LibOVRTrackingState left_hand_pose = LibOVRTrackingState()
-    left_hand_pose.c_data[0] = tracking_state.HandPoses[0]
-    left_hand_pose.status_flags = tracking_state.HandStatusFlags[0]
+    left_hand_pose.c_data[0] = _trackingState.HandPoses[0]
+    left_hand_pose.status_flags = _trackingState.HandStatusFlags[0]
 
     cdef LibOVRTrackingState right_hand_pose = LibOVRTrackingState()
-    right_hand_pose.c_data[0] = tracking_state.HandPoses[1]
-    right_hand_pose.status_flags = tracking_state.HandStatusFlags[1]
+    right_hand_pose.c_data[0] = _trackingState.HandPoses[1]
+    right_hand_pose.status_flags = _trackingState.HandStatusFlags[1]
 
     cdef dict toReturn = {'Head': head_pose,
                           'LeftHand': left_hand_pose,
