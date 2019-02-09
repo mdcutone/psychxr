@@ -64,7 +64,7 @@ import numpy as np
 #
 cdef libovr_capi.ovrInitParams _initParams  # initialization parameters
 cdef libovr_capi.ovrSession _ptrSession  # session pointer
-cdef libovr_capi.ovrGraphicsLuid _ptrLuid  # LUID
+cdef libovr_capi.ovrGraphicsLuid _gfxLuid  # LUID
 cdef libovr_capi.ovrHmdDesc _hmdDesc  # HMD information descriptor
 cdef libovr_capi.ovrBoundaryLookAndFeel _boundryStyle
 cdef libovr_capi.ovrTextureSwapChain[8] _swapChains
@@ -1912,12 +1912,12 @@ def create():
 
     """
     global _ptrSession
-    global _ptrLuid
+    global _gfxLuid
     global _eyeLayer
     global _hmdDesc
     global _eyeRenderDesc
 
-    result = libovr_capi.ovr_Create(&_ptrSession, &_ptrLuid)
+    result = libovr_capi.ovr_Create(&_ptrSession, &_gfxLuid)
     check_result(result)
     if libovr_capi.OVR_FAILURE(result):
         return result  # failed to create session, return error code
@@ -3476,28 +3476,48 @@ def updateInputState(str controller):
     # get the current input state
     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetInputState(
         _ptrSession,
-        _controller_type_enum[controller],  # get the enum for the controller
+        <libovr_capi.ovrControllerType>controller,
         currentInputState)
 
     return result, currentInputState.TimeInSeconds
 
-def getInputTime(str controller):
+def getInputTime(int controller):
     """Get the time a controller was last polled.
 
     Parameters
     ----------
-    controller : str
-        Controller name to poll. Valid names are: 'Xbox', 'Remote', 'Touch',
-        'LeftTouch', and 'RightTouch'.
+    controller : int
+        Controller name. Valid values are:
+            - :data:LIBOVR_CONTROLLER_TYPE_XBOX : XBox gamepad.
+            - :data:LIBOVR_CONTROLLER_TYPE_REMOTE : Oculus Remote.
+            - :data:LIBOVR_CONTROLLER_TYPE_TOUCH : Combined Touch controllers.
+            - :data:LIBOVR_CONTROLLER_TYPE_LTOUCH : Left Touch controller.
+            - :data:LIBOVR_CONTROLLER_TYPE_RTOUCH : Right Touch controller.
+
+    Returns
+    -------
+    float
+        The absolute time the controller was last polled.
 
     """
     global _prevInputState
     global _inputStates
     global _ptrSession
 
-    # convert the string to an index
-    cdef dict idx = {'Xbox' : 0, 'Remote' : 1, 'Touch' : 2, 'LeftTouch' : 3,
-                     'RightTouch' : 4}
+    # get the controller index in the states array
+    cdef int idx
+    if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
+        idx = 0
+    elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
+        idx = 1
+    elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
+        idx = 2
+    elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
+        idx = 3
+    elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
+        idx = 4
+    else:
+        raise ValueError("Invalid controller type specified.")
 
     # pointer to the current and previous input state
     cdef libovr_capi.ovrInputState* currentInputState = \
@@ -3523,11 +3543,11 @@ def getButton(int controller, int button, str testState='continuous'):
     ----------
     controller : int
         Controller name. Valid values are:
-            - :data:LIBOVR_CONTROLLER_TYPE_XBOX
-            - :data:LIBOVR_CONTROLLER_TYPE_REMOTE
-            - :data:LIBOVR_CONTROLLER_TYPE_TOUCH
-            - :data:LIBOVR_CONTROLLER_TYPE_LTOUCH
-            - :data:LIBOVR_CONTROLLER_TYPE_RTOUCH
+            - :data:LIBOVR_CONTROLLER_TYPE_XBOX : XBox gamepad.
+            - :data:LIBOVR_CONTROLLER_TYPE_REMOTE : Oculus Remote.
+            - :data:LIBOVR_CONTROLLER_TYPE_TOUCH : Combined Touch controllers.
+            - :data:LIBOVR_CONTROLLER_TYPE_LTOUCH : Left Touch controller.
+            - :data:LIBOVR_CONTROLLER_TYPE_RTOUCH : Right Touch controller.
     button : int
         Button to check. Values can be ORed together to test for multiple button
         presses. If a given controller does not have a particular button, False
@@ -3602,7 +3622,7 @@ def getButton(int controller, int button, str testState='continuous'):
 
     # test if the button was pressed
     cdef bint stateResult = False
-    if testState == 'continuous':
+    if testState == 'continuous' or testState == 'down':
         stateResult = (curButtons & button) == button
     elif testState == 'rising' or testState == 'pressed':
         # rising edge, will trigger once when pressed
@@ -3780,9 +3800,13 @@ def setControllerVibration(str controller, str frequency, float amplitude):
 
     Parameters
     ----------
-    controller : str
-        Controller name to vibrate. Valid names are: 'Xbox', 'Touch',
-        'LeftTouch', and 'RightTouch'.
+    controller : int
+        Controller name. Valid values are:
+            - :data:LIBOVR_CONTROLLER_TYPE_XBOX: XBox gamepad.
+            - :data:LIBOVR_CONTROLLER_TYPE_REMOTE: Oculus Remote.
+            - :data:LIBOVR_CONTROLLER_TYPE_TOUCH: Combined Touch controllers.
+            - :data:LIBOVR_CONTROLLER_TYPE_LTOUCH: Left Touch controller.
+            - :data:LIBOVR_CONTROLLER_TYPE_RTOUCH: Right Touch controller.
     frequency : str
         Vibration frequency. Valid values are: 'off', 'low', or 'high'.
     amplitude : float
@@ -3809,15 +3833,9 @@ def setControllerVibration(str controller, str frequency, float amplitude):
     else:
         raise RuntimeError("Invalid frequency specified.")
 
-    cdef dict _controller_types = {
-        'Xbox' : libovr_capi.ovrControllerType_XBox,
-        'Touch' : libovr_capi.ovrControllerType_Touch,
-        'LeftTouch' : libovr_capi.ovrControllerType_LTouch,
-        'RightTouch' : libovr_capi.ovrControllerType_RTouch}
-
     cdef libovr_capi.ovrResult result = libovr_capi.ovr_SetControllerVibration(
         _ptrSession,
-        <libovr_capi.ovrControllerType>_controller_types[controller],
+        <libovr_capi.ovrControllerType>controller,
         freq,
         amplitude)
 
