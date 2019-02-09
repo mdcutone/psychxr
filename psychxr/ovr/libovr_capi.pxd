@@ -128,6 +128,7 @@ cdef extern from "OVR_ErrorCode.h":
         ovrResult Result
         char[512] ErrorString
 
+
 cdef inline int OVR_SUCCESS(ovrResult result):
     return result >= ovrSuccessType.ovrSuccess
 
