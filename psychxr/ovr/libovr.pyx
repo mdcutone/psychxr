@@ -3713,35 +3713,39 @@ def getButton(int controller, int button, str testState='continuous'):
     ----------
     controller : int
         Controller name. Valid values are:
-            - :data:LIBOVR_CONTROLLER_TYPE_XBOX : XBox gamepad.
-            - :data:LIBOVR_CONTROLLER_TYPE_REMOTE : Oculus Remote.
-            - :data:LIBOVR_CONTROLLER_TYPE_TOUCH : Combined Touch controllers.
-            - :data:LIBOVR_CONTROLLER_TYPE_LTOUCH : Left Touch controller.
-            - :data:LIBOVR_CONTROLLER_TYPE_RTOUCH : Right Touch controller.
+
+        - :data:LIBOVR_CONTROLLER_TYPE_XBOX : XBox gamepad.
+        - :data:LIBOVR_CONTROLLER_TYPE_REMOTE : Oculus Remote.
+        - :data:LIBOVR_CONTROLLER_TYPE_TOUCH : Combined Touch controllers.
+        - :data:LIBOVR_CONTROLLER_TYPE_LTOUCH : Left Touch controller.
+        - :data:LIBOVR_CONTROLLER_TYPE_RTOUCH : Right Touch controller.
+
     button : int
         Button to check. Values can be ORed together to test for multiple button
         presses. If a given controller does not have a particular button, False
         will always be returned. Valid button values are:
-            - :data:LIBOVR_BUTTON_A
-            - :data:LIBOVR_BUTTON_B
-            - :data:LIBOVR_BUTTON_RTHUMB
-            - :data:LIBOVR_BUTTON_RSHOULDER
-            - :data:LIBOVR_BUTTON_X
-            - :data:LIBOVR_BUTTON_Y
-            - :data:LIBOVR_BUTTON_LTHUMB
-            - :data:LIBOVR_BUTTON_LSHOULDER
-            - :data:LIBOVR_BUTTON_UP
-            - :data:LIBOVR_BUTTON_DOWN
-            - :data:LIBOVR_BUTTON_LEFT
-            - :data:LIBOVR_BUTTON_RIGHT
-            - :data:LIBOVR_BUTTON_ENTER
-            - :data:LIBOVR_BUTTON_BACK
-            - :data:LIBOVR_BUTTON_VOLUP
-            - :data:LIBOVR_BUTTON_VOLDOWN
-            - :data:LIBOVR_BUTTON_HOME
-            - :data:LIBOVR_BUTTON_PRIVATE
-            - :data:LIBOVR_BUTTON_RMASK
-            - :data:LIBOVR_BUTTON_LMASK
+
+        - :data:LIBOVR_BUTTON_A
+        - :data:LIBOVR_BUTTON_B
+        - :data:LIBOVR_BUTTON_RTHUMB
+        - :data:LIBOVR_BUTTON_RSHOULDER
+        - :data:LIBOVR_BUTTON_X
+        - :data:LIBOVR_BUTTON_Y
+        - :data:LIBOVR_BUTTON_LTHUMB
+        - :data:LIBOVR_BUTTON_LSHOULDER
+        - :data:LIBOVR_BUTTON_UP
+        - :data:LIBOVR_BUTTON_DOWN
+        - :data:LIBOVR_BUTTON_LEFT
+        - :data:LIBOVR_BUTTON_RIGHT
+        - :data:LIBOVR_BUTTON_ENTER
+        - :data:LIBOVR_BUTTON_BACK
+        - :data:LIBOVR_BUTTON_VOLUP
+        - :data:LIBOVR_BUTTON_VOLDOWN
+        - :data:LIBOVR_BUTTON_HOME
+        - :data:LIBOVR_BUTTON_PRIVATE
+        - :data:LIBOVR_BUTTON_RMASK
+        - :data:LIBOVR_BUTTON_LMASK
+
     testState : str
         State to test buttons for. Valid states are 'rising', 'falling',
         'continuous', 'pressed', and 'released'.
