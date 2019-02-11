@@ -1,4 +1,5 @@
 # distutils: language=c++
+# Oculus SDK Math functions and C++ classes
 from libcpp cimport bool
 
 cdef extern from "OVR_Math.h" namespace "OVR":
@@ -231,11 +232,7 @@ cdef extern from "OVR_Math.h" namespace "OVR":
         Quatf Inverted()
         Quatf Inverse()
         void Invert()
-        #Quatf TimeIntegrate(Vector3f& angularVelocity, float dt)
-        #Quatf TimeIntegrate(
-        #        Vector3f& angularVelocity,
-        #        Vector3f& angularAcceleration,
-        #        float dt)
+        Quatf TimeIntegrate(const Vector3f& angularVelocity, const Vector3f& angularAcceleration, float dt)
         void GetYawPitchRoll(float* yaw, float* pitch, float* roll)
         void GetEulerAngles(float* a, float* b, float* c)
         void GetEulerAnglesABA(float* a, float* b, float* c)
@@ -379,3 +376,33 @@ cdef extern from "OVR_Math.h" namespace "OVR":
         Sizei GetSize()
         void SetPos(const Vector2i &pos)
         void SetSize(const Sizei& sz)
+
+    cdef cppclass Planef "OVR::Plane":
+        Planef() except +
+        Planef(const Vector3f& n, float d)
+        Planef(const Vector3f& p, const Vector3f& n)
+        float TestSide(const Vector3f& p)
+        Planef Flipped()
+        Planef Flip()
+        bool operator==(Planef& rhs)
+
+    cdef cppclass FovPort "OVR::FovPort":
+        FovPort() except +
+        FovPort(float sideTan) except +
+        FovPort(float, float, float, float) except +
+        float UpTan
+        float DownTan
+        float LeftTan
+        float RightTan
+        FovPort CreateFromRadians(float horizontalFov, float verticalFov)
+        FovPort CreateFromDegrees(float horizontalFovDegrees, float verticalFovDegrees)
+        float GetVerticalFovRadians()
+        float GetHorizontalFovRadians()
+        float GetVerticalFovDegrees()
+        float GetHorizontalFovDegrees()
+        float GetMaxSideTan()
+        Vector2f TanAngleToRendertargetNDC(Vector2f tanEyeAngle)
+        FovPort Min(const FovPort& a, const FovPort& b)
+        FovPort Max(const FovPort& a, const FovPort& b)
+        FovPort Uncant(const FovPort& cantedFov, Quatf canting)
+        FovPort ScaleFovPort(const FovPort& fov, Vector2f scaleFactors)

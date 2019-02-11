@@ -56,10 +56,11 @@ from setuptools.extension import Extension
 from setuptools.command.install import install
 from distutils.command.install_lib import install_lib
 from Cython.Build import cythonize, build_ext
+import numpy
 #from distutils.command.build_ext import build_ext
 
 # compiler related data
-_include_dir_ = []
+_include_dir_ = [numpy.get_include()]
 _lib_dirs_ = []
 _libraries_ = []
 _build_ext_ = []
@@ -118,24 +119,13 @@ else:
 # add configured extensions
 ext_modules = []
 if _build_libovr_ == '1':
-    cythonize("psychxr/ovr/capi.pyx",
-              include_path=_sdk_data_['libovr']['include'],
-              compiler_directives = {'embedsignature': True})
-    cythonize("psychxr/ovr/math.pyx",
+    cythonize("psychxr/ovr/libovr.pyx",
               include_path=_sdk_data_['libovr']['include'],
               compiler_directives = {'embedsignature': True})
     ext_modules.extend([
         Extension(
-            "psychxr.ovr.capi",
-            ["psychxr/ovr/capi"+".cpp"],
-            include_dirs=_include_dir_ + _sdk_data_['libovr']['include'],
-            libraries=_libraries_ + _sdk_data_['libovr']['libs'],
-            library_dirs=_lib_dirs_ + _sdk_data_['libovr']['lib_dir'],
-            language="c++",
-            extra_compile_args=['']),
-        Extension(
-            "psychxr.ovr.math",
-            ["psychxr/ovr/math"+".cpp"],
+            "psychxr.ovr.libovr",
+            ["psychxr/ovr/libovr"+".cpp"],
             include_dirs=_include_dir_ + _sdk_data_['libovr']['include'],
             libraries=_libraries_ + _sdk_data_['libovr']['libs'],
             library_dirs=_lib_dirs_ + _sdk_data_['libovr']['lib_dir'],
@@ -154,7 +144,7 @@ setup_pars = {
     "url": "https://github.com/mdcutone/psychxr",
     #"package_data": PACKAGE_DATA,
     "include_package_data": True,
-    "version": "0.1.4",
+    "version": "0.2.0",
     "license" : "MIT",
     "description":
         "Python extension library for interacting with eXtended Reality "
@@ -173,7 +163,7 @@ setup_pars = {
     "ext_modules": ext_modules,
     #"data_files": DATA_FILES,
     "install_requires" : ["Cython>=0.27.3"],
-    "requires" : ["PyOpenGL"],
+    "requires" : [],
     "cmdclass" : {"build_ext": build_ext}}
 
 setup(**setup_pars)

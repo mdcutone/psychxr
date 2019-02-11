@@ -3,7 +3,7 @@
 #  OVR C API (OVR_CAPI.h) Cython Declaration File 
 #  =============================================================================
 #
-#  ovr_capi.pxd
+#  libovr_capi.pxd
 #
 #  Copyright 2018 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University, 
@@ -32,8 +32,112 @@ extensions to access them. The declarations in the file are contemporaneous
 with version 1.24 (retrieved 04.15.2018) of the Oculus Rift(TM) PC SDK. 
 
 """
-from ovr_errorcode cimport ovrResult, ovrErrorInfo
-from libc.stdint cimport uintptr_t, uint32_t, int32_t
+from libc.stdint cimport uintptr_t, uint32_t, int32_t, uint16_t
+
+cdef extern from "OVR_Version.h":
+    cdef int OVR_PRODUCT_VERSION
+    cdef int OVR_MAJOR_VERSION
+    cdef int OVR_MINOR_VERSION
+    cdef int OVR_PATCH_VERSION
+    cdef int OVR_BUILD_NUMBER
+    cdef int OVR_DLL_COMPATIBLE_VERSION
+    cdef int OVR_MIN_REQUESTABLE_MINOR_VERSION
+    cdef int OVR_FEATURE_VERSION
+
+
+cdef extern from "OVR_ErrorCode.h":
+    ctypedef int32_t ovrResult
+
+    ctypedef enum ovrSuccessType:
+        ovrSuccess = 0
+
+    ctypedef enum ovrSuccessTypes:
+        ovrSuccess_NotVisible = 1000,
+        ovrSuccess_BoundaryInvalid = 1001,
+        ovrSuccess_DeviceUnavailable = 1002
+
+    ctypedef enum ovrErrorType:
+        ovrError_MemoryAllocationFailure = -1000,
+        ovrError_InvalidSession = -1002,
+        ovrError_Timeout = -1003,
+        ovrError_NotInitialized = -1004,
+        ovrError_InvalidParameter = -1005,
+        ovrError_ServiceError = -1006,
+        ovrError_NoHmd = -1007,
+        ovrError_Unsupported = -1009,
+        ovrError_DeviceUnavailable = -1010,
+        ovrError_InvalidHeadsetOrientation = -1011,
+        ovrError_ClientSkippedDestroy = -1012,
+        ovrError_ClientSkippedShutdown = -1013,
+        ovrError_ServiceDeadlockDetected = -1014,
+        ovrError_InvalidOperation = -1015,
+        ovrError_InsufficientArraySize = -1016,
+        ovrError_NoExternalCameraInfo = -1017,
+        ovrError_LostTracking = -1018,
+        ovrError_ExternalCameraInitializedFailed = -1019,
+        ovrError_ExternalCameraCaptureFailed = -1020,
+        ovrError_ExternalCameraNameListsBufferSize = -1021,
+        ovrError_ExternalCameraNameListsMistmatch = -1022,
+        ovrError_ExternalCameraNotCalibrated = -1023,
+        ovrError_ExternalCameraNameWrongSize = -1024,
+        ovrError_AudioDeviceNotFound = -2001,
+        ovrError_AudioComError = -2002,
+        ovrError_Initialize = -3000,
+        ovrError_LibLoad = -3001,
+        ovrError_LibVersion = -3002,
+        ovrError_ServiceConnection = -3003,
+        ovrError_ServiceVersion = -3004,
+        ovrError_IncompatibleOS = -3005,
+        ovrError_DisplayInit = -3006,
+        ovrError_ServerStart = -3007,
+        ovrError_Reinitialization = -3008,
+        ovrError_MismatchedAdapters = -3009,
+        ovrError_LeakingResources = -3010,
+        ovrError_ClientVersion = -3011,
+        ovrError_OutOfDateOS = -3012,
+        ovrError_OutOfDateGfxDriver = -3013,
+        ovrError_IncompatibleGPU = -3014,
+        ovrError_NoValidVRDisplaySystem = -3015,
+        ovrError_Obsolete = -3016,
+        ovrError_DisabledOrDefaultAdapter = -3017,
+        ovrError_HybridGraphicsNotSupported = -3018,
+        ovrError_DisplayManagerInit = -3019,
+        ovrError_TrackerDriverInit = -3020,
+        ovrError_LibSignCheck = -3021,
+        ovrError_LibPath = -3022,
+        ovrError_LibSymbols = -3023,
+        ovrError_RemoteSession = -3024,
+        ovrError_InitializeVulkan = -3025,
+        ovrError_BlacklistedGfxDriver = -3026,
+        ovrError_DisplayLost = -6000,
+        ovrError_TextureSwapChainFull = -6001,
+        ovrError_TextureSwapChainInvalid = -6002,
+        ovrError_GraphicsDeviceReset = -6003,
+        ovrError_DisplayRemoved = -6004,
+        ovrError_ContentProtectionNotAvailable = -6005,
+        ovrError_ApplicationInvisible = -6006,
+        ovrError_Disallowed = -6007,
+        ovrError_DisplayPluggedIncorrectly = -6008,
+        ovrError_DisplayLimitReached = -6009,
+        ovrError_RuntimeException = -7000,
+        ovrError_NoCalibration = -9000,
+        ovrError_OldVersion = -9001,
+        ovrError_MisformattedBlock = -9002
+
+    ctypedef struct ovrErrorInfo:
+        ovrResult Result
+        char[512] ErrorString
+
+
+cdef inline int OVR_SUCCESS(ovrResult result):
+    return result >= ovrSuccessType.ovrSuccess
+
+cdef inline int OVR_UNQUALIFIED_SUCCESS(ovrResult result):
+    return result == ovrSuccessType.ovrSuccess
+
+cdef inline int OVR_FAILURE(ovrResult result):
+    return not OVR_SUCCESS(result)
+
 
 cdef extern from "OVR_CAPI.h":
     ctypedef char ovrBool
@@ -276,6 +380,32 @@ cdef extern from "OVR_CAPI.h":
     ctypedef struct ovrMirrorTextureData
     ctypedef ovrMirrorTextureData* ovrMirrorTexture
 
+    ctypedef enum ovrFovStencilType:
+        ovrFovStencil_HiddenArea = 0,
+        ovrFovStencil_VisibleArea = 1,
+        ovrFovStencil_BorderLine = 2,
+        ovrFovStencil_VisibleRectangle = 3
+
+    ctypedef enum ovrFovStencilFlags:
+        ovrFovStencilFlag_MeshOriginAtBottomLeft = 0x01
+
+    ctypedef struct ovrFovStencilDesc:
+        ovrFovStencilType StencilType
+        uint32_t StencilFlags
+        ovrEyeType Eye
+        ovrFovPort FovPort
+        ovrQuatf HmdToEyeRotation
+
+    ctypedef struct ovrFovStencilMeshBuffer:
+        int AllocVertexCount
+        int UsedVertexCount
+        ovrVector2f* VertexBuffer
+        int AllocIndexCount
+        int UsedIndexCount
+        uint16_t* IndexBuffer
+
+    cdef ovrResult ovr_GetFovStencil(ovrSession session, const ovrFovStencilDesc* fovStencilDesc, ovrFovStencilMeshBuffer* meshBuffer)
+
     ctypedef enum ovrButton:
         ovrButton_A = 0x00000001,
         ovrButton_B = 0x00000002,
@@ -365,6 +495,7 @@ cdef extern from "OVR_CAPI.h":
         ovrTrackedDevice_Object3 = 0x0080
 
     ctypedef enum ovrBoundaryType:
+        ovrBoundary_Outer = 0x0001
         ovrBoundary_PlayArea = 0x0100
 
     ctypedef struct ovrBoundaryLookAndFeel:
@@ -691,9 +822,49 @@ cdef extern from "OVR_CAPI.h":
     cdef ovrBool ovr_SetString(ovrSession session, const char* propertyName, const char* value)
 
 
-# additional types
-ctypedef struct ovrVector4f:
-    float x
-    float y
-    float z
-    float w
+cdef extern from "OVR_CAPI_Util.h":
+    ctypedef enum ovrProjectionModifier:
+        ovrProjection_None = 0x00,
+        ovrProjection_LeftHanded = 0x01,
+        ovrProjection_FarLessThanNear = 0x02,
+        ovrProjection_FarClipAtInfinity = 0x04,
+        ovrProjection_ClipRangeOpenGL = 0x08
+
+    ctypedef struct ovrDetectResult:
+        ovrBool IsOculusServiceRunning
+        ovrBool IsOculusHMDConnected
+
+    ctypedef enum ovrHapticsGenMode:
+        ovrHapticsGenMode_PointSample,
+        ovrHapticsGenMode_Count
+
+    ctypedef struct ovrAudioChannelData:
+        const float* Samples
+        int SamplesCount
+        int Frequency
+
+    ctypedef struct ovrHapticsClip:
+        const void* Samples
+        int SamplesCount
+
+    cdef ovrDetectResult ovr_Detect(int timeoutMilliseconds)
+    cdef ovrMatrix4f ovrMatrix4f_Projection(ovrFovPort fov, float znear, float zfar, unsigned int projectionModFlags)
+    cdef ovrTimewarpProjectionDesc ovrTimewarpProjectionDesc_FromProjection(ovrMatrix4f projection, unsigned int projectionModFlags)
+    cdef ovrMatrix4f ovrMatrix4f_OrthoSubProjection(ovrMatrix4f projection, ovrVector2f orthoScale, float orthoDistance, float HmdToEyeOffsetX)
+    cdef void ovr_CalcEyePoses(ovrPosef headPose, const ovrVector3f hmdToEyeOffset[2], ovrPosef outEyePoses[2])
+    cdef void ovr_CalcEyePoses2(ovrPosef headPose, const ovrPosef HmdToEyePose[2], ovrPosef outEyePoses[2])
+    cdef void ovr_GetEyePoses(ovrSession session, long long frameIndex, ovrBool latencyMarker, const ovrVector3f hmdToEyeOffset[2], ovrPosef outEyePoses[2], double* outSensorSampleTime)
+    cdef void ovr_GetEyePoses2(ovrSession session, long long frameIndex, ovrBool latencyMarker, const ovrPosef HmdToEyePose[2], ovrPosef outEyePoses[2], double* outSensorSampleTime)
+    cdef void ovrPosef_FlipHandedness(const ovrPosef* inPose, ovrPosef* outPose)
+    cdef ovrResult ovr_ReadWavFromBuffer(ovrAudioChannelData* outAudioChannel, const void* inputData, int dataSizeInBytes, int stereoChannelToUse)
+    cdef ovrResult ovr_GenHapticsFromAudioData(ovrHapticsClip* outHapticsClip, const ovrAudioChannelData* audioChannel, ovrHapticsGenMode genMode)
+    cdef void ovr_ReleaseAudioChannelData(ovrAudioChannelData* audioChannel)
+    cdef void ovr_ReleaseHapticsClip(ovrHapticsClip* hapticsClip)
+
+
+cdef extern from "OVR_CAPI_GL.h":
+    cdef ovrResult ovr_CreateTextureSwapChainGL(ovrSession session, const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
+    cdef ovrResult ovr_GetTextureSwapChainBufferGL(ovrSession session, ovrTextureSwapChain chain, int index, unsigned int* out_TexId)
+    cdef ovrResult ovr_CreateMirrorTextureWithOptionsGL(ovrSession session, const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture)
+    cdef ovrResult ovr_CreateMirrorTextureGL(ovrSession session, const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture)
+    cdef ovrResult ovr_GetMirrorTextureBufferGL(ovrSession session, ovrMirrorTexture mirrorTexture, unsigned int* out_TexId)
