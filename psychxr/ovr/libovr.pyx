@@ -242,7 +242,7 @@ __all__ = [
     'showBoundary',
     'hideBoundary',
     'getBoundaryDimensions',
-    'getConnectedControllers',
+    'getConnectedControllerTypes',
     'updateInputState',
     'getInputTime',
     'getButton',
@@ -3603,50 +3603,29 @@ def getBoundaryDimensions(str boundaryType='PlayArea'):
 #    """Get the floor points which define the boundary."""
 #    pass  # TODO: make this work.
 
-def getConnectedControllers():
-    """List of connected controllers.
+def getConnectedControllerTypes():
+    """Get connected controller types.
 
     Returns
     -------
-    tuple of int and list
-        List of connected controller names. Check if a specific controller
-        is available by checking the membership of its name in the list.
+    int
+        Connected controller types ORed together.
 
     Examples
     --------
 
     Check if the Xbox gamepad is connected::
 
-        hasGamepad = "Xbox" in hmd.getConnectedControllers()
-
-    Check if the left and right touch controllers are both paired::
-
-        connected = hmd.getConnectedControllers()
-        isPaired = 'LeftTouch' in connected and 'RightTouch' in connected
+        connected = ovr.getConnectedControllerTypes()
+        isConnected = (connected & ovr.LIBOVR_CONTROLLER_TYPE_XBOX) == \
+            ovr.LIBOVR_CONTROLLER_TYPE_XBOX
 
     """
     global _ptrSession
     cdef unsigned int result = libovr_capi.ovr_GetConnectedControllerTypes(
         _ptrSession)
 
-    cdef list controllerTypes = list()
-    if (result & libovr_capi.ovrControllerType_XBox) == \
-            libovr_capi.ovrControllerType_XBox:
-        controllerTypes.append('Xbox')
-    elif (result & libovr_capi.ovrControllerType_Remote) == \
-            libovr_capi.ovrControllerType_Remote:
-        controllerTypes.append('Remote')
-    elif (result & libovr_capi.ovrControllerType_Touch) == \
-            libovr_capi.ovrControllerType_Touch:
-        controllerTypes.append('Touch')
-    elif (result & libovr_capi.ovrControllerType_LTouch) == \
-            libovr_capi.ovrControllerType_LTouch:
-        controllerTypes.append('LeftTouch')
-    elif (result & libovr_capi.ovrControllerType_RTouch) == \
-            libovr_capi.ovrControllerType_RTouch:
-        controllerTypes.append('RightTouch')
-
-    return result, controllerTypes
+    return result
 
 def updateInputState(int controller):
     """Refresh the input state of a controller.
@@ -3881,8 +3860,8 @@ def getTouch(str controller, object touch, str testState='continuous'):
         - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
     button : int
-        Button to check. Values can be ORed together to test for multiple button
-        presses. If a given controller does not have a particular button, False
+        Button to check. Values can be ORed together to test for multiple
+        touches. If a given controller does not have a particular button, False
         will always be returned. Valid button values are:
 
         - :data:`LIBOVR_TOUCH_A`
@@ -3901,7 +3880,7 @@ def getTouch(str controller, object touch, str testState='continuous'):
         - :data:`LIBOVR_TOUCH_LTHUMBUP`
 
     testState : str
-        State to test buttons for. Valid states are 'rising', 'falling',
+        State to test touches for. Valid states are 'rising', 'falling',
         'continuous', 'pressed', and 'released'.
 
     Returns
