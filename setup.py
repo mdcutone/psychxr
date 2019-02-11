@@ -124,8 +124,8 @@ if _build_libovr_ == '1':
               compiler_directives = {'embedsignature': True})
     ext_modules.extend([
         Extension(
-            "psychxr.libovr.libovr",
-            ["psychxr/libovr/libovr"+".cpp"],
+            "psychxr.libovr._libovr",
+            ["psychxr/libovr/_libovr"+".cpp"],
             include_dirs=_include_dir_ + _sdk_data_['libovr']['include'],
             libraries=_libraries_ + _sdk_data_['libovr']['libs'],
             library_dirs=_lib_dirs_ + _sdk_data_['libovr']['lib_dir'],
@@ -152,7 +152,7 @@ setup_pars = {
         "psychology.",
     "long_description": "",
     "classifiers" : [
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Operating System :: Microsoft :: Windows :: Windows 10',
         'Operating System :: Microsoft :: Windows :: Windows 8.1',
         'Operating System :: Microsoft :: Windows :: Windows 7',
@@ -162,7 +162,7 @@ setup_pars = {
         'Intended Audience :: Science/Research'],
     "ext_modules": ext_modules,
     #"data_files": DATA_FILES,
-    "install_requires" : ["Cython>=0.27.3"],
+    "install_requires" : ["Cython>=0.29.3"],
     "requires" : [],
     "cmdclass" : {"build_ext": build_ext}}
 
