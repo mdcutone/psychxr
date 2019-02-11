@@ -122,6 +122,31 @@ __all__ = [
     'LIBOVR_HAND_LEFT',
     'LIBOVR_HAND_RIGHT',
     'LIBOVR_HAND_COUNT',
+    'LIBOVR_CONTROLLER_TYPE_XBOX',
+    'LIBOVR_CONTROLLER_TYPE_REMOTE',
+    'LIBOVR_CONTROLLER_TYPE_TOUCH',
+    'LIBOVR_CONTROLLER_TYPE_LTOUCH',
+    'LIBOVR_CONTROLLER_TYPE_RTOUCH',
+    'LIBOVR_BUTTON_A',
+    'LIBOVR_BUTTON_B',
+    'LIBOVR_BUTTON_RTHUMB',
+    'LIBOVR_BUTTON_RSHOULDER',
+    'LIBOVR_BUTTON_X',
+    'LIBOVR_BUTTON_Y',
+    'LIBOVR_BUTTON_LTHUMB',
+    'LIBOVR_BUTTON_LSHOULDER',
+    'LIBOVR_BUTTON_UP',
+    'LIBOVR_BUTTON_DOWN',
+    'LIBOVR_BUTTON_LEFT',
+    'LIBOVR_BUTTON_RIGHT',
+    'LIBOVR_BUTTON_ENTER',
+    'LIBOVR_BUTTON_BACK',
+    'LIBOVR_BUTTON_VOLUP',
+    'LIBOVR_BUTTON_VOLDOWN',
+    'LIBOVR_BUTTON_HOME',
+    'LIBOVR_BUTTON_PRIVATE',
+    'LIBOVR_BUTTON_RMASK',
+    'LIBOVR_BUTTON_LMASK',
     'LIBOVR_TEXTURE_SWAP_CHAIN0',
     'LIBOVR_TEXTURE_SWAP_CHAIN1',
     'LIBOVR_TEXTURE_SWAP_CHAIN2',
@@ -139,7 +164,7 @@ __all__ = [
     'LIBOVR_FORMAT_D32_FLOAT',
     'LIBOVR_MAX_PROVIDED_FRAME_STATS',
     'LibOVRPose',
-    'LibOVRTrackingState',
+    'LibOVRPoseState',
     'LibOVRTrackerInfo',
     'LibOVRSessionStatus',
     'LibOVRHmdInfo',
@@ -168,8 +193,8 @@ __all__ = [
     'getEyeRenderFov',
     'setEyeRenderFov',
     'calcEyeBufferSize',
-    'getSwapChainLengthGL',
-    'getSwapChainCurrentIndex',
+    'getTextureSwapChainLengthGL',
+    'getTextureSwapChainCurrentIndex',
     'getTextureSwapChainBufferGL',
     'createTextureSwapChainGL',
     'setEyeColorTextureSwapChain',
@@ -190,8 +215,6 @@ __all__ = [
     'perfHudMode',
     'hidePerfHud',
     'perfHudModes',
-    'getEyeViewport',
-    'setEyeViewport',
     'waitToBeginFrame',
     'beginFrame',
     'commitTextureSwapChain',
@@ -200,8 +223,9 @@ __all__ = [
     'getTrackingOriginType',
     'setTrackingOriginType',
     'recenterTrackingOrigin',
-    'trackerCount',
+    'getTrackerCount',
     'getTrackerInfo',
+    'refreshPerformanceStats',
     'updatePerfStats',
     'getAdaptiveGpuPerformanceScale',
     'getFrameStatsCount',
@@ -221,14 +245,14 @@ __all__ = [
     'getConnectedControllers',
     'updateInputState',
     'getInputTime',
-    'getButtons',
-    'getTouches',
+    'getButton',
+    'getTouch',
     'getThumbstickValues',
     'getIndexTriggerValues',
     'getHandTriggerValues',
     'setControllerVibration',
     'getSessionStatus',
-    'testPointsInFrustum'
+    'anyPointInFrustum'
 ]
 
 from .cimport libovr_capi
@@ -1218,7 +1242,7 @@ cdef class LibOVRPose(object):
     #    pass
 
 
-cdef class LibOVRTrackingState(object):
+cdef class LibOVRPoseState(object):
     """Class for data about rigid body configuration with derivatives computed
     by the LibOVR runtime.
 
@@ -1514,6 +1538,7 @@ cdef class LibOVRHmdInfo(object):
     def __cinit__(self, *args, **kwargs):
         self.c_data = &self.c_ovrHmdDesc
 
+    @property
     def productName(self):
         """Get the product name for this device.
 
@@ -1525,6 +1550,7 @@ cdef class LibOVRHmdInfo(object):
         """
         return self.c_data[0].ProductName.decode('utf-8')
 
+    @property
     def manufacturer(self):
         """Get the device manufacturer name.
 
@@ -1536,6 +1562,7 @@ cdef class LibOVRHmdInfo(object):
         """
         return self.c_data[0].Manufacturer.decode('utf-8')
 
+    @property
     def serialNumber(self):
         """Get the device serial number.
 
@@ -1547,6 +1574,7 @@ cdef class LibOVRHmdInfo(object):
         """
         return self.c_data[0].SerialNumber.decode('utf-8')
 
+    @property
     def resolution(self):
         """Horizontal and vertical resolution of the display in pixels.
 
@@ -1559,6 +1587,7 @@ cdef class LibOVRHmdInfo(object):
         return np.asarray((self.c_data[0].Resolution.w,
                            self.c_data[0].Resolution.h), dtype=int)
 
+    @property
     def refreshRate(self):
         """Nominal refresh rate in Hertz of the display.
 
@@ -1570,6 +1599,7 @@ cdef class LibOVRHmdInfo(object):
         """
         return <float>self.c_data[0].DisplayRefreshRate
 
+    @property
     def hid(self):
         """USB human interface device class identifiers.
 
@@ -1581,6 +1611,7 @@ cdef class LibOVRHmdInfo(object):
         """
         return <int>self.c_data[0].VendorId, <int>self.c_data[0].ProductId
 
+    @property
     def firmwareVersion(self):
         """Firmware version for this device.
 
@@ -2205,7 +2236,7 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
 
     return buffSize.w, buffSize.h
 
-def getSwapChainLengthGL(int swapChain):
+def getTextureSwapChainLengthGL(int swapChain):
     """Get the length of a specified swap chain.
 
     Parameters
@@ -2238,7 +2269,7 @@ def getSwapChainLengthGL(int swapChain):
 
     return result, outLength
 
-def getSwapChainCurrentIndex(int swapChain):
+def getTextureSwapChainCurrentIndex(int swapChain):
     """Get the current buffer index within the swap chain.
 
     Parameters
@@ -2328,14 +2359,14 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
         Swap chain handle to initialize, usually 'LIBOVR_SWAP_CHAIN*'.
     textureFormat : int
         Texture format to use. Valid color texture formats are:
-            - :data:LIBOVR_FORMAT_R8G8B8A8_UNORM
-            - :data:LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB
-            - :data:LIBOVR_FORMAT_R16G16B16A16_FLOAT
-            - :data:LIBOVR_FORMAT_R11G11B10_FLOAT
+            - :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
+            - :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
+            - :data:`LIBOVR_FORMAT_R16G16B16A16_FLOAT`
+            - :data:`LIBOVR_FORMAT_R11G11B10_FLOAT`
         Depth texture formats:
-            - :data:LIBOVR_FORMAT_D16_UNORM
-            - :data:LIBOVR_FORMAT_D24_UNORM_S8_UINT
-            - :data:LIBOVR_FORMAT_D32_FLOAT
+            - :data:`LIBOVR_FORMAT_D16_UNORM`
+            - :data:`LIBOVR_FORMAT_D24_UNORM_S8_UINT`
+            - :data:`LIBOVR_FORMAT_D32_FLOAT`
     width : int
         Width of texture in pixels.
     height : int
@@ -2354,7 +2385,7 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
     Create a texture swap chain::
 
         result = ovr.createTextureSwapChainGL(ovr.LIBOVR_TEXTURE_SWAP_CHAIN0,
-            texWidth, texHeight, 'R8G8B8A8_UNORM_SRGB')
+            texWidth, texHeight, ovr.LIBOVR_FORMAT_R8G8B8A8_UNORM)
         # set the swap chain for each eye buffer
         for eye in range(ovr.LIBOVR_EYE_COUNT):
             hmd.setEyeColorTextureSwapChain(eye, ovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
@@ -2448,10 +2479,10 @@ def createMirrorTexture(int width, int height, int textureFormat=LIBOVR_FORMAT_R
         Height of texture in pixels.
     textureFormat : int
         Color texture format to use, valid texture formats are:
-            - :data:LIBOVR_FORMAT_R8G8B8A8_UNORM,
-            - :data:LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB,
-            - :data:LIBOVR_FORMAT_R16G16B16A16_FLOAT, and
-            - :data:LIBOVR_FORMAT_R11G11B10_FLOAT
+            - :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
+            - :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
+            - :data:`LIBOVR_FORMAT_R16G16B16A16_FLOAT`
+            - :data:`LIBOVR_FORMAT_R11G11B10_FLOAT`
 
     Returns
     -------
@@ -2576,18 +2607,18 @@ def getTrackedPoses(double absTime, bint latencyMarker=True):
     _trackingState = libovr_capi.ovr_GetTrackingState(
         _ptrSession, absTime, use_marker)
 
-    cdef LibOVRTrackingState head_pose = LibOVRTrackingState()
+    cdef LibOVRPoseState head_pose = LibOVRPoseState()
     head_pose.c_data[0] = _trackingState.HeadPose
     head_pose.status_flags = _trackingState.StatusFlags
 
     # for computing app photon-to-motion latency
     _eyeLayer.SensorSampleTime = _trackingState.HeadPose.TimeInSeconds
 
-    cdef LibOVRTrackingState left_hand_pose = LibOVRTrackingState()
+    cdef LibOVRPoseState left_hand_pose = LibOVRPoseState()
     left_hand_pose.c_data[0] = _trackingState.HandPoses[0]
     left_hand_pose.status_flags = _trackingState.HandStatusFlags[0]
 
-    cdef LibOVRTrackingState right_hand_pose = LibOVRTrackingState()
+    cdef LibOVRPoseState right_hand_pose = LibOVRPoseState()
     right_hand_pose.c_data[0] = _trackingState.HandPoses[1]
     right_hand_pose.status_flags = _trackingState.HandStatusFlags[1]
 
@@ -2675,7 +2706,7 @@ def calcEyePoses(LibOVRPose headPose):
         _eyeViewMatrix[eye] = \
             libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
         _eyeViewProjectionMatrix[eye] = \
-            _eyeViewMatrix[eye] * _eyeProjectionMatrix[eye]
+            _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
 def getHmdToEyePoses():
     """HMD to eye poses.
@@ -2776,7 +2807,7 @@ def setEyeRenderPoses(object value):
         _eyeViewMatrix[eye] = \
             libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
         _eyeViewProjectionMatrix[eye] = \
-            _eyeViewMatrix[eye] * _eyeProjectionMatrix[eye]
+            _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
 def getEyeProjectionMatrix(int eye, float nearClip=0.1, float farClip=1000.0):
     """Compute the projection matrix.
@@ -3004,47 +3035,47 @@ def perfHudModes():
     """List of valid performance HUD modes."""
     return [*_performance_hud_modes]
 
-def getEyeViewport(int eye):
-    """Get the viewport for a given eye.
-
-    Parameters
-    ----------
-    eye : int
-        Which eye to set the viewport, where left=0 and right=1.
-
-    """
-    global _eyeLayer
-    cdef libovr_capi.ovrRecti viewportRect = \
-        _eyeLayer.Viewport[eye]
-    cdef np.ndarray to_return = np.asarray(
-        [viewportRect.Pos.x,
-         viewportRect.Pos.y,
-         viewportRect.Size.w,
-         viewportRect.Size.h],
-        dtype=np.float32)
-
-    return to_return
-
-def setEyeViewport(int eye, object rect):
-    """Set the viewport for a given eye.
-
-    Parameters
-    ----------
-    eye : int
-        Which eye to set the viewport, where left=0 and right=1.
-    rect : ndarray, list or tuple of float
-        Rectangle specifying the viewport's position and dimensions on the
-        eye buffer.
-
-    """
-    global _eyeLayer
-    cdef libovr_capi.ovrRecti viewportRect
-    viewportRect.Pos.x = <int>rect[0]
-    viewportRect.Pos.y = <int>rect[1]
-    viewportRect.Size.w = <int>rect[2]
-    viewportRect.Size.h = <int>rect[3]
-
-    _eyeLayer.Viewport[eye] = viewportRect
+# def getEyeViewport(int eye):
+#     """Get the viewport for a given eye.
+#
+#     Parameters
+#     ----------
+#     eye : int
+#         Which eye to set the viewport, where left=0 and right=1.
+#
+#     """
+#     global _eyeLayer
+#     cdef libovr_capi.ovrRecti viewportRect = \
+#         _eyeLayer.Viewport[eye]
+#     cdef np.ndarray to_return = np.asarray(
+#         [viewportRect.Pos.x,
+#          viewportRect.Pos.y,
+#          viewportRect.Size.w,
+#          viewportRect.Size.h],
+#         dtype=np.float32)
+#
+#     return to_return
+#
+# def setEyeViewport(int eye, object rect):
+#     """Set the viewport for a given eye.
+#
+#     Parameters
+#     ----------
+#     eye : int
+#         Which eye to set the viewport, where left=0 and right=1.
+#     rect : ndarray, list or tuple of float
+#         Rectangle specifying the viewport's position and dimensions on the
+#         eye buffer.
+#
+#     """
+#     global _eyeLayer
+#     cdef libovr_capi.ovrRecti viewportRect
+#     viewportRect.Pos.x = <int>rect[0]
+#     viewportRect.Pos.y = <int>rect[1]
+#     viewportRect.Size.w = <int>rect[2]
+#     viewportRect.Size.h = <int>rect[3]
+#
+#     _eyeLayer.Viewport[eye] = viewportRect
 
 def waitToBeginFrame(unsigned int frameIndex=0):
     """Wait until a buffer is available and frame rendering can begin. Must
@@ -3059,9 +3090,9 @@ def waitToBeginFrame(unsigned int frameIndex=0):
     -------
     int
         Return code of the LibOVR API call 'ovr_WaitToBeginFrame'. Returns
-        LIBOVR_SUCCESS if completed without errors. May return
-        LIBOVR_ERROR_DISPLAY_LOST if the device was removed, rendering the
-        current session invalid.
+        :data:`LIBOVR_SUCCESS` if completed without errors. May return
+        :data:`LIBOVR_ERROR_DISPLAY_LOST` if the device was removed, rendering
+        the current session invalid.
 
     """
     global _ptrSession
@@ -3137,8 +3168,9 @@ def endFrame(unsigned int frameIndex=0):
     -------
     int
         Error code returned by API call 'ovr_EndFrame'. Check against
-        LIBOVR_SUCCESS, LIBOVR_SUCCESS_NOT_VISIBLE,
-        LIBOVR_SUCCESS_BOUNDARY_INVALID, LIBOVR_SUCCESS_DEVICE_UNAVAILABLE.
+        :data:`LIBOVR_SUCCESS`, :data:`LIBOVR_SUCCESS_NOT_VISIBLE`,
+        :data:`LIBOVR_SUCCESS_BOUNDARY_INVALID`,
+        :data:`LIBOVR_SUCCESS_DEVICE_UNAVAILABLE`.
 
     Raises
     ------
@@ -3217,7 +3249,7 @@ def recenterTrackingOrigin():
 
     return result
 
-def trackerCount():
+def getTrackerCount():
     """Get the number of attached trackers."""
     global _ptrSession
     cdef unsigned int trackerCount = libovr_capi.ovr_GetTrackerCount(
@@ -3232,7 +3264,7 @@ def getTrackerInfo(int trackerIndex):
     ----------
     trackerIndex : int
         The index of the sensor to query. Valid values are between 0 and
-        '~LibOVRSession.trackerCount'.
+        'getTrackerCount()'.
 
     """
     cdef LibOVRTrackerInfo to_return = LibOVRTrackerInfo()
@@ -3257,19 +3289,19 @@ def refreshPerformanceStats():
 
     """
     global _ptrSession
-    global _perfStats
+    global _frameStats
     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetPerfStats(
         _ptrSession,
-        &_perfStats)
+        &_frameStats)
 
     # clear
     cdef list compFrameStats = list()
 
     cdef int statIdx = 0
-    cdef int numStats = _perfStats.FrameStatsCount
+    cdef int numStats = _frameStats.FrameStatsCount
     for statIdx in range(numStats):
-        frameStat = LibOVRCompFramePerfStat()
-        frameStat.c_data[0] = _perfStats.FrameStats[statIdx]
+        frameStat = LibOVRFrameStat()
+        frameStat.c_data[0] = _frameStats.FrameStats[statIdx]
         compFrameStats.append(frameStat)
 
     return result
@@ -3288,7 +3320,7 @@ def updatePerfStats():
     global _lastFrameStats
 
     if _frameStats.FrameStatsCount > 0:
-        if _frameStats.HmdVsyncIndex > 0:
+        if _frameStats.FrameStats[0].HmdVsyncIndex > 0:
             # copy last frame stats
             _lastFrameStats = _frameStats.FrameStats[0]
 
@@ -3347,8 +3379,8 @@ def checkAswIsAvailable():
 def getVisibleProcessId():
     """Process ID which the performance stats are currently being polled.
 
-    Result
-    ------
+    Returns
+    -------
     int
         Process ID.
 
@@ -3369,7 +3401,7 @@ def checkAppLastFrameDropped():
     global _frameStats
 
     if _frameStats.FrameStatsCount > 0:
-        if _frameStats.HmdVsyncIndex > 0:
+        if _frameStats.FrameStats[0].HmdVsyncIndex > 0:
             return _frameStats.FrameStats[0].AppDroppedFrameCount > \
                    _lastFrameStats.AppDroppedFrameCount
 
@@ -3388,7 +3420,7 @@ def checkCompLastFrameDropped():
     global _frameStats
 
     if _frameStats.FrameStatsCount > 0:
-        if _frameStats.HmdVsyncIndex > 0:
+        if _frameStats.FrameStats[0].HmdVsyncIndex > 0:
             return _frameStats.FrameStats[0].CompositorDroppedFrameCount > \
                    _lastFrameStats.CompositorDroppedFrameCount
 
@@ -3616,29 +3648,44 @@ def getConnectedControllers():
 
     return result, controllerTypes
 
-def updateInputState(str controller):
+def updateInputState(int controller):
     """Refresh the input state of a controller.
 
     Parameters
     ----------
-    controller : str
-        Controller name to poll. Valid names are: 'Xbox', 'Remote', 'Touch',
-        'LeftTouch', and 'RightTouch'.
+    controller : int
+        Controller name. Valid values are:
+            - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+            - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+            - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+            - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+            - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
     """
     global _prevInputState
     global _inputStates
     global _ptrSession
 
-    # convert the string to an index
-    cdef dict idx = {'Xbox' : 0, 'Remote' : 1, 'Touch' : 2, 'LeftTouch' : 3,
-                     'RightTouch' : 4}
+    # get the controller index in the states array
+    cdef int idx
+    if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
+        idx = 0
+    elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
+        idx = 1
+    elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
+        idx = 2
+    elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
+        idx = 3
+    elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
+        idx = 4
+    else:
+        raise ValueError("Invalid controller type specified.")
 
     # pointer to the current and previous input state
     cdef libovr_capi.ovrInputState* previousInputState = \
-        &_prevInputState[idx[controller]]
+        &_prevInputState[idx]
     cdef libovr_capi.ovrInputState* currentInputState = \
-        &_inputStates[idx[controller]]
+        &_inputStates[idx]
 
     # copy the current input state into the previous before updating
     previousInputState[0] = currentInputState[0]
@@ -3658,11 +3705,11 @@ def getInputTime(int controller):
     ----------
     controller : int
         Controller name. Valid values are:
-            - :data:LIBOVR_CONTROLLER_TYPE_XBOX : XBox gamepad.
-            - :data:LIBOVR_CONTROLLER_TYPE_REMOTE : Oculus Remote.
-            - :data:LIBOVR_CONTROLLER_TYPE_TOUCH : Combined Touch controllers.
-            - :data:LIBOVR_CONTROLLER_TYPE_LTOUCH : Left Touch controller.
-            - :data:LIBOVR_CONTROLLER_TYPE_RTOUCH : Right Touch controller.
+            - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+            - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+            - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+            - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+            - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
     Returns
     -------
@@ -3690,8 +3737,7 @@ def getInputTime(int controller):
         raise ValueError("Invalid controller type specified.")
 
     # pointer to the current and previous input state
-    cdef libovr_capi.ovrInputState* currentInputState = \
-        &_inputStates[idx[controller]]
+    cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]
 
     return currentInputState.TimeInSeconds
 
@@ -3714,37 +3760,37 @@ def getButton(int controller, int button, str testState='continuous'):
     controller : int
         Controller name. Valid values are:
 
-        - :data:LIBOVR_CONTROLLER_TYPE_XBOX : XBox gamepad.
-        - :data:LIBOVR_CONTROLLER_TYPE_REMOTE : Oculus Remote.
-        - :data:LIBOVR_CONTROLLER_TYPE_TOUCH : Combined Touch controllers.
-        - :data:LIBOVR_CONTROLLER_TYPE_LTOUCH : Left Touch controller.
-        - :data:LIBOVR_CONTROLLER_TYPE_RTOUCH : Right Touch controller.
+        - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
     button : int
         Button to check. Values can be ORed together to test for multiple button
         presses. If a given controller does not have a particular button, False
         will always be returned. Valid button values are:
 
-        - :data:LIBOVR_BUTTON_A
-        - :data:LIBOVR_BUTTON_B
-        - :data:LIBOVR_BUTTON_RTHUMB
-        - :data:LIBOVR_BUTTON_RSHOULDER
-        - :data:LIBOVR_BUTTON_X
-        - :data:LIBOVR_BUTTON_Y
-        - :data:LIBOVR_BUTTON_LTHUMB
-        - :data:LIBOVR_BUTTON_LSHOULDER
-        - :data:LIBOVR_BUTTON_UP
-        - :data:LIBOVR_BUTTON_DOWN
-        - :data:LIBOVR_BUTTON_LEFT
-        - :data:LIBOVR_BUTTON_RIGHT
-        - :data:LIBOVR_BUTTON_ENTER
-        - :data:LIBOVR_BUTTON_BACK
-        - :data:LIBOVR_BUTTON_VOLUP
-        - :data:LIBOVR_BUTTON_VOLDOWN
-        - :data:LIBOVR_BUTTON_HOME
-        - :data:LIBOVR_BUTTON_PRIVATE
-        - :data:LIBOVR_BUTTON_RMASK
-        - :data:LIBOVR_BUTTON_LMASK
+        - :data:`LIBOVR_BUTTON_A`
+        - :data:`LIBOVR_BUTTON_B`
+        - :data:`LIBOVR_BUTTON_RTHUMB`
+        - :data:`LIBOVR_BUTTON_RSHOULDER`
+        - :data:`LIBOVR_BUTTON_X`
+        - :data:`LIBOVR_BUTTON_Y`
+        - :data:`LIBOVR_BUTTON_LTHUMB`
+        - :data:`LIBOVR_BUTTON_LSHOULDER`
+        - :data:`LIBOVR_BUTTON_UP`
+        - :data:`LIBOVR_BUTTON_DOWN`
+        - :data:`LIBOVR_BUTTON_LEFT`
+        - :data:`LIBOVR_BUTTON_RIGHT`
+        - :data:`LIBOVR_BUTTON_ENTER`
+        - :data:`LIBOVR_BUTTON_BACK`
+        - :data:`LIBOVR_BUTTON_VOLUP`
+        - :data:`LIBOVR_BUTTON_VOLDOWN`
+        - :data:`LIBOVR_BUTTON_HOME`
+        - :data:`LIBOVR_BUTTON_PRIVATE`
+        - :data:`LIBOVR_BUTTON_RMASK`
+        - :data:`LIBOVR_BUTTON_LMASK`
 
     testState : str
         State to test buttons for. Valid states are 'rising', 'falling',
@@ -3797,21 +3843,21 @@ def getButton(int controller, int button, str testState='continuous'):
     # test if the button was pressed
     cdef bint stateResult = False
     if testState == 'continuous':
-        stateResult = (curButtons & buttonBits) == buttonBits
+        stateResult = (curButtons & button) == button
     elif testState == 'rising' or testState == 'pressed':
         # rising edge, will trigger once when pressed
-        stateResult = (curButtons & buttonBits) == buttonBits and \
-                      (prvButtons & buttonBits) != buttonBits
+        stateResult = (curButtons & button) == button and \
+                      (prvButtons & button) != button
     elif testState == 'falling' or testState == 'released':
         # falling edge, will trigger once when released
-        stateResult = (curButtons & buttonBits) != buttonBits and \
-                      (prvButtons & buttonBits) == buttonBits
+        stateResult = (curButtons & button) != button and \
+                      (prvButtons & button) == button
     else:
         raise ValueError("Invalid trigger mode specified.")
 
     return stateResult, t_sec
 
-def getTouches(str controller, object touchNames, str testState='continuous'):
+def getTouch(str controller, object touch, str testState='continuous'):
     """Get touches for a specified device.
 
     Touches reveal information about the user's hand pose, for instance,
@@ -3825,11 +3871,35 @@ def getTouches(str controller, object touchNames, str testState='continuous'):
 
     Parameters
     ----------
-    controller : str
-        Controller name to poll. Valid names are: 'Xbox', 'Remote', 'Touch',
-        'LeftTouch', and 'RightTouch'.
-    touchNames : tuple of str, list of str, or str
-        Touch names to test for state changes.
+    controller : int
+        Controller name. Valid values are:
+
+        - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+
+    button : int
+        Button to check. Values can be ORed together to test for multiple button
+        presses. If a given controller does not have a particular button, False
+        will always be returned. Valid button values are:
+
+        - :data:`LIBOVR_TOUCH_A`
+        - :data:`LIBOVR_TOUCH_B`
+        - :data:`LIBOVR_TOUCH_RTHUMB`
+        - :data:`LIBOVR_TOUCH_RSHOULDER`
+        - :data:`LIBOVR_TOUCH_X`
+        - :data:`LIBOVR_TOUCH_Y`
+        - :data:`LIBOVR_TOUCH_LTHUMB`
+        - :data:`LIBOVR_TOUCH_LSHOULDER`
+        - :data:`LIBOVR_TOUCH_LINDEXTRIGGER`
+        - :data:`LIBOVR_TOUCH_LINDEXTRIGGER`
+        - :data:`LIBOVR_TOUCH_RINDEXPOINTING`
+        - :data:`LIBOVR_TOUCH_RTHUMBUP`
+        - :data:`LIBOVR_TOUCH_LINDEXPOINTING`
+        - :data:`LIBOVR_TOUCH_LTHUMBUP`
+
     testState : str
         State to test buttons for. Valid states are 'rising', 'falling',
         'continuous', 'pressed', and 'released'.
@@ -3839,60 +3909,74 @@ def getTouches(str controller, object touchNames, str testState='continuous'):
     tuple of bool and float
         Result of the touches and the time in seconds it was polled.
 
-    """
-    # convert the string to an index
-    cdef dict idx = {'Xbox' : 0, 'Remote' : 1, 'Touch' : 2, 'LeftTouch' : 3,
-                     'RightTouch' : 4}
+    Notes
+    -----
+    Not every controller type supports touch.
 
+    """
     global _prevInputState
     global _inputStates
 
-    cdef double t_sec = _inputStates[idx[controller]].TimeInSeconds
+    # get the controller index in the states array
+    cdef int idx
+    if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
+        idx = 0
+    elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
+        idx = 1
+    elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
+        idx = 2
+    elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
+        idx = 3
+    elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
+        idx = 4
+    else:
+        raise ValueError("Invalid controller type specified.")
+
+    # get the time the controller was polled
+    cdef double t_sec = _inputStates[idx].TimeInSeconds
 
     # pointer to the current and previous input state
-    cdef unsigned int curTouches = \
-        _inputStates[idx[controller]].Touches
-    cdef unsigned int prvTouches = \
-        _prevInputState[idx[controller]].Touches
-
-    # generate a bit mask for testing button presses
-    cdef unsigned int touchBits = 0x00000000
-    cdef int i, N
-    if isinstance(touchNames, str):  # don't loop if a string is specified
-        touchBits |= _touch_states[touchNames]
-    elif isinstance(touchNames, (tuple, list)):
-        # loop over all names and combine them
-        N = <int>len(touchNames)
-        for i in range(N):
-            touchBits |= _touch_states[touchNames[i]]
+    cdef unsigned int curTouches = _inputStates[idx].Touches
+    cdef unsigned int prvTouches = _prevInputState[idx].Touches
 
     # test if the button was pressed
     cdef bint stateResult = False
     if testState == 'continuous':
-        stateResult = (curTouches & touchBits) == touchBits
+        stateResult = (curTouches & touch) == touch
     elif testState == 'rising' or testState == 'pressed':
         # rising edge, will trigger once when pressed
-        stateResult = (curTouches & touchBits) == touchBits and \
-                      (prvTouches & touchBits) != touchBits
+        stateResult = (curTouches & touch) == touch and \
+                      (prvTouches & touch) != touch
     elif testState == 'falling' or testState == 'released':
         # falling edge, will trigger once when released
-        stateResult = (curTouches & touchBits) != touchBits and \
-                      (prvTouches & touchBits) == touchBits
+        stateResult = (curTouches & touch) != touch and \
+                      (prvTouches & touch) == touch
     else:
         raise ValueError("Invalid trigger mode specified.")
 
     return stateResult, t_sec
 
-def getThumbstickValues(str controller, bint deadzone=False):
+def getThumbstickValues(int controller, bint deadzone=False):
     """Get thumbstick values."""
-    cdef dict idx = {'Xbox' : 0, 'Touch' : 2, 'LeftTouch' : 3,
-                     'RightTouch' : 4}
-
     global _inputStates
 
+    # get the controller index in the states array
+    cdef int idx
+    if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
+        idx = 0
+    elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
+        idx = 1
+    elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
+        idx = 2
+    elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
+        idx = 3
+    elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
+        idx = 4
+    else:
+        raise ValueError("Invalid controller type specified.")
+
     # pointer to the current and previous input state
-    cdef libovr_capi.ovrInputState* currentInputState = \
-        &_inputStates[idx[controller]]
+    cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]
 
     cdef float thumbstick_x0 = 0.0
     cdef float thumbstick_y0 = 0.0
@@ -3912,17 +3996,28 @@ def getThumbstickValues(str controller, bint deadzone=False):
 
     return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
 
-def getIndexTriggerValues(str controller, bint deadzone=False):
+def getIndexTriggerValues(int controller, bint deadzone=False):
     """Get index trigger values."""
     # convert the string to an index
-    cdef dict idx = {'Xbox' : 0, 'Remote' : 1, 'Touch' : 2, 'LeftTouch' : 3,
-                     'RightTouch' : 4}
-
     global _inputStates
 
+    # get the controller index in the states array
+    cdef int idx
+    if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
+        idx = 0
+    elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
+        idx = 1
+    elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
+        idx = 2
+    elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
+        idx = 3
+    elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
+        idx = 4
+    else:
+        raise ValueError("Invalid controller type specified.")
+
     # pointer to the current and previous input state
-    cdef libovr_capi.ovrInputState* currentInputState = \
-        &_inputStates[idx[controller]]
+    cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]
 
     cdef float indexTriggerLeft = 0.0
     cdef float indexTriggerRight = 0.0
@@ -3938,15 +4033,25 @@ def getIndexTriggerValues(str controller, bint deadzone=False):
 
 def getHandTriggerValues(str controller, bint deadzone=False):
     """Get hand trigger values."""
-    # convert the string to an index
-    cdef dict idx = {'Xbox' : 0, 'Touch' : 2, 'LeftTouch' : 3,
-                     'RightTouch' : 4}
-
     global _inputStates
 
+    # get the controller index in the states array
+    cdef int idx
+    if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
+        idx = 0
+    elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
+        idx = 1
+    elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
+        idx = 2
+    elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
+        idx = 3
+    elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
+        idx = 4
+    else:
+        raise ValueError("Invalid controller type specified.")
+
     # pointer to the current and previous input state
-    cdef libovr_capi.ovrInputState* currentInputState = \
-        &_inputStates[idx[controller]]
+    cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]
 
     cdef float indexTriggerLeft = 0.0
     cdef float indexTriggerRight = 0.0
@@ -3960,7 +4065,7 @@ def getHandTriggerValues(str controller, bint deadzone=False):
 
     return indexTriggerLeft, indexTriggerRight
 
-def setControllerVibration(str controller, str frequency, float amplitude):
+def setControllerVibration(int controller, str frequency, float amplitude):
     """Vibrate a controller.
 
     Vibration is constant at fixed frequency and amplitude. Vibration lasts
@@ -3974,9 +4079,13 @@ def setControllerVibration(str controller, str frequency, float amplitude):
 
     Parameters
     ----------
-    controller : str
-        Controller name to vibrate. Valid names are: 'Xbox', 'Touch',
-        'LeftTouch', and 'RightTouch'.
+    controller : int
+        Controller name. Valid values are:
+        - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
     frequency : str
         Vibration frequency. Valid values are: 'off', 'low', or 'high'.
     amplitude : float
@@ -4003,15 +4112,9 @@ def setControllerVibration(str controller, str frequency, float amplitude):
     else:
         raise RuntimeError("Invalid frequency specified.")
 
-    cdef dict _controller_types = {
-        'Xbox' : libovr_capi.ovrControllerType_XBox,
-        'Touch' : libovr_capi.ovrControllerType_Touch,
-        'LeftTouch' : libovr_capi.ovrControllerType_LTouch,
-        'RightTouch' : libovr_capi.ovrControllerType_RTouch}
-
     cdef libovr_capi.ovrResult result = libovr_capi.ovr_SetControllerVibration(
         _ptrSession,
-        <libovr_capi.ovrControllerType>_controller_types[controller],
+        <libovr_capi.ovrControllerType>controller,
         freq,
         amplitude)
 
@@ -4033,28 +4136,26 @@ def getSessionStatus():
 
     return to_return
 
-def testPointsInFrustum(object points, str condition='any'):
-    """Check if points in world/scene coordinates are within the viewing
-    frustum of either eye.
+def anyPointInFrustum(object points):
+    """Check if any of the specified points in world/scene coordinates are
+    within the viewing frustum of either eye.
 
     This can be used to determine whether or not something should be drawn by
-    passing its position or bounding box points.
+    specifying its position, mesh or bounding box vertices. The function will
+    return True immediately when it comes across a point that falls within
+    either eye's frustum.
 
     Parameters
     ----------
     points : tuple, list, or ndarray
         2D array of points to test. Each coordinate should be in format
-        [x, y ,z], where dimensions are in meters.
-    condition : str
-        Condition to check. Can be 'any' or 'all' of the points. If 'any' the
-        function returns True immediately if a point falls within the frustum.
-        When 'all' is used, the function returns False when it comes across a
-        point which falls outside of the frustum.
+        [x, y ,z], where dimensions are in meters. Passing a NumPy ndarray with
+        dtype=float32 and ndim=2 will avoid copying.
 
     Returns
     -------
     bool
-        True if the point falls within either eye's frustum.
+        True if any point specified falls inside a viewing frustum.
 
     Examples
     --------
@@ -4063,19 +4164,15 @@ def testPointsInFrustum(object points, str condition='any'):
         points = [[1.2, -0.2, -5.6], [-0.01, 0.0, -10.0]]
         isVisible = ovr.testPointsInFrustum(points)
 
-    Notes
-    -----
-    Passing a 2D Numpy array with dtype=float32 is recommended to avoid copying.
-
     """
     # eventually we're going to move this function if we decide to support more
     # HMDs. This really isn't something specific to LibOVR.
 
     # input values to 2D memory view
     cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
-        np.asarray(points, dtype=np.float32)
+        np.array(points, dtype=np.float32, ndmin=2, copy=False)
 
-    if points.shape[1] != 3:
+    if pointsIn.shape[1] != 3:
         raise ValueError("Invalid number of columns, must be 3.")
 
     cdef float[:,:] mvPoints = pointsIn
@@ -4083,54 +4180,32 @@ def testPointsInFrustum(object points, str condition='any'):
     # intermediates
     cdef libovr_math.Vector4f vecIn
     cdef libovr_math.Vector4f pointHCS
-    cdef float[3] pointNDC
+    cdef libovr_math.Vector3f pointNDC
 
-    cdef int checkAll
-    if condition == 'all':
-        checkAll = 1
-    elif condition == 'any':
-        checkAll = 0
-    else:
-        raise ValueError("Invalid condition specified.")
-
-    cdef int eye = 0
+    # loop over all points specified
+    cdef Py_ssize_t eye = 0
     cdef Py_ssize_t pt = 0
-    cdef Py_ssize_t N = mvPoints.shape[1]
+    cdef Py_ssize_t N = mvPoints.shape[0]
     for pt in range(N):
         for eye in range(libovr_capi.ovrEye_Count):
             vecIn.x = mvPoints[pt, 0]
             vecIn.y = mvPoints[pt, 1]
             vecIn.z = mvPoints[pt, 2]
+            vecIn.w = 1.0
             pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
 
-            # too close to the singularity for perspective division, fail
+            # too close to the singularity for perspective division or behind
+            # the viewer, fail automatically
             if pointHCS.w < 0.0001:
-                if not checkAll:
-                    return False
-                else:
-                    continue
+                return False
 
-            pointNDC[0] = pointHCS.x
-            pointNDC[1] = pointHCS.y
-            pointNDC[2] = pointHCS.z
+            # perspective division XYZ / W
+            pointNDC.x = pointHCS.x / pointHCS.w
+            pointNDC.y = pointHCS.y / pointHCS.w
+            pointNDC.z = pointHCS.z / pointHCS.w
 
-            pointNDC[0] /= pointHCS.w
-            pointNDC[1] /= pointHCS.w
-            pointNDC[2] /= pointHCS.w
+            # check if outside [-1:1] in any NDC dimension
+            if -1.0 < pointNDC.x < 1.0 and -1.0 < pointNDC.y < 1.0 and -1.0 < pointNDC.z < 1.0:
+                return True
 
-            if checkAll:
-                if -1.0 > pointNDC[0] > 1.0:
-                    return False
-                elif -1.0 > pointNDC[1] > 1.0:
-                    return False
-                elif -1.0 > pointNDC[2] > 1.0:
-                    return False
-            else:
-                if -1.0 <= pointNDC[0] <= 1.0:
-                    return True
-                elif -1.0 <= pointNDC[1] <= 1.0:
-                    return True
-                elif -1.0 <= pointNDC[2] <= 1.0:
-                    return True
-
-    return True if checkAll else False
+    return False
