@@ -3,7 +3,7 @@
 #  Python Interface Module for LibOVR
 #  =============================================================================
 #
-#  libovr.pyx
+#  _libovr.pyx
 #
 #  Copyright 2019 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University,
@@ -2121,7 +2121,7 @@ def getEyeRenderFov(int eye):
     --------
     Getting the tangent angles::
 
-        leftFov = ovr.getEyeRenderFOV(ovr.LIBOVR_EYE_LEFT)
+        leftFov = libovr.getEyeRenderFOV(libovr.LIBOVR_EYE_LEFT)
         # left FOV tangent angles, do the same for the right
         upTan, downTan, leftTan, rightTan =  leftFov
 
@@ -2152,14 +2152,14 @@ def setEyeRenderFov(int eye, object fov):
 
     Setting eye render FOVs to symmetric (needed for mono rendering)::
 
-        leftFov, rightFov = ovr.getSymmetricEyeFOVs()
-        ovr.setEyeRenderFOV(ovr.LIBOVR_EYE_LEFT, leftFov)
-        ovr.setEyeRenderFOV(ovr.LIBOVR_EYE_RIGHT, rightFov)
+        leftFov, rightFov = libovr.getSymmetricEyeFOVs()
+        libovr.setEyeRenderFOV(libovr.LIBOVR_EYE_LEFT, leftFov)
+        libovr.setEyeRenderFOV(libovr.LIBOVR_EYE_RIGHT, rightFov)
 
     Using custom values::
 
         # Up, Down, Left, Right tan angles
-        ovr.setEyeRenderFOV(ovr.LIBOVR_EYE_LEFT, [1.0, -1.0, -1.0, 1.0])
+        libovr.setEyeRenderFOV(libovr.LIBOVR_EYE_LEFT, [1.0, -1.0, -1.0, 1.0])
 
     """
     global _ptrSession
@@ -2207,11 +2207,11 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
     Getting the buffer sizes::
 
         # eye FOVs must be set first!
-        leftFov, rightFov = ovr.getDefaultEyeFOVs()
-        ovr.setEyeRenderFOV(ovr.LIBOVR_EYE_LEFT, leftFov)
-        ovr.setEyeRenderFOV(ovr.LIBOVR_EYE_RIGHT, rightFov)
+        leftFov, rightFov = libovr.getDefaultEyeFOVs()
+        libovr.setEyeRenderFOV(libovr.LIBOVR_EYE_LEFT, leftFov)
+        libovr.setEyeRenderFOV(libovr.LIBOVR_EYE_RIGHT, rightFov)
 
-        leftBufferSize, rightBufferSize = ovr.calcEyeBufferSize()
+        leftBufferSize, rightBufferSize = libovr.calcEyeBufferSize()
         leftW leftH = leftBufferSize
         rightW, rightH = rightBufferSize
         # combined size if using a single texture buffer for both eyes
@@ -2326,7 +2326,7 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
     Get the OpenGL texture buffer name associated with the swap chain index::
 
         # get the current available index
-        swapChain = ovr.LIBOVR_TEXTURE_SWAP_CHAIN0
+        swapChain = libovr.LIBOVR_TEXTURE_SWAP_CHAIN0
         result, currentIdx = hmd.getSwapChainCurrentIndex(swapChain)
 
         # get the OpenGL buffer name
@@ -2384,11 +2384,11 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
 
     Create a texture swap chain::
 
-        result = ovr.createTextureSwapChainGL(ovr.LIBOVR_TEXTURE_SWAP_CHAIN0,
-            texWidth, texHeight, ovr.LIBOVR_FORMAT_R8G8B8A8_UNORM)
+        result = libovr.createTextureSwapChainGL(libovr.LIBOVR_TEXTURE_SWAP_CHAIN0,
+            texWidth, texHeight, libovr.LIBOVR_FORMAT_R8G8B8A8_UNORM)
         # set the swap chain for each eye buffer
-        for eye in range(ovr.LIBOVR_EYE_COUNT):
-            hmd.setEyeColorTextureSwapChain(eye, ovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
+        for eye in range(libovr.LIBOVR_EYE_COUNT):
+            hmd.setEyeColorTextureSwapChain(eye, libovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
 
     """
     global _swapChains
@@ -2437,26 +2437,26 @@ def setEyeColorTextureSwapChain(int eye, int swapChain):
 
     Associate the swap chain with both eyes (single buffer for stereo views)::
 
-        ovr.setEyeColorTextureSwapChain(
-            ovr.LIBOVR_EYE_LEFT, ovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
-        ovr.setEyeColorTextureSwapChain(
-            ovr.LIBOVR_EYE_RIGHT, ovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
+        libovr.setEyeColorTextureSwapChain(
+            libovr.LIBOVR_EYE_LEFT, libovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
+        libovr.setEyeColorTextureSwapChain(
+            libovr.LIBOVR_EYE_RIGHT, libovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
 
         # same as above but with a loop
-        for eye in range(ovr.LIBOVR_EYE_COUNT):
-            ovr.setEyeColorTextureSwapChain(eye, ovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
+        for eye in range(libovr.LIBOVR_EYE_COUNT):
+            libovr.setEyeColorTextureSwapChain(eye, libovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
 
     Associate a swap chain with each eye (separate buffer for stereo views)::
 
-        ovr.setEyeColorTextureSwapChain(
-            ovr.LIBOVR_EYE_LEFT, ovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
-        ovr.setEyeColorTextureSwapChain(
-            ovr.LIBOVR_EYE_RIGHT, ovr.LIBOVR_TEXTURE_SWAP_CHAIN1)
+        libovr.setEyeColorTextureSwapChain(
+            libovr.LIBOVR_EYE_LEFT, libovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
+        libovr.setEyeColorTextureSwapChain(
+            libovr.LIBOVR_EYE_RIGHT, libovr.LIBOVR_TEXTURE_SWAP_CHAIN1)
 
         # with a loop ...
-        for eye in range(ovr.LIBOVR_EYE_COUNT):
-            ovr.setEyeColorTextureSwapChain(
-                eye, ovr.LIBOVR_TEXTURE_SWAP_CHAIN0 + eye)
+        for eye in range(libovr.LIBOVR_EYE_COUNT):
+            libovr.setEyeColorTextureSwapChain(
+                eye, libovr.LIBOVR_TEXTURE_SWAP_CHAIN0 + eye)
 
     """
     global _swapChains
@@ -2542,8 +2542,8 @@ def getMirrorTexture():
     Getting the mirror texture for use::
 
         # get the mirror texture
-        result, mirrorTexId = ovr.getMirrorTexture()
-        if ovr.LIBOVR_FAILURE(result):
+        result, mirrorTexId = libovr.getMirrorTexture()
+        if libovr.LIBOVR_FAILURE(result):
             # raise error ...
         # bind the mirror texture texture to the framebuffer
         GL.glFramebufferTexture2D(
@@ -2813,7 +2813,7 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.1, float farClip=1000.0):
     """Compute the projection matrix.
 
     The projection matrix is computed by the runtime using the eye FOV
-    parameters set with '~ovr.LibOVRSession.setEyeRenderFov' calls.
+    parameters set with '~libovr.LibOVRSession.setEyeRenderFov' calls.
 
     Parameters
     ----------
@@ -2900,7 +2900,7 @@ def setEyeRenderViewport(int eye, object values):
 
         # Calculate the optimal eye buffer sizes for the FOVs, these will define the
         # dimensions of the render target.
-        leftBufferSize, rightBufferSize = ovr.calcEyeBufferSizes()
+        leftBufferSize, rightBufferSize = libovr.calcEyeBufferSizes()
         # Define the viewports, which specifies the region on the render target a
         # eye's image will be drawn to and accessed from. Viewports are rectangles
         # defined like [x, y, w, h]. The x-position of the rightViewport is offset
@@ -2908,8 +2908,8 @@ def setEyeRenderViewport(int eye, object values):
         leftViewport = [0, 0, leftBufferSize[0], leftBufferSize[1]]
         rightViewport = [leftBufferSize[0], 0, rightBufferSize[0], rightBufferSize[1]]
         # set both viewports
-        ovr.setEyeRenderViewport(ovr.LIBOVR_EYE_LEFT, leftViewport)
-        ovr.setEyeRenderViewport(ovr.LIBOVR_EYE_RIGHT, rightViewport)
+        libovr.setEyeRenderViewport(libovr.LIBOVR_EYE_LEFT, leftViewport)
+        libovr.setEyeRenderViewport(libovr.LIBOVR_EYE_RIGHT, rightViewport)
 
     """
     global _eyeLayer
@@ -3616,9 +3616,9 @@ def getConnectedControllerTypes():
 
     Check if the Xbox gamepad is connected::
 
-        connected = ovr.getConnectedControllerTypes()
-        isConnected = (connected & ovr.LIBOVR_CONTROLLER_TYPE_XBOX) == \
-            ovr.LIBOVR_CONTROLLER_TYPE_XBOX
+        connected = libovr.getConnectedControllerTypes()
+        isConnected = (connected & libovr.LIBOVR_CONTROLLER_TYPE_XBOX) == \
+            libovr.LIBOVR_CONTROLLER_TYPE_XBOX
 
     """
     global _ptrSession
@@ -3784,14 +3784,14 @@ def getButton(int controller, int button, str testState='continuous'):
     --------
     Check if the 'X' button on the touch controllers was pressed::
 
-        isPressed = ovr.getButtons(ovr.LIBOVR_CONTROLLER_TYPE_TOUCH,
-            ovr.LIBOVR_BUTTON_X, 'pressed')
+        isPressed = libovr.getButtons(libovr.LIBOVR_CONTROLLER_TYPE_TOUCH,
+            libovr.LIBOVR_BUTTON_X, 'pressed')
 
     Test for multiple buttons ('X' and 'Y') released::
 
-        buttons = ovr.LIBOVR_BUTTON_X | ovr.LIBOVR_BUTTON_Y
-        controller = ovr.LIBOVR_CONTROLLER_TYPE_TOUCH
-        isReleased = ovr.getButtons(controller, buttons, 'released')
+        buttons = libovr.LIBOVR_BUTTON_X | libovr.LIBOVR_BUTTON_Y
+        controller = libovr.LIBOVR_CONTROLLER_TYPE_TOUCH
+        isReleased = libovr.getButtons(controller, buttons, 'released')
 
     """
     global _prevInputState
@@ -4141,7 +4141,7 @@ def anyPointInFrustum(object points):
     Test if points fall within a viewing frustum::
 
         points = [[1.2, -0.2, -5.6], [-0.01, 0.0, -10.0]]
-        isVisible = ovr.testPointsInFrustum(points)
+        isVisible = libovr.testPointsInFrustum(points)
 
     """
     # eventually we're going to move this function if we decide to support more

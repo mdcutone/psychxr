@@ -4,8 +4,8 @@ import OpenGL.GL as GL
 import ctypes
 import glfw
 import numpy as np
-import psychxr.ovr.capi as capi
-import psychxr.ovr.math as vrmath
+import psychxr.libovr.capi as capi
+import psychxr.libovr.math as vrmath
 capi.debug_mode = True
 import sys
 
