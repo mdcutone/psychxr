@@ -33,11 +33,10 @@ proprietary Oculus PC SDK.
 This extension module makes use of the official Oculus PC SDK. A C/C++ interface
 for tracking, rendering, and VR math for Oculus products. The Oculus PC SDK is
 Copyright (c) Facebook Technologies, LLC and its affiliates. All rights
-reserved. You must accept the EULA, Terms of Use and Privacy Policy associated
-with the Oculus PC SDK to use this module in your software (which you did when
-you downloaded the SDK to build this module), if not see
-https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/ for more
-information.
+reserved. You must accept the 'EULA', 'Terms of Use' and 'Privacy Policy'
+associated with the Oculus PC SDK to use this module in your software (which you
+did when you downloaded the SDK to build this module, didn't ya?), if not see
+https://www.oculus.com/legal/terms-of-service/ to access those documents.
 
 """
 # ------------------
