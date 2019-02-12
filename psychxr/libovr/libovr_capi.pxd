@@ -1,6 +1,6 @@
 # distutils: language=c++
 #  =============================================================================
-#  OVR C API (OVR_CAPI.h) Cython Declaration File 
+#  OVR C API Cython Declaration File
 #  =============================================================================
 #
 #  libovr_capi.pxd
