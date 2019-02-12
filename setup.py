@@ -28,24 +28,9 @@
 Installation is straightforward as long as your build environment is properly
 configured. Significant portions of this library are written in Cython which is
 converted to C++ code. Therefore, you must have a C++ compiler and SDKs
-installed prior to building PsychXR from source.
-
-First, you must configure the installer to build extensions for a target HMD
-API. As of now, only the Oculus PC SDK is supported, therefore only one
-configuration command is available. Command arguments are used to specify API
-specific build options. You must indicate where the compiler can find header
-and library files. See the example command below:
-
-    python setup.py libovr --include-dir=C:\OculusSDK\LibOVR\Include
-        --lib-dir=C:\OculusSDK\...\VS2015
-
-After running the above command, build the library by calling:
-
-    python setup.py build
-
-NOTE: On Windows, you need to use the "Visual C++ 2015 (or 2017) Native Build
-Tools Command Prompt" when executing the above commands. Make sure your
-LibOVR.lib file matches the version of Visual C++ you are using!
+installed prior to building PsychXR from source. See
+https://github.com/mdcutone/psychxr/blob/master/README.md for instructions on
+how to build from source.
 
 """
 import os
