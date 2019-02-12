@@ -22,6 +22,18 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 #
+"""This extension module exposes VR math primitives and functions from the
+Oculus PC SDK.
+
+This extension module makes use of the official Oculus PC SDK. A C/C++ interface
+for tracking, rendering, and VR math for Oculus products. The Oculus PC SDK is
+Copyright (c) Facebook Technologies, LLC and its affiliates. All rights
+reserved. You must accept the 'EULA', 'Terms of Use' and 'Privacy Policy'
+associated with the Oculus PC SDK to use this module in your software (which you
+did when you downloaded the SDK to build this module, didn't ya?), if not see
+https://www.oculus.com/legal/terms-of-service/ to access those documents.
+
+"""
 cimport ovr_math
 cimport ovr_capi
 
