@@ -1,6 +1,8 @@
 """Interface and tools for the Oculus Rift head-mounted display (HMD) using the
-official Oculus PC SDK. The Oculus PC SDK is Copyright (c) Facebook
-Technologies, LLC and its affiliates. All rights reserved.
+official Oculus PC SDK.
+
+The Oculus PC SDK is Copyright (c) Facebook Technologies, LLC and its
+affiliates. All rights reserved.
 
 """
 # ------------------
