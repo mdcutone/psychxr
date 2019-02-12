@@ -1,5 +1,14 @@
 # distutils: language=c++
-# Oculus SDK Math functions and C++ classes
+#
+"""This file exposes Oculus SDK Math functions and C++ classes allowing Cython
+extension modules to access them. The declarations in the file are
+contemporaneous with version 1.32 (retrieved 02.01.2019) of the Oculus Rift PC
+SDK.
+
+The Oculus PC SDK is Copyright (c) Facebook Technologies, LLC and its
+affiliates. All rights reserved.
+
+"""
 from libcpp cimport bool
 
 cdef extern from "OVR_Math.h" namespace "OVR":

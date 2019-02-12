@@ -27,9 +27,12 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 # 
-"""This file exposes Oculus Rift(TM) C API types and functions, allowing Cython 
+"""This file exposes Oculus Rift C API types and functions, allowing Cython
 extensions to access them. The declarations in the file are contemporaneous
-with version 1.24 (retrieved 04.15.2018) of the Oculus Rift(TM) PC SDK. 
+with version 1.32 (retrieved 02.01.2019) of the Oculus Rift PC SDK.
+
+The Oculus PC SDK is Copyright (c) Facebook Technologies, LLC and its
+affiliates. All rights reserved.
 
 """
 from libc.stdint cimport uintptr_t, uint32_t, int32_t, uint16_t
