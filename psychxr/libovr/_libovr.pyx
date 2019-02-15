@@ -172,6 +172,14 @@ __all__ = [
     'LIBOVR_FORMAT_D24_UNORM_S8_UINT',
     'LIBOVR_FORMAT_D32_FLOAT',
     'LIBOVR_MAX_PROVIDED_FRAME_STATS',
+    'LIBOVR_TRACKED_DEVICE_TYPE_HMD',
+    'LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH',
+    'LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH',
+    'LIBOVR_TRACKED_DEVICE_TYPE_TOUCH',
+    'LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0',
+    'LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1',
+    'LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2',
+    'LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3',
     'LibOVRPose',
     'LibOVRPoseState',
     'LibOVRTrackerInfo',
@@ -210,6 +218,7 @@ __all__ = [
     'createMirrorTexture',
     'getMirrorTexture',
     'getTrackedPoses',
+    'getDevicePoses',
     'calcEyePoses',
     'getHmdToEyePoses',
     'setHmdToEyePoses',
@@ -247,7 +256,7 @@ __all__ = [
     'getLastErrorInfo',
     'setBoundaryColor',
     'resetBoundaryColor',
-    'getBoundryVisible',
+    'getBoundaryVisible',
     'showBoundary',
     'hideBoundary',
     'getBoundaryDimensions',
@@ -1550,7 +1559,7 @@ cdef class LibOVRSessionStatus(object):
 
 
 cdef class LibOVRHmdInfo(object):
-    """Class for HMD information returned by 'getHmdInfo()'."""
+    """Class for HMD information returned by 'getHmdInfo'."""
 
     cdef libovr_capi.ovrHmdDesc* c_data
     cdef libovr_capi.ovrHmdDesc c_ovrHmdDesc
@@ -2691,11 +2700,11 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
 
     Get HMD and touch controller poses::
 
-        deviceTypes = (
-            ovr.LIBOVR_TRACKED_DEVICE_TYPE_HMD,
-            ovr.LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH,
-            ovr.LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH)
-        headPose, leftHandPose, rightHandPose = ovr.getDevicePoses(deviceTypes)
+        deviceTypes = (ovr.LIBOVR_TRACKED_DEVICE_TYPE_HMD,
+                       ovr.LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH,
+                       ovr.LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH)
+        headPose, leftHandPose, rightHandPose = ovr.getDevicePoses(
+            deviceTypes, absTime)
 
     """
     # nop if args indicate no devices
@@ -3654,7 +3663,7 @@ def resetBoundaryColor():
 
     return result
 
-def getBoundryVisible():
+def getBoundaryVisible():
     """Check if the Guardian boundary is visible.
 
     The boundary is drawn by the compositor which overlays the extents of
