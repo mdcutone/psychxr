@@ -289,6 +289,7 @@ cdef libovr_capi.ovrMirrorTexture _mirrorTexture
 cdef libovr_capi.ovrLayerEyeFov _eyeLayer
 cdef libovr_capi.ovrEyeRenderDesc[2] _eyeRenderDesc
 cdef libovr_capi.ovrTrackingState _trackingState
+cdef libovr_capi.ovrPoseStatef[8] _devicePoses
 cdef libovr_capi.ovrViewScaleDesc _viewScale
 
 # prepare the render layer
@@ -2637,6 +2638,34 @@ def getTrackedPoses(double absTime, bint latencyMarker=True):
 
     return toReturn
 
+def getDevicePoses(int deviceTypes, int deviceCount, double absTime):
+    """Get device poses.
+
+    """
+    global _ptrSession
+    global _eyeLayer
+    global _devicePoses
+
+    # for computing app photon-to-motion latency
+    _eyeLayer.SensorSampleTime = absTime
+
+    libovr_capi.ovr_GetDevicePoses(
+        _ptrSession,
+        <libovr_capi.ovrTrackedDeviceType>deviceTypes,
+        deviceCount,
+        absTime,
+        &_devicePoses)
+
+    cdef list outPoses = list()
+    cdef LibOVRPoseState thisPose
+    cdef Py_ssize_t i = 0
+    for i in range(<Py_ssize_t>deviceCount):
+        thisPose = LibOVRPoseState()  # new
+        thisPose.c_data[0] = _devicePoses[i]
+        outPoses.append(thisPose)
+
+    return outPoses
+
 def calcEyePoses(LibOVRPose headPose):
     """Calculate eye poses using a given pose state.
 
@@ -3945,7 +3974,41 @@ def getTouch(str controller, object touch, str testState='continuous'):
     return stateResult, t_sec
 
 def getThumbstickValues(int controller, bint deadzone=False):
-    """Get thumbstick values."""
+    """Get analog thumbstick values.
+
+    Get the values indicating the displacement of the controller's analog
+    thumbsticks. Returns two tuples for the up-down and left-right of each
+    stick. Values range from -1 to 1.
+
+    Parameters
+    ----------
+    controller : int
+        Controller name. Valid values are:
+
+        - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+
+    deadzone : bool
+        Apply a deadzone if True.
+
+    Returns
+    -------
+    tuple
+        Thumbstick values.
+
+    Examples
+    --------
+    Get the thumbstick values with deadzone for the touch controllers::
+
+        ovr.updateInputState()  # get most recent input state
+        leftThumbStick, rightThumbStick = ovr.getThumbstickValues(
+            ovr.LIBOVR_CONTROLLER_TYPE_TOUCH, deadzone=True)
+        x, y = rightThumbStick  # left-right, up-down values for right stick
+
+    """
     global _inputStates
 
     # get the controller index in the states array
@@ -3985,7 +4048,29 @@ def getThumbstickValues(int controller, bint deadzone=False):
     return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
 
 def getIndexTriggerValues(int controller, bint deadzone=False):
-    """Get index trigger values."""
+    """Get analog index trigger values.
+
+    Get the values indicating the displacement of the controller's analog
+    thumbsticks. Returns two tuples for the up-down and left-right of each
+    stick. Values range from -1 to 1.
+
+    Parameters
+    ----------
+    controller : int
+        Controller name. Valid values are:
+
+        - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+
+    Returns
+    -------
+    tuple
+        Trigger values.
+
+    """
     # convert the string to an index
     global _inputStates
 
