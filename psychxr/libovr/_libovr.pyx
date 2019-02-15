@@ -268,6 +268,7 @@ from .cimport libovr_capi
 from .cimport libovr_math
 
 from libc.stdint cimport int32_t, uint32_t
+from libc.stdlib cimport malloc, free
 from libc.math cimport pow
 
 cimport numpy as np
@@ -289,7 +290,6 @@ cdef libovr_capi.ovrMirrorTexture _mirrorTexture
 cdef libovr_capi.ovrLayerEyeFov _eyeLayer
 cdef libovr_capi.ovrEyeRenderDesc[2] _eyeRenderDesc
 cdef libovr_capi.ovrTrackingState _trackingState
-cdef libovr_capi.ovrPoseStatef[8] _devicePoses
 cdef libovr_capi.ovrViewScaleDesc _viewScale
 
 # prepare the render layer
@@ -576,6 +576,16 @@ LIBOVR_FORMAT_D32_FLOAT = libovr_capi.OVR_FORMAT_D32_FLOAT
 
 # performance
 LIBOVR_MAX_PROVIDED_FRAME_STATS = libovr_capi.ovrMaxProvidedFrameStats
+
+# tracked device types
+LIBOVR_TRACKED_DEVICE_TYPE_HMD = libovr_capi.ovrTrackedDevice_HMD
+LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH = libovr_capi.ovrTrackedDevice_LTouch
+LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH = libovr_capi.ovrTrackedDevice_RTouch
+LIBOVR_TRACKED_DEVICE_TYPE_TOUCH = libovr_capi.ovrTrackedDevice_Touch
+LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0 = libovr_capi.ovrTrackedDevice_Object0
+LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1 = libovr_capi.ovrTrackedDevice_Object1
+LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2 = libovr_capi.ovrTrackedDevice_Object2
+LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3 = libovr_capi.ovrTrackedDevice_Object3
 
 
 cdef class LibOVRPose(object):
@@ -2638,33 +2648,107 @@ def getTrackedPoses(double absTime, bint latencyMarker=True):
 
     return toReturn
 
-def getDevicePoses(int deviceTypes, int deviceCount, double absTime):
-    """Get device poses.
+def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
+    """Get tracked device poses.
+
+    Each pose in the returned array matches the device type at each index
+    specified in 'deviceTypes'. You need to call this function to get the poses
+    for 'objects', which are additional touch controllers.
+
+    Parameters
+    ----------
+    deviceTypes : `list` or `tuple` of `int`
+        List of device types. Valid device types are:
+
+        - LIBOVR_TRACKED_DEVICE_TYPE_HMD: The head or HMD.
+        - LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH: Left touch controller or hand.
+        - LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH: Right touch controller or hand.
+        - LIBOVR_TRACKED_DEVICE_TYPE_TOUCH: Both touch controllers.
+
+        Up to four additional touch controllers can be paired and tracked, they
+        are assigned types:
+
+        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0
+        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1
+        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2
+        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3
+
+    absTime : `float`
+        Absolute time in seconds poses refer to.
+    latencyMarker: `bool`
+        Insert a marker for motion-to-photon latency calculation. Set this to
+        False if 'getTrackedPoses' was previously called and a latency marker
+        was set there.
+
+    Returns
+    -------
+    tuple
+        Return code (`int`) of the 'ovr_GetDevicePoses' API call and list of
+        tracked device poses (`list` of `LibOVRPoseState`).
+
+    Examples
+    --------
+
+    Get HMD and touch controller poses::
+
+        deviceTypes = (
+            ovr.LIBOVR_TRACKED_DEVICE_TYPE_HMD,
+            ovr.LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH,
+            ovr.LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH)
+        headPose, leftHandPose, rightHandPose = ovr.getDevicePoses(deviceTypes)
 
     """
+    # nop if args indicate no devices
+    if deviceTypes is None:
+        return None
+
     global _ptrSession
     global _eyeLayer
-    global _devicePoses
+    #global _devicePoses
 
     # for computing app photon-to-motion latency
-    _eyeLayer.SensorSampleTime = absTime
+    if latencyMarker:
+        _eyeLayer.SensorSampleTime = absTime
 
-    libovr_capi.ovr_GetDevicePoses(
+    # allocate arrays to store pose types and poses
+    cdef int count = <int>len(deviceTypes)
+    cdef libovr_capi.ovrTrackedDeviceType* devices = \
+        <libovr_capi.ovrTrackedDeviceType*>malloc(
+            count * sizeof(libovr_capi.ovrTrackedDeviceType))
+    if not devices:
+        raise MemoryError("Failed to allocate array 'devices'.")
+
+    cdef int i = 0
+    for i in range(count):
+        devices[i] = <libovr_capi.ovrTrackedDeviceType>deviceTypes[i]
+
+    cdef libovr_capi.ovrPoseStatef* devicePoses = \
+        <libovr_capi.ovrPoseStatef*>malloc(
+            count * sizeof(libovr_capi.ovrPoseStatef))
+    if not devicePoses:
+        raise MemoryError("Failed to allocate array 'devicePoses'.")
+
+    # get the device poses
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetDevicePoses(
         _ptrSession,
-        <libovr_capi.ovrTrackedDeviceType>deviceTypes,
-        deviceCount,
+        &devices,
+        count,
         absTime,
-        &_devicePoses)
+        &devicePoses)
 
+    # build list of device poses
     cdef list outPoses = list()
     cdef LibOVRPoseState thisPose
-    cdef Py_ssize_t i = 0
-    for i in range(<Py_ssize_t>deviceCount):
+    for i in range(count):
         thisPose = LibOVRPoseState()  # new
-        thisPose.c_data[0] = _devicePoses[i]
+        thisPose.c_data[0] = devicePoses[i]
         outPoses.append(thisPose)
 
-    return outPoses
+    # free the arrays
+    free(devices)
+    free(devicePoses)
+
+    return result, outPoses
 
 def calcEyePoses(LibOVRPose headPose):
     """Calculate eye poses using a given pose state.
