@@ -325,6 +325,8 @@ cdef libovr_capi.ovrInputState[5] _prevInputState
 cdef bint _debugMode
 
 # geometric data
+cdef float[2] _nearClip
+cdef float[2] _farClip
 cdef libovr_math.Matrix4f[2] _eyeProjectionMatrix
 cdef libovr_math.Matrix4f[2] _eyeViewMatrix
 cdef libovr_math.Matrix4f[2] _eyeViewProjectionMatrix
@@ -2940,7 +2942,35 @@ def setEyeRenderPoses(object value):
         _eyeViewProjectionMatrix[eye] = \
             _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
-def getEyeProjectionMatrix(int eye, float nearClip=0.1, float farClip=1000.0):
+def setNearClip(int eye, float dist=0.01):
+    """Set the near clipping plane distance for a given eye.
+
+    Parameters
+    ----------
+    eye : int
+        Eye index.
+    dist : float
+        Near clipping plane in meters.
+
+    """
+    global _nearClip
+    _nearClip[eye] = dist
+
+def setFarClip(int eye, float dist=1000.0):
+    """Set the far clipping plane distance for a given eye.
+
+    Parameters
+    ----------
+    eye : int
+        Eye index.
+    dist : float
+        Near clipping plane in meters.
+
+    """
+    global _farClip
+    _farClip[eye] = dist
+
+def getEyeProjectionMatrix(int eye):
     """Compute the projection matrix.
 
     The projection matrix is computed by the runtime using the eye FOV
@@ -2963,12 +2993,14 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.1, float farClip=1000.0):
     """
     global _eyeProjectionMatrix
     global _eyeRenderDesc
+    global _nearClip
+    global _farClip
 
     _eyeProjectionMatrix[eye] = \
         <libovr_math.Matrix4f>libovr_capi.ovrMatrix4f_Projection(
             _eyeRenderDesc[eye].Fov,
-            nearClip,
-            farClip,
+            _nearClip[eye],
+            _farClip[eye],
             libovr_capi.ovrProjection_ClipRangeOpenGL)
 
     cdef np.ndarray to_return = np.zeros((4, 4), dtype=np.float32)
@@ -4301,6 +4333,77 @@ def getSessionStatus():
         _ptrSession, to_return.c_data)
 
     return to_return
+
+def testPointsInEyeFrustums(object points, object out=None):
+    """Test if points are within each eye's frustum.
+
+    Parameters
+    ----------
+    points : tuple, list, or ndarray
+        2D array of points to test. Each coordinate should be in format
+        [x, y ,z], where dimensions are in meters. Passing a NumPy ndarray with
+        dtype=float32 and ndim=2 will avoid copying.
+
+    out : ndarray
+        Optional array to write test results. Must have the same shape as
+        'points' and dtype=bool. If None, the function will create and return an
+        appropriate array with results.
+
+    Returns
+    -------
+    ndarray
+        Nx2 array of results. The row index of the returned array contains the
+        test results for the coordinates with the matching row index in
+        'points'. The results for the left and right eye are stored in the first
+        and second column, respectively.
+
+    """
+    cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
+        np.array(points, dtype=np.float32, ndmin=2, copy=False)
+
+    cdef np.ndarray[np.uint8_t, ndim=2] testOut
+    if testOut is not None:
+        testOut = out
+    else:
+        testOut = np.zeros_like(out, dtype=np.uint8_t)
+
+    assert testOut.shape == pointsIn.shape
+
+    cdef float[:,:] mvPoints = pointsIn
+    cdef np.uint8_t[:,:] mvResult = testOut
+
+    # intermediates
+    cdef libovr_math.Vector4f vecIn
+    cdef libovr_math.Vector4f pointHCS
+    cdef libovr_math.Vector3f pointNDC
+
+    # loop over all points specified
+    cdef Py_ssize_t eye = 0
+    cdef Py_ssize_t pt = 0
+    cdef Py_ssize_t N = mvPoints.shape[0]
+    for pt in range(N):
+        for eye in range(libovr_capi.ovrEye_Count):
+            vecIn.x = mvPoints[pt, 0]
+            vecIn.y = mvPoints[pt, 1]
+            vecIn.z = mvPoints[pt, 2]
+            vecIn.w = 1.0
+            pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
+
+            # too close to the singularity for perspective division or behind
+            # the viewer, fail automatically
+            if pointHCS.w < 0.0001:
+                continue
+
+            # perspective division XYZ / W
+            pointNDC.x = pointHCS.x / pointHCS.w
+            pointNDC.y = pointHCS.y / pointHCS.w
+            pointNDC.z = pointHCS.z / pointHCS.w
+
+            # check if outside [-1:1] in any NDC dimension
+            if -1.0 < pointNDC.x < 1.0 and -1.0 < pointNDC.y < 1.0 and -1.0 < pointNDC.z < 1.0:
+                mvResult[pt, eye] = 1
+
+    return testOut.astype(dtype=np.bool)
 
 def anyPointInFrustum(object points):
     """Check if any of the specified points in world/scene coordinates are
