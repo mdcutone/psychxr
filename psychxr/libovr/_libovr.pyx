@@ -2942,35 +2942,7 @@ def setEyeRenderPoses(object value):
         _eyeViewProjectionMatrix[eye] = \
             _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
-def setNearClip(int eye, float dist=0.01):
-    """Set the near clipping plane distance for a given eye.
-
-    Parameters
-    ----------
-    eye : int
-        Eye index.
-    dist : float
-        Near clipping plane in meters.
-
-    """
-    global _nearClip
-    _nearClip[eye] = dist
-
-def setFarClip(int eye, float dist=1000.0):
-    """Set the far clipping plane distance for a given eye.
-
-    Parameters
-    ----------
-    eye : int
-        Eye index.
-    dist : float
-        Near clipping plane in meters.
-
-    """
-    global _farClip
-    _farClip[eye] = dist
-
-def getEyeProjectionMatrix(int eye):
+def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0):
     """Compute the projection matrix.
 
     The projection matrix is computed by the runtime using the eye FOV
@@ -2995,6 +2967,9 @@ def getEyeProjectionMatrix(int eye):
     global _eyeRenderDesc
     global _nearClip
     global _farClip
+
+    _nearClip = nearClip
+    _farClip = farClip
 
     _eyeProjectionMatrix[eye] = \
         <libovr_math.Matrix4f>libovr_capi.ovrMatrix4f_Projection(
@@ -4337,6 +4312,8 @@ def getSessionStatus():
 def testPointsInEyeFrustums(object points, object out=None):
     """Test if points are within each eye's frustum.
 
+    This function uses current view and projection matrix in the computation.
+
     Parameters
     ----------
     points : tuple, list, or ndarray
@@ -4358,6 +4335,9 @@ def testPointsInEyeFrustums(object points, object out=None):
         and second column, respectively.
 
     """
+    global _nearClip
+    global _farClip
+
     cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
         np.array(points, dtype=np.float32, ndmin=2, copy=False)
 
