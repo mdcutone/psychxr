@@ -2172,7 +2172,7 @@ def setEyeRenderFov(int eye, object fov):
     Parameters
     ----------
     eye : int
-        Eye index.
+        Eye index. Values are `LIBOVR_EYE_LEFT` and `LIBOVR_EYE_RIGHT`.
     fov : tuple, list or ndarray of floats
         Eye FOV tangent angles [UpTan, DownTan, LeftTan, RightTan].
 
