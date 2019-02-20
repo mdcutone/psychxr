@@ -2841,12 +2841,22 @@ def calcEyePoses(LibOVRPose headPose):
         _eyeViewProjectionMatrix[eye] = \
             _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
-def getHmdToEyePoses():
+def getHmdToEyePose(int eye):
     """HMD to eye poses.
 
     These are the prototype eye poses specified by LibOVR, defined only
     after 'start' is called. These poses are transformed by the head pose
     by 'calcEyePoses' to get 'getEyeRenderPoses'.
+
+    Parameters
+    ----------
+    eye : int
+        Eye index.
+
+    Returns
+    -------
+    tuple of LibOVRPose
+        Copy of the HMD to eye pose.
 
     Notes
     -----
@@ -2858,34 +2868,37 @@ def getHmdToEyePoses():
     'getEyeToNoseDist()' by two. Furthermore, the IOD values can be altered,
     prior to calling 'calcEyePoses', to override the values specified by LibOVR.
 
-    Returns
-    -------
-    tuple of LibOVRPose
-        Copies of the HMD to eye poses for the left and right eye.
+    """
+    global _eyeRenderDesc
+    cdef LibOVRPose hmdToEyePose = LibOVRPose()
+    hmdToEyePose.c_data[0] = _eyeRenderDesc[eye].HmdToEyePose
+
+    return hmdToEyePose
+
+def setHmdToEyePose(int eye, LibOVRPose eyePose):
+    """Set the HMD eye poses.
+
+    Parameters
+    ----------
+    eye : int
+        Eye index.
 
     """
     global _eyeRenderDesc
-    cdef LibOVRPose leftHmdToEyePose = LibOVRPose()
-    cdef LibOVRPose rightHmdToEyePose = LibOVRPose()
+    _eyeRenderDesc[0].HmdToEyePose = eyePose.c_data[0]
 
-    leftHmdToEyePose.c_data[0] = _eyeRenderDesc[0].HmdToEyePose
-    rightHmdToEyePose.c_data[0] = _eyeRenderDesc[1].HmdToEyePose
-
-    return leftHmdToEyePose, rightHmdToEyePose
-
-def setHmdToEyePoses(value):
-    """Set the HMD eye poses."""
-    global _eyeRenderDesc
-    _eyeRenderDesc[0].HmdToEyePose = (<LibOVRPose>value[0]).c_data[0]
-    _eyeRenderDesc[1].HmdToEyePose = (<LibOVRPose>value[1]).c_data[0]
-
-def getEyeRenderPoses():
+def getEyeRenderPose(int eye):
     """Get eye render poses.
 
     Pose are those computed by the last 'calcEyePoses' call. Returned
     objects are copies of the data stored internally by the session
     instance. These poses are used to define the view matrix when rendering
     for each eye.
+
+    Parameters
+    ----------
+    eye : int
+        Eye index.
 
     Returns
     -------
@@ -2901,23 +2914,25 @@ def getEyeRenderPoses():
     """
     global _eyeLayer
 
-    cdef LibOVRPose left_eye_pose = LibOVRPose()
-    cdef LibOVRPose right_eye_pose = LibOVRPose()
+    cdef LibOVRPose eye_pose = LibOVRPose()
+    eye_pose.c_data[0] = _eyeLayer.RenderPose[eye]
 
-    left_eye_pose.c_data[0] = _eyeLayer.RenderPose[0]
-    right_eye_pose.c_data[0] = _eyeLayer.RenderPose[1]
+    return eye_pose
 
-    return left_eye_pose, right_eye_pose
+def setEyeRenderPose(int eye, LibOVRPose value):
+    """Set eye render poses.
 
-def setEyeRenderPoses(object value):
-    """Set eye render poses."""
+    Parameters
+    ----------
+    eye : int
+        Eye index.
 
+    """
     global _eyeLayer
     global _eyeViewMatrix
     global _eyeViewProjectionMatrix
 
-    _eyeLayer.RenderPose[0] = (<LibOVRPose>value[0]).c_data[0]
-    _eyeLayer.RenderPose[1] = (<LibOVRPose>value[1]).c_data[0]
+    _eyeLayer.RenderPose[eye] = value.c_data[0]
 
     # re-compute the eye transformation matrices from poses
     cdef libovr_math.Vector3f pos
@@ -2926,21 +2941,19 @@ def setEyeRenderPoses(object value):
     cdef libovr_math.Vector3f forward
     cdef libovr_math.Matrix4f rm
 
-    cdef int eye = 0
-    for eye in range(libovr_capi.ovrEye_Count):
-        pos = <libovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position
-        ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
+    pos = <libovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position
+    ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
 
-        if not ori.IsNormalized():  # make sure orientation is normalized
-            ori.Normalize()
+    if not ori.IsNormalized():  # make sure orientation is normalized
+        ori.Normalize()
 
-        rm = libovr_math.Matrix4f(ori)
-        up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
-        forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
-        _eyeViewMatrix[eye] = \
-            libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
-        _eyeViewProjectionMatrix[eye] = \
-            _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
+    rm = libovr_math.Matrix4f(ori)
+    up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
+    forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
+    _eyeViewMatrix[eye] = \
+        libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+    _eyeViewProjectionMatrix[eye] = \
+        _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
 def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0):
     """Compute the projection matrix.
