@@ -272,8 +272,8 @@ __all__ = [
     'getIndexTriggerValues',
     'getHandTriggerValues',
     'setControllerVibration',
-    'getSessionStatus',
-    'anyPointInFrustum'
+    'getSessionStatus'
+    #'anyPointInFrustum'
 ]
 
 
@@ -603,29 +603,41 @@ LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2 = libovr_capi.ovrTrackedDevice_Object2
 LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3 = libovr_capi.ovrTrackedDevice_Object3
 
 
+# ------------------------------------------------------------------------------
+# Classes and extension types
+#
+
 cdef class LibOVRPose(object):
-    """Class for rigid body pose data for LibOVR.
+    """Class for LibOVR rigid body pose.
+
+    Poses are represented as a position vector/coordinate and orientation
+    quaternion.
+
+    Parameters
+    ----------
+    pos : tuple, list, or ndarray of float
+        Position vector (x, y, z).
+    ori : tuple, list, or ndarray of float
+        Orientation quaternion vector (x, y, z, w).
+
+    Attributes
+    ----------
+    pos : ndarray
+        Position vector [X, Y, Z] (read-only).
+    ori : ndarray
+        Orientation quaternion [X, Y, Z, W] (read-only).
+    posOri : tuple of ndarray
+        Combined position and orientation (read-only).
+    at : ndarray
+        Forward vector of this pose (-Z is forward) (read-only).
+    up : ndarray
+        Up vector of this pose (+Y is up) (read-only).
 
     """
     cdef libovr_capi.ovrPosef* c_data
     cdef libovr_capi.ovrPosef c_ovrPosef  # internal data
 
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
-        """Constructor for LibOVRPose.
-
-        Parameters
-        ----------
-        pos : tuple, list, or ndarray of float
-            Position vector (x, y, z).
-        ori : tuple, list, or ndarray of float
-            Orientation quaternion vector (x, y, z, w).
-
-        Notes
-        -----
-        Values for vectors are stored internally as 32-bit floating point
-        numbers.
-
-        """
         pass  # nop
 
     def __cinit__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
@@ -658,10 +670,26 @@ cdef class LibOVRPose(object):
         return to_return
 
     def __invert__(self):
-        """Invert operator (~) to invert a pose.
+        """Invert operator (~) to invert a pose."""
+        return self.inverted()
+
+    def __eq__(self, LibOVRPose other):
+        """Equality operator (==) for two poses.
+
+        The tolerance of the comparison is defined by the Oculus SDK as 1e-5.
 
         """
-        return self.inverted()
+        return <bint>(<libovr_math.Posef>other.c_data[0]).IsEqual(
+            <libovr_math.Posef>other.c_data[0], <float>1e-5)
+
+    def __ne__(self, LibOVRPose other):
+        """Inequality operator (!=) for two poses.
+
+        The tolerance of the comparison is defined by the Oculus SDK as 1e-5.
+
+        """
+        return not <bint>(<libovr_math.Posef>other.c_data[0]).IsEqual(
+            <libovr_math.Posef>other.c_data[0], <float>1e-5)
 
     def __str__(self):
         return \
@@ -674,34 +702,76 @@ cdef class LibOVRPose(object):
                 rz=self.c_data[0].Orientation.z,
                 rw=self.c_data[0].Orientation.w)
 
+    def setIdentity(self):
+        """Clear this pose's translation and orientation."""
+        (<libovr_math.Posef>self.c_data[0]).SetIdentity()
+
     @property
     def pos(self):
-        """Position vector X, Y, Z (`ndarray` of `float`)."""
         return self.getPos()
 
-    def getPos(self):
+    def getPos(self, object outVector=None):
         """Position vector X, Y, Z (`ndarray` of `float`).
 
         The returned object is a NumPy array which contains a copy of the data
         stored in an internal structure (ovrPosef). The array is conformal with
         the internal data's type (float32) and size (length 3).
 
+        Parameters
+        ----------
+        outVector : ndarray or None
+            Option array to write values to. If None, the function will return
+            a new array. Must have a float32 data type.
+
+        Returns
+        -------
+        ndarray or None
+
+        Raises
+        ------
+        ValueError
+            Buffer dtype mismatch where float32 was expected.
+        IndexError
+            Out of bounds on buffer access.
+
         Examples
         --------
-        Set the position of the pose manually::
 
-            myPose.pos = [5., 6., 7.]
+        Get the position coordinates::
+
+            x, y, z = myPose.getPos()  # Python float literals
+            # ... or ...
+            pos = myPose.getPos()  # NumPy array shape=(3,) and dtype=float32
+
+        Write the position to an existing array by specifying `outVector`::
+
+            position = numpy.zeros((3,), dtype=numpy.float32)  # mind the dtype!
+            myPose.getPos(position)  # position now contains myPose.pos
+
+        You can also pass a view/slice to `outVector`::
+
+            coords = numpy.zeros((100,3,), dtype=numpy.float32)  # big array
+            myPose.getPos(coords[42,:])  # row 42
 
         Notes
         -----
-        Q: Why is there no property setter for 'pos'?
+        Q: Why is there no property setter for `pos`?
         A: It confused people that setting values of the returned array didn't
         update anything.
 
         """
-        return np.array((self.c_data[0].Position.x,
-                         self.c_data[0].Position.y,
-                         self.c_data[0].Position.z), dtype=np.float32)
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if outVector is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = outVector
+
+        toReturn[0] = self.c_data[0].Position.x
+        toReturn[1] = self.c_data[0].Position.y
+        toReturn[2] = self.c_data[0].Position.z
+
+        if outVector is None:
+            return toReturn
 
     def setPos(self, object pos):
         self.c_data[0].Position.x = <float>pos[0]
@@ -712,7 +782,7 @@ cdef class LibOVRPose(object):
     def ori(self):
         return self.getOri()
 
-    def getOri(self):
+    def getOri(self, object outVector=None):
         """Orientation quaternion X, Y, Z, W (`ndarray` of `float`).
 
         Components X, Y, Z are imaginary and W is real.
@@ -721,15 +791,41 @@ cdef class LibOVRPose(object):
         internal structure (ovrPosef). The array is conformal with the internal
         data's type (float32) and size (length 3).
 
+        Parameters
+        ----------
+        outVector : ndarray or None
+            Option array to write values to. If None, the function will return
+            a new array. Must have a float32 data type.
+
+        Returns
+        -------
+        ndarray or None
+
+        Raises
+        ------
+        ValueError
+            Buffer dtype mismatch where float32 was expected.
+        IndexError
+            Out of bounds on buffer access.
+
         Notes
         -----
             The orientation quaternion should be normalized.
 
         """
-        return np.array((self.c_data[0].Orientation.x,
-                         self.c_data[0].Orientation.y,
-                         self.c_data[0].Orientation.z,
-                         self.c_data[0].Orientation.w), dtype=np.float32)
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if outVector is None:
+            toReturn = np.zeros((4,), dtype=np.float32)
+        else:
+            toReturn = outVector
+
+        toReturn[0] = self.c_data[0].Orientation.x
+        toReturn[1] = self.c_data[0].Orientation.y
+        toReturn[2] = self.c_data[0].Orientation.z
+        toReturn[3] = self.c_data[0].Orientation.w
+
+        if outVector is None:
+            return toReturn
 
     def setOri(self, object ori):
         self.c_data[0].Orientation.x = <float>ori[0]
@@ -739,8 +835,6 @@ cdef class LibOVRPose(object):
 
     @property
     def posOri(self):
-        """Position and orientation (read-only)."""
-
         return self.pos, self.ori
 
     def getPosOri(self):
@@ -758,45 +852,137 @@ cdef class LibOVRPose(object):
         self.c_data[0].Orientation.z = <float>ori[2]
         self.c_data[0].Orientation.w = <float>ori[3]
 
-    def getAtUp(self):
-        """Get the orientation as 'at' and 'up' vectors.
+    @property
+    def at(self):
+        return self.getAt()
+
+    def getAt(self, object outVector=None):
+        """Get the 'at' vector for this pose.
+
+        Parameters
+        ----------
+        outVector : ndarray or None
+            Option array to write values to. If None, the function will return
+            a new array. Must have a float32 data type.
 
         Returns
         -------
-        tuple
-            Vectors for 'at' and 'up'.
+        ndarray or None
+            The vector for 'at' if `outVector`=None. Returns None if `outVector`
+            was specified.
+
+        Raises
+        ------
+        ValueError
+            Buffer dtype mismatch where float32 was expected.
+        IndexError
+            Out of bounds on buffer access.
+
+        Notes
+        -----
+        It's better to use the 'at' property if you are not supplying an output
+        array. However, `getAt` will have the same effect as the property if
+        `outVector`=None.
 
         Examples
         --------
 
         Setting the listener orientation for 3D positional audio (PyOpenAL)::
 
-            at, up = myPose.getAtUp()
-            myListener.set_orientation((*at, *up))
+            myListener.set_orientation((*myPose.getAt(), *myPose.getUp()))
+
+        See Also
+        --------
+        getUp : Get the 'up' vector.
 
         """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if outVector is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = outVector
+
         cdef libovr_math.Vector3f at = \
             (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
                 libovr_math.Vector3f(0.0, 0.0, -1.0))
+
+        toReturn[0] = at.x
+        toReturn[1] = at.y
+        toReturn[2] = at.z
+
+        if outVector is None:
+            return toReturn
+
+    @property
+    def up(self):
+        return self.getUp()
+
+    def getUp(self, object outVector=None):
+        """Get the 'up' vector for this pose.
+
+        Parameters
+        ----------
+        outVector : ndarray, optional
+            Option array to write values to. If None, the function will return
+            a new array. Must have a float32 data type and a length of 3.
+
+        Returns
+        -------
+        ndarray or None
+            The vector for 'up' if `outVector`=None. Returns None if `outVector`
+            was specified.
+
+        Raises
+        ------
+        ValueError
+            Buffer dtype mismatch where float32 was expected.
+        IndexError
+            Out of bounds on buffer access.
+
+        Notes
+        -----
+        It's better to use the `up` property if you are not supplying an output
+        array. However, `getUp` will have the same effect as the `up` property
+        if `outVector`=None.
+
+        Examples
+        --------
+
+        Using the 'up' vector with gluLookAt::
+
+            up = myPose.getUp()  # myPose.up also works
+            center = myPose.pos
+            target = targetPose.pos  # some target pose
+            gluLookAt(*(*up, *center, *target))
+
+        See Also
+        --------
+        getAt : Get the 'at' vector.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if outVector is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = outVector
+
         cdef libovr_math.Vector3f up = \
             (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
                 libovr_math.Vector3f(0.0, 1.0, 0.0))
 
-        cdef np.ndarray[np.float32_t, ndim=1] ret_at = \
-            np.array((<float>at[0], <float>at[1], <float>at[2]),
-                       dtype=np.float32)
-        cdef np.ndarray[np.float32_t, ndim=1] ret_up = \
-            np.array((<float>up[0], <float>up[1], <float>up[2]),
-                       dtype=np.float32)
+        toReturn[0] = up.x
+        toReturn[1] = up.y
+        toReturn[2] = up.z
 
-        return ret_at, ret_up
+        if outVector is None:
+            return toReturn
 
     def getYawPitchRoll(self, LibOVRPose refPose=None):
         """Get the yaw, pitch, and roll of the orientation quaternion.
 
         Parameters
         ----------
-        refPose : LibOVRPose or None
+        refPose : LibOVRPose, optional
             Reference pose to compute angles relative to. If None is specified,
             computed values are referenced relative to the world axes.
 
@@ -821,12 +1007,12 @@ cdef class LibOVRPose(object):
 
         return to_return
 
-    def getMatrix4x4(self, bint inverse=False):
+    def getTransformMatrix(self, bint inverse=False):
         """Convert this pose into a 4x4 transformation matrix.
 
         Parameters
         ----------
-        inverse : bool
+        inverse : bool, optional
             If True, return the inverse of the matrix.
 
         Returns
@@ -839,7 +1025,7 @@ cdef class LibOVRPose(object):
             <libovr_math.Posef>self.c_data[0])
 
         if inverse:
-            m_pose.InvertHomogeneousTransform()
+            m_pose.InvertHomogeneousTransform()  # faster than Invert() here
 
         cdef np.ndarray[np.float32_t, ndim=2] to_return = \
             np.zeros((4, 4), dtype=np.float32)
@@ -847,48 +1033,11 @@ cdef class LibOVRPose(object):
         # fast copy matrix to numpy array
         cdef float [:, :] mv = to_return
         cdef Py_ssize_t i, j
+        cdef Py_ssize_t N = 4
         i = j = 0
-        for i in range(4):
-            for j in range(4):
-                mv[i, j] = m_pose.M[i][j]
-
-        return to_return
-
-    def getMatrix1d(self, bint inverse=False):
-        """Convert this pose into a 1D (flattened) transform matrix.
-
-        This will output an array suitable for use with OpenGL.
-
-        Parameters
-        ----------
-        inverse : bool
-            If True, return the inverse of the matrix.
-
-        Returns
-        -------
-        ndarray
-            4x4 transformation matrix flattened to a 1D array assuming column
-            major order with a 'float32' data type.
-
-        """
-        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
-
-        if inverse:
-            m_pose.InvertHomogeneousTransform()
-
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.zeros((16,), dtype=np.float32)
-
-        # fast copy matrix to numpy array
-        cdef float [:] mv = to_return
-        cdef Py_ssize_t i, j, k, N
-        i = j = k = 0
-        N = 4
         for i in range(N):
             for j in range(N):
-                mv[k] = m_pose.M[j][i]  # row -> column major order
-                k += 1
+                mv[i, j] = m_pose.M[i][j]
 
         return to_return
 
@@ -903,7 +1052,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        LibOVRPose
+        `LibOVRPose`
             Inverted pose.
 
         """
@@ -1171,14 +1320,14 @@ cdef class LibOVRPose(object):
         ----------
         targetPose : tuple, list, or ndarray of floats
             Coordinates of the center of the target sphere (x, y, z).
-        radius : float
+        radius : float, optional
             The radius of the target.
-        rayDir : tuple, list, or ndarray of floats
+        rayDir : tuple, list, or ndarray of floats, optional
             Vector indicating the direction for the ray (default is -Z).
-        maxRange : float
+        maxRange : float, optional
             The maximum range of the ray. Ray testing will fail automatically if
             the target is out of range. The ray has infinite length if None is
-            specified. Ray is infinite if maxRange=0.0.
+            specified. Ray is infinite if `maxRange`=0.0.
 
         Returns
         -------
@@ -1223,14 +1372,14 @@ cdef class LibOVRPose(object):
             End pose.
         s : float
             Interpolation factor between in interval 0.0 and 1.0.
-        fast : bool
+        fast : bool, optional
             If True, use fast interpolation which is quicker but less accurate
             over larger distances.
 
         Returns
         -------
         LibOVRPose
-            Interpolated pose at 's'.
+            Interpolated pose at `s`.
 
         """
         cdef libovr_math.Posef _toPose = <libovr_math.Posef>toPose.c_data[0]
@@ -2455,6 +2604,10 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
     ----------
     swapChain : int
         Swap chain handle to initialize, usually 'LIBOVR_SWAP_CHAIN*'.
+    width : int
+        Width of texture in pixels.
+    height : int
+        Height of texture in pixels.
     textureFormat : int
         Texture format to use. Valid color texture formats are:
             - :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
@@ -2465,10 +2618,9 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
             - :data:`LIBOVR_FORMAT_D16_UNORM`
             - :data:`LIBOVR_FORMAT_D24_UNORM_S8_UINT`
             - :data:`LIBOVR_FORMAT_D32_FLOAT`
-    width : int
-        Width of texture in pixels.
-    height : int
-        Height of texture in pixels.
+
+    Other Parameters
+    ----------------
     levels : int
         Mip levels to use, default is 1.
 
