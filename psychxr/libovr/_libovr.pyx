@@ -604,7 +604,10 @@ LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3 = libovr_capi.ovrTrackedDevice_Object3
 #
 
 cdef class LibOVRPose(object):
-    """Class for rigid body pose data for LibOVR.
+    """Class for LibOVR rigid body pose.
+
+    Poses are represented as a position vector/coordinate and orientation
+    quaternion.
 
     Parameters
     ----------
