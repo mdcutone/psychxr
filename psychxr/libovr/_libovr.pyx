@@ -218,7 +218,7 @@ __all__ = [
     'createMirrorTexture',
     'getMirrorTexture',
     'getTrackedPoses',
-    'getDevicePoses',
+    #'getDevicePoses',
     'calcEyePoses',
     'getHmdToEyePoses',
     'setHmdToEyePoses',
@@ -269,8 +269,8 @@ __all__ = [
     'getIndexTriggerValues',
     'getHandTriggerValues',
     'setControllerVibration',
-    'getSessionStatus',
-    'anyPointInFrustum'
+    'getSessionStatus'
+    #'anyPointInFrustum'
 ]
 
 from .cimport libovr_capi
@@ -599,29 +599,38 @@ LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2 = libovr_capi.ovrTrackedDevice_Object2
 LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3 = libovr_capi.ovrTrackedDevice_Object3
 
 
+# ------------------------------------------------------------------------------
+# Classes and extension types
+#
+
 cdef class LibOVRPose(object):
     """Class for rigid body pose data for LibOVR.
+
+    Parameters
+    ----------
+    pos : tuple, list, or ndarray of float
+        Position vector (x, y, z).
+    ori : tuple, list, or ndarray of float
+        Orientation quaternion vector (x, y, z, w).
+
+    Attributes
+    ----------
+    pos : ndarray
+        Position vector [X, Y, Z] (read-only).
+    ori : ndarray
+        Orientation quaternion [X, Y, Z, W] (read-only).
+    posOri : tuple of ndarray
+        Combined position and orientation (read-only).
+    at : ndarray
+        Forward vector of this pose (-Z is forward) (read-only).
+    up : ndarray
+        Up vector of this pose (+Y is up) (read-only).
 
     """
     cdef libovr_capi.ovrPosef* c_data
     cdef libovr_capi.ovrPosef c_ovrPosef  # internal data
 
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
-        """Constructor for LibOVRPose.
-
-        Parameters
-        ----------
-        pos : tuple, list, or ndarray of float
-            Position vector (x, y, z).
-        ori : tuple, list, or ndarray of float
-            Orientation quaternion vector (x, y, z, w).
-
-        Notes
-        -----
-        Values for vectors are stored internally as 32-bit floating point
-        numbers.
-
-        """
         pass  # nop
 
     def __cinit__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
@@ -654,10 +663,26 @@ cdef class LibOVRPose(object):
         return to_return
 
     def __invert__(self):
-        """Invert operator (~) to invert a pose.
+        """Invert operator (~) to invert a pose."""
+        return self.inverted()
+
+    def __eq__(self, LibOVRPose other):
+        """Equality operator (==) for two poses.
+
+        The tolerance of the comparison is defined by the Oculus SDK as 1e-5.
 
         """
-        return self.inverted()
+        return <bint>(<libovr_math.Posef>other.c_data[0]).IsEqual(
+            <libovr_math.Posef>other.c_data[0], <float>1e-5)
+
+    def __ne__(self, LibOVRPose other):
+        """Inequality operator (!=) for two poses.
+
+        The tolerance of the comparison is defined by the Oculus SDK as 1e-5.
+
+        """
+        return not <bint>(<libovr_math.Posef>other.c_data[0]).IsEqual(
+            <libovr_math.Posef>other.c_data[0], <float>1e-5)
 
     def __str__(self):
         return \
@@ -670,34 +695,69 @@ cdef class LibOVRPose(object):
                 rz=self.c_data[0].Orientation.z,
                 rw=self.c_data[0].Orientation.w)
 
+    def setIdentity(self):
+        """Clear this pose's translation and orientation."""
+        (<libovr_math.Posef>self.c_data[0]).SetIdentity()
+
     @property
     def pos(self):
-        """Position vector X, Y, Z (`ndarray` of `float`)."""
         return self.getPos()
 
-    def getPos(self):
+    def getPos(self, object outVector=None):
         """Position vector X, Y, Z (`ndarray` of `float`).
 
         The returned object is a NumPy array which contains a copy of the data
         stored in an internal structure (ovrPosef). The array is conformal with
         the internal data's type (float32) and size (length 3).
 
+        Parameters
+        ----------
+        outVector : ndarray or None
+            Option array to write values to. If None, the function will return
+            a new array. Must have a float32 data type.
+
+        Returns
+        -------
+        ndarray or None
+
         Examples
         --------
-        Set the position of the pose manually::
 
-            myPose.pos = [5., 6., 7.]
+        Get the position coordinates::
+
+            x, y, z = myPose.getPos()  # Python float literals
+            # ... or ...
+            pos = myPose.getPos()  # NumPy array shape=(3,) and dtype=float32
+
+        Write the position to an existing array by specifying `outVector`::
+
+            position = numpy.zeros((3,), dtype=numpy.float32)  # mind the dtype!
+            myPose.getPos(position)  # position now contains myPose.pos
+
+        You can also pass a view/slice to `outVector`::
+
+            coords = numpy.zeros((100,3,), dtype=numpy.float32)  # big array
+            myPose.getPos(coords[42,:])  # row 42
 
         Notes
         -----
-        Q: Why is there no property setter for 'pos'?
+        Q: Why is there no property setter for `pos`?
         A: It confused people that setting values of the returned array didn't
         update anything.
 
         """
-        return np.array((self.c_data[0].Position.x,
-                         self.c_data[0].Position.y,
-                         self.c_data[0].Position.z), dtype=np.float32)
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if outVector is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = outVector
+
+        toReturn[0] = self.c_data[0].Position.x
+        toReturn[1] = self.c_data[0].Position.y
+        toReturn[2] = self.c_data[0].Position.z
+
+        if outVector is None:
+            return toReturn
 
     def setPos(self, object pos):
         self.c_data[0].Position.x = <float>pos[0]
@@ -708,7 +768,7 @@ cdef class LibOVRPose(object):
     def ori(self):
         return self.getOri()
 
-    def getOri(self):
+    def getOri(self, object outVector=None):
         """Orientation quaternion X, Y, Z, W (`ndarray` of `float`).
 
         Components X, Y, Z are imaginary and W is real.
@@ -717,15 +777,34 @@ cdef class LibOVRPose(object):
         internal structure (ovrPosef). The array is conformal with the internal
         data's type (float32) and size (length 3).
 
+        Parameters
+        ----------
+        outVector : ndarray or None
+            Option array to write values to. If None, the function will return
+            a new array. Must have a float32 data type.
+
+        Returns
+        -------
+        ndarray or None
+
         Notes
         -----
             The orientation quaternion should be normalized.
 
         """
-        return np.array((self.c_data[0].Orientation.x,
-                         self.c_data[0].Orientation.y,
-                         self.c_data[0].Orientation.z,
-                         self.c_data[0].Orientation.w), dtype=np.float32)
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if outVector is None:
+            toReturn = np.zeros((4,), dtype=np.float32)
+        else:
+            toReturn = outVector
+
+        toReturn[0] = self.c_data[0].Orientation.x
+        toReturn[1] = self.c_data[0].Orientation.y
+        toReturn[2] = self.c_data[0].Orientation.z
+        toReturn[3] = self.c_data[0].Orientation.w
+
+        if outVector is None:
+            return toReturn
 
     def setOri(self, object ori):
         self.c_data[0].Orientation.x = <float>ori[0]
@@ -735,8 +814,6 @@ cdef class LibOVRPose(object):
 
     @property
     def posOri(self):
-        """Position and orientation (read-only)."""
-
         return self.pos, self.ori
 
     def getPosOri(self):
@@ -754,45 +831,123 @@ cdef class LibOVRPose(object):
         self.c_data[0].Orientation.z = <float>ori[2]
         self.c_data[0].Orientation.w = <float>ori[3]
 
-    def getAtUp(self):
-        """Get the orientation as 'at' and 'up' vectors.
+    @property
+    def at(self):
+        return self.getAt()
+
+    def getAt(self, object outVector=None):
+        """Get the 'at' vector for this pose.
+
+        Parameters
+        ----------
+        outVector : ndarray or None
+            Option array to write values to. If None, the function will return
+            a new array. Must have a float32 data type.
 
         Returns
         -------
-        tuple
-            Vectors for 'at' and 'up'.
+        ndarray or None
+            The vector for 'at' if `outVector`=None. Returns None if `outVector`
+            was specified.
+
+        Notes
+        -----
+        It's better to use the 'at' property if you are not supplying an output
+        array. However, `getAt` will have the same effect as the property if
+        `outVector`=None.
 
         Examples
         --------
 
         Setting the listener orientation for 3D positional audio (PyOpenAL)::
 
-            at, up = myPose.getAtUp()
-            myListener.set_orientation((*at, *up))
+            myListener.set_orientation((*myPose.getAt(), *myPose.getUp()))
+
+        See Also
+        --------
+        getUp : Get the 'up' vector.
 
         """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if outVector is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = outVector
+
         cdef libovr_math.Vector3f at = \
             (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
                 libovr_math.Vector3f(0.0, 0.0, -1.0))
+
+        toReturn[0] = at.x
+        toReturn[1] = at.y
+        toReturn[2] = at.z
+
+        if outVector is None:
+            return toReturn
+
+    @property
+    def up(self):
+        return self.getUp()
+
+    def getUp(self, object outVector=None):
+        """Get the 'up' vector for this pose.
+
+        Parameters
+        ----------
+        outVector : ndarray, optional
+            Option array to write values to. If None, the function will return
+            a new array. Must have a float32 data type and a length of 3.
+
+        Returns
+        -------
+        ndarray or None
+            The vector for 'up' if `outVector`=None. Returns None if `outVector`
+            was specified.
+
+        Notes
+        -----
+        It's better to use the 'up' property if you are not supplying an output
+        array. However, `getUp` will have the same effect as the property if
+        outVector=None.
+
+        Examples
+        --------
+
+        Using the 'up' vector with gluLookAt::
+
+            up = myPose.getUp()  # myPose.up also works
+            center = myPose.pos
+            target = targetPose.pos  # some target pose
+            gluLookAt(*(*up, *center, *target))
+
+        See Also
+        --------
+        getAt : Get the 'at' vector.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if outVector is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = outVector
+
         cdef libovr_math.Vector3f up = \
             (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
                 libovr_math.Vector3f(0.0, 1.0, 0.0))
 
-        cdef np.ndarray[np.float32_t, ndim=1] ret_at = \
-            np.array((<float>at[0], <float>at[1], <float>at[2]),
-                       dtype=np.float32)
-        cdef np.ndarray[np.float32_t, ndim=1] ret_up = \
-            np.array((<float>up[0], <float>up[1], <float>up[2]),
-                       dtype=np.float32)
+        toReturn[0] = up.x
+        toReturn[1] = up.y
+        toReturn[2] = up.z
 
-        return ret_at, ret_up
+        if outVector is None:
+            return toReturn
 
     def getYawPitchRoll(self, LibOVRPose refPose=None):
         """Get the yaw, pitch, and roll of the orientation quaternion.
 
         Parameters
         ----------
-        refPose : LibOVRPose or None
+        refPose : LibOVRPose, optional
             Reference pose to compute angles relative to. If None is specified,
             computed values are referenced relative to the world axes.
 
@@ -817,12 +972,12 @@ cdef class LibOVRPose(object):
 
         return to_return
 
-    def getMatrix4x4(self, bint inverse=False):
+    def getTransformMatrix(self, bint inverse=False):
         """Convert this pose into a 4x4 transformation matrix.
 
         Parameters
         ----------
-        inverse : bool
+        inverse : bool, optional
             If True, return the inverse of the matrix.
 
         Returns
@@ -835,7 +990,7 @@ cdef class LibOVRPose(object):
             <libovr_math.Posef>self.c_data[0])
 
         if inverse:
-            m_pose.InvertHomogeneousTransform()
+            m_pose.InvertHomogeneousTransform()  # faster than Invert() here
 
         cdef np.ndarray[np.float32_t, ndim=2] to_return = \
             np.zeros((4, 4), dtype=np.float32)
@@ -843,48 +998,11 @@ cdef class LibOVRPose(object):
         # fast copy matrix to numpy array
         cdef float [:, :] mv = to_return
         cdef Py_ssize_t i, j
+        cdef Py_ssize_t N = 4
         i = j = 0
-        for i in range(4):
-            for j in range(4):
-                mv[i, j] = m_pose.M[i][j]
-
-        return to_return
-
-    def getMatrix1d(self, bint inverse=False):
-        """Convert this pose into a 1D (flattened) transform matrix.
-
-        This will output an array suitable for use with OpenGL.
-
-        Parameters
-        ----------
-        inverse : bool
-            If True, return the inverse of the matrix.
-
-        Returns
-        -------
-        ndarray
-            4x4 transformation matrix flattened to a 1D array assuming column
-            major order with a 'float32' data type.
-
-        """
-        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
-
-        if inverse:
-            m_pose.InvertHomogeneousTransform()
-
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.zeros((16,), dtype=np.float32)
-
-        # fast copy matrix to numpy array
-        cdef float [:] mv = to_return
-        cdef Py_ssize_t i, j, k, N
-        i = j = k = 0
-        N = 4
         for i in range(N):
             for j in range(N):
-                mv[k] = m_pose.M[j][i]  # row -> column major order
-                k += 1
+                mv[i, j] = m_pose.M[i][j]
 
         return to_return
 
@@ -899,7 +1017,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        LibOVRPose
+        `LibOVRPose`
             Inverted pose.
 
         """
@@ -1167,14 +1285,14 @@ cdef class LibOVRPose(object):
         ----------
         targetPose : tuple, list, or ndarray of floats
             Coordinates of the center of the target sphere (x, y, z).
-        radius : float
+        radius : float, optional
             The radius of the target.
-        rayDir : tuple, list, or ndarray of floats
+        rayDir : tuple, list, or ndarray of floats, optional
             Vector indicating the direction for the ray (default is -Z).
-        maxRange : float
+        maxRange : float, optional
             The maximum range of the ray. Ray testing will fail automatically if
             the target is out of range. The ray has infinite length if None is
-            specified. Ray is infinite if maxRange=0.0.
+            specified. Ray is infinite if `maxRange`=0.0.
 
         Returns
         -------
@@ -1219,14 +1337,14 @@ cdef class LibOVRPose(object):
             End pose.
         s : float
             Interpolation factor between in interval 0.0 and 1.0.
-        fast : bool
+        fast : bool, optional
             If True, use fast interpolation which is quicker but less accurate
             over larger distances.
 
         Returns
         -------
         LibOVRPose
-            Interpolated pose at 's'.
+            Interpolated pose at `s`.
 
         """
         cdef libovr_math.Posef _toPose = <libovr_math.Posef>toPose.c_data[0]
@@ -2388,6 +2506,10 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
     ----------
     swapChain : int
         Swap chain handle to initialize, usually 'LIBOVR_SWAP_CHAIN*'.
+    width : int
+        Width of texture in pixels.
+    height : int
+        Height of texture in pixels.
     textureFormat : int
         Texture format to use. Valid color texture formats are:
             - :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
@@ -2398,10 +2520,9 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
             - :data:`LIBOVR_FORMAT_D16_UNORM`
             - :data:`LIBOVR_FORMAT_D24_UNORM_S8_UINT`
             - :data:`LIBOVR_FORMAT_D32_FLOAT`
-    width : int
-        Width of texture in pixels.
-    height : int
-        Height of texture in pixels.
+
+    Other Parameters
+    ----------------
     levels : int
         Mip levels to use, default is 1.
 
@@ -2658,108 +2779,108 @@ def getTrackedPoses(double absTime, bint latencyMarker=True):
                           'RightHand': right_hand_pose}
 
     return toReturn
-
-def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
-    """Get tracked device poses.
-
-    Each pose in the returned array matches the device type at each index
-    specified in 'deviceTypes'. You need to call this function to get the poses
-    for 'objects', which are additional touch controllers.
-
-    Parameters
-    ----------
-    deviceTypes : `list` or `tuple` of `int`
-        List of device types. Valid device types are:
-
-        - LIBOVR_TRACKED_DEVICE_TYPE_HMD: The head or HMD.
-        - LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH: Left touch controller or hand.
-        - LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH: Right touch controller or hand.
-        - LIBOVR_TRACKED_DEVICE_TYPE_TOUCH: Both touch controllers.
-
-        Up to four additional touch controllers can be paired and tracked, they
-        are assigned types:
-
-        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0
-        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1
-        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2
-        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3
-
-    absTime : `float`
-        Absolute time in seconds poses refer to.
-    latencyMarker: `bool`
-        Insert a marker for motion-to-photon latency calculation. Set this to
-        False if 'getTrackedPoses' was previously called and a latency marker
-        was set there.
-
-    Returns
-    -------
-    tuple
-        Return code (`int`) of the 'ovr_GetDevicePoses' API call and list of
-        tracked device poses (`list` of `LibOVRPoseState`).
-
-    Examples
-    --------
-
-    Get HMD and touch controller poses::
-
-        deviceTypes = (ovr.LIBOVR_TRACKED_DEVICE_TYPE_HMD,
-                       ovr.LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH,
-                       ovr.LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH)
-        headPose, leftHandPose, rightHandPose = ovr.getDevicePoses(
-            deviceTypes, absTime)
-
-    """
-    # nop if args indicate no devices
-    if deviceTypes is None:
-        return None
-
-    global _ptrSession
-    global _eyeLayer
-    #global _devicePoses
-
-    # for computing app photon-to-motion latency
-    if latencyMarker:
-        _eyeLayer.SensorSampleTime = absTime
-
-    # allocate arrays to store pose types and poses
-    cdef int count = <int>len(deviceTypes)
-    cdef libovr_capi.ovrTrackedDeviceType* devices = \
-        <libovr_capi.ovrTrackedDeviceType*>malloc(
-            count * sizeof(libovr_capi.ovrTrackedDeviceType))
-    if not devices:
-        raise MemoryError("Failed to allocate array 'devices'.")
-
-    cdef int i = 0
-    for i in range(count):
-        devices[i] = <libovr_capi.ovrTrackedDeviceType>deviceTypes[i]
-
-    cdef libovr_capi.ovrPoseStatef* devicePoses = \
-        <libovr_capi.ovrPoseStatef*>malloc(
-            count * sizeof(libovr_capi.ovrPoseStatef))
-    if not devicePoses:
-        raise MemoryError("Failed to allocate array 'devicePoses'.")
-
-    # get the device poses
-    cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetDevicePoses(
-        _ptrSession,
-        &devices,
-        count,
-        absTime,
-        &devicePoses)
-
-    # build list of device poses
-    cdef list outPoses = list()
-    cdef LibOVRPoseState thisPose
-    for i in range(count):
-        thisPose = LibOVRPoseState()  # new
-        thisPose.c_data[0] = devicePoses[i]
-        outPoses.append(thisPose)
-
-    # free the arrays
-    free(devices)
-    free(devicePoses)
-
-    return result, outPoses
+#
+# def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
+#     """Get tracked device poses.
+#
+#     Each pose in the returned array matches the device type at each index
+#     specified in 'deviceTypes'. You need to call this function to get the poses
+#     for 'objects', which are additional touch controllers.
+#
+#     Parameters
+#     ----------
+#     deviceTypes : `list` or `tuple` of `int`
+#         List of device types. Valid device types are:
+#
+#         - LIBOVR_TRACKED_DEVICE_TYPE_HMD: The head or HMD.
+#         - LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH: Left touch controller or hand.
+#         - LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH: Right touch controller or hand.
+#         - LIBOVR_TRACKED_DEVICE_TYPE_TOUCH: Both touch controllers.
+#
+#         Up to four additional touch controllers can be paired and tracked, they
+#         are assigned types:
+#
+#         - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0
+#         - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1
+#         - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2
+#         - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3
+#
+#     absTime : `float`
+#         Absolute time in seconds poses refer to.
+#     latencyMarker: `bool`
+#         Insert a marker for motion-to-photon latency calculation. Set this to
+#         False if 'getTrackedPoses' was previously called and a latency marker
+#         was set there.
+#
+#     Returns
+#     -------
+#     tuple
+#         Return code (`int`) of the 'ovr_GetDevicePoses' API call and list of
+#         tracked device poses (`list` of `LibOVRPoseState`).
+#
+#     Examples
+#     --------
+#
+#     Get HMD and touch controller poses::
+#
+#         deviceTypes = (ovr.LIBOVR_TRACKED_DEVICE_TYPE_HMD,
+#                        ovr.LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH,
+#                        ovr.LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH)
+#         headPose, leftHandPose, rightHandPose = ovr.getDevicePoses(
+#             deviceTypes, absTime)
+#
+#     """
+#     # nop if args indicate no devices
+#     if deviceTypes is None:
+#         return None
+#
+#     global _ptrSession
+#     global _eyeLayer
+#     #global _devicePoses
+#
+#     # for computing app photon-to-motion latency
+#     if latencyMarker:
+#         _eyeLayer.SensorSampleTime = absTime
+#
+#     # allocate arrays to store pose types and poses
+#     cdef int count = <int>len(deviceTypes)
+#     cdef libovr_capi.ovrTrackedDeviceType* devices = \
+#         <libovr_capi.ovrTrackedDeviceType*>malloc(
+#             count * sizeof(libovr_capi.ovrTrackedDeviceType))
+#     if not devices:
+#         raise MemoryError("Failed to allocate array 'devices'.")
+#
+#     cdef int i = 0
+#     for i in range(count):
+#         devices[i] = <libovr_capi.ovrTrackedDeviceType>deviceTypes[i]
+#
+#     cdef libovr_capi.ovrPoseStatef* devicePoses = \
+#         <libovr_capi.ovrPoseStatef*>malloc(
+#             count * sizeof(libovr_capi.ovrPoseStatef))
+#     if not devicePoses:
+#         raise MemoryError("Failed to allocate array 'devicePoses'.")
+#
+#     # get the device poses
+#     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetDevicePoses(
+#         _ptrSession,
+#         &devices,
+#         count,
+#         absTime,
+#         &devicePoses)
+#
+#     # build list of device poses
+#     cdef list outPoses = list()
+#     cdef LibOVRPoseState thisPose
+#     for i in range(count):
+#         thisPose = LibOVRPoseState()  # new
+#         thisPose.c_data[0] = devicePoses[i]
+#         outPoses.append(thisPose)
+#
+#     # free the arrays
+#     free(devices)
+#     free(devicePoses)
+#
+#     return result, outPoses
 
 def calcEyePoses(LibOVRPose headPose):
     """Calculate eye poses using a given pose state.
@@ -2965,17 +3086,17 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0):
     """
     global _eyeProjectionMatrix
     global _eyeRenderDesc
-    global _nearClip
-    global _farClip
+    #global _nearClip
+    #lobal _farClip
 
-    _nearClip = nearClip
-    _farClip = farClip
+    #_nearClip = nearClip
+    #_farClip = farClip
 
     _eyeProjectionMatrix[eye] = \
         <libovr_math.Matrix4f>libovr_capi.ovrMatrix4f_Projection(
             _eyeRenderDesc[eye].Fov,
-            _nearClip[eye],
-            _farClip[eye],
+            nearClip,
+            farClip,
             libovr_capi.ovrProjection_ClipRangeOpenGL)
 
     cdef np.ndarray to_return = np.zeros((4, 4), dtype=np.float32)
@@ -4309,152 +4430,152 @@ def getSessionStatus():
 
     return to_return
 
-def testPointsInEyeFrustums(object points, object out=None):
-    """Test if points are within each eye's frustum.
-
-    This function uses current view and projection matrix in the computation.
-
-    Parameters
-    ----------
-    points : tuple, list, or ndarray
-        2D array of points to test. Each coordinate should be in format
-        [x, y ,z], where dimensions are in meters. Passing a NumPy ndarray with
-        dtype=float32 and ndim=2 will avoid copying.
-
-    out : ndarray
-        Optional array to write test results. Must have the same shape as
-        'points' and dtype=bool. If None, the function will create and return an
-        appropriate array with results.
-
-    Returns
-    -------
-    ndarray
-        Nx2 array of results. The row index of the returned array contains the
-        test results for the coordinates with the matching row index in
-        'points'. The results for the left and right eye are stored in the first
-        and second column, respectively.
-
-    """
-    global _nearClip
-    global _farClip
-
-    cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
-        np.array(points, dtype=np.float32, ndmin=2, copy=False)
-
-    cdef np.ndarray[np.uint8_t, ndim=2] testOut
-    if testOut is not None:
-        testOut = out
-    else:
-        testOut = np.zeros_like(out, dtype=np.uint8_t)
-
-    assert testOut.shape == pointsIn.shape
-
-    cdef float[:,:] mvPoints = pointsIn
-    cdef np.uint8_t[:,:] mvResult = testOut
-
-    # intermediates
-    cdef libovr_math.Vector4f vecIn
-    cdef libovr_math.Vector4f pointHCS
-    cdef libovr_math.Vector3f pointNDC
-
-    # loop over all points specified
-    cdef Py_ssize_t eye = 0
-    cdef Py_ssize_t pt = 0
-    cdef Py_ssize_t N = mvPoints.shape[0]
-    for pt in range(N):
-        for eye in range(libovr_capi.ovrEye_Count):
-            vecIn.x = mvPoints[pt, 0]
-            vecIn.y = mvPoints[pt, 1]
-            vecIn.z = mvPoints[pt, 2]
-            vecIn.w = 1.0
-            pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
-
-            # too close to the singularity for perspective division or behind
-            # the viewer, fail automatically
-            if pointHCS.w < 0.0001:
-                continue
-
-            # perspective division XYZ / W
-            pointNDC.x = pointHCS.x / pointHCS.w
-            pointNDC.y = pointHCS.y / pointHCS.w
-            pointNDC.z = pointHCS.z / pointHCS.w
-
-            # check if outside [-1:1] in any NDC dimension
-            if -1.0 < pointNDC.x < 1.0 and -1.0 < pointNDC.y < 1.0 and -1.0 < pointNDC.z < 1.0:
-                mvResult[pt, eye] = 1
-
-    return testOut.astype(dtype=np.bool)
-
-def anyPointInFrustum(object points):
-    """Check if any of the specified points in world/scene coordinates are
-    within the viewing frustum of either eye.
-
-    This can be used to determine whether or not something should be drawn by
-    specifying its position, mesh or bounding box vertices. The function will
-    return True immediately when it comes across a point that falls within
-    either eye's frustum.
-
-    Parameters
-    ----------
-    points : tuple, list, or ndarray
-        2D array of points to test. Each coordinate should be in format
-        [x, y ,z], where dimensions are in meters. Passing a NumPy ndarray with
-        dtype=float32 and ndim=2 will avoid copying.
-
-    Returns
-    -------
-    bool
-        True if any point specified falls inside a viewing frustum.
-
-    Examples
-    --------
-    Test if points fall within a viewing frustum::
-
-        points = [[1.2, -0.2, -5.6], [-0.01, 0.0, -10.0]]
-        isVisible = libovr.testPointsInFrustum(points)
-
-    """
-    # eventually we're going to move this function if we decide to support more
-    # HMDs. This really isn't something specific to LibOVR.
-
-    # input values to 2D memory view
-    cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
-        np.array(points, dtype=np.float32, ndmin=2, copy=False)
-
-    if pointsIn.shape[1] != 3:
-        raise ValueError("Invalid number of columns, must be 3.")
-
-    cdef float[:,:] mvPoints = pointsIn
-
-    # intermediates
-    cdef libovr_math.Vector4f vecIn
-    cdef libovr_math.Vector4f pointHCS
-    cdef libovr_math.Vector3f pointNDC
-
-    # loop over all points specified
-    cdef Py_ssize_t eye = 0
-    cdef Py_ssize_t pt = 0
-    cdef Py_ssize_t N = mvPoints.shape[0]
-    for pt in range(N):
-        for eye in range(libovr_capi.ovrEye_Count):
-            vecIn.x = mvPoints[pt, 0]
-            vecIn.y = mvPoints[pt, 1]
-            vecIn.z = mvPoints[pt, 2]
-            vecIn.w = 1.0
-            pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
-
-            # too close to the singularity for perspective division or behind
-            # the viewer, fail automatically
-            if pointHCS.w < 0.0001:
-                return False
-
-            # perspective division XYZ / W
-            pointNDC.x = pointHCS.x / pointHCS.w
-            pointNDC.y = pointHCS.y / pointHCS.w
-            pointNDC.z = pointHCS.z / pointHCS.w
-
-            # check if outside [-1:1] in any NDC dimension
-            if -1.0 < pointNDC.x < 1.0 and -1.0 < pointNDC.y < 1.0 and -1.0 < pointNDC.z < 1.0:
-                return True
-
-    return False
+# def testPointsInEyeFrustums(object points, object out=None):
+#     """Test if points are within each eye's frustum.
+#
+#     This function uses current view and projection matrix in the computation.
+#
+#     Parameters
+#     ----------
+#     points : tuple, list, or ndarray
+#         2D array of points to test. Each coordinate should be in format
+#         [x, y ,z], where dimensions are in meters. Passing a NumPy ndarray with
+#         dtype=float32 and ndim=2 will avoid copying.
+#
+#     out : ndarray
+#         Optional array to write test results. Must have the same shape as
+#         'points' and dtype=bool. If None, the function will create and return an
+#         appropriate array with results.
+#
+#     Returns
+#     -------
+#     ndarray
+#         Nx2 array of results. The row index of the returned array contains the
+#         test results for the coordinates with the matching row index in
+#         'points'. The results for the left and right eye are stored in the first
+#         and second column, respectively.
+#
+#     """
+#     global _nearClip
+#     global _farClip
+#
+#     cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
+#         np.array(points, dtype=np.float32, ndmin=2, copy=False)
+#
+#     cdef np.ndarray[np.uint8_t, ndim=2] testOut
+#     if testOut is not None:
+#         testOut = out
+#     else:
+#         testOut = np.zeros_like(out, dtype=np.uint8_t)
+#
+#     assert testOut.shape == pointsIn.shape
+#
+#     cdef float[:,:] mvPoints = pointsIn
+#     cdef np.uint8_t[:,:] mvResult = testOut
+#
+#     # intermediates
+#     cdef libovr_math.Vector4f vecIn
+#     cdef libovr_math.Vector4f pointHCS
+#     cdef libovr_math.Vector3f pointNDC
+#
+#     # loop over all points specified
+#     cdef Py_ssize_t eye = 0
+#     cdef Py_ssize_t pt = 0
+#     cdef Py_ssize_t N = mvPoints.shape[0]
+#     for pt in range(N):
+#         for eye in range(libovr_capi.ovrEye_Count):
+#             vecIn.x = mvPoints[pt, 0]
+#             vecIn.y = mvPoints[pt, 1]
+#             vecIn.z = mvPoints[pt, 2]
+#             vecIn.w = 1.0
+#             pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
+#
+#             # too close to the singularity for perspective division or behind
+#             # the viewer, fail automatically
+#             if pointHCS.w < 0.0001:
+#                 continue
+#
+#             # perspective division XYZ / W
+#             pointNDC.x = pointHCS.x / pointHCS.w
+#             pointNDC.y = pointHCS.y / pointHCS.w
+#             pointNDC.z = pointHCS.z / pointHCS.w
+#
+#             # check if outside [-1:1] in any NDC dimension
+#             if -1.0 < pointNDC.x < 1.0 and -1.0 < pointNDC.y < 1.0 and -1.0 < pointNDC.z < 1.0:
+#                 mvResult[pt, eye] = 1
+#
+#     return testOut.astype(dtype=np.bool)
+#
+# def anyPointInFrustum(object points):
+#     """Check if any of the specified points in world/scene coordinates are
+#     within the viewing frustum of either eye.
+#
+#     This can be used to determine whether or not something should be drawn by
+#     specifying its position, mesh or bounding box vertices. The function will
+#     return True immediately when it comes across a point that falls within
+#     either eye's frustum.
+#
+#     Parameters
+#     ----------
+#     points : tuple, list, or ndarray
+#         2D array of points to test. Each coordinate should be in format
+#         [x, y ,z], where dimensions are in meters. Passing a NumPy ndarray with
+#         dtype=float32 and ndim=2 will avoid copying.
+#
+#     Returns
+#     -------
+#     bool
+#         True if any point specified falls inside a viewing frustum.
+#
+#     Examples
+#     --------
+#     Test if points fall within a viewing frustum::
+#
+#         points = [[1.2, -0.2, -5.6], [-0.01, 0.0, -10.0]]
+#         isVisible = libovr.testPointsInFrustum(points)
+#
+#     """
+#     # eventually we're going to move this function if we decide to support more
+#     # HMDs. This really isn't something specific to LibOVR.
+#
+#     # input values to 2D memory view
+#     cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
+#         np.array(points, dtype=np.float32, ndmin=2, copy=False)
+#
+#     if pointsIn.shape[1] != 3:
+#         raise ValueError("Invalid number of columns, must be 3.")
+#
+#     cdef float[:,:] mvPoints = pointsIn
+#
+#     # intermediates
+#     cdef libovr_math.Vector4f vecIn
+#     cdef libovr_math.Vector4f pointHCS
+#     cdef libovr_math.Vector3f pointNDC
+#
+#     # loop over all points specified
+#     cdef Py_ssize_t eye = 0
+#     cdef Py_ssize_t pt = 0
+#     cdef Py_ssize_t N = mvPoints.shape[0]
+#     for pt in range(N):
+#         for eye in range(libovr_capi.ovrEye_Count):
+#             vecIn.x = mvPoints[pt, 0]
+#             vecIn.y = mvPoints[pt, 1]
+#             vecIn.z = mvPoints[pt, 2]
+#             vecIn.w = 1.0
+#             pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
+#
+#             # too close to the singularity for perspective division or behind
+#             # the viewer, fail automatically
+#             if pointHCS.w < 0.0001:
+#                 return False
+#
+#             # perspective division XYZ / W
+#             pointNDC.x = pointHCS.x / pointHCS.w
+#             pointNDC.y = pointHCS.y / pointHCS.w
+#             pointNDC.z = pointHCS.z / pointHCS.w
+#
+#             # check if outside [-1:1] in any NDC dimension
+#             if -1.0 < pointNDC.x < 1.0 and -1.0 < pointNDC.y < 1.0 and -1.0 < pointNDC.z < 1.0:
+#                 return True
+#
+#     return False
