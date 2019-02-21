@@ -723,6 +723,13 @@ cdef class LibOVRPose(object):
         -------
         ndarray or None
 
+        Raises
+        ------
+        ValueError
+            Buffer dtype mismatch where float32 was expected.
+        IndexError
+            Out of bounds on buffer access.
+
         Examples
         --------
 
@@ -790,6 +797,13 @@ cdef class LibOVRPose(object):
         -------
         ndarray or None
 
+        Raises
+        ------
+        ValueError
+            Buffer dtype mismatch where float32 was expected.
+        IndexError
+            Out of bounds on buffer access.
+
         Notes
         -----
             The orientation quaternion should be normalized.
@@ -853,6 +867,13 @@ cdef class LibOVRPose(object):
             The vector for 'at' if `outVector`=None. Returns None if `outVector`
             was specified.
 
+        Raises
+        ------
+        ValueError
+            Buffer dtype mismatch where float32 was expected.
+        IndexError
+            Out of bounds on buffer access.
+
         Notes
         -----
         It's better to use the 'at' property if you are not supplying an output
@@ -907,11 +928,18 @@ cdef class LibOVRPose(object):
             The vector for 'up' if `outVector`=None. Returns None if `outVector`
             was specified.
 
+        Raises
+        ------
+        ValueError
+            Buffer dtype mismatch where float32 was expected.
+        IndexError
+            Out of bounds on buffer access.
+
         Notes
         -----
-        It's better to use the 'up' property if you are not supplying an output
-        array. However, `getUp` will have the same effect as the property if
-        outVector=None.
+        It's better to use the `up` property if you are not supplying an output
+        array. However, `getUp` will have the same effect as the `up` property
+        if `outVector`=None.
 
         Examples
         --------
