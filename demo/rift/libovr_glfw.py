@@ -4,7 +4,7 @@ import OpenGL.GL as GL
 import ctypes
 import glfw
 import numpy as np
-import psychxr.libovr.capi as capi
+import psychxr.libovr as libovr
 import psychxr.libovr.math as vrmath
 capi.debug_mode = True
 import sys
@@ -34,39 +34,32 @@ def main():
     glfw.swap_interval(0)
 
     # start an Oculus session
-    session = capi.LibOVRSession()
-    session.start()
-    print(session.userHeight)
+    libovr.initialize()
+    libovr.create()
 
     # get general information about the HMD
-    #hmd_desc = capi.getHmdDesc()
-    #eyeFov = capi.getDefaultEyeFov(session)
+    hmdInfo = libovr.getHmdInfo()
 
-    # set the perf hud on
-    session.perfHudMode("PerfSummary")
     # Get the buffer dimensions specified by the Rift SDK, we need them to
     # setup OpenGL frame buffers.
-    eyeFOV = session.getDefaultEyeFov()
+    eyeFovs = hmdInfo.defaultEyeFov
 
-    print(eyeFOV)
     # configure the internal render descriptors for each eye
-    for eye in range(capi.ovrEye_Count):
-        capi.configEyeRenderDesc(session, eye, eyeFOV[eye])
-        print(session.getEyeRenderFov(eye))
+    for eye in range(libovr.LIBOVR_EYE_COUNT):
+        libovr.setEyeRenderFov(eye, eyeFovs[eye])
 
-
-    tex_size_left = session.getEyeBufferSize(
-        capi.ovrEye_Left, eyeFOV[0])
-    tex_size_right = session.getEyeBufferSize(
-        capi.ovrEye_Right, eyeFOV[1])
+    texSizeLeft = libovr.calcEyeBufferSize(libovr.LIBOVR_EYE_LEFT)
+    texSizeRight = libovr.calcEyeBufferSize(libovr.LIBOVR_EYE_RIGHT)
 
     # We are using a shared texture, so we need to combine dimensions.
-    buffer_w = tex_size_left[0] + tex_size_right[0]
-    buffer_h = max(tex_size_left[1], tex_size_right[1])
-    print(buffer_h)
+    bufferW = texSizeLeft[0] + texSizeRight[0]
+    bufferH = max(texSizeLeft[1], texSizeRight[1])
+
     # Allocate a swap chain for render buffer textures, the handle used is an
-    # integer. You can allocated up to 32 swap chains, however you will likely
-    # run out of video memory by then.
+    # integer.
+
+
+
 
     # configure the swap chain
     swapChain = 0

@@ -438,7 +438,9 @@ cdef extern from "OVR_Math.h" namespace "OVR":
         float GetHorizontalFovDegrees()
         float GetMaxSideTan()
         Vector2f TanAngleToRendertargetNDC(Vector2f tanEyeAngle)
+        @staticmethod
         FovPort Min(const FovPort& a, const FovPort& b)
+        @staticmethod
         FovPort Max(const FovPort& a, const FovPort& b)
         FovPort Uncant(const FovPort& cantedFov, Quatf canting)
         FovPort ScaleFovPort(const FovPort& fov, Vector2f scaleFactors)

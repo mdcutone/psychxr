@@ -218,12 +218,16 @@ __all__ = [
     'createMirrorTexture',
     'getMirrorTexture',
     'getTrackedPoses',
-    'getDevicePoses',
+    'getDevicePose',
+    #'getDevicePoses',
     'calcEyePoses',
-    'getHmdToEyePoses',
-    'setHmdToEyePoses',
-    'getEyeRenderPoses',
-    'setEyeRenderPoses',
+    'getHmdToEyePose',
+    'setHmdToEyePose',
+    'getEyeRenderPose',
+    'setEyeRenderPose',
+    'getEyeHorizontalFovRadians',
+    'getEyeVerticalFovRadians',
+    'getEyeFocalLength',
     'getEyeProjectionMatrix',
     'getEyeRenderViewport',
     'setEyeRenderViewport',
@@ -262,7 +266,6 @@ __all__ = [
     'getBoundaryDimensions',
     'getConnectedControllerTypes',
     'updateInputState',
-    'getInputTime',
     'getButton',
     'getTouch',
     'getThumbstickValues',
@@ -273,12 +276,13 @@ __all__ = [
     'anyPointInFrustum'
 ]
 
+
 from .cimport libovr_capi
 from .cimport libovr_math
 
 from libc.stdint cimport int32_t, uint32_t
 from libc.stdlib cimport malloc, free
-from libc.math cimport pow
+from libc.math cimport pow, tan
 
 cimport numpy as np
 import numpy as np
@@ -325,8 +329,8 @@ cdef libovr_capi.ovrInputState[5] _prevInputState
 cdef bint _debugMode
 
 # geometric data
-cdef float[2] _nearClip
-cdef float[2] _farClip
+#cdef float[2] _nearClip
+#cdef float[2] _farClip
 cdef libovr_math.Matrix4f[2] _eyeProjectionMatrix
 cdef libovr_math.Matrix4f[2] _eyeViewMatrix
 cdef libovr_math.Matrix4f[2] _eyeViewProjectionMatrix
@@ -1364,27 +1368,6 @@ cdef class LibOVRPoseState(object):
         """Absolute time this data refers to in seconds."""
         return <double>self.c_data[0].TimeInSeconds
 
-    @property
-    def orientationTracked(self):
-        """True if the orientation was tracked when sampled."""
-        return <bint>((libovr_capi.ovrStatus_OrientationTracked &
-             self.status_flags) == libovr_capi.ovrStatus_OrientationTracked)
-
-    @property
-    def positionTracked(self):
-        """True if the position was tracked when sampled."""
-        return <bint>((libovr_capi.ovrStatus_PositionTracked &
-             self.status_flags) == libovr_capi.ovrStatus_PositionTracked)
-
-    @property
-    def fullyTracked(self):
-        """True if position and orientation were tracked when sampled."""
-        cdef int32_t full_tracking_flags = \
-            libovr_capi.ovrStatus_OrientationTracked | \
-            libovr_capi.ovrStatus_PositionTracked
-        return <bint>((self.status_flags & full_tracking_flags) ==
-                      full_tracking_flags)
-
     def timeIntegrate(self, float dt):
         """Time integrate rigid body motion derivatives referenced by the
         current pose.
@@ -1724,14 +1707,13 @@ cdef class LibOVRHmdInfo(object):
             values.
 
         """
-        cdef libovr_capi.ovrFovPort fov_left = self.c_data[0].DefaultEyeFov[0]
-        cdef libovr_capi.ovrFovPort fov_right = self.c_data[0].DefaultEyeFov[1]
+        cdef libovr_math.FovPort fov_left = \
+            <libovr_math.FovPort>self.c_data[0].DefaultEyeFov[0]
+        cdef libovr_math.FovPort fov_right = \
+            <libovr_math.FovPort>self.c_data[0].DefaultEyeFov[1]
 
-        cdef libovr_capi.ovrFovPort fov_max
-        fov_max.UpTan = maxf(fov_left.UpTan, fov_right.UpTan)
-        fov_max.DownTan = maxf(fov_left.DownTan, fov_right.DownTan)
-        fov_max.LeftTan = maxf(fov_left.LeftTan, fov_right.LeftTan)
-        fov_max.RightTan = maxf(fov_left.RightTan, fov_right.RightTan)
+        cdef libovr_math.FovPort fov_max = libovr_math.FovPort.Max(
+            <libovr_math.FovPort>fov_left, <libovr_math.FovPort>fov_right)
 
         cdef float tan_half_fov_horz = maxf(fov_max.LeftTan, fov_max.RightTan)
         cdef float tan_half_fov_vert = maxf(fov_max.DownTan, fov_max.UpTan)
@@ -1758,6 +1740,9 @@ cdef class LibOVRHmdInfo(object):
 
 
 cdef class LibOVRFrameStat(object):
+    """Performance stats for a compositor frame.
+
+    """
     cdef libovr_capi.ovrPerfStatsPerCompositorFrame* c_data
     cdef libovr_capi.ovrPerfStatsPerCompositorFrame c_ovrPerfStatsPerCompositorFrame
 
@@ -1766,10 +1751,18 @@ cdef class LibOVRFrameStat(object):
 
     @property
     def hmdVsyncIndex(self):
+        """Frame index the stats refer to. This increments on the HMD's vertical
+        synchronization signal.
+
+        """
         return self.c_data[0].HmdVsyncIndex
 
     @property
     def appFrameIndex(self):
+        """Increments every time the application submits a frame to the
+        compositor.
+
+        """
         return self.c_data[0].AppFrameIndex
 
     @property
@@ -2210,6 +2203,80 @@ def setEyeRenderFov(int eye, object fov):
 
     # set in eye layer too
     _eyeLayer.Fov[eye] = _eyeRenderDesc[eye].Fov
+
+def getEyeAspectRatio(int eye):
+    """Get the aspect ratio of an eye.
+
+    Parameters
+    ----------
+    eye: int
+        Eye index. Use either :data:LIBOVR_EYE_LEFT or :data:LIBOVR_EYE_RIGHT.
+
+    Returns
+    -------
+    float
+        Aspect ratio of the eye's FOV.
+
+    """
+    cdef libovr_math.FovPort fovPort = \
+        <libovr_math.FovPort>_eyeRenderDesc[eye].Fov
+
+    return (fovPort.LeftTan + fovPort.RightTan) / \
+           (fovPort.UpTan + fovPort.DownTan)
+
+def getEyeHorizontalFovRadians(int eye):
+    """Get the angle of the horizontal field-of-view (FOV) for a given eye.
+
+    Parameters
+    ----------
+    eye: int
+        Eye index. Use either :data:LIBOVR_EYE_LEFT or :data:LIBOVR_EYE_RIGHT.
+
+    Returns
+    -------
+    float
+        Horizontal FOV of a given eye in radians.
+
+    """
+    cdef libovr_math.FovPort fovPort = \
+        <libovr_math.FovPort>_eyeRenderDesc[eye].Fov
+
+    return fovPort.GetHorizontalFovRadians()
+
+def getEyeVerticalFovRadians(int eye):
+    """Get the angle of the vertical field-of-view (FOV) for a given eye.
+
+    Parameters
+    ----------
+    eye: int
+        Eye index. Use either :data:LIBOVR_EYE_LEFT or :data:LIBOVR_EYE_RIGHT.
+
+    Returns
+    -------
+    float
+        Vertical FOV of a given eye in radians.
+
+    """
+    cdef libovr_math.FovPort fovPort = \
+        <libovr_math.FovPort>_eyeRenderDesc[eye].Fov
+
+    return fovPort.GetVerticalFovRadians()
+
+def getEyeFocalLength(int eye):
+    """Get the focal length of the eye's frustum.
+
+    Parameters
+    ----------
+    eye: int
+        Eye index. Use either :data:LIBOVR_EYE_LEFT or :data:LIBOVR_EYE_RIGHT.
+
+    Returns
+    -------
+    float
+        Focal length in meters.
+
+    """
+    return 1.0 / tan(getEyeHorizontalFovRadians(eye) / 2.0)
 
 def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
     """Get the recommended buffer (texture) sizes for eye buffers.
@@ -2659,6 +2726,64 @@ def getTrackedPoses(double absTime, bint latencyMarker=True):
 
     return toReturn
 
+def getDevicePose(int deviceType, double absTime, bint latencyMarker=True):
+    """Get the pose of a tracked device.
+
+    Parameters
+    ----------
+    deviceTypes : `list` or `tuple` of `int`
+        List of device types. Valid device types are:
+
+        - LIBOVR_TRACKED_DEVICE_TYPE_HMD: The head or HMD.
+        - LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH: Left touch controller or hand.
+        - LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH: Right touch controller or hand.
+        - LIBOVR_TRACKED_DEVICE_TYPE_TOUCH: Both touch controllers.
+
+        Up to four additional touch controllers can be paired and tracked, they
+        are assigned types:
+
+        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0
+        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1
+        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2
+        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3
+
+    absTime : float
+        Absolute time in seconds the device pose refers to.
+    latencyMarker : bool
+        Insert a marker for motion-to-photon latency calculation. Should
+        only be True if the HMD pose is being used to compute eye poses.
+
+    Returns
+    -------
+    tuple
+        Return code (`int`) of the 'ovr_GetDevicePoses' API call and list of
+        tracked device poses (`list` of `LibOVRPoseState`). If the return code
+        is equal to 'LIBOVR_ERROR_LOST_TRACKING', the returned pose will be
+        invalid.
+
+    """
+    # nop if args indicate no devices
+    if deviceType == <int>libovr_capi.ovrTrackedDevice_None:
+        return None
+
+    global _ptrSession
+    global _eyeLayer
+    #global _devicePoses
+
+    # for computing app photon-to-motion latency
+    if latencyMarker:
+        _eyeLayer.SensorSampleTime = absTime
+
+    cdef libovr_capi.ovrTrackedDeviceType devices = \
+        <libovr_capi.ovrTrackedDeviceType>deviceType
+    cdef LibOVRPoseState devicePose = LibOVRPoseState()
+
+    # get the device poses
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetDevicePoses(
+        _ptrSession, &devices, 1, absTime, &devicePose.c_data[0])
+
+    return result, devicePose
+
 def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     """Get tracked device poses.
 
@@ -2742,10 +2867,10 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     # get the device poses
     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetDevicePoses(
         _ptrSession,
-        &devices,
+        devices,
         count,
         absTime,
-        &devicePoses)
+        devicePoses)
 
     # build list of device poses
     cdef list outPoses = list()
@@ -2955,7 +3080,7 @@ def setEyeRenderPose(int eye, LibOVRPose value):
     _eyeViewProjectionMatrix[eye] = \
         _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
-def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0):
+def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, object outMatrix=None):
     """Compute the projection matrix.
 
     The projection matrix is computed by the runtime using the eye FOV
@@ -2969,6 +3094,7 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0):
         Near clipping plane in meters.
     farClip : float
         Far clipping plane in meters.
+    outMatrix : ndarray or None
 
     Returns
     -------
@@ -2978,20 +3104,24 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0):
     """
     global _eyeProjectionMatrix
     global _eyeRenderDesc
-    global _nearClip
-    global _farClip
+    #global _nearClip
+    #global _farClip
 
-    _nearClip = nearClip
-    _farClip = farClip
+    #_nearClip = nearClip
+    #_farClip = farClip
+    cdef np.ndarray[np.float32_t, ndim=2] to_return
+
+    if outMatrix is None:
+        to_return = np.zeros((4, 4), dtype=np.float32)
+    else:
+        to_return = outMatrix
 
     _eyeProjectionMatrix[eye] = \
         <libovr_math.Matrix4f>libovr_capi.ovrMatrix4f_Projection(
             _eyeRenderDesc[eye].Fov,
-            _nearClip[eye],
-            _farClip[eye],
+            nearClip,
+            farClip,
             libovr_capi.ovrProjection_ClipRangeOpenGL)
-
-    cdef np.ndarray to_return = np.zeros((4, 4), dtype=np.float32)
 
     # fast copy matrix to numpy array
     cdef float [:, :] mv = to_return
@@ -3002,9 +3132,10 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0):
         for j in range(N):
             mv[i, j] = _eyeProjectionMatrix[eye].M[i][j]
 
-    return to_return
+    if outMatrix is None:
+        return to_return
 
-def getEyeRenderViewport(int eye):
+def getEyeRenderViewport(int eye, object outRect=None):
     """Get the eye render viewport.
 
     The viewport defines the region on the swap texture a given eye's image is
@@ -3014,22 +3145,31 @@ def getEyeRenderViewport(int eye):
     ----------
     eye : int
         The eye index.
+    outRect : ndarray
+        Optional NumPy array to place values. If None, this function will return
+        a new array. Must be dtype=int and length 4.
 
     Returns
     -------
-    ndarray of ints
-        Viewport rectangle [x, y, w, h].
+    ndarray of ints or None
+        Viewport rectangle [x, y, w, h]. None if 'outRect' was specified.
 
     """
     global _eyeLayer
-    cdef np.ndarray to_return = np.asarray(
-        [_eyeLayer.Viewport[eye].Pos.x,
-         _eyeLayer.Viewport[eye].Pos.y,
-         _eyeLayer.Viewport[eye].Size.w,
-         _eyeLayer.Viewport[eye].Size.h],
-        dtype=np.int)
+    cdef np.ndarray[np.int_t, ndim=1] to_return
 
-    return to_return
+    if outRect is None:
+        to_return = np.zeros((4,), dtype=np.int)
+    else:
+        to_return = outRect
+
+    to_return[0] = _eyeLayer.Viewport[eye].Pos.x
+    to_return[1] = _eyeLayer.Viewport[eye].Pos.y
+    to_return[2] = _eyeLayer.Viewport[eye].Size.w
+    to_return[3] = _eyeLayer.Viewport[eye].Size.h
+
+    if outRect is None:
+        return to_return
 
 def setEyeRenderViewport(int eye, object values):
     """Set the eye render viewport.
@@ -3069,7 +3209,7 @@ def setEyeRenderViewport(int eye, object values):
     _eyeLayer.Viewport[eye].Size.w = <int>values[2]
     _eyeLayer.Viewport[eye].Size.h = <int>values[3]
 
-def getEyeViewMatrix(int eye, bint flatten=False):
+def getEyeViewMatrix(int eye, object outMatrix=None):
     """Compute a view matrix for a specified eye.
 
     View matrices are derived from the eye render poses calculated by the
@@ -3079,10 +3219,9 @@ def getEyeViewMatrix(int eye, bint flatten=False):
     ----------
     eye : int
         Eye index.
-    flatten : bool
-        Flatten the matrix into a 1D vector. This will create an array
-        suitable for use with OpenGL functions accepting column-major, 4x4
-        matrices as a length 16 vector of floats.
+    outMatrix : ndarray or None
+        Optional array to write to. Must have ndim=2, dtype=np.float32, and
+        shape == (4,4).
 
     Returns
     -------
@@ -3091,30 +3230,29 @@ def getEyeViewMatrix(int eye, bint flatten=False):
 
     """
     global _eyeViewMatrix
-    cdef np.ndarray to_return
-    cdef Py_ssize_t i, j, k, N
-    i = j = k = 0
-    N = 4
-    if flatten:
-        to_return = np.zeros((16,), dtype=np.float32)
-        for i in range(N):
-            for j in range(N):
-                to_return[k] = _eyeViewMatrix[eye].M[j][i]
-                k += 1
-    else:
-        to_return = np.zeros((4, 4), dtype=np.float32)
-        for i in range(N):
-            for j in range(N):
-                to_return[i, j] = _eyeViewMatrix[eye].M[i][j]
+    cdef np.ndarray[np.float32_t, ndim=2] to_return
 
-    return to_return
+    if outMatrix is None:
+        to_return = np.zeros((4, 4), dtype=np.float32)
+    else:
+        to_return = outMatrix
+
+    cdef Py_ssize_t i, j, N
+    i = j = 0
+    N = 4
+    for i in range(N):
+        for j in range(N):
+            to_return[i, j] = _eyeViewMatrix[eye].M[i][j]
+
+    if outMatrix is None:
+        return to_return
 
 def getPredictedDisplayTime(unsigned int frameIndex=0):
     """Get the predicted time a frame will be displayed.
 
     Parameters
     ----------
-    frame_index : int
+    frameIndex : int
         Frame index.
 
     Returns
@@ -3759,8 +3897,8 @@ def getConnectedControllerTypes():
 
     Returns
     -------
-    int
-        Connected controller types ORed together.
+    list
+        Connected controller types.
 
     Examples
     --------
@@ -3776,7 +3914,27 @@ def getConnectedControllerTypes():
     cdef unsigned int result = libovr_capi.ovr_GetConnectedControllerTypes(
         _ptrSession)
 
-    return result
+    cdef list toReturn = list()
+    if (libovr_capi.ovrControllerType_XBox & result) == \
+        libovr_capi.ovrControllerType_XBox:
+        toReturn.append(LIBOVR_CONTROLLER_TYPE_XBOX)
+    if (libovr_capi.ovrControllerType_Remote & result) == \
+        libovr_capi.ovrControllerType_Remote:
+        toReturn.append(LIBOVR_CONTROLLER_TYPE_REMOTE)
+    if (libovr_capi.ovrControllerType_Touch & result) == \
+        libovr_capi.ovrControllerType_Touch:
+        toReturn.append(LIBOVR_CONTROLLER_TYPE_TOUCH)
+        # if we have the touch controller, don't poll single controllers
+        return toReturn
+
+    if (libovr_capi.ovrControllerType_LTouch & result) == \
+        libovr_capi.ovrControllerType_LTouch:
+        toReturn.append(LIBOVR_CONTROLLER_TYPE_LTOUCH)
+    if (libovr_capi.ovrControllerType_RTouch & result) == \
+        libovr_capi.ovrControllerType_RTouch:
+        toReturn.append(LIBOVR_CONTROLLER_TYPE_RTOUCH)
+
+    return toReturn
 
 def updateInputState(int controller):
     """Refresh the input state of a controller.
@@ -3827,49 +3985,6 @@ def updateInputState(int controller):
         currentInputState)
 
     return result, currentInputState.TimeInSeconds
-
-def getInputTime(int controller):
-    """Get the time a controller was last polled.
-
-    Parameters
-    ----------
-    controller : int
-        Controller name. Valid values are:
-            - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
-            - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-            - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-            - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-            - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
-
-    Returns
-    -------
-    float
-        The absolute time the controller was last polled.
-
-    """
-    global _prevInputState
-    global _inputStates
-    global _ptrSession
-
-    # get the controller index in the states array
-    cdef int idx
-    if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
-        idx = 0
-    elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
-        idx = 1
-    elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
-        idx = 2
-    elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
-        idx = 3
-    elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
-        idx = 4
-    else:
-        raise ValueError("Invalid controller type specified.")
-
-    # pointer to the current and previous input state
-    cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]
-
-    return currentInputState.TimeInSeconds
 
 def getButton(int controller, int button, str testState='continuous'):
     """Get the state of a specified button for a given controller.
@@ -4322,81 +4437,81 @@ def getSessionStatus():
 
     return to_return
 
-def testPointsInEyeFrustums(object points, object out=None):
-    """Test if points are within each eye's frustum.
-
-    This function uses current view and projection matrix in the computation.
-
-    Parameters
-    ----------
-    points : tuple, list, or ndarray
-        2D array of points to test. Each coordinate should be in format
-        [x, y ,z], where dimensions are in meters. Passing a NumPy ndarray with
-        dtype=float32 and ndim=2 will avoid copying.
-
-    out : ndarray
-        Optional array to write test results. Must have the same shape as
-        'points' and dtype=bool. If None, the function will create and return an
-        appropriate array with results.
-
-    Returns
-    -------
-    ndarray
-        Nx2 array of results. The row index of the returned array contains the
-        test results for the coordinates with the matching row index in
-        'points'. The results for the left and right eye are stored in the first
-        and second column, respectively.
-
-    """
-    global _nearClip
-    global _farClip
-
-    cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
-        np.array(points, dtype=np.float32, ndmin=2, copy=False)
-
-    cdef np.ndarray[np.uint8_t, ndim=2] testOut
-    if testOut is not None:
-        testOut = out
-    else:
-        testOut = np.zeros_like(out, dtype=np.uint8_t)
-
-    assert testOut.shape == pointsIn.shape
-
-    cdef float[:,:] mvPoints = pointsIn
-    cdef np.uint8_t[:,:] mvResult = testOut
-
-    # intermediates
-    cdef libovr_math.Vector4f vecIn
-    cdef libovr_math.Vector4f pointHCS
-    cdef libovr_math.Vector3f pointNDC
-
-    # loop over all points specified
-    cdef Py_ssize_t eye = 0
-    cdef Py_ssize_t pt = 0
-    cdef Py_ssize_t N = mvPoints.shape[0]
-    for pt in range(N):
-        for eye in range(libovr_capi.ovrEye_Count):
-            vecIn.x = mvPoints[pt, 0]
-            vecIn.y = mvPoints[pt, 1]
-            vecIn.z = mvPoints[pt, 2]
-            vecIn.w = 1.0
-            pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
-
-            # too close to the singularity for perspective division or behind
-            # the viewer, fail automatically
-            if pointHCS.w < 0.0001:
-                continue
-
-            # perspective division XYZ / W
-            pointNDC.x = pointHCS.x / pointHCS.w
-            pointNDC.y = pointHCS.y / pointHCS.w
-            pointNDC.z = pointHCS.z / pointHCS.w
-
-            # check if outside [-1:1] in any NDC dimension
-            if -1.0 < pointNDC.x < 1.0 and -1.0 < pointNDC.y < 1.0 and -1.0 < pointNDC.z < 1.0:
-                mvResult[pt, eye] = 1
-
-    return testOut.astype(dtype=np.bool)
+# def testPointsInEyeFrustums(object points, object out=None):
+#     """Test if points are within each eye's frustum.
+#
+#     This function uses current view and projection matrix in the computation.
+#
+#     Parameters
+#     ----------
+#     points : tuple, list, or ndarray
+#         2D array of points to test. Each coordinate should be in format
+#         [x, y ,z], where dimensions are in meters. Passing a NumPy ndarray with
+#         dtype=float32 and ndim=2 will avoid copying.
+#
+#     out : ndarray
+#         Optional array to write test results. Must have the same shape as
+#         'points' and dtype=bool. If None, the function will create and return an
+#         appropriate array with results.
+#
+#     Returns
+#     -------
+#     ndarray
+#         Nx2 array of results. The row index of the returned array contains the
+#         test results for the coordinates with the matching row index in
+#         'points'. The results for the left and right eye are stored in the first
+#         and second column, respectively.
+#
+#     """
+#     #global _nearClip
+#     #global _farClip
+#
+#     cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
+#         np.array(points, dtype=np.float32, ndmin=2, copy=False)
+#
+#     cdef np.ndarray[np.uint8_t, ndim=2] testOut
+#     if out is not None:
+#         testOut = out
+#     else:
+#         testOut = np.zeros_like(out, dtype=np.uint8_t)
+#
+#     assert testOut.shape == pointsIn.shape
+#
+#     cdef float[:,:] mvPoints = pointsIn
+#     cdef np.uint8_t[:,:] mvResult = testOut
+#
+#     # intermediates
+#     cdef libovr_math.Vector4f vecIn
+#     cdef libovr_math.Vector4f pointHCS
+#     cdef libovr_math.Vector3f pointNDC
+#
+#     # loop over all points specified
+#     cdef Py_ssize_t eye = 0
+#     cdef Py_ssize_t pt = 0
+#     cdef Py_ssize_t N = mvPoints.shape[0]
+#     for pt in range(N):
+#         for eye in range(libovr_capi.ovrEye_Count):
+#             vecIn.x = mvPoints[pt, 0]
+#             vecIn.y = mvPoints[pt, 1]
+#             vecIn.z = mvPoints[pt, 2]
+#             vecIn.w = 1.0
+#             pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
+#
+#             # too close to the singularity for perspective division or behind
+#             # the viewer, fail automatically
+#             if pointHCS.w < 0.0001:
+#                 continue
+#
+#             # perspective division XYZ / W
+#             pointNDC.x = pointHCS.x / pointHCS.w
+#             pointNDC.y = pointHCS.y / pointHCS.w
+#             pointNDC.z = pointHCS.z / pointHCS.w
+#
+#             # check if outside [-1:1] in any NDC dimension
+#             if -1.0 < pointNDC.x < 1.0 and -1.0 < pointNDC.y < 1.0 and -1.0 < pointNDC.z < 1.0:
+#                 mvResult[pt, eye] = 1
+#
+#     return testOut.astype(dtype=np.bool)
 
 def anyPointInFrustum(object points):
     """Check if any of the specified points in world/scene coordinates are
