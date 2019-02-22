@@ -218,7 +218,7 @@ __all__ = [
     'setEyeColorTextureSwapChain',
     'createMirrorTexture',
     'getMirrorTexture',
-    'getTrackedPoses',
+    'getTrackingState',
     'getDevicePose',
     #'getDevicePoses',
     'calcEyePoses',
@@ -1436,12 +1436,9 @@ cdef class LibOVRPoseState(object):
     cdef libovr_capi.ovrPoseStatef c_ovrPoseStatef
 
     cdef LibOVRPose _pose
-    cdef libovr_capi.ovrStatusBits* ptrStatusBits
-    cdef libovr_capi.ovrStatusBits statusBits
 
     def __cinit__(self):
         self.c_data = &self.c_ovrPoseStatef  # pointer to ovrPoseStatef
-        self.ptrStatusBits = &self.statusBits
 
         # the pose is accessed using a LibOVRPose object
         self._pose = LibOVRPose()
@@ -2840,18 +2837,14 @@ cdef class LibOVRTrackingState(object):
 
         # create instances and reference their data
         self._headPose = LibOVRPoseState()
-        self._headPose.c_data = &self.c_ovrTrackingState.HeadPose
         self._leftHandPose = LibOVRPoseState()
-        self._leftHandPose.c_data = &self.c_ovrTrackingState.HandPoses[0]
         self._rightHandPose = LibOVRPoseState()
-        self._rightHandPose.c_data = &self.c_ovrTrackingState.HandPoses[1]
         self._calibratedOrigin = LibOVRPose()
-        self._calibratedOrigin.c_data = \
-            &self.c_ovrTrackingState.CalibratedOrigin
 
     @property
     def headPose(self):
         """Tracked head (HMD) pose."""
+        self._headPose.c_data[0] = self.c_data.HeadPose
         return self._headPose
 
     @property
@@ -2874,7 +2867,7 @@ cdef class LibOVRTrackingState(object):
                 # do something only when fully tracked ...
 
         """
-        cdef unsigned int* statusBits = &self.c_data.StatusFlags
+        cdef unsigned int* statusBits = &self.c_ovrTrackingState.StatusFlags
         cdef bint oriTracked = \
             (statusBits[0] & libovr_capi.ovrStatus_OrientationTracked) == \
                libovr_capi.ovrStatus_OrientationTracked
@@ -2887,6 +2880,8 @@ cdef class LibOVRTrackingState(object):
     @property
     def handPoses(self):
         """Tracked hand (Touch controller) poses."""
+        self._leftHandPose.c_data[0] = self.c_data.HandPoses[0]
+        self._rightHandPose.c_data[0] = self.c_data.HandPoses[1]
         return [self._leftHandPose, self._rightHandPose]
 
     @property
@@ -2916,6 +2911,7 @@ cdef class LibOVRTrackingState(object):
     @property
     def calibratedOrigin(self):
         """Calibrated origin."""
+        self._calibratedOrigin.c_data = &self.c_data.CalibratedOrigin
         return self._calibratedOrigin
 
 
