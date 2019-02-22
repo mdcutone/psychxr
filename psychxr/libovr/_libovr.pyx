@@ -219,8 +219,8 @@ __all__ = [
     'createMirrorTexture',
     'getMirrorTexture',
     'getTrackingState',
-    'getDevicePose',
-    #'getDevicePoses',
+    #'getDevicePose',
+    'getDevicePoses',
     'calcEyePoses',
     'getHmdToEyePose',
     'setHmdToEyePose',
@@ -1437,6 +1437,26 @@ cdef class LibOVRPoseState(object):
 
     cdef LibOVRPose _pose
 
+    def __init__(self):
+        """
+        Attributes
+        ----------
+        pose : :obj:`LibOVRPose`
+            Rigid body pose.
+        angularVelocity : ndarray
+            Angular velocity vector in radians/sec."
+        linearVelocity : ndarray
+            Linear velocity vector in meters/sec.
+        angularAcceleration : ndarray
+            Angular acceleration vector in radians/s^2.
+        linearAcceleration : ndarray
+            Linear acceleration vector in meters/s^2.
+        timeInSeconds : float
+            Absolute time this data refers to in seconds.
+
+        """
+        pass
+
     def __cinit__(self):
         self.c_data = &self.c_ovrPoseStatef  # pointer to ovrPoseStatef
 
@@ -1446,9 +1466,6 @@ cdef class LibOVRPoseState(object):
 
     @property
     def pose(self):
-        """Rigid body pose.
-
-        """
         return self._pose
 
     @pose.setter
@@ -1457,24 +1474,18 @@ cdef class LibOVRPoseState(object):
 
     @property
     def angularVelocity(self):
-        """Angular velocity vector in radians/sec."""
         return np.array((self.c_data.AngularVelocity.x,
                          self.c_data.AngularVelocity.y,
                          self.c_data.AngularVelocity.z), dtype=np.float32)
 
     @angularVelocity.setter
     def angularVelocity(self, object value):
-        """Angular velocity vector in radians/sec."""
         self.c_data[0].AngularVelocity.x = <float>value[0]
         self.c_data[0].AngularVelocity.y = <float>value[1]
         self.c_data[0].AngularVelocity.z = <float>value[2]
 
     @property
     def linearVelocity(self):
-        """Linear velocity vector in meters/sec.
-
-        This is only available if 'pos_tracked' is True.
-        """
         return np.array((self.c_data.LinearVelocity.x,
                          self.c_data.LinearVelocity.y,
                          self.c_data.LinearVelocity.z), dtype=np.float32)
@@ -1487,7 +1498,6 @@ cdef class LibOVRPoseState(object):
 
     @property
     def angularAcceleration(self):
-        """Angular acceleration vector in radians/s^2."""
         return np.array((self.c_data.AngularAcceleration.x,
                          self.c_data.AngularAcceleration.y,
                          self.c_data.AngularAcceleration.z), dtype=np.float32)
@@ -1500,7 +1510,6 @@ cdef class LibOVRPoseState(object):
 
     @property
     def linearAcceleration(self):
-        """Linear acceleration vector in meters/s^2."""
         return np.array((self.c_data.LinearAcceleration.x,
                          self.c_data.LinearAcceleration.y,
                          self.c_data.LinearAcceleration.z), dtype=np.float32)
@@ -1513,7 +1522,6 @@ cdef class LibOVRPoseState(object):
 
     @property
     def timeInSeconds(self):
-        """Absolute time this data refers to in seconds."""
         return <double>self.c_data[0].TimeInSeconds
 
     def timeIntegrate(self, float dt):
@@ -2378,7 +2386,8 @@ def getEyeHorizontalFovRadians(int eye):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:LIBOVR_EYE_LEFT or :data:LIBOVR_EYE_RIGHT.
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
 
     Returns
     -------
@@ -2397,7 +2406,8 @@ def getEyeVerticalFovRadians(int eye):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:LIBOVR_EYE_LEFT or :data:LIBOVR_EYE_RIGHT.
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
 
     Returns
     -------
@@ -2416,7 +2426,8 @@ def getEyeFocalLength(int eye):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:LIBOVR_EYE_LEFT or :data:LIBOVR_EYE_RIGHT.
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
 
     Returns
     -------
@@ -2911,7 +2922,7 @@ cdef class LibOVRTrackingState(object):
     @property
     def calibratedOrigin(self):
         """Calibrated origin."""
-        self._calibratedOrigin.c_data = &self.c_data.CalibratedOrigin
+        self._calibratedOrigin.c_data[0] = self.c_data.CalibratedOrigin
         return self._calibratedOrigin
 
 
@@ -2960,75 +2971,79 @@ def getTrackingState(double absTime, bint latencyMarker=True):
 
     return toReturn
 
-def getDevicePose(int deviceType, double absTime, bint latencyMarker=True):
-    """Get the pose of a tracked device.
-
-    Parameters
-    ----------
-    deviceTypes : `list` or `tuple` of `int`
-        List of device types. Valid device types are:
-
-        - LIBOVR_TRACKED_DEVICE_TYPE_HMD: The head or HMD.
-        - LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH: Left touch controller or hand.
-        - LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH: Right touch controller or hand.
-        - LIBOVR_TRACKED_DEVICE_TYPE_TOUCH: Both touch controllers.
-
-        Up to four additional touch controllers can be paired and tracked, they
-        are assigned types:
-
-        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0
-        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1
-        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2
-        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3
-
-    absTime : float
-        Absolute time in seconds the device pose refers to.
-    latencyMarker : bool
-        Insert a marker for motion-to-photon latency calculation. Should
-        only be True if the HMD pose is being used to compute eye poses.
-
-    Returns
-    -------
-    tuple
-        Return code (`int`) of the 'ovr_GetDevicePoses' API call and list of
-        tracked device poses (`list` of `LibOVRPoseState`). If the return code
-        is equal to 'LIBOVR_ERROR_LOST_TRACKING', the returned pose will be
-        invalid.
-
-    """
-    # nop if args indicate no devices
-    if deviceType == <int>libovr_capi.ovrTrackedDevice_None:
-        return None
-
-    global _ptrSession
-    global _eyeLayer
-    #global _devicePoses
-
-    # for computing app photon-to-motion latency
-    if latencyMarker:
-        _eyeLayer.SensorSampleTime = absTime
-
-    cdef libovr_capi.ovrTrackedDeviceType devices = \
-        <libovr_capi.ovrTrackedDeviceType>deviceType
-    cdef LibOVRPoseState devicePose = LibOVRPoseState()
-
-    # get the device poses
-    cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetDevicePoses(
-        _ptrSession, &devices, 1, absTime, &devicePose.c_data[0])
-
-    return result, devicePose
+# def getDevicePose(int deviceType, double absTime, bint latencyMarker=True):
+#     """Get the pose of a tracked device.
+#
+#     Parameters
+#     ----------
+#     deviceTypes : `list` or `tuple` of `int`
+#         List of device types. Valid device types are:
+#
+#         - LIBOVR_TRACKED_DEVICE_TYPE_HMD: The head or HMD.
+#         - LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH: Left touch controller or hand.
+#         - LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH: Right touch controller or hand.
+#         - LIBOVR_TRACKED_DEVICE_TYPE_TOUCH: Both touch controllers.
+#
+#         Up to four additional touch controllers can be paired and tracked, they
+#         are assigned types:
+#
+#         - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0
+#         - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1
+#         - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2
+#         - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3
+#
+#     absTime : float
+#         Absolute time in seconds the device pose refers to.
+#     latencyMarker : bool
+#         Insert a marker for motion-to-photon latency calculation. Should
+#         only be True if the HMD pose is being used to compute eye poses.
+#
+#     Returns
+#     -------
+#     tuple
+#         Return code (`int`) of the 'ovr_GetDevicePoses' API call and list of
+#         tracked device poses (`list` of `LibOVRPoseState`). If the return code
+#         is equal to 'LIBOVR_ERROR_LOST_TRACKING', the returned pose will be
+#         invalid.
+#
+#     """
+#     # nop if args indicate no devices
+#     if deviceType == <int>libovr_capi.ovrTrackedDevice_None:
+#         return None
+#
+#     global _ptrSession
+#     global _eyeLayer
+#     #global _devicePoses
+#
+#     # for computing app photon-to-motion latency
+#     if latencyMarker:
+#         _eyeLayer.SensorSampleTime = absTime
+#
+#     cdef libovr_capi.ovrTrackedDeviceType devices = \
+#         <libovr_capi.ovrTrackedDeviceType>deviceType
+#     cdef LibOVRPoseState devicePose = LibOVRPoseState()
+#
+#     # get the device poses
+#     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetDevicePoses(
+#         _ptrSession, &devices, 1, absTime, &devicePose.c_data[0])
+#
+#     return result, devicePose
 
 def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     """Get tracked device poses.
 
     Each pose in the returned array matches the device type at each index
     specified in 'deviceTypes'. You need to call this function to get the poses
-    for 'objects', which are additional touch controllers.
+    for 'objects', which are additional Touch controllers that can be paired and
+    tracked in the scene.
+
+    It is recommended that `getTrackingState` is used for obtaining the head and
+    hand poses.
 
     Parameters
     ----------
     deviceTypes : `list` or `tuple` of `int`
-        List of device types. Valid device types are:
+        List of device types. Valid device types identifiers are:
 
         - LIBOVR_TRACKED_DEVICE_TYPE_HMD: The head or HMD.
         - LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH: Left touch controller or hand.
@@ -3036,7 +3051,7 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
         - LIBOVR_TRACKED_DEVICE_TYPE_TOUCH: Both touch controllers.
 
         Up to four additional touch controllers can be paired and tracked, they
-        are assigned types:
+        are assigned as:
 
         - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0
         - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1
@@ -3047,14 +3062,20 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
         Absolute time in seconds poses refer to.
     latencyMarker: `bool`
         Insert a marker for motion-to-photon latency calculation. Set this to
-        False if 'getTrackedPoses' was previously called and a latency marker
+        False if 'getTrackingState' was previously called and a latency marker
         was set there.
 
     Returns
     -------
     tuple
         Return code (`int`) of the 'ovr_GetDevicePoses' API call and list of
-        tracked device poses (`list` of `LibOVRPoseState`).
+        tracked device poses (`list` of `LibOVRPoseState`). If a device cannot
+        be tracked, the return code will be `LIBOVR_ERROR_LOST_TRACKING`.
+
+    Warning
+    -------
+    If multiple devices were specified with `deviceTypes`, the return code will
+    be `LIBOVR_ERROR_LOST_TRACKING` if ANY of the devices lost tracking.
 
     Examples
     --------
@@ -3068,9 +3089,9 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
             deviceTypes, absTime)
 
     """
-    # nop if args indicate no devices
-    if deviceTypes is None:
-        return None
+    # give a success code and empty pose list if an empty list was specified
+    if not deviceTypes:
+        return libovr_capi.ovrSuccess, []
 
     global _ptrSession
     global _eyeLayer
@@ -3114,7 +3135,7 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
         thisPose.c_data[0] = devicePoses[i]
         outPoses.append(thisPose)
 
-    # free the arrays
+    # free the allocated arrays
     free(devices)
     free(devicePoses)
 
@@ -3772,6 +3793,29 @@ def recenterTrackingOrigin():
 
     return result
 
+def specifyTrackingOrigin(LibOVRPose newOrigin):
+    """Specify a new tracking origin.
+
+    Parameters
+    ----------
+    newOrigin : LibOVRPose
+        New origin to use.
+
+    """
+    global _ptrSession
+    cdef libovr_capi.ovrResult result = libovr_capi.ovr_SpecifyTrackingOrigin(
+        _ptrSession,
+        newOrigin.c_data[0])
+
+    return result
+
+def clearShouldRecenterFlag():
+    """Clear the `shouldRecenter` flag.
+
+    """
+    global _ptrSession
+    libovr_capi.ovr_ClearShouldRecenterFlag(_ptrSession)
+
 def getTrackerCount():
     """Get the number of attached trackers."""
     global _ptrSession
@@ -4061,6 +4105,11 @@ def getBoundaryVisible():
     The boundary is drawn by the compositor which overlays the extents of
     the physical space where the user can safely move.
 
+    Notes
+    -----
+    Since the boundary has a fade-in effect, the boundary might be reported as
+    visible but difficult to actually see.
+
     """
     global _ptrSession
     cdef libovr_capi.ovrBool is_visible
@@ -4101,7 +4150,7 @@ def getBoundaryDimensions(str boundaryType='PlayArea'):
     Returns
     -------
     ndarray
-        Dimensions of the boundary meters [x, y, z].
+        Dimensions of the boundary in meters [x, y, z].
 
     """
     global _ptrSession
@@ -4142,6 +4191,12 @@ def getConnectedControllerTypes():
         connected = libovr.getConnectedControllerTypes()
         isConnected = (connected & libovr.LIBOVR_CONTROLLER_TYPE_XBOX) == \
             libovr.LIBOVR_CONTROLLER_TYPE_XBOX
+
+    Notes
+    -----
+    If both touch controllers are connected, `LIBOVR_CONTROLLER_TYPE_TOUCH` will
+    be returned instead of `LIBOVR_CONTROLLER_TYPE_LTOUCH` and
+    `LIBOVR_CONTROLLER_TYPE_RTOUCH`.
 
     """
     global _ptrSession
@@ -4507,7 +4562,8 @@ def getThumbstickValues(int controller, bint deadzone=False):
         thumbstick_x1 = currentInputState[0].ThumbstickNoDeadzone[1].x
         thumbstick_y1 = currentInputState[0].ThumbstickNoDeadzone[1].y
 
-    return (thumbstick_x0, thumbstick_y0), (thumbstick_x1, thumbstick_y1)
+    return np.array((thumbstick_x0, thumbstick_y0), dtype=np.float32), \
+           np.array((thumbstick_x1, thumbstick_y1), dtype=np.float32)
 
 def getIndexTriggerValues(int controller, bint deadzone=False):
     """Get analog index trigger values.
@@ -4554,17 +4610,17 @@ def getIndexTriggerValues(int controller, bint deadzone=False):
     # pointer to the current and previous input state
     cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]
 
-    cdef float indexTriggerLeft = 0.0
-    cdef float indexTriggerRight = 0.0
+    cdef float triggerLeft = 0.0
+    cdef float triggerRight = 0.0
 
     if deadzone:
-        indexTriggerLeft = currentInputState[0].IndexTrigger[0]
-        indexTriggerRight = currentInputState[0].IndexTrigger[1]
+        triggerLeft = currentInputState[0].IndexTrigger[0]
+        triggerRight = currentInputState[0].IndexTrigger[1]
     else:
-        indexTriggerLeft = currentInputState[0].IndexTriggerNoDeadzone[0]
-        indexTriggerRight = currentInputState[0].IndexTriggerNoDeadzone[1]
+        triggerLeft = currentInputState[0].IndexTriggerNoDeadzone[0]
+        triggerRight = currentInputState[0].IndexTriggerNoDeadzone[1]
 
-    return indexTriggerLeft, indexTriggerRight
+    return np.array((triggerLeft, triggerRight), dtype=np.float32)
 
 def getHandTriggerValues(str controller, bint deadzone=False):
     """Get hand trigger values."""
@@ -4588,17 +4644,17 @@ def getHandTriggerValues(str controller, bint deadzone=False):
     # pointer to the current and previous input state
     cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]
 
-    cdef float indexTriggerLeft = 0.0
-    cdef float indexTriggerRight = 0.0
+    cdef float triggerLeft = 0.0
+    cdef float triggerRight = 0.0
 
     if deadzone:
-        indexTriggerLeft = currentInputState[0].HandTrigger[0]
-        indexTriggerRight = currentInputState[0].HandTrigger[1]
+        triggerLeft = currentInputState[0].HandTrigger[0]
+        triggerRight = currentInputState[0].HandTrigger[1]
     else:
-        indexTriggerLeft = currentInputState[0].HandTriggerNoDeadzone[0]
-        indexTriggerRight = currentInputState[0].HandTriggerNoDeadzone[1]
+        triggerLeft = currentInputState[0].HandTriggerNoDeadzone[0]
+        triggerRight = currentInputState[0].HandTriggerNoDeadzone[1]
 
-    return indexTriggerLeft, indexTriggerRight
+    return np.array((triggerLeft, triggerRight), dtype=np.float32)
 
 def setControllerVibration(int controller, str frequency, float amplitude):
     """Vibrate a controller.
