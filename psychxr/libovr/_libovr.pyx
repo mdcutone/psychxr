@@ -186,6 +186,7 @@ __all__ = [
     'LibOVRSessionStatus',
     'LibOVRHmdInfo',
     'LibOVRFrameStat',
+    'LibOVRTrackingState',
     'success',
     'unqualifedSuccess',
     'failure',
@@ -302,7 +303,7 @@ cdef libovr_capi.ovrMirrorTexture _mirrorTexture
 # VR related data persistent across frames
 cdef libovr_capi.ovrLayerEyeFov _eyeLayer
 cdef libovr_capi.ovrEyeRenderDesc[2] _eyeRenderDesc
-cdef libovr_capi.ovrTrackingState _trackingState
+#cdef libovr_capi.ovrTrackingState _trackingState
 cdef libovr_capi.ovrViewScaleDesc _viewScale
 
 # prepare the render layer
@@ -1435,11 +1436,12 @@ cdef class LibOVRPoseState(object):
     cdef libovr_capi.ovrPoseStatef c_ovrPoseStatef
 
     cdef LibOVRPose _pose
-
-    cdef int status_flags
+    cdef libovr_capi.ovrStatusBits* ptrStatusBits
+    cdef libovr_capi.ovrStatusBits statusBits
 
     def __cinit__(self):
         self.c_data = &self.c_ovrPoseStatef  # pointer to ovrPoseStatef
+        self.ptrStatusBits = &self.statusBits
 
         # the pose is accessed using a LibOVRPose object
         self._pose = LibOVRPose()
@@ -2819,7 +2821,105 @@ def getMirrorTexture():
     return <int>result, <unsigned int>mirror_id
 
 
-def getTrackedPoses(double absTime, bint latencyMarker=True):
+cdef class LibOVRTrackingState(object):
+    """Class storing tracking state information."""
+
+    cdef libovr_capi.ovrTrackingState c_ovrTrackingState
+    cdef libovr_capi.ovrTrackingState* c_data
+
+    cdef LibOVRPoseState _headPose
+    cdef LibOVRPoseState _leftHandPose
+    cdef LibOVRPoseState _rightHandPose
+    cdef LibOVRPose _calibratedOrigin
+
+    def __init__(self):
+        pass
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrTrackingState
+
+        # create instances and reference their data
+        self._headPose = LibOVRPoseState()
+        self._headPose.c_data = &self.c_ovrTrackingState.HeadPose
+        self._leftHandPose = LibOVRPoseState()
+        self._leftHandPose.c_data = &self.c_ovrTrackingState.HandPoses[0]
+        self._rightHandPose = LibOVRPoseState()
+        self._rightHandPose.c_data = &self.c_ovrTrackingState.HandPoses[1]
+        self._calibratedOrigin = LibOVRPose()
+        self._calibratedOrigin.c_data = \
+            &self.c_ovrTrackingState.CalibratedOrigin
+
+    @property
+    def headPose(self):
+        """Tracked head (HMD) pose."""
+        return self._headPose
+
+    @property
+    def headStatus(self):
+        """Tracking status for the head.
+
+        Returns
+        -------
+        tuple of bool
+            Tracking status for orientation and position. True if tracking was
+            the time the pose was requested.
+
+        Examples
+        --------
+
+        Get the tracking status of a pose state::
+
+            oriTracked, posTracked = poseState.headTrackingStatus
+            if oriTracked and posTracked:
+                # do something only when fully tracked ...
+
+        """
+        cdef unsigned int* statusBits = &self.c_data.StatusFlags
+        cdef bint oriTracked = \
+            (statusBits[0] & libovr_capi.ovrStatus_OrientationTracked) == \
+               libovr_capi.ovrStatus_OrientationTracked
+        cdef bint posTracked = \
+            (statusBits[0] & libovr_capi.ovrStatus_PositionTracked) == \
+                libovr_capi.ovrStatus_PositionTracked
+
+        return oriTracked, posTracked
+
+    @property
+    def handPoses(self):
+        """Tracked hand (Touch controller) poses."""
+        return [self._leftHandPose, self._rightHandPose]
+
+    @property
+    def handStatus(self):
+        """Tracking status for the hands.
+
+        Returns
+        -------
+        tuple
+            Tracking status for orientation and position. True if tracking was
+            the time the pose was requested.
+
+        """
+        cdef list toReturn = list()
+        cdef unsigned int* statusBits = &self.c_data.HandStatusFlags[0]
+
+        cdef Py_ssize_t i = 0
+        for i in range(<Py_ssize_t>libovr_capi.ovrHand_Count):
+            toReturn.append((
+                (statusBits[i] & libovr_capi.ovrStatus_OrientationTracked) ==
+                libovr_capi.ovrStatus_OrientationTracked,
+                (statusBits[i] & libovr_capi.ovrStatus_PositionTracked) ==
+                libovr_capi.ovrStatus_PositionTracked))
+
+        return toReturn
+
+    @property
+    def calibratedOrigin(self):
+        """Calibrated origin."""
+        return self._calibratedOrigin
+
+
+def getTrackingState(double absTime, bint latencyMarker=True):
     """Get the current poses of the head and hands.
 
     Parameters
@@ -2849,32 +2949,18 @@ def getTrackedPoses(double absTime, bint latencyMarker=True):
     """
     global _ptrSession
     global _eyeLayer
-    global _trackingState
+    #global _trackingState
 
     cdef libovr_capi.ovrBool use_marker = \
         libovr_capi.ovrTrue if latencyMarker else libovr_capi.ovrFalse
 
-    _trackingState = libovr_capi.ovr_GetTrackingState(
+    # tracking state object that is actually returned to Python land
+    cdef LibOVRTrackingState toReturn = LibOVRTrackingState()
+    toReturn.c_data[0] = libovr_capi.ovr_GetTrackingState(
         _ptrSession, absTime, use_marker)
 
-    cdef LibOVRPoseState head_pose = LibOVRPoseState()
-    head_pose.c_data[0] = _trackingState.HeadPose
-    head_pose.status_flags = _trackingState.StatusFlags
-
     # for computing app photon-to-motion latency
-    _eyeLayer.SensorSampleTime = _trackingState.HeadPose.TimeInSeconds
-
-    cdef LibOVRPoseState left_hand_pose = LibOVRPoseState()
-    left_hand_pose.c_data[0] = _trackingState.HandPoses[0]
-    left_hand_pose.status_flags = _trackingState.HandStatusFlags[0]
-
-    cdef LibOVRPoseState right_hand_pose = LibOVRPoseState()
-    right_hand_pose.c_data[0] = _trackingState.HandPoses[1]
-    right_hand_pose.status_flags = _trackingState.HandStatusFlags[1]
-
-    cdef dict toReturn = {'Head': head_pose,
-                          'LeftHand': left_hand_pose,
-                          'RightHand': right_hand_pose}
+    #_eyeLayer.SensorSampleTime = toReturn.c_data[0].HeadPose.TimeInSeconds
 
     return toReturn
 
@@ -4664,77 +4750,77 @@ def getSessionStatus():
 #                 mvResult[pt, eye] = 1
 #
 #     return testOut.astype(dtype=np.bool)
-
-def anyPointInFrustum(object points):
-    """Check if any of the specified points in world/scene coordinates are
-    within the viewing frustum of either eye.
-
-    This can be used to determine whether or not something should be drawn by
-    specifying its position, mesh or bounding box vertices. The function will
-    return True immediately when it comes across a point that falls within
-    either eye's frustum.
-
-    Parameters
-    ----------
-    points : tuple, list, or ndarray
-        2D array of points to test. Each coordinate should be in format
-        [x, y ,z], where dimensions are in meters. Passing a NumPy ndarray with
-        dtype=float32 and ndim=2 will avoid copying.
-
-    Returns
-    -------
-    bool
-        True if any point specified falls inside a viewing frustum.
-
-    Examples
-    --------
-    Test if points fall within a viewing frustum::
-
-        points = [[1.2, -0.2, -5.6], [-0.01, 0.0, -10.0]]
-        isVisible = libovr.testPointsInFrustum(points)
-
-    """
-    # eventually we're going to move this function if we decide to support more
-    # HMDs. This really isn't something specific to LibOVR.
-
-    # input values to 2D memory view
-    cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
-        np.array(points, dtype=np.float32, ndmin=2, copy=False)
-
-    if pointsIn.shape[1] != 3:
-        raise ValueError("Invalid number of columns, must be 3.")
-
-    cdef float[:,:] mvPoints = pointsIn
-
-    # intermediates
-    cdef libovr_math.Vector4f vecIn
-    cdef libovr_math.Vector4f pointHCS
-    cdef libovr_math.Vector3f pointNDC
-
-    # loop over all points specified
-    cdef Py_ssize_t eye = 0
-    cdef Py_ssize_t pt = 0
-    cdef Py_ssize_t N = mvPoints.shape[0]
-    for pt in range(N):
-        for eye in range(libovr_capi.ovrEye_Count):
-            vecIn.x = mvPoints[pt, 0]
-            vecIn.y = mvPoints[pt, 1]
-            vecIn.z = mvPoints[pt, 2]
-            vecIn.w = 1.0
-            pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
-
-            # too close to the singularity for perspective division or behind
-            # the viewer, fail automatically
-            if pointHCS.w < 0.0001:
-                return False
-
-            # perspective division XYZ / W
-            pointNDC.x = pointHCS.x / pointHCS.w
-            pointNDC.y = pointHCS.y / pointHCS.w
-            pointNDC.z = pointHCS.z / pointHCS.w
-
-            # check if outside [-1:1] in any NDC dimension
-            if -1.0 < pointNDC.x < 1.0 and -1.0 < pointNDC.y < 1.0 and -1.0 < pointNDC.z < 1.0:
-                return True
-
-    return False
+#
+# def anyPointInFrustum(object points):
+#     """Check if any of the specified points in world/scene coordinates are
+#     within the viewing frustum of either eye.
+#
+#     This can be used to determine whether or not something should be drawn by
+#     specifying its position, mesh or bounding box vertices. The function will
+#     return True immediately when it comes across a point that falls within
+#     either eye's frustum.
+#
+#     Parameters
+#     ----------
+#     points : tuple, list, or ndarray
+#         2D array of points to test. Each coordinate should be in format
+#         [x, y ,z], where dimensions are in meters. Passing a NumPy ndarray with
+#         dtype=float32 and ndim=2 will avoid copying.
+#
+#     Returns
+#     -------
+#     bool
+#         True if any point specified falls inside a viewing frustum.
+#
+#     Examples
+#     --------
+#     Test if points fall within a viewing frustum::
+#
+#         points = [[1.2, -0.2, -5.6], [-0.01, 0.0, -10.0]]
+#         isVisible = libovr.testPointsInFrustum(points)
+#
+#     """
+#     # eventually we're going to move this function if we decide to support more
+#     # HMDs. This really isn't something specific to LibOVR.
+#
+#     # input values to 2D memory view
+#     cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
+#         np.array(points, dtype=np.float32, ndmin=2, copy=False)
+#
+#     if pointsIn.shape[1] != 3:
+#         raise ValueError("Invalid number of columns, must be 3.")
+#
+#     cdef float[:,:] mvPoints = pointsIn
+#
+#     # intermediates
+#     cdef libovr_math.Vector4f vecIn
+#     cdef libovr_math.Vector4f pointHCS
+#     cdef libovr_math.Vector3f pointNDC
+#
+#     # loop over all points specified
+#     cdef Py_ssize_t eye = 0
+#     cdef Py_ssize_t pt = 0
+#     cdef Py_ssize_t N = mvPoints.shape[0]
+#     for pt in range(N):
+#         for eye in range(libovr_capi.ovrEye_Count):
+#             vecIn.x = mvPoints[pt, 0]
+#             vecIn.y = mvPoints[pt, 1]
+#             vecIn.z = mvPoints[pt, 2]
+#             vecIn.w = 1.0
+#             pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
+#
+#             # too close to the singularity for perspective division or behind
+#             # the viewer, fail automatically
+#             if pointHCS.w < 0.0001:
+#                 return False
+#
+#             # perspective division XYZ / W
+#             pointNDC.x = pointHCS.x / pointHCS.w
+#             pointNDC.y = pointHCS.y / pointHCS.w
+#             pointNDC.z = pointHCS.z / pointHCS.w
+#
+#             # check if outside [-1:1] in any NDC dimension
+#             if -1.0 < pointNDC.x < 1.0 and -1.0 < pointNDC.y < 1.0 and -1.0 < pointNDC.z < 1.0:
+#                 return True
+#
+#     return False
