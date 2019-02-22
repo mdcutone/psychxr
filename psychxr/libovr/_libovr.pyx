@@ -246,6 +246,8 @@ __all__ = [
     'getTrackingOriginType',
     'setTrackingOriginType',
     'recenterTrackingOrigin',
+    'specifyTrackingOrigin',
+    'clearShouldRecenterFlag',
     'getTrackerCount',
     'getTrackerInfo',
     'refreshPerformanceStats',
