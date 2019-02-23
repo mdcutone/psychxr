@@ -638,7 +638,7 @@ cdef class LibOVRPose(object):
 
     """
     cdef libovr_capi.ovrPosef* c_data
-    cdef libovr_capi.ovrPosef c_ovrPosef  # internal data
+    cdef bint ptr_owner
 
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
         pass  # nop
@@ -1425,6 +1425,39 @@ cdef class LibOVRPose(object):
         arr[5] = self.c_data[0].Orientation.z
         arr[6] = self.c_data[0].Orientation.w
 
+    @staticmethod
+    cdef LibOVRPose fromPtr(libovr_capi.ovrPosef* ptr, bint owner=False):
+        cdef LibOVRPose wrapper = LibOVRPose.__new__(LibOVRPose)
+        wrapper.c_data = ptr
+        wrapper.ptr_owner = owner
+
+        return wrapper
+
+    @staticmethod
+    cdef LibOVRPose newStruct():
+        cdef libovr_capi.ovrPosef *_ptr = \
+            <libovr_capi.ovrPosef *>malloc(sizeof(libovr_capi.ovrPosef))
+
+        if _ptr is NULL:
+            raise MemoryError
+
+        # clear memory
+        _ptr.Position.x = 0.0
+        _ptr.Position.y = 0.0
+        _ptr.Position.z = 0.0
+        _ptr.Orientation.x = 0.0
+        _ptr.Orientation.y = 0.0
+        _ptr.Orientation.z = 0.0
+        _ptr.Orientation.w = 1.0
+
+        return LibOVRPose.fromPtr(_ptr, owner=True)
+
+    def __dealloc__(self):
+        if self.c_data is not NULL and self.ptr_owner is True:
+            free(self.c_data)
+            self.c_data = NULL
+
+
     #cdef fromarray(self, float* arr):
     #    pass
 
@@ -1461,10 +1494,10 @@ cdef class LibOVRPoseState(object):
 
     def __cinit__(self):
         self.c_data = &self.c_ovrPoseStatef  # pointer to ovrPoseStatef
+        self.c_ThePose = &self.c_data.ThePose
 
         # the pose is accessed using a LibOVRPose object
-        self._pose = LibOVRPose()
-        self._pose.c_data = &self.c_data.ThePose
+        self._pose = LibOVRPose.fromPtr(&self.c_data.ThePose)
 
     @property
     def pose(self):
@@ -1555,7 +1588,7 @@ cdef class LibOVRPoseState(object):
 
 
 cdef class LibOVRTrackingState(object):
-    """Class storing tracking state information."""
+    """Class for tracking state information."""
 
     cdef libovr_capi.ovrTrackingState c_ovrTrackingState
     cdef libovr_capi.ovrTrackingState* c_data
@@ -1566,7 +1599,9 @@ cdef class LibOVRTrackingState(object):
     cdef LibOVRPose _calibratedOrigin
 
     def __init__(self):
-        """
+        """This object is returned by 'getTrackingState'. All attributes are
+        read-only.
+
         Attributes
         ----------
         headPose : LibOVRPoseState
@@ -1655,7 +1690,7 @@ cdef class LibOVRTrackingState(object):
 
 
 cdef class LibOVRTrackerInfo(object):
-    """Class for information about camera based tracking sensors.
+    """Class for information about camera-based tracking sensors.
 
     """
     cdef libovr_capi.ovrTrackerPose* c_data
@@ -1668,7 +1703,9 @@ cdef class LibOVRTrackerInfo(object):
     cdef unsigned int _trackerIndex
 
     def __init__(self):
-        """
+        """This object is returned by 'getTrackerInfo'. All attributes are
+        read-only.
+
         Attributes
         ----------
         trackerIndex : int
@@ -2364,7 +2401,19 @@ def setHeadLocked(bint enable):
 def getPixelsPerTanAngleAtCenter(int eye):
     """Get pixels per tan angle at te center of the display.
 
-    You must call 'setEyeRenderFov' first for values to be valid.
+    Values reflect the FOVs set by the last call to 'setEyeRenderFov' (or else
+    the default FOVs will be used.)
+
+    Parameters
+    ----------
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
+
+    Returns
+    -------
+    tuple of floats
+        Pixels per tan angle at the center of the screen.
 
     """
     global _eyeRenderDesc
@@ -2378,6 +2427,12 @@ def getDistortedViewport(int eye):
     """Get the distorted viewport.
 
     You must call 'setEyeRenderFov' first for values to be valid.
+
+    Parameters
+    ----------
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
 
     """
     cdef libovr_capi.ovrRecti distVp = _eyeRenderDesc[eye].DistortedViewport
@@ -2402,8 +2457,9 @@ def getEyeRenderFov(int eye):
 
     Parameters
     ----------
-    eye : int
-        Eye index.
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
 
     Returns
     -------
@@ -2479,7 +2535,8 @@ def getEyeAspectRatio(int eye):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:LIBOVR_EYE_LEFT or :data:LIBOVR_EYE_RIGHT.
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
 
     Returns
     -------
@@ -2578,8 +2635,8 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
 
         # eye FOVs must be set first!
         leftFov, rightFov = libovr.getDefaultEyeFOVs()
-        libovr.setEyeRenderFOV(libovr.LIBOVR_EYE_LEFT, leftFov)
-        libovr.setEyeRenderFOV(libovr.LIBOVR_EYE_RIGHT, rightFov)
+        libovr.setEyeRenderFov(libovr.LIBOVR_EYE_LEFT, leftFov)
+        libovr.setEyeRenderFov(libovr.LIBOVR_EYE_RIGHT, rightFov)
 
         leftBufferSize, rightBufferSize = libovr.calcEyeBufferSize()
         leftW leftH = leftBufferSize
@@ -4892,3 +4949,8 @@ def getSessionStatus():
 #                 return True
 #
 #     return False
+
+# -------------------------
+# Wrapper factory functions
+# -------------------------
+#
