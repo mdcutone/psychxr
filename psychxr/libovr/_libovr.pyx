@@ -616,44 +616,69 @@ cdef class LibOVRPose(object):
     Poses are represented as a position vector/coordinate and orientation
     quaternion.
 
-    Parameters
-    ----------
-    pos : tuple, list, or ndarray of float
-        Position vector (x, y, z).
-    ori : tuple, list, or ndarray of float
-        Orientation quaternion vector (x, y, z, w).
-
-    Attributes
-    ----------
-    pos : ndarray
-        Position vector [X, Y, Z] (read-only).
-    ori : ndarray
-        Orientation quaternion [X, Y, Z, W] (read-only).
-    posOri : tuple of ndarray
-        Combined position and orientation (read-only).
-    at : ndarray
-        Forward vector of this pose (-Z is forward) (read-only).
-    up : ndarray
-        Up vector of this pose (+Y is up) (read-only).
-
     """
     cdef libovr_capi.ovrPosef* c_data
     cdef bint ptr_owner
 
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
-        pass  # nop
+        """
+        Parameters
+        ----------
+        pos : tuple, list, or ndarray of float
+            Position vector (x, y, z).
+        ori : tuple, list, or ndarray of float
+            Orientation quaternion vector (x, y, z, w).
 
-    def __cinit__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
-        self.c_data = &self.c_ovrPosef  # pointer to c_ovrPosef
+        Attributes
+        ----------
+        pos : ndarray
+            Position vector [X, Y, Z] (read-only).
+        ori : ndarray
+            Orientation quaternion [X, Y, Z, W] (read-only).
+        posOri : tuple of ndarray
+            Combined position and orientation (read-only).
+        at : ndarray
+            Forward vector of this pose (-Z is forward) (read-only).
+        up : ndarray
+            Up vector of this pose (+Y is up) (read-only).
+        """
+        self.newStruct(pos, ori)
+        self.ptr_owner = True
 
-        self.c_data[0].Position.x = <float>pos[0]
-        self.c_data[0].Position.y = <float>pos[1]
-        self.c_data[0].Position.z = <float>pos[2]
+    def __cinit__(self, *args, **kwargs):
+        self.ptr_owner = False
 
-        self.c_data[0].Orientation.x = <float>ori[0]
-        self.c_data[0].Orientation.y = <float>ori[1]
-        self.c_data[0].Orientation.z = <float>ori[2]
-        self.c_data[0].Orientation.w = <float>ori[3]
+    @staticmethod
+    cdef LibOVRPose fromPtr(libovr_capi.ovrPosef* ptr, bint owner=False):
+        cdef LibOVRPose wrapper = LibOVRPose.__new__(LibOVRPose)
+        wrapper.c_data = ptr
+        wrapper.ptr_owner = owner
+
+        return wrapper
+
+    cdef void newStruct(self, object pos, object ori):
+        cdef libovr_capi.ovrPosef* _ptr = \
+            <libovr_capi.ovrPosef*>malloc(sizeof(libovr_capi.ovrPosef))
+
+        if _ptr is NULL:
+            raise MemoryError
+
+        # clear memory
+        _ptr.Position.x = pos[0]
+        _ptr.Position.y = pos[1]
+        _ptr.Position.z = pos[2]
+        _ptr.Orientation.x = ori[0]
+        _ptr.Orientation.y = ori[1]
+        _ptr.Orientation.z = ori[2]
+        _ptr.Orientation.w = ori[3]
+
+        self.ptr_owner = True
+
+    def __dealloc__(self):
+        if self.c_data is not NULL and self.ptr_owner is True:
+            free(self.c_data)
+            self.c_data = NULL
+
 
     def __mul__(LibOVRPose a, LibOVRPose b):
         """Multiplication operator (*) to combine poses."""
@@ -1404,63 +1429,6 @@ cdef class LibOVRPose(object):
                  interp.Rotation.w))
 
         return to_return
-
-    cdef toarray(self, float* arr):
-        """Copy position and orientation data to an array. 
-        
-        This function provides an interface to exchange pose data between API 
-        specific classes.
-        
-        Parameters
-        ----------
-        arr : float* 
-            Pointer to the first element of the array.
-        
-        """
-        arr[0] = self.c_data[0].Position.x
-        arr[1] = self.c_data[0].Position.y
-        arr[2] = self.c_data[0].Position.z
-        arr[3] = self.c_data[0].Orientation.x
-        arr[4] = self.c_data[0].Orientation.y
-        arr[5] = self.c_data[0].Orientation.z
-        arr[6] = self.c_data[0].Orientation.w
-
-    @staticmethod
-    cdef LibOVRPose fromPtr(libovr_capi.ovrPosef* ptr, bint owner=False):
-        cdef LibOVRPose wrapper = LibOVRPose.__new__(LibOVRPose)
-        wrapper.c_data = ptr
-        wrapper.ptr_owner = owner
-
-        return wrapper
-
-    @staticmethod
-    cdef LibOVRPose newStruct():
-        cdef libovr_capi.ovrPosef *_ptr = \
-            <libovr_capi.ovrPosef *>malloc(sizeof(libovr_capi.ovrPosef))
-
-        if _ptr is NULL:
-            raise MemoryError
-
-        # clear memory
-        _ptr.Position.x = 0.0
-        _ptr.Position.y = 0.0
-        _ptr.Position.z = 0.0
-        _ptr.Orientation.x = 0.0
-        _ptr.Orientation.y = 0.0
-        _ptr.Orientation.z = 0.0
-        _ptr.Orientation.w = 1.0
-
-        return LibOVRPose.fromPtr(_ptr, owner=True)
-
-    def __dealloc__(self):
-        if self.c_data is not NULL and self.ptr_owner is True:
-            free(self.c_data)
-            self.c_data = NULL
-
-
-    #cdef fromarray(self, float* arr):
-    #    pass
-
 
 cdef class LibOVRPoseState(object):
     """Class for data about rigid body configuration with derivatives computed
