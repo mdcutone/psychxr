@@ -643,10 +643,9 @@ cdef class LibOVRPose(object):
             Up vector of this pose (+Y is up) (read-only).
         """
         self.newStruct(pos, ori)
-        self.ptr_owner = True
 
     def __cinit__(self, *args, **kwargs):
-        self.ptr_owner = False
+        pass
 
     @staticmethod
     cdef LibOVRPose fromPtr(libovr_capi.ovrPosef* ptr, bint owner=False):
@@ -664,14 +663,10 @@ cdef class LibOVRPose(object):
             raise MemoryError
 
         # clear memory
-        _ptr.Position.x = pos[0]
-        _ptr.Position.y = pos[1]
-        _ptr.Position.z = pos[2]
-        _ptr.Orientation.x = ori[0]
-        _ptr.Orientation.y = ori[1]
-        _ptr.Orientation.z = ori[2]
-        _ptr.Orientation.w = ori[3]
+        _ptr.Position = pos
+        _ptr.Orientation = ori
 
+        self.c_data = _ptr
         self.ptr_owner = True
 
     def __dealloc__(self):
@@ -679,6 +674,8 @@ cdef class LibOVRPose(object):
             free(self.c_data)
             self.c_data = NULL
 
+    def ownsData(self):
+        return self.ptr_owner
 
     def __mul__(LibOVRPose a, LibOVRPose b):
         """Multiplication operator (*) to combine poses."""
@@ -1461,10 +1458,10 @@ cdef class LibOVRPoseState(object):
         pass
 
     def __cinit__(self):
-        self.c_data = &self.c_ovrPoseStatef  # pointer to ovrPoseStatef
-        self.c_ThePose = &self.c_data.ThePose
-
         # the pose is accessed using a LibOVRPose object
+        self.c_data = &self.c_ovrPoseStatef
+        self.c_data.ThePose.Position = [0., 0., 0.]
+        self.c_data.ThePose.Orientation = [0., 0., 0., 1.]
         self._pose = LibOVRPose.fromPtr(&self.c_data.ThePose)
 
     @property
