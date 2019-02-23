@@ -1554,6 +1554,106 @@ cdef class LibOVRPoseState(object):
         return toReturn
 
 
+cdef class LibOVRTrackingState(object):
+    """Class storing tracking state information."""
+
+    cdef libovr_capi.ovrTrackingState c_ovrTrackingState
+    cdef libovr_capi.ovrTrackingState* c_data
+
+    cdef LibOVRPoseState _headPose
+    cdef LibOVRPoseState _leftHandPose
+    cdef LibOVRPoseState _rightHandPose
+    cdef LibOVRPose _calibratedOrigin
+
+    def __init__(self):
+        """
+        Attributes
+        ----------
+        headPose : LibOVRPoseState
+            Tracked head (HMD) pose.
+        headStatus : tuple of bool
+            Tracking status for the head.
+        handPoses : tuple of LibOVRPoseState
+            Tracked hand (Touch controller) poses.
+        handStatus : tuple
+            Tracking status for the hands.
+        calibratedOrigin : LibOVRPose
+            Calibrated origin.
+
+        """
+        pass
+
+    def __cinit__(self):
+        self.c_data = &self.c_ovrTrackingState
+
+        # create instances and reference their data
+        self._headPose = LibOVRPoseState()
+        self._leftHandPose = LibOVRPoseState()
+        self._rightHandPose = LibOVRPoseState()
+        self._calibratedOrigin = LibOVRPose()
+
+    @property
+    def headPose(self):
+        self._headPose.c_data[0] = self.c_data.HeadPose
+        return self._headPose
+
+    @property
+    def headStatus(self):
+        # """Tracking status for the head.
+        #
+        # Returns
+        # -------
+        # tuple of bool
+        #     Tracking status for orientation and position. True if tracking was
+        #     the time the pose was requested.
+        #
+        # Examples
+        # --------
+        #
+        # Get the tracking status of a pose state::
+        #
+        #     oriTracked, posTracked = poseState.headTrackingStatus
+        #     if oriTracked and posTracked:
+        #         # do something only when fully tracked ...
+        #
+        # """
+        cdef unsigned int* statusBits = &self.c_ovrTrackingState.StatusFlags
+        cdef bint oriTracked = \
+            (statusBits[0] & libovr_capi.ovrStatus_OrientationTracked) == \
+               libovr_capi.ovrStatus_OrientationTracked
+        cdef bint posTracked = \
+            (statusBits[0] & libovr_capi.ovrStatus_PositionTracked) == \
+                libovr_capi.ovrStatus_PositionTracked
+
+        return oriTracked, posTracked
+
+    @property
+    def handPoses(self):
+        self._leftHandPose.c_data[0] = self.c_data.HandPoses[0]
+        self._rightHandPose.c_data[0] = self.c_data.HandPoses[1]
+        return [self._leftHandPose, self._rightHandPose]
+
+    @property
+    def handStatus(self):
+        cdef list toReturn = list()
+        cdef unsigned int* statusBits = &self.c_data.HandStatusFlags[0]
+
+        cdef Py_ssize_t i = 0
+        for i in range(<Py_ssize_t>libovr_capi.ovrHand_Count):
+            toReturn.append((
+                (statusBits[i] & libovr_capi.ovrStatus_OrientationTracked) ==
+                libovr_capi.ovrStatus_OrientationTracked,
+                (statusBits[i] & libovr_capi.ovrStatus_PositionTracked) ==
+                libovr_capi.ovrStatus_PositionTracked))
+
+        return toReturn
+
+    @property
+    def calibratedOrigin(self):
+        self._calibratedOrigin.c_data[0] = self.c_data.CalibratedOrigin
+        return self._calibratedOrigin
+
+
 cdef class LibOVRTrackerInfo(object):
     """Class for information about camera based tracking sensors.
 
@@ -1567,6 +1667,33 @@ cdef class LibOVRTrackerInfo(object):
 
     cdef unsigned int _trackerIndex
 
+    def __init__(self):
+        """
+        Attributes
+        ----------
+        trackerIndex : int
+            Tracker index this objects refers to.
+        pose : LibOVRPose
+            The pose of the sensor.
+        leveledPose : LibOVRPose
+            Gravity aligned pose of the sensor.
+        isConnected : bool
+            True if the sensor is connected and available.
+        isPoseTracked : bool
+            True if the sensor has a valid pose.
+        frustum : ndarray
+            Frustum parameters of the sensor as an array.
+        horizontalFov : float
+            Horizontal FOV of the sensor in radians.
+        verticalFov : float
+            Vertical FOV of the sensor in radians
+        nearZ : float
+            Near clipping plane of the sensor frustum in meters.
+        farZ : float
+            Far clipping plane of the sensor frustum in meters.
+
+        """
+
     def __cinit__(self):
         self._pose = LibOVRPose()
         self._leveledPose = LibOVRPose()
@@ -1574,46 +1701,34 @@ cdef class LibOVRTrackerInfo(object):
 
     @property
     def trackerIndex(self):
-        """Tracker index this objects refers to."""
         return self._trackerIndex
 
     @property
     def pose(self):
-        """The pose of the sensor (`LibOVRPose`)."""
         self._pose.c_data[0] = self.c_ovrTrackerPose.Pose
 
         return self._pose
 
     @property
     def leveledPose(self):
-        """Gravity aligned pose of the sensor (`LibOVRPose`)."""
         self._leveledPose.c_data[0] = self.c_ovrTrackerPose.LeveledPose
 
         return self._leveledPose
 
     @property
     def isConnected(self):
-        """True if the sensor is connected and available (`bool`)."""
         return <bint>((libovr_capi.ovrTracker_Connected &
-             self.c_ovrTrackerPose.TrackerFlags) == libovr_capi.ovrTracker_Connected)
+             self.c_ovrTrackerPose.TrackerFlags) ==
+                      libovr_capi.ovrTracker_Connected)
 
     @property
     def isPoseTracked(self):
-        """True if the sensor has a valid pose (`bool`)."""
         return <bint>((libovr_capi.ovrTracker_PoseTracked &
-             self.c_ovrTrackerPose.TrackerFlags) == libovr_capi.ovrTracker_PoseTracked)
+             self.c_ovrTrackerPose.TrackerFlags) ==
+                      libovr_capi.ovrTracker_PoseTracked)
 
     @property
     def frustum(self):
-        """Frustum parameters of the sensor as an array (`ndarray`).
-
-        Returns
-        -------
-        ndarray
-            Frustum parameters [HFovInRadians, VFovInRadians, NearZInMeters,
-            FarZInMeters].
-
-        """
         cdef np.ndarray to_return = np.asarray([
             self.c_ovrTrackerDesc.FrustumHFovInRadians,
             self.c_ovrTrackerDesc.FrustumVFovInRadians,
@@ -1625,22 +1740,18 @@ cdef class LibOVRTrackerInfo(object):
 
     @property
     def horizontalFov(self):
-        """Horizontal FOV of the sensor in radians (`float`)."""
         return self.c_ovrTrackerDesc.FrustumHFovInRadians
 
     @property
     def verticalFov(self):
-        """Vertical FOV of the sensor in radians (`float`)."""
         return self.c_ovrTrackerDesc.FrustumVFovInRadians
 
     @property
     def nearZ(self):
-        """Near clipping plane of the sensor frustum in meters (`float`)."""
         return self.c_ovrTrackerDesc.FrustumNearZInMeters
 
     @property
     def farZ(self):
-        """Far clipping plane of the sensor frustum in meters (`float`)."""
         return self.c_ovrTrackerDesc.FrustumFarZInMeters
 
 
@@ -2829,103 +2940,6 @@ def getMirrorTexture():
             &mirror_id)
 
     return <int>result, <unsigned int>mirror_id
-
-
-cdef class LibOVRTrackingState(object):
-    """Class storing tracking state information."""
-
-    cdef libovr_capi.ovrTrackingState c_ovrTrackingState
-    cdef libovr_capi.ovrTrackingState* c_data
-
-    cdef LibOVRPoseState _headPose
-    cdef LibOVRPoseState _leftHandPose
-    cdef LibOVRPoseState _rightHandPose
-    cdef LibOVRPose _calibratedOrigin
-
-    def __init__(self):
-        pass
-
-    def __cinit__(self):
-        self.c_data = &self.c_ovrTrackingState
-
-        # create instances and reference their data
-        self._headPose = LibOVRPoseState()
-        self._leftHandPose = LibOVRPoseState()
-        self._rightHandPose = LibOVRPoseState()
-        self._calibratedOrigin = LibOVRPose()
-
-    @property
-    def headPose(self):
-        """Tracked head (HMD) pose."""
-        self._headPose.c_data[0] = self.c_data.HeadPose
-        return self._headPose
-
-    @property
-    def headStatus(self):
-        """Tracking status for the head.
-
-        Returns
-        -------
-        tuple of bool
-            Tracking status for orientation and position. True if tracking was
-            the time the pose was requested.
-
-        Examples
-        --------
-
-        Get the tracking status of a pose state::
-
-            oriTracked, posTracked = poseState.headTrackingStatus
-            if oriTracked and posTracked:
-                # do something only when fully tracked ...
-
-        """
-        cdef unsigned int* statusBits = &self.c_ovrTrackingState.StatusFlags
-        cdef bint oriTracked = \
-            (statusBits[0] & libovr_capi.ovrStatus_OrientationTracked) == \
-               libovr_capi.ovrStatus_OrientationTracked
-        cdef bint posTracked = \
-            (statusBits[0] & libovr_capi.ovrStatus_PositionTracked) == \
-                libovr_capi.ovrStatus_PositionTracked
-
-        return oriTracked, posTracked
-
-    @property
-    def handPoses(self):
-        """Tracked hand (Touch controller) poses."""
-        self._leftHandPose.c_data[0] = self.c_data.HandPoses[0]
-        self._rightHandPose.c_data[0] = self.c_data.HandPoses[1]
-        return [self._leftHandPose, self._rightHandPose]
-
-    @property
-    def handStatus(self):
-        """Tracking status for the hands.
-
-        Returns
-        -------
-        tuple
-            Tracking status for orientation and position. True if tracking was
-            the time the pose was requested.
-
-        """
-        cdef list toReturn = list()
-        cdef unsigned int* statusBits = &self.c_data.HandStatusFlags[0]
-
-        cdef Py_ssize_t i = 0
-        for i in range(<Py_ssize_t>libovr_capi.ovrHand_Count):
-            toReturn.append((
-                (statusBits[i] & libovr_capi.ovrStatus_OrientationTracked) ==
-                libovr_capi.ovrStatus_OrientationTracked,
-                (statusBits[i] & libovr_capi.ovrStatus_PositionTracked) ==
-                libovr_capi.ovrStatus_PositionTracked))
-
-        return toReturn
-
-    @property
-    def calibratedOrigin(self):
-        """Calibrated origin."""
-        self._calibratedOrigin.c_data[0] = self.c_data.CalibratedOrigin
-        return self._calibratedOrigin
 
 
 def getTrackingState(double absTime, bint latencyMarker=True):
