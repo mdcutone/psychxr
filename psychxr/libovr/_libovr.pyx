@@ -1501,8 +1501,8 @@ cdef class LibOVRPoseState(object):
         ----------
         pose : :obj:`LibOVRPose`
             Rigid body pose.
-        angularVelocity : ndarray
-            Angular velocity vector in radians/sec."
+        angularVelocity : `ndarray`
+            Angular velocity vector in radians/sec.
         linearVelocity : `ndarray`
             Linear velocity vector in meters/sec.
         angularAcceleration : `ndarray`
@@ -1513,7 +1513,7 @@ cdef class LibOVRPoseState(object):
             Absolute time this data refers to in seconds.
 
         """
-        self.newStruct()
+        self._init_data()
 
     def __cinit__(self):
         self.ptr_owner = False
@@ -1536,7 +1536,7 @@ cdef class LibOVRPoseState(object):
 
         return wrapper
 
-    cdef void newStruct(self):
+    cdef void _init_data(self):
         if self.c_data is not NULL:  # already allocated, __init__ called twice?
             return
 
@@ -1654,7 +1654,9 @@ cdef class LibOVRPoseState(object):
 
 
 cdef class LibOVRTrackingState(object):
-    """Class for tracking state information."""
+    """Class for tracking state information for head and hand poses.
+
+    """
     cdef libovr_capi.ovrTrackingState* c_data
     cdef bint ptr_owner
 
@@ -1727,6 +1729,10 @@ cdef class LibOVRTrackingState(object):
     def headPose(self):
         return self._headPose
 
+    @headPose.setter
+    def headPose(self, LibOVRPose value):
+        self.c_data[0].HeadPose.ThePose = value.c_data[0]
+
     @property
     def headStatus(self):
         # """Tracking status for the head.
@@ -1785,9 +1791,9 @@ cdef class LibOVRTrackerInfo(object):
     """Class for information about camera-based tracking sensors.
 
     """
-    cdef libovr_capi.ovrTrackerPose* c_data
-    cdef libovr_capi.ovrTrackerPose c_ovrTrackerPose
-    cdef libovr_capi.ovrTrackerDesc c_ovrTrackerDesc
+    cdef libovr_capi.ovrTrackerPose* c_ovrTrackerPose
+    cdef libovr_capi.ovrTrackerDesc* c_ovrTrackerDesc
+    cdef bint ptr_owner
 
     cdef LibOVRPose _pose
     cdef LibOVRPose _leveledPose
@@ -1823,10 +1829,63 @@ cdef class LibOVRTrackerInfo(object):
 
         """
 
+        self.newStruct()
+
     def __cinit__(self):
-        self._pose = LibOVRPose()
-        self._leveledPose = LibOVRPose()
-        self._trackerIndex = 0
+        self.ptr_owner = False
+
+    @staticmethod
+    cdef LibOVRTrackerInfo fromPtr(libovr_capi.ovrTrackerPose* ptrPose, libovr_capi.ovrTrackerDesc* ptrDesc, bint owner=False):
+        # bypass __init__ if wrapping a pointer
+        cdef LibOVRTrackerInfo wrapper = LibOVRTrackerInfo.__new__(LibOVRTrackerInfo)
+        wrapper.c_ovrTrackerPose = ptrPose
+        wrapper.c_ovrTrackerDesc = ptrDesc
+        wrapper.ptr_owner = owner
+
+        wrapper._pose = LibOVRPose.fromPtr(
+            &wrapper.c_ovrTrackerPose.Pose)
+        wrapper._leveledPose = LibOVRPose.fromPtr(
+            &wrapper.c_ovrTrackerPose.LeveledPose)
+
+        return wrapper
+
+    cdef void newStruct(self):
+        # todo - sort this stuff out
+        if self.c_ovrTrackerPose is not NULL:
+            return
+
+        if self.c_ovrTrackerDesc is not NULL:
+            return
+
+        cdef libovr_capi.ovrTrackerPose* _ptr_tracker_pose = \
+            <libovr_capi.ovrTrackerPose*>malloc(
+                sizeof(libovr_capi.ovrTrackerPose))
+
+        if _ptr_tracker_pose is NULL:
+            raise MemoryError
+
+        cdef libovr_capi.ovrTrackerDesc* _ptr_tracker_desc = \
+            <libovr_capi.ovrTrackerDesc*>malloc(
+                sizeof(libovr_capi.ovrTrackerDesc))
+
+        if _ptr_tracker_desc is NULL:
+            raise MemoryError
+
+        self.c_ovrTrackerPose = _ptr_tracker_pose
+        self.c_ovrTrackerDesc = _ptr_tracker_desc
+        self.ptr_owner = True
+
+        self._pose = LibOVRPose.fromPtr(&self.c_ovrTrackerPose.Pose)
+        self._leveledPose = LibOVRPose.fromPtr(&self.c_ovrTrackerPose.LeveledPose)
+
+    def __dealloc__(self):
+        if self.c_ovrTrackerPose is not NULL and self.ptr_owner is True:
+            free(self.c_ovrTrackerPose)
+            self.c_ovrTrackerPose = NULL
+
+        if self.c_ovrTrackerDesc is not NULL and self.ptr_owner is True:
+            free(self.c_ovrTrackerDesc)
+            self.c_ovrTrackerDesc = NULL
 
     @property
     def trackerIndex(self):
@@ -1834,14 +1893,10 @@ cdef class LibOVRTrackerInfo(object):
 
     @property
     def pose(self):
-        self._pose.c_data[0] = self.c_ovrTrackerPose.Pose
-
         return self._pose
 
     @property
     def leveledPose(self):
-        self._leveledPose.c_data[0] = self.c_ovrTrackerPose.LeveledPose
-
         return self._leveledPose
 
     @property
@@ -4075,10 +4130,10 @@ def getTrackerInfo(int trackerIndex):
     to_return._trackerIndex = <unsigned int>trackerIndex
 
     # set the descriptor data
-    to_return.c_ovrTrackerDesc = libovr_capi.ovr_GetTrackerDesc(
+    to_return.c_ovrTrackerDesc[0] = libovr_capi.ovr_GetTrackerDesc(
         _ptrSession, <unsigned int>trackerIndex)
     # get the tracker pose
-    to_return.c_ovrTrackerPose = libovr_capi.ovr_GetTrackerPose(
+    to_return.c_ovrTrackerPose[0] = libovr_capi.ovr_GetTrackerPose(
         _ptrSession, <unsigned int>trackerIndex)
 
     return to_return

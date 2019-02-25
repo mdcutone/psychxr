@@ -1242,6 +1242,7 @@ typedef npy_cdouble __pyx_t_5numpy_complex_t;
 struct __pyx_opt_args_7psychxr_6libovr_7_libovr_10LibOVRPose_fromPtr;
 struct __pyx_opt_args_7psychxr_6libovr_7_libovr_15LibOVRPoseState_fromPtr;
 struct __pyx_opt_args_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_fromPtr;
+struct __pyx_opt_args_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_fromPtr;
 struct __pyx_opt_args_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_fromPtr;
 struct __pyx_opt_args_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_fromPtr;
 
@@ -1269,7 +1270,7 @@ struct __pyx_opt_args_7psychxr_6libovr_7_libovr_15LibOVRPoseState_fromPtr {
   int owner;
 };
 
-/* "psychxr/libovr/_libovr.pyx":1689
+/* "psychxr/libovr/_libovr.pyx":1691
  * 
  *     @staticmethod
  *     cdef LibOVRTrackingState fromPtr(libovr_capi.ovrTrackingState* ptr, bint owner=False):             # <<<<<<<<<<<<<<
@@ -1281,7 +1282,19 @@ struct __pyx_opt_args_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_fromPtr {
   int owner;
 };
 
-/* "psychxr/libovr/_libovr.pyx":1915
+/* "psychxr/libovr/_libovr.pyx":1838
+ * 
+ *     @staticmethod
+ *     cdef LibOVRTrackerInfo fromPtr(libovr_capi.ovrTrackerPose* ptrPose, libovr_capi.ovrTrackerDesc* ptrDesc, bint owner=False):             # <<<<<<<<<<<<<<
+ *         # bypass __init__ if wrapping a pointer
+ *         cdef LibOVRTrackerInfo wrapper = LibOVRTrackerInfo.__new__(LibOVRTrackerInfo)
+ */
+struct __pyx_opt_args_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_fromPtr {
+  int __pyx_n;
+  int owner;
+};
+
+/* "psychxr/libovr/_libovr.pyx":1970
  * 
  *     @staticmethod
  *     cdef LibOVRSessionStatus fromPtr(libovr_capi.ovrSessionStatus* ptr, bint owner=False):             # <<<<<<<<<<<<<<
@@ -1293,7 +1306,7 @@ struct __pyx_opt_args_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_fromPtr {
   int owner;
 };
 
-/* "psychxr/libovr/_libovr.pyx":2003
+/* "psychxr/libovr/_libovr.pyx":2058
  * 
  *     @staticmethod
  *     cdef LibOVRHmdInfo fromPtr(libovr_capi.ovrHmdDesc* ptr, bint owner=False):             # <<<<<<<<<<<<<<
@@ -1346,8 +1359,8 @@ struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState {
  * 
  * 
  * cdef class LibOVRTrackingState(object):             # <<<<<<<<<<<<<<
- *     """Class for tracking state information."""
- *     cdef libovr_capi.ovrTrackingState* c_data
+ *     """Class for tracking state information for head and hand poses.
+ * 
  */
 struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState {
   PyObject_HEAD
@@ -1361,7 +1374,7 @@ struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState {
 };
 
 
-/* "psychxr/libovr/_libovr.pyx":1784
+/* "psychxr/libovr/_libovr.pyx":1790
  * 
  * 
  * cdef class LibOVRTrackerInfo(object):             # <<<<<<<<<<<<<<
@@ -1370,16 +1383,17 @@ struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState {
  */
 struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo {
   PyObject_HEAD
-  ovrTrackerPose *c_data;
-  ovrTrackerPose c_ovrTrackerPose;
-  ovrTrackerDesc c_ovrTrackerDesc;
+  struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_vtab;
+  ovrTrackerPose *c_ovrTrackerPose;
+  ovrTrackerDesc *c_ovrTrackerDesc;
+  int ptr_owner;
   struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *_pose;
   struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *_leveledPose;
   unsigned int _trackerIndex;
 };
 
 
-/* "psychxr/libovr/_libovr.pyx":1887
+/* "psychxr/libovr/_libovr.pyx":1942
  * 
  * 
  * cdef class LibOVRSessionStatus(object):             # <<<<<<<<<<<<<<
@@ -1394,7 +1408,7 @@ struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus {
 };
 
 
-/* "psychxr/libovr/_libovr.pyx":1990
+/* "psychxr/libovr/_libovr.pyx":2045
  * 
  * 
  * cdef class LibOVRHmdInfo(object):             # <<<<<<<<<<<<<<
@@ -1409,7 +1423,7 @@ struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRHmdInfo {
 };
 
 
-/* "psychxr/libovr/_libovr.pyx":2216
+/* "psychxr/libovr/_libovr.pyx":2271
  * 
  * 
  * cdef class LibOVRFrameStat(object):             # <<<<<<<<<<<<<<
@@ -1526,7 +1540,7 @@ static struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRPose *__pyx_vtabp
 
 struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRPoseState {
   struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *(*fromPtr)(ovrPoseStatef *, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_15LibOVRPoseState_fromPtr *__pyx_optional_args);
-  void (*newStruct)(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *);
+  void (*_init_data)(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *);
 };
 static struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRPoseState *__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState;
 
@@ -1535,8 +1549,8 @@ static struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRPoseState *__pyx_
  * 
  * 
  * cdef class LibOVRTrackingState(object):             # <<<<<<<<<<<<<<
- *     """Class for tracking state information."""
- *     cdef libovr_capi.ovrTrackingState* c_data
+ *     """Class for tracking state information for head and hand poses.
+ * 
  */
 
 struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRTrackingState {
@@ -1546,7 +1560,22 @@ struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRTrackingState {
 static struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRTrackingState;
 
 
-/* "psychxr/libovr/_libovr.pyx":1887
+/* "psychxr/libovr/_libovr.pyx":1790
+ * 
+ * 
+ * cdef class LibOVRTrackerInfo(object):             # <<<<<<<<<<<<<<
+ *     """Class for information about camera-based tracking sensors.
+ * 
+ */
+
+struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo {
+  struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *(*fromPtr)(ovrTrackerPose *, ovrTrackerDesc *, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_fromPtr *__pyx_optional_args);
+  void (*newStruct)(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *);
+};
+static struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo;
+
+
+/* "psychxr/libovr/_libovr.pyx":1942
  * 
  * 
  * cdef class LibOVRSessionStatus(object):             # <<<<<<<<<<<<<<
@@ -1561,7 +1590,7 @@ struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRSessionStatus {
 static struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRSessionStatus;
 
 
-/* "psychxr/libovr/_libovr.pyx":1990
+/* "psychxr/libovr/_libovr.pyx":2045
  * 
  * 
  * cdef class LibOVRHmdInfo(object):             # <<<<<<<<<<<<<<
@@ -2507,9 +2536,11 @@ static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *__pyx_f_7psychxr_6libovr_7_libovr_10LibOVRPose_fromPtr(ovrPosef *__pyx_v_ptr, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_10LibOVRPose_fromPtr *__pyx_optional_args); /* proto*/
 static void __pyx_f_7psychxr_6libovr_7_libovr_10LibOVRPose_newStruct(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *__pyx_v_self, PyObject *__pyx_v_pos, PyObject *__pyx_v_ori); /* proto*/
 static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *__pyx_f_7psychxr_6libovr_7_libovr_15LibOVRPoseState_fromPtr(ovrPoseStatef *__pyx_v_ptr, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_15LibOVRPoseState_fromPtr *__pyx_optional_args); /* proto*/
-static void __pyx_f_7psychxr_6libovr_7_libovr_15LibOVRPoseState_newStruct(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *__pyx_v_self); /* proto*/
+static void __pyx_f_7psychxr_6libovr_7_libovr_15LibOVRPoseState__init_data(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *__pyx_v_self); /* proto*/
 static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_fromPtr(ovrTrackingState *__pyx_v_ptr, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_fromPtr *__pyx_optional_args); /* proto*/
 static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_v_self); /* proto*/
+static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_f_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_fromPtr(ovrTrackerPose *__pyx_v_ptrPose, ovrTrackerDesc *__pyx_v_ptrDesc, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_fromPtr *__pyx_optional_args); /* proto*/
+static void __pyx_f_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_newStruct(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto*/
 static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *__pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_fromPtr(ovrSessionStatus *__pyx_v_ptr, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_fromPtr *__pyx_optional_args); /* proto*/
 static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_newStruct(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *__pyx_v_self); /* proto*/
 static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRHmdInfo *__pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_fromPtr(ovrHmdDesc *__pyx_v_ptr, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_fromPtr *__pyx_optional_args); /* proto*/
@@ -3831,14 +3862,16 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState___init__(str
 static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_2__cinit__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_v_self); /* proto */
 static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_4__dealloc__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_8headPose___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_v_self); /* proto */
+static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_8headPose_2__set__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_v_self, struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *__pyx_v_value); /* proto */
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10headStatus___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_9handPoses___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10handStatus___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_16calibratedOrigin___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_6__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_8__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
-static int __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo___init__(CYTHON_UNUSED struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto */
+static int __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo___init__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto */
 static int __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_2__cinit__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto */
+static void __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4__dealloc__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_12trackerIndex___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4pose___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_11leveledPose___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto */
@@ -3849,8 +3882,8 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_13horizo
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_11verticalFov___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_5nearZ___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4farZ___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_6__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_6__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_8__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus___init__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *__pyx_v_self); /* proto */
 static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_2__cinit__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *__pyx_v_self); /* proto */
 static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_4__dealloc__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *__pyx_v_self); /* proto */
@@ -10542,7 +10575,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_10LibOVRPose_54__setstate_cy
 
 /* Python wrapper */
 static int __pyx_pw_7psychxr_6libovr_7_libovr_15LibOVRPoseState_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_7psychxr_6libovr_7_libovr_15LibOVRPoseState___init__[] = "\n        Attributes\n        ----------\n        pose : :obj:`LibOVRPose`\n            Rigid body pose.\n        angularVelocity : ndarray\n            Angular velocity vector in radians/sec.\"\n        linearVelocity : `ndarray`\n            Linear velocity vector in meters/sec.\n        angularAcceleration : `ndarray`\n            Angular acceleration vector in radians/s^2.\n        linearAcceleration : `ndarray`\n            Linear acceleration vector in meters/s^2.\n        timeInSeconds : `float`\n            Absolute time this data refers to in seconds.\n\n        ";
+static char __pyx_doc_7psychxr_6libovr_7_libovr_15LibOVRPoseState___init__[] = "\n        Attributes\n        ----------\n        pose : :obj:`LibOVRPose`\n            Rigid body pose.\n        angularVelocity : `ndarray`\n            Angular velocity vector in radians/sec.\n        linearVelocity : `ndarray`\n            Linear velocity vector in meters/sec.\n        angularAcceleration : `ndarray`\n            Angular acceleration vector in radians/s^2.\n        linearAcceleration : `ndarray`\n            Linear acceleration vector in meters/s^2.\n        timeInSeconds : `float`\n            Absolute time this data refers to in seconds.\n\n        ";
 #if CYTHON_COMPILING_IN_CPYTHON
 struct wrapperbase __pyx_wrapperbase_7psychxr_6libovr_7_libovr_15LibOVRPoseState___init__;
 #endif
@@ -10568,11 +10601,11 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRPoseState___init__(struct 
   /* "psychxr/libovr/_libovr.pyx":1516
  * 
  *         """
- *         self.newStruct()             # <<<<<<<<<<<<<<
+ *         self._init_data()             # <<<<<<<<<<<<<<
  * 
  *     def __cinit__(self):
  */
-  ((struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRPoseState *)__pyx_v_self->__pyx_vtab)->newStruct(__pyx_v_self);
+  ((struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRPoseState *)__pyx_v_self->__pyx_vtab)->_init_data(__pyx_v_self);
 
   /* "psychxr/libovr/_libovr.pyx":1498
  *     cdef np.ndarray _angularAcceleration
@@ -10589,7 +10622,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRPoseState___init__(struct 
 }
 
 /* "psychxr/libovr/_libovr.pyx":1518
- *         self.newStruct()
+ *         self._init_data()
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
  *         self.ptr_owner = False
@@ -10627,7 +10660,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRPoseState_2__cinit__(struc
   __pyx_v_self->ptr_owner = 0;
 
   /* "psychxr/libovr/_libovr.pyx":1518
- *         self.newStruct()
+ *         self._init_data()
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
  *         self.ptr_owner = False
@@ -10756,7 +10789,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *__pyx_f_7psyc
  * 
  *         return wrapper             # <<<<<<<<<<<<<<
  * 
- *     cdef void newStruct(self):
+ *     cdef void _init_data(self):
  */
   __Pyx_XDECREF(((PyObject *)__pyx_r));
   __Pyx_INCREF(((PyObject *)__pyx_v_wrapper));
@@ -10786,23 +10819,23 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *__pyx_f_7psyc
 /* "psychxr/libovr/_libovr.pyx":1539
  *         return wrapper
  * 
- *     cdef void newStruct(self):             # <<<<<<<<<<<<<<
+ *     cdef void _init_data(self):             # <<<<<<<<<<<<<<
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?
  *             return
  */
 
-static void __pyx_f_7psychxr_6libovr_7_libovr_15LibOVRPoseState_newStruct(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *__pyx_v_self) {
+static void __pyx_f_7psychxr_6libovr_7_libovr_15LibOVRPoseState__init_data(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *__pyx_v_self) {
   ovrPoseStatef *__pyx_v__ptr;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   ovrVector3f __pyx_t_2;
   ovrQuatf __pyx_t_3;
   PyObject *__pyx_t_4 = NULL;
-  __Pyx_RefNannySetupContext("newStruct", 0);
+  __Pyx_RefNannySetupContext("_init_data", 0);
 
   /* "psychxr/libovr/_libovr.pyx":1540
  * 
- *     cdef void newStruct(self):
+ *     cdef void _init_data(self):
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?             # <<<<<<<<<<<<<<
  *             return
  * 
@@ -10811,7 +10844,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_15LibOVRPoseState_newStruct(struct
   if (__pyx_t_1) {
 
     /* "psychxr/libovr/_libovr.pyx":1541
- *     cdef void newStruct(self):
+ *     cdef void _init_data(self):
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?
  *             return             # <<<<<<<<<<<<<<
  * 
@@ -10821,7 +10854,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_15LibOVRPoseState_newStruct(struct
 
     /* "psychxr/libovr/_libovr.pyx":1540
  * 
- *     cdef void newStruct(self):
+ *     cdef void _init_data(self):
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?             # <<<<<<<<<<<<<<
  *             return
  * 
@@ -11028,7 +11061,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_15LibOVRPoseState_newStruct(struct
   /* "psychxr/libovr/_libovr.pyx":1539
  *         return wrapper
  * 
- *     cdef void newStruct(self):             # <<<<<<<<<<<<<<
+ *     cdef void _init_data(self):             # <<<<<<<<<<<<<<
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?
  *             return
  */
@@ -11037,7 +11070,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_15LibOVRPoseState_newStruct(struct
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_WriteUnraisable("psychxr.libovr._libovr.LibOVRPoseState.newStruct", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
+  __Pyx_WriteUnraisable("psychxr.libovr._libovr.LibOVRPoseState._init_data", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
 }
@@ -12096,7 +12129,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRPoseState_10__setsta
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1666
+/* "psychxr/libovr/_libovr.pyx":1668
  *     cdef LibOVRPose _calibratedOrigin
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -12129,7 +12162,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState___init__(str
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1683
+  /* "psychxr/libovr/_libovr.pyx":1685
  * 
  *         """
  *         self.newStruct()             # <<<<<<<<<<<<<<
@@ -12138,7 +12171,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState___init__(str
  */
   ((struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRTrackingState *)__pyx_v_self->__pyx_vtab)->newStruct(__pyx_v_self);
 
-  /* "psychxr/libovr/_libovr.pyx":1666
+  /* "psychxr/libovr/_libovr.pyx":1668
  *     cdef LibOVRPose _calibratedOrigin
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -12152,7 +12185,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState___init__(str
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1685
+/* "psychxr/libovr/_libovr.pyx":1687
  *         self.newStruct()
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
@@ -12181,7 +12214,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_2__cinit__(s
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1686
+  /* "psychxr/libovr/_libovr.pyx":1688
  * 
  *     def __cinit__(self):
  *         self.ptr_owner = False             # <<<<<<<<<<<<<<
@@ -12190,7 +12223,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_2__cinit__(s
  */
   __pyx_v_self->ptr_owner = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1685
+  /* "psychxr/libovr/_libovr.pyx":1687
  *         self.newStruct()
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
@@ -12204,7 +12237,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_2__cinit__(s
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1689
+/* "psychxr/libovr/_libovr.pyx":1691
  * 
  *     @staticmethod
  *     cdef LibOVRTrackingState fromPtr(libovr_capi.ovrTrackingState* ptr, bint owner=False):             # <<<<<<<<<<<<<<
@@ -12225,19 +12258,19 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_f_7
     }
   }
 
-  /* "psychxr/libovr/_libovr.pyx":1691
+  /* "psychxr/libovr/_libovr.pyx":1693
  *     cdef LibOVRTrackingState fromPtr(libovr_capi.ovrTrackingState* ptr, bint owner=False):
  *         # bypass __init__ if wrapping a pointer
  *         cdef LibOVRTrackingState wrapper = LibOVRTrackingState.__new__(LibOVRTrackingState)             # <<<<<<<<<<<<<<
  *         wrapper.c_data = ptr
  *         wrapper.ptr_owner = owner
  */
-  __pyx_t_1 = ((PyObject *)__pyx_tp_new_7psychxr_6libovr_7_libovr_LibOVRTrackingState(((PyTypeObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRTrackingState), __pyx_empty_tuple, NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1691, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_tp_new_7psychxr_6libovr_7_libovr_LibOVRTrackingState(((PyTypeObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRTrackingState), __pyx_empty_tuple, NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1693, __pyx_L1_error)
   __Pyx_GOTREF(((PyObject *)__pyx_t_1));
   __pyx_v_wrapper = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1692
+  /* "psychxr/libovr/_libovr.pyx":1694
  *         # bypass __init__ if wrapping a pointer
  *         cdef LibOVRTrackingState wrapper = LibOVRTrackingState.__new__(LibOVRTrackingState)
  *         wrapper.c_data = ptr             # <<<<<<<<<<<<<<
@@ -12246,7 +12279,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_f_7
  */
   __pyx_v_wrapper->c_data = __pyx_v_ptr;
 
-  /* "psychxr/libovr/_libovr.pyx":1693
+  /* "psychxr/libovr/_libovr.pyx":1695
  *         cdef LibOVRTrackingState wrapper = LibOVRTrackingState.__new__(LibOVRTrackingState)
  *         wrapper.c_data = ptr
  *         wrapper.ptr_owner = owner             # <<<<<<<<<<<<<<
@@ -12255,14 +12288,14 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_f_7
  */
   __pyx_v_wrapper->ptr_owner = __pyx_v_owner;
 
-  /* "psychxr/libovr/_libovr.pyx":1695
+  /* "psychxr/libovr/_libovr.pyx":1697
  *         wrapper.ptr_owner = owner
  * 
  *         wrapper._headPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HeadPose)             # <<<<<<<<<<<<<<
  *         wrapper._leftHandPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HandPoses[0])
  *         wrapper._rightHandPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HandPoses[1])
  */
-  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState->fromPtr((&__pyx_v_wrapper->c_data->HeadPose), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1695, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState->fromPtr((&__pyx_v_wrapper->c_data->HeadPose), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1697, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __Pyx_GOTREF(__pyx_v_wrapper->_headPose);
@@ -12270,14 +12303,14 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_f_7
   __pyx_v_wrapper->_headPose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1696
+  /* "psychxr/libovr/_libovr.pyx":1698
  * 
  *         wrapper._headPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HeadPose)
  *         wrapper._leftHandPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HandPoses[0])             # <<<<<<<<<<<<<<
  *         wrapper._rightHandPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HandPoses[1])
  *         wrapper._calibratedOrigin = LibOVRPose.fromPtr(&wrapper.c_data.CalibratedOrigin)
  */
-  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState->fromPtr((&(__pyx_v_wrapper->c_data->HandPoses[0])), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1696, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState->fromPtr((&(__pyx_v_wrapper->c_data->HandPoses[0])), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1698, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __Pyx_GOTREF(__pyx_v_wrapper->_leftHandPose);
@@ -12285,14 +12318,14 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_f_7
   __pyx_v_wrapper->_leftHandPose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1697
+  /* "psychxr/libovr/_libovr.pyx":1699
  *         wrapper._headPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HeadPose)
  *         wrapper._leftHandPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HandPoses[0])
  *         wrapper._rightHandPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HandPoses[1])             # <<<<<<<<<<<<<<
  *         wrapper._calibratedOrigin = LibOVRPose.fromPtr(&wrapper.c_data.CalibratedOrigin)
  * 
  */
-  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState->fromPtr((&(__pyx_v_wrapper->c_data->HandPoses[1])), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1697, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState->fromPtr((&(__pyx_v_wrapper->c_data->HandPoses[1])), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1699, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __Pyx_GOTREF(__pyx_v_wrapper->_rightHandPose);
@@ -12300,14 +12333,14 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_f_7
   __pyx_v_wrapper->_rightHandPose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1698
+  /* "psychxr/libovr/_libovr.pyx":1700
  *         wrapper._leftHandPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HandPoses[0])
  *         wrapper._rightHandPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HandPoses[1])
  *         wrapper._calibratedOrigin = LibOVRPose.fromPtr(&wrapper.c_data.CalibratedOrigin)             # <<<<<<<<<<<<<<
  * 
  *         return wrapper
  */
-  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPose->fromPtr((&__pyx_v_wrapper->c_data->CalibratedOrigin), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1698, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPose->fromPtr((&__pyx_v_wrapper->c_data->CalibratedOrigin), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1700, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __Pyx_GOTREF(__pyx_v_wrapper->_calibratedOrigin);
@@ -12315,7 +12348,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_f_7
   __pyx_v_wrapper->_calibratedOrigin = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1700
+  /* "psychxr/libovr/_libovr.pyx":1702
  *         wrapper._calibratedOrigin = LibOVRPose.fromPtr(&wrapper.c_data.CalibratedOrigin)
  * 
  *         return wrapper             # <<<<<<<<<<<<<<
@@ -12327,7 +12360,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_f_7
   __pyx_r = __pyx_v_wrapper;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1689
+  /* "psychxr/libovr/_libovr.pyx":1691
  * 
  *     @staticmethod
  *     cdef LibOVRTrackingState fromPtr(libovr_capi.ovrTrackingState* ptr, bint owner=False):             # <<<<<<<<<<<<<<
@@ -12347,7 +12380,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_f_7
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1702
+/* "psychxr/libovr/_libovr.pyx":1704
  *         return wrapper
  * 
  *     cdef void newStruct(self):             # <<<<<<<<<<<<<<
@@ -12362,7 +12395,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("newStruct", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1703
+  /* "psychxr/libovr/_libovr.pyx":1705
  * 
  *     cdef void newStruct(self):
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?             # <<<<<<<<<<<<<<
@@ -12372,7 +12405,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
   __pyx_t_1 = ((__pyx_v_self->c_data != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":1704
+    /* "psychxr/libovr/_libovr.pyx":1706
  *     cdef void newStruct(self):
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?
  *             return             # <<<<<<<<<<<<<<
@@ -12381,7 +12414,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
  */
     goto __pyx_L0;
 
-    /* "psychxr/libovr/_libovr.pyx":1703
+    /* "psychxr/libovr/_libovr.pyx":1705
  * 
  *     cdef void newStruct(self):
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?             # <<<<<<<<<<<<<<
@@ -12390,7 +12423,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":1707
+  /* "psychxr/libovr/_libovr.pyx":1709
  * 
  *         cdef libovr_capi.ovrTrackingState* _ptr = \
  *             <libovr_capi.ovrTrackingState*>malloc(             # <<<<<<<<<<<<<<
@@ -12399,7 +12432,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
  */
   __pyx_v__ptr = ((ovrTrackingState *)malloc((sizeof(ovrTrackingState))));
 
-  /* "psychxr/libovr/_libovr.pyx":1710
+  /* "psychxr/libovr/_libovr.pyx":1712
  *                 sizeof(libovr_capi.ovrTrackingState))
  * 
  *         if _ptr is NULL:             # <<<<<<<<<<<<<<
@@ -12409,16 +12442,16 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
   __pyx_t_1 = ((__pyx_v__ptr == NULL) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "psychxr/libovr/_libovr.pyx":1711
+    /* "psychxr/libovr/_libovr.pyx":1713
  * 
  *         if _ptr is NULL:
  *             raise MemoryError             # <<<<<<<<<<<<<<
  * 
  *         self.c_data = _ptr
  */
-    PyErr_NoMemory(); __PYX_ERR(0, 1711, __pyx_L1_error)
+    PyErr_NoMemory(); __PYX_ERR(0, 1713, __pyx_L1_error)
 
-    /* "psychxr/libovr/_libovr.pyx":1710
+    /* "psychxr/libovr/_libovr.pyx":1712
  *                 sizeof(libovr_capi.ovrTrackingState))
  * 
  *         if _ptr is NULL:             # <<<<<<<<<<<<<<
@@ -12427,7 +12460,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":1713
+  /* "psychxr/libovr/_libovr.pyx":1715
  *             raise MemoryError
  * 
  *         self.c_data = _ptr             # <<<<<<<<<<<<<<
@@ -12436,7 +12469,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
  */
   __pyx_v_self->c_data = __pyx_v__ptr;
 
-  /* "psychxr/libovr/_libovr.pyx":1714
+  /* "psychxr/libovr/_libovr.pyx":1716
  * 
  *         self.c_data = _ptr
  *         self.ptr_owner = True             # <<<<<<<<<<<<<<
@@ -12445,14 +12478,14 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
  */
   __pyx_v_self->ptr_owner = 1;
 
-  /* "psychxr/libovr/_libovr.pyx":1716
+  /* "psychxr/libovr/_libovr.pyx":1718
  *         self.ptr_owner = True
  * 
  *         self._headPose = LibOVRPoseState.fromPtr(&self.c_data.HeadPose)             # <<<<<<<<<<<<<<
  *         self._leftHandPose = LibOVRPoseState.fromPtr(&self.c_data.HandPoses[0])
  *         self._rightHandPose = LibOVRPoseState.fromPtr(&self.c_data.HandPoses[1])
  */
-  __pyx_t_2 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState->fromPtr((&__pyx_v_self->c_data->HeadPose), NULL)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1716, __pyx_L1_error)
+  __pyx_t_2 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState->fromPtr((&__pyx_v_self->c_data->HeadPose), NULL)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1718, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
   __Pyx_GOTREF(__pyx_v_self->_headPose);
@@ -12460,14 +12493,14 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
   __pyx_v_self->_headPose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1717
+  /* "psychxr/libovr/_libovr.pyx":1719
  * 
  *         self._headPose = LibOVRPoseState.fromPtr(&self.c_data.HeadPose)
  *         self._leftHandPose = LibOVRPoseState.fromPtr(&self.c_data.HandPoses[0])             # <<<<<<<<<<<<<<
  *         self._rightHandPose = LibOVRPoseState.fromPtr(&self.c_data.HandPoses[1])
  *         self._calibratedOrigin = LibOVRPose.fromPtr(&self.c_data.CalibratedOrigin)
  */
-  __pyx_t_2 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState->fromPtr((&(__pyx_v_self->c_data->HandPoses[0])), NULL)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1717, __pyx_L1_error)
+  __pyx_t_2 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState->fromPtr((&(__pyx_v_self->c_data->HandPoses[0])), NULL)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1719, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
   __Pyx_GOTREF(__pyx_v_self->_leftHandPose);
@@ -12475,14 +12508,14 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
   __pyx_v_self->_leftHandPose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1718
+  /* "psychxr/libovr/_libovr.pyx":1720
  *         self._headPose = LibOVRPoseState.fromPtr(&self.c_data.HeadPose)
  *         self._leftHandPose = LibOVRPoseState.fromPtr(&self.c_data.HandPoses[0])
  *         self._rightHandPose = LibOVRPoseState.fromPtr(&self.c_data.HandPoses[1])             # <<<<<<<<<<<<<<
  *         self._calibratedOrigin = LibOVRPose.fromPtr(&self.c_data.CalibratedOrigin)
  * 
  */
-  __pyx_t_2 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState->fromPtr((&(__pyx_v_self->c_data->HandPoses[1])), NULL)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1718, __pyx_L1_error)
+  __pyx_t_2 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState->fromPtr((&(__pyx_v_self->c_data->HandPoses[1])), NULL)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1720, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
   __Pyx_GOTREF(__pyx_v_self->_rightHandPose);
@@ -12490,14 +12523,14 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
   __pyx_v_self->_rightHandPose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1719
+  /* "psychxr/libovr/_libovr.pyx":1721
  *         self._leftHandPose = LibOVRPoseState.fromPtr(&self.c_data.HandPoses[0])
  *         self._rightHandPose = LibOVRPoseState.fromPtr(&self.c_data.HandPoses[1])
  *         self._calibratedOrigin = LibOVRPose.fromPtr(&self.c_data.CalibratedOrigin)             # <<<<<<<<<<<<<<
  * 
  *     def __dealloc__(self):
  */
-  __pyx_t_2 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPose->fromPtr((&__pyx_v_self->c_data->CalibratedOrigin), NULL)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1719, __pyx_L1_error)
+  __pyx_t_2 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPose->fromPtr((&__pyx_v_self->c_data->CalibratedOrigin), NULL)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1721, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
   __Pyx_GOTREF(__pyx_v_self->_calibratedOrigin);
@@ -12505,7 +12538,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
   __pyx_v_self->_calibratedOrigin = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1702
+  /* "psychxr/libovr/_libovr.pyx":1704
  *         return wrapper
  * 
  *     cdef void newStruct(self):             # <<<<<<<<<<<<<<
@@ -12522,7 +12555,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_newStruct(st
   __Pyx_RefNannyFinishContext();
 }
 
-/* "psychxr/libovr/_libovr.pyx":1721
+/* "psychxr/libovr/_libovr.pyx":1723
  *         self._calibratedOrigin = LibOVRPose.fromPtr(&self.c_data.CalibratedOrigin)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -12547,7 +12580,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_4__dealloc_
   int __pyx_t_2;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1722
+  /* "psychxr/libovr/_libovr.pyx":1724
  * 
  *     def __dealloc__(self):
  *         if self.c_data is not NULL and self.ptr_owner is True:             # <<<<<<<<<<<<<<
@@ -12565,7 +12598,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_4__dealloc_
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":1723
+    /* "psychxr/libovr/_libovr.pyx":1725
  *     def __dealloc__(self):
  *         if self.c_data is not NULL and self.ptr_owner is True:
  *             free(self.c_data)             # <<<<<<<<<<<<<<
@@ -12574,7 +12607,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_4__dealloc_
  */
     free(__pyx_v_self->c_data);
 
-    /* "psychxr/libovr/_libovr.pyx":1724
+    /* "psychxr/libovr/_libovr.pyx":1726
  *         if self.c_data is not NULL and self.ptr_owner is True:
  *             free(self.c_data)
  *             self.c_data = NULL             # <<<<<<<<<<<<<<
@@ -12583,7 +12616,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_4__dealloc_
  */
     __pyx_v_self->c_data = NULL;
 
-    /* "psychxr/libovr/_libovr.pyx":1722
+    /* "psychxr/libovr/_libovr.pyx":1724
  * 
  *     def __dealloc__(self):
  *         if self.c_data is not NULL and self.ptr_owner is True:             # <<<<<<<<<<<<<<
@@ -12592,7 +12625,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_4__dealloc_
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":1721
+  /* "psychxr/libovr/_libovr.pyx":1723
  *         self._calibratedOrigin = LibOVRPose.fromPtr(&self.c_data.CalibratedOrigin)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -12604,7 +12637,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_4__dealloc_
   __Pyx_RefNannyFinishContext();
 }
 
-/* "psychxr/libovr/_libovr.pyx":1727
+/* "psychxr/libovr/_libovr.pyx":1729
  * 
  *     @property
  *     def headPose(self):             # <<<<<<<<<<<<<<
@@ -12630,19 +12663,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_8headP
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1728
+  /* "psychxr/libovr/_libovr.pyx":1730
  *     @property
  *     def headPose(self):
  *         return self._headPose             # <<<<<<<<<<<<<<
  * 
- *     @property
+ *     @headPose.setter
  */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(((PyObject *)__pyx_v_self->_headPose));
   __pyx_r = ((PyObject *)__pyx_v_self->_headPose);
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1727
+  /* "psychxr/libovr/_libovr.pyx":1729
  * 
  *     @property
  *     def headPose(self):             # <<<<<<<<<<<<<<
@@ -12657,7 +12690,61 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_8headP
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1731
+/* "psychxr/libovr/_libovr.pyx":1733
+ * 
+ *     @headPose.setter
+ *     def headPose(self, LibOVRPose value):             # <<<<<<<<<<<<<<
+ *         self.c_data[0].HeadPose.ThePose = value.c_data[0]
+ * 
+ */
+
+/* Python wrapper */
+static int __pyx_pw_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_8headPose_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_8headPose_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_value), __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPose, 1, "value", 0))) __PYX_ERR(0, 1733, __pyx_L1_error)
+  __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_8headPose_2__set__(((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *)__pyx_v_self), ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)__pyx_v_value));
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = -1;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_8headPose_2__set__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *__pyx_v_self, struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *__pyx_v_value) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__set__", 0);
+
+  /* "psychxr/libovr/_libovr.pyx":1734
+ *     @headPose.setter
+ *     def headPose(self, LibOVRPose value):
+ *         self.c_data[0].HeadPose.ThePose = value.c_data[0]             # <<<<<<<<<<<<<<
+ * 
+ *     @property
+ */
+  (__pyx_v_self->c_data[0]).HeadPose.ThePose = (__pyx_v_value->c_data[0]);
+
+  /* "psychxr/libovr/_libovr.pyx":1733
+ * 
+ *     @headPose.setter
+ *     def headPose(self, LibOVRPose value):             # <<<<<<<<<<<<<<
+ *         self.c_data[0].HeadPose.ThePose = value.c_data[0]
+ * 
+ */
+
+  /* function exit code */
+  __pyx_r = 0;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "psychxr/libovr/_libovr.pyx":1737
  * 
  *     @property
  *     def headStatus(self):             # <<<<<<<<<<<<<<
@@ -12689,7 +12776,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10head
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1750
+  /* "psychxr/libovr/_libovr.pyx":1756
  *         #
  *         # """
  *         cdef unsigned int* statusBits = &self.c_data.StatusFlags             # <<<<<<<<<<<<<<
@@ -12698,7 +12785,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10head
  */
   __pyx_v_statusBits = (&__pyx_v_self->c_data->StatusFlags);
 
-  /* "psychxr/libovr/_libovr.pyx":1753
+  /* "psychxr/libovr/_libovr.pyx":1759
  *         cdef bint oriTracked = \
  *             (statusBits[0] & libovr_capi.ovrStatus_OrientationTracked) == \
  *                libovr_capi.ovrStatus_OrientationTracked             # <<<<<<<<<<<<<<
@@ -12707,7 +12794,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10head
  */
   __pyx_v_oriTracked = (((__pyx_v_statusBits[0]) & ovrStatus_OrientationTracked) == ovrStatus_OrientationTracked);
 
-  /* "psychxr/libovr/_libovr.pyx":1756
+  /* "psychxr/libovr/_libovr.pyx":1762
  *         cdef bint posTracked = \
  *             (statusBits[0] & libovr_capi.ovrStatus_PositionTracked) == \
  *                 libovr_capi.ovrStatus_PositionTracked             # <<<<<<<<<<<<<<
@@ -12716,7 +12803,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10head
  */
   __pyx_v_posTracked = (((__pyx_v_statusBits[0]) & ovrStatus_PositionTracked) == ovrStatus_PositionTracked);
 
-  /* "psychxr/libovr/_libovr.pyx":1758
+  /* "psychxr/libovr/_libovr.pyx":1764
  *                 libovr_capi.ovrStatus_PositionTracked
  * 
  *         return oriTracked, posTracked             # <<<<<<<<<<<<<<
@@ -12724,11 +12811,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10head
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_v_oriTracked); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1758, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_v_oriTracked); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1764, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyBool_FromLong(__pyx_v_posTracked); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1758, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyBool_FromLong(__pyx_v_posTracked); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1764, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1758, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1764, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -12740,7 +12827,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10head
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1731
+  /* "psychxr/libovr/_libovr.pyx":1737
  * 
  *     @property
  *     def headStatus(self):             # <<<<<<<<<<<<<<
@@ -12761,7 +12848,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10head
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1761
+/* "psychxr/libovr/_libovr.pyx":1767
  * 
  *     @property
  *     def handPoses(self):             # <<<<<<<<<<<<<<
@@ -12788,7 +12875,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_9handP
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1762
+  /* "psychxr/libovr/_libovr.pyx":1768
  *     @property
  *     def handPoses(self):
  *         return [self._leftHandPose, self._rightHandPose]             # <<<<<<<<<<<<<<
@@ -12796,7 +12883,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_9handP
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1762, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1768, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(((PyObject *)__pyx_v_self->_leftHandPose));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_self->_leftHandPose));
@@ -12808,7 +12895,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_9handP
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1761
+  /* "psychxr/libovr/_libovr.pyx":1767
  * 
  *     @property
  *     def handPoses(self):             # <<<<<<<<<<<<<<
@@ -12827,7 +12914,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_9handP
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1765
+/* "psychxr/libovr/_libovr.pyx":1771
  * 
  *     @property
  *     def handStatus(self):             # <<<<<<<<<<<<<<
@@ -12863,19 +12950,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10hand
   int __pyx_t_7;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1766
+  /* "psychxr/libovr/_libovr.pyx":1772
  *     @property
  *     def handStatus(self):
  *         cdef list toReturn = list()             # <<<<<<<<<<<<<<
  *         cdef unsigned int* statusBits = &self.c_data.HandStatusFlags[0]
  * 
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1766, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1772, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_toReturn = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1767
+  /* "psychxr/libovr/_libovr.pyx":1773
  *     def handStatus(self):
  *         cdef list toReturn = list()
  *         cdef unsigned int* statusBits = &self.c_data.HandStatusFlags[0]             # <<<<<<<<<<<<<<
@@ -12884,7 +12971,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10hand
  */
   __pyx_v_statusBits = (&(__pyx_v_self->c_data->HandStatusFlags[0]));
 
-  /* "psychxr/libovr/_libovr.pyx":1769
+  /* "psychxr/libovr/_libovr.pyx":1775
  *         cdef unsigned int* statusBits = &self.c_data.HandStatusFlags[0]
  * 
  *         cdef Py_ssize_t i = 0             # <<<<<<<<<<<<<<
@@ -12893,7 +12980,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10hand
  */
   __pyx_v_i = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1770
+  /* "psychxr/libovr/_libovr.pyx":1776
  * 
  *         cdef Py_ssize_t i = 0
  *         for i in range(<Py_ssize_t>libovr_capi.ovrHand_Count):             # <<<<<<<<<<<<<<
@@ -12905,34 +12992,34 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10hand
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_i = __pyx_t_4;
 
-    /* "psychxr/libovr/_libovr.pyx":1772
+    /* "psychxr/libovr/_libovr.pyx":1778
  *         for i in range(<Py_ssize_t>libovr_capi.ovrHand_Count):
  *             toReturn.append((
  *                 (statusBits[i] & libovr_capi.ovrStatus_OrientationTracked) ==             # <<<<<<<<<<<<<<
  *                 libovr_capi.ovrStatus_OrientationTracked,
  *                 (statusBits[i] & libovr_capi.ovrStatus_PositionTracked) ==
  */
-    __pyx_t_1 = __Pyx_PyBool_FromLong((((__pyx_v_statusBits[__pyx_v_i]) & ovrStatus_OrientationTracked) == ovrStatus_OrientationTracked)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1772, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyBool_FromLong((((__pyx_v_statusBits[__pyx_v_i]) & ovrStatus_OrientationTracked) == ovrStatus_OrientationTracked)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1778, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
 
-    /* "psychxr/libovr/_libovr.pyx":1774
+    /* "psychxr/libovr/_libovr.pyx":1780
  *                 (statusBits[i] & libovr_capi.ovrStatus_OrientationTracked) ==
  *                 libovr_capi.ovrStatus_OrientationTracked,
  *                 (statusBits[i] & libovr_capi.ovrStatus_PositionTracked) ==             # <<<<<<<<<<<<<<
  *                 libovr_capi.ovrStatus_PositionTracked))
  * 
  */
-    __pyx_t_5 = __Pyx_PyBool_FromLong((((__pyx_v_statusBits[__pyx_v_i]) & ovrStatus_PositionTracked) == ovrStatus_PositionTracked)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1774, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyBool_FromLong((((__pyx_v_statusBits[__pyx_v_i]) & ovrStatus_PositionTracked) == ovrStatus_PositionTracked)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1780, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
 
-    /* "psychxr/libovr/_libovr.pyx":1772
+    /* "psychxr/libovr/_libovr.pyx":1778
  *         for i in range(<Py_ssize_t>libovr_capi.ovrHand_Count):
  *             toReturn.append((
  *                 (statusBits[i] & libovr_capi.ovrStatus_OrientationTracked) ==             # <<<<<<<<<<<<<<
  *                 libovr_capi.ovrStatus_OrientationTracked,
  *                 (statusBits[i] & libovr_capi.ovrStatus_PositionTracked) ==
  */
-    __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1772, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1778, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_1);
@@ -12941,18 +13028,18 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10hand
     __pyx_t_1 = 0;
     __pyx_t_5 = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":1771
+    /* "psychxr/libovr/_libovr.pyx":1777
  *         cdef Py_ssize_t i = 0
  *         for i in range(<Py_ssize_t>libovr_capi.ovrHand_Count):
  *             toReturn.append((             # <<<<<<<<<<<<<<
  *                 (statusBits[i] & libovr_capi.ovrStatus_OrientationTracked) ==
  *                 libovr_capi.ovrStatus_OrientationTracked,
  */
-    __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_toReturn, __pyx_t_6); if (unlikely(__pyx_t_7 == ((int)-1))) __PYX_ERR(0, 1771, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_toReturn, __pyx_t_6); if (unlikely(__pyx_t_7 == ((int)-1))) __PYX_ERR(0, 1777, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":1777
+  /* "psychxr/libovr/_libovr.pyx":1783
  *                 libovr_capi.ovrStatus_PositionTracked))
  * 
  *         return toReturn             # <<<<<<<<<<<<<<
@@ -12964,7 +13051,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10hand
   __pyx_r = __pyx_v_toReturn;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1765
+  /* "psychxr/libovr/_libovr.pyx":1771
  * 
  *     @property
  *     def handStatus(self):             # <<<<<<<<<<<<<<
@@ -12986,7 +13073,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10hand
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1780
+/* "psychxr/libovr/_libovr.pyx":1786
  * 
  *     @property
  *     def calibratedOrigin(self):             # <<<<<<<<<<<<<<
@@ -13012,7 +13099,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_16cali
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1781
+  /* "psychxr/libovr/_libovr.pyx":1787
  *     @property
  *     def calibratedOrigin(self):
  *         return self._calibratedOrigin             # <<<<<<<<<<<<<<
@@ -13024,7 +13111,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_16cali
   __pyx_r = ((PyObject *)__pyx_v_self->_calibratedOrigin);
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1780
+  /* "psychxr/libovr/_libovr.pyx":1786
  * 
  *     @property
  *     def calibratedOrigin(self):             # <<<<<<<<<<<<<<
@@ -13148,7 +13235,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_8__set
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1797
+/* "psychxr/libovr/_libovr.pyx":1803
  *     cdef unsigned int _trackerIndex
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -13176,10 +13263,27 @@ static int __pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_1__init__(PyOb
   return __pyx_r;
 }
 
-static int __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo___init__(CYTHON_UNUSED struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self) {
+static int __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo___init__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__", 0);
+
+  /* "psychxr/libovr/_libovr.pyx":1832
+ *         """
+ * 
+ *         self.newStruct()             # <<<<<<<<<<<<<<
+ * 
+ *     def __cinit__(self):
+ */
+  ((struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *)__pyx_v_self->__pyx_vtab)->newStruct(__pyx_v_self);
+
+  /* "psychxr/libovr/_libovr.pyx":1803
+ *     cdef unsigned int _trackerIndex
+ * 
+ *     def __init__(self):             # <<<<<<<<<<<<<<
+ *         """This object is returned by 'getTrackerInfo'. All attributes are
+ *         read-only.
+ */
 
   /* function exit code */
   __pyx_r = 0;
@@ -13187,12 +13291,12 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo___init__(CYTHO
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1826
- *         """
+/* "psychxr/libovr/_libovr.pyx":1834
+ *         self.newStruct()
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
- *         self._pose = LibOVRPose()
- *         self._leveledPose = LibOVRPose()
+ *         self.ptr_owner = False
+ * 
  */
 
 /* Python wrapper */
@@ -13214,69 +13318,501 @@ static int __pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_3__cinit__(PyO
 static int __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_2__cinit__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1827
+  /* "psychxr/libovr/_libovr.pyx":1835
  * 
  *     def __cinit__(self):
- *         self._pose = LibOVRPose()             # <<<<<<<<<<<<<<
- *         self._leveledPose = LibOVRPose()
- *         self._trackerIndex = 0
- */
-  __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPose)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1827, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_1);
-  __Pyx_GOTREF(__pyx_v_self->_pose);
-  __Pyx_DECREF(((PyObject *)__pyx_v_self->_pose));
-  __pyx_v_self->_pose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)__pyx_t_1);
-  __pyx_t_1 = 0;
-
-  /* "psychxr/libovr/_libovr.pyx":1828
- *     def __cinit__(self):
- *         self._pose = LibOVRPose()
- *         self._leveledPose = LibOVRPose()             # <<<<<<<<<<<<<<
- *         self._trackerIndex = 0
+ *         self.ptr_owner = False             # <<<<<<<<<<<<<<
  * 
+ *     @staticmethod
  */
-  __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPose)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1828, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_1);
-  __Pyx_GOTREF(__pyx_v_self->_leveledPose);
-  __Pyx_DECREF(((PyObject *)__pyx_v_self->_leveledPose));
-  __pyx_v_self->_leveledPose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)__pyx_t_1);
-  __pyx_t_1 = 0;
+  __pyx_v_self->ptr_owner = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1829
- *         self._pose = LibOVRPose()
- *         self._leveledPose = LibOVRPose()
- *         self._trackerIndex = 0             # <<<<<<<<<<<<<<
- * 
- *     @property
- */
-  __pyx_v_self->_trackerIndex = 0;
-
-  /* "psychxr/libovr/_libovr.pyx":1826
- *         """
+  /* "psychxr/libovr/_libovr.pyx":1834
+ *         self.newStruct()
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
- *         self._pose = LibOVRPose()
- *         self._leveledPose = LibOVRPose()
+ *         self.ptr_owner = False
+ * 
  */
 
   /* function exit code */
   __pyx_r = 0;
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("psychxr.libovr._libovr.LibOVRTrackerInfo.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = -1;
-  __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1832
+/* "psychxr/libovr/_libovr.pyx":1838
+ * 
+ *     @staticmethod
+ *     cdef LibOVRTrackerInfo fromPtr(libovr_capi.ovrTrackerPose* ptrPose, libovr_capi.ovrTrackerDesc* ptrDesc, bint owner=False):             # <<<<<<<<<<<<<<
+ *         # bypass __init__ if wrapping a pointer
+ *         cdef LibOVRTrackerInfo wrapper = LibOVRTrackerInfo.__new__(LibOVRTrackerInfo)
+ */
+
+static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_f_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_fromPtr(ovrTrackerPose *__pyx_v_ptrPose, ovrTrackerDesc *__pyx_v_ptrDesc, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_fromPtr *__pyx_optional_args) {
+  int __pyx_v_owner = ((int)0);
+  struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_wrapper = 0;
+  struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("fromPtr", 0);
+  if (__pyx_optional_args) {
+    if (__pyx_optional_args->__pyx_n > 0) {
+      __pyx_v_owner = __pyx_optional_args->owner;
+    }
+  }
+
+  /* "psychxr/libovr/_libovr.pyx":1840
+ *     cdef LibOVRTrackerInfo fromPtr(libovr_capi.ovrTrackerPose* ptrPose, libovr_capi.ovrTrackerDesc* ptrDesc, bint owner=False):
+ *         # bypass __init__ if wrapping a pointer
+ *         cdef LibOVRTrackerInfo wrapper = LibOVRTrackerInfo.__new__(LibOVRTrackerInfo)             # <<<<<<<<<<<<<<
+ *         wrapper.c_ovrTrackerPose = ptrPose
+ *         wrapper.c_ovrTrackerDesc = ptrDesc
+ */
+  __pyx_t_1 = ((PyObject *)__pyx_tp_new_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo(((PyTypeObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo), __pyx_empty_tuple, NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1840, __pyx_L1_error)
+  __Pyx_GOTREF(((PyObject *)__pyx_t_1));
+  __pyx_v_wrapper = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "psychxr/libovr/_libovr.pyx":1841
+ *         # bypass __init__ if wrapping a pointer
+ *         cdef LibOVRTrackerInfo wrapper = LibOVRTrackerInfo.__new__(LibOVRTrackerInfo)
+ *         wrapper.c_ovrTrackerPose = ptrPose             # <<<<<<<<<<<<<<
+ *         wrapper.c_ovrTrackerDesc = ptrDesc
+ *         wrapper.ptr_owner = owner
+ */
+  __pyx_v_wrapper->c_ovrTrackerPose = __pyx_v_ptrPose;
+
+  /* "psychxr/libovr/_libovr.pyx":1842
+ *         cdef LibOVRTrackerInfo wrapper = LibOVRTrackerInfo.__new__(LibOVRTrackerInfo)
+ *         wrapper.c_ovrTrackerPose = ptrPose
+ *         wrapper.c_ovrTrackerDesc = ptrDesc             # <<<<<<<<<<<<<<
+ *         wrapper.ptr_owner = owner
+ * 
+ */
+  __pyx_v_wrapper->c_ovrTrackerDesc = __pyx_v_ptrDesc;
+
+  /* "psychxr/libovr/_libovr.pyx":1843
+ *         wrapper.c_ovrTrackerPose = ptrPose
+ *         wrapper.c_ovrTrackerDesc = ptrDesc
+ *         wrapper.ptr_owner = owner             # <<<<<<<<<<<<<<
+ * 
+ *         wrapper._pose = LibOVRPose.fromPtr(
+ */
+  __pyx_v_wrapper->ptr_owner = __pyx_v_owner;
+
+  /* "psychxr/libovr/_libovr.pyx":1845
+ *         wrapper.ptr_owner = owner
+ * 
+ *         wrapper._pose = LibOVRPose.fromPtr(             # <<<<<<<<<<<<<<
+ *             &wrapper.c_ovrTrackerPose.Pose)
+ *         wrapper._leveledPose = LibOVRPose.fromPtr(
+ */
+  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPose->fromPtr((&__pyx_v_wrapper->c_ovrTrackerPose->Pose), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1845, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_GOTREF(__pyx_v_wrapper->_pose);
+  __Pyx_DECREF(((PyObject *)__pyx_v_wrapper->_pose));
+  __pyx_v_wrapper->_pose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "psychxr/libovr/_libovr.pyx":1847
+ *         wrapper._pose = LibOVRPose.fromPtr(
+ *             &wrapper.c_ovrTrackerPose.Pose)
+ *         wrapper._leveledPose = LibOVRPose.fromPtr(             # <<<<<<<<<<<<<<
+ *             &wrapper.c_ovrTrackerPose.LeveledPose)
+ * 
+ */
+  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPose->fromPtr((&__pyx_v_wrapper->c_ovrTrackerPose->LeveledPose), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1847, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_GOTREF(__pyx_v_wrapper->_leveledPose);
+  __Pyx_DECREF(((PyObject *)__pyx_v_wrapper->_leveledPose));
+  __pyx_v_wrapper->_leveledPose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "psychxr/libovr/_libovr.pyx":1850
+ *             &wrapper.c_ovrTrackerPose.LeveledPose)
+ * 
+ *         return wrapper             # <<<<<<<<<<<<<<
+ * 
+ *     cdef void newStruct(self):
+ */
+  __Pyx_XDECREF(((PyObject *)__pyx_r));
+  __Pyx_INCREF(((PyObject *)__pyx_v_wrapper));
+  __pyx_r = __pyx_v_wrapper;
+  goto __pyx_L0;
+
+  /* "psychxr/libovr/_libovr.pyx":1838
+ * 
+ *     @staticmethod
+ *     cdef LibOVRTrackerInfo fromPtr(libovr_capi.ovrTrackerPose* ptrPose, libovr_capi.ovrTrackerDesc* ptrDesc, bint owner=False):             # <<<<<<<<<<<<<<
+ *         # bypass __init__ if wrapping a pointer
+ *         cdef LibOVRTrackerInfo wrapper = LibOVRTrackerInfo.__new__(LibOVRTrackerInfo)
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("psychxr.libovr._libovr.LibOVRTrackerInfo.fromPtr", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XDECREF((PyObject *)__pyx_v_wrapper);
+  __Pyx_XGIVEREF((PyObject *)__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "psychxr/libovr/_libovr.pyx":1852
+ *         return wrapper
+ * 
+ *     cdef void newStruct(self):             # <<<<<<<<<<<<<<
+ *         # todo - sort this stuff out
+ *         if self.c_ovrTrackerPose is not NULL:
+ */
+
+static void __pyx_f_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_newStruct(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self) {
+  ovrTrackerPose *__pyx_v__ptr_tracker_pose;
+  ovrTrackerDesc *__pyx_v__ptr_tracker_desc;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  __Pyx_RefNannySetupContext("newStruct", 0);
+
+  /* "psychxr/libovr/_libovr.pyx":1854
+ *     cdef void newStruct(self):
+ *         # todo - sort this stuff out
+ *         if self.c_ovrTrackerPose is not NULL:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_self->c_ovrTrackerPose != NULL) != 0);
+  if (__pyx_t_1) {
+
+    /* "psychxr/libovr/_libovr.pyx":1855
+ *         # todo - sort this stuff out
+ *         if self.c_ovrTrackerPose is not NULL:
+ *             return             # <<<<<<<<<<<<<<
+ * 
+ *         if self.c_ovrTrackerDesc is not NULL:
+ */
+    goto __pyx_L0;
+
+    /* "psychxr/libovr/_libovr.pyx":1854
+ *     cdef void newStruct(self):
+ *         # todo - sort this stuff out
+ *         if self.c_ovrTrackerPose is not NULL:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+  }
+
+  /* "psychxr/libovr/_libovr.pyx":1857
+ *             return
+ * 
+ *         if self.c_ovrTrackerDesc is not NULL:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_self->c_ovrTrackerDesc != NULL) != 0);
+  if (__pyx_t_1) {
+
+    /* "psychxr/libovr/_libovr.pyx":1858
+ * 
+ *         if self.c_ovrTrackerDesc is not NULL:
+ *             return             # <<<<<<<<<<<<<<
+ * 
+ *         cdef libovr_capi.ovrTrackerPose* _ptr_tracker_pose = \
+ */
+    goto __pyx_L0;
+
+    /* "psychxr/libovr/_libovr.pyx":1857
+ *             return
+ * 
+ *         if self.c_ovrTrackerDesc is not NULL:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+  }
+
+  /* "psychxr/libovr/_libovr.pyx":1861
+ * 
+ *         cdef libovr_capi.ovrTrackerPose* _ptr_tracker_pose = \
+ *             <libovr_capi.ovrTrackerPose*>malloc(             # <<<<<<<<<<<<<<
+ *                 sizeof(libovr_capi.ovrTrackerPose))
+ * 
+ */
+  __pyx_v__ptr_tracker_pose = ((ovrTrackerPose *)malloc((sizeof(ovrTrackerPose))));
+
+  /* "psychxr/libovr/_libovr.pyx":1864
+ *                 sizeof(libovr_capi.ovrTrackerPose))
+ * 
+ *         if _ptr_tracker_pose is NULL:             # <<<<<<<<<<<<<<
+ *             raise MemoryError
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v__ptr_tracker_pose == NULL) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "psychxr/libovr/_libovr.pyx":1865
+ * 
+ *         if _ptr_tracker_pose is NULL:
+ *             raise MemoryError             # <<<<<<<<<<<<<<
+ * 
+ *         cdef libovr_capi.ovrTrackerDesc* _ptr_tracker_desc = \
+ */
+    PyErr_NoMemory(); __PYX_ERR(0, 1865, __pyx_L1_error)
+
+    /* "psychxr/libovr/_libovr.pyx":1864
+ *                 sizeof(libovr_capi.ovrTrackerPose))
+ * 
+ *         if _ptr_tracker_pose is NULL:             # <<<<<<<<<<<<<<
+ *             raise MemoryError
+ * 
+ */
+  }
+
+  /* "psychxr/libovr/_libovr.pyx":1868
+ * 
+ *         cdef libovr_capi.ovrTrackerDesc* _ptr_tracker_desc = \
+ *             <libovr_capi.ovrTrackerDesc*>malloc(             # <<<<<<<<<<<<<<
+ *                 sizeof(libovr_capi.ovrTrackerDesc))
+ * 
+ */
+  __pyx_v__ptr_tracker_desc = ((ovrTrackerDesc *)malloc((sizeof(ovrTrackerDesc))));
+
+  /* "psychxr/libovr/_libovr.pyx":1871
+ *                 sizeof(libovr_capi.ovrTrackerDesc))
+ * 
+ *         if _ptr_tracker_desc is NULL:             # <<<<<<<<<<<<<<
+ *             raise MemoryError
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v__ptr_tracker_desc == NULL) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "psychxr/libovr/_libovr.pyx":1872
+ * 
+ *         if _ptr_tracker_desc is NULL:
+ *             raise MemoryError             # <<<<<<<<<<<<<<
+ * 
+ *         self.c_ovrTrackerPose = _ptr_tracker_pose
+ */
+    PyErr_NoMemory(); __PYX_ERR(0, 1872, __pyx_L1_error)
+
+    /* "psychxr/libovr/_libovr.pyx":1871
+ *                 sizeof(libovr_capi.ovrTrackerDesc))
+ * 
+ *         if _ptr_tracker_desc is NULL:             # <<<<<<<<<<<<<<
+ *             raise MemoryError
+ * 
+ */
+  }
+
+  /* "psychxr/libovr/_libovr.pyx":1874
+ *             raise MemoryError
+ * 
+ *         self.c_ovrTrackerPose = _ptr_tracker_pose             # <<<<<<<<<<<<<<
+ *         self.c_ovrTrackerDesc = _ptr_tracker_desc
+ *         self.ptr_owner = True
+ */
+  __pyx_v_self->c_ovrTrackerPose = __pyx_v__ptr_tracker_pose;
+
+  /* "psychxr/libovr/_libovr.pyx":1875
+ * 
+ *         self.c_ovrTrackerPose = _ptr_tracker_pose
+ *         self.c_ovrTrackerDesc = _ptr_tracker_desc             # <<<<<<<<<<<<<<
+ *         self.ptr_owner = True
+ * 
+ */
+  __pyx_v_self->c_ovrTrackerDesc = __pyx_v__ptr_tracker_desc;
+
+  /* "psychxr/libovr/_libovr.pyx":1876
+ *         self.c_ovrTrackerPose = _ptr_tracker_pose
+ *         self.c_ovrTrackerDesc = _ptr_tracker_desc
+ *         self.ptr_owner = True             # <<<<<<<<<<<<<<
+ * 
+ *         self._pose = LibOVRPose.fromPtr(&self.c_ovrTrackerPose.Pose)
+ */
+  __pyx_v_self->ptr_owner = 1;
+
+  /* "psychxr/libovr/_libovr.pyx":1878
+ *         self.ptr_owner = True
+ * 
+ *         self._pose = LibOVRPose.fromPtr(&self.c_ovrTrackerPose.Pose)             # <<<<<<<<<<<<<<
+ *         self._leveledPose = LibOVRPose.fromPtr(&self.c_ovrTrackerPose.LeveledPose)
+ * 
+ */
+  __pyx_t_2 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPose->fromPtr((&__pyx_v_self->c_ovrTrackerPose->Pose), NULL)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1878, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_2);
+  __Pyx_GOTREF(__pyx_v_self->_pose);
+  __Pyx_DECREF(((PyObject *)__pyx_v_self->_pose));
+  __pyx_v_self->_pose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)__pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "psychxr/libovr/_libovr.pyx":1879
+ * 
+ *         self._pose = LibOVRPose.fromPtr(&self.c_ovrTrackerPose.Pose)
+ *         self._leveledPose = LibOVRPose.fromPtr(&self.c_ovrTrackerPose.LeveledPose)             # <<<<<<<<<<<<<<
+ * 
+ *     def __dealloc__(self):
+ */
+  __pyx_t_2 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPose->fromPtr((&__pyx_v_self->c_ovrTrackerPose->LeveledPose), NULL)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1879, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_2);
+  __Pyx_GOTREF(__pyx_v_self->_leveledPose);
+  __Pyx_DECREF(((PyObject *)__pyx_v_self->_leveledPose));
+  __pyx_v_self->_leveledPose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)__pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "psychxr/libovr/_libovr.pyx":1852
+ *         return wrapper
+ * 
+ *     cdef void newStruct(self):             # <<<<<<<<<<<<<<
+ *         # todo - sort this stuff out
+ *         if self.c_ovrTrackerPose is not NULL:
+ */
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_WriteUnraisable("psychxr.libovr._libovr.LibOVRTrackerInfo.newStruct", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "psychxr/libovr/_libovr.pyx":1881
+ *         self._leveledPose = LibOVRPose.fromPtr(&self.c_ovrTrackerPose.LeveledPose)
+ * 
+ *     def __dealloc__(self):             # <<<<<<<<<<<<<<
+ *         if self.c_ovrTrackerPose is not NULL and self.ptr_owner is True:
+ *             free(self.c_ovrTrackerPose)
+ */
+
+/* Python wrapper */
+static void __pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_5__dealloc__(PyObject *__pyx_v_self); /*proto*/
+static void __pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_5__dealloc__(PyObject *__pyx_v_self) {
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__dealloc__ (wrapper)", 0);
+  __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4__dealloc__(((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+static void __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4__dealloc__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self) {
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  __Pyx_RefNannySetupContext("__dealloc__", 0);
+
+  /* "psychxr/libovr/_libovr.pyx":1882
+ * 
+ *     def __dealloc__(self):
+ *         if self.c_ovrTrackerPose is not NULL and self.ptr_owner is True:             # <<<<<<<<<<<<<<
+ *             free(self.c_ovrTrackerPose)
+ *             self.c_ovrTrackerPose = NULL
+ */
+  __pyx_t_2 = ((__pyx_v_self->c_ovrTrackerPose != NULL) != 0);
+  if (__pyx_t_2) {
+  } else {
+    __pyx_t_1 = __pyx_t_2;
+    goto __pyx_L4_bool_binop_done;
+  }
+  __pyx_t_2 = ((__pyx_v_self->ptr_owner == 1) != 0);
+  __pyx_t_1 = __pyx_t_2;
+  __pyx_L4_bool_binop_done:;
+  if (__pyx_t_1) {
+
+    /* "psychxr/libovr/_libovr.pyx":1883
+ *     def __dealloc__(self):
+ *         if self.c_ovrTrackerPose is not NULL and self.ptr_owner is True:
+ *             free(self.c_ovrTrackerPose)             # <<<<<<<<<<<<<<
+ *             self.c_ovrTrackerPose = NULL
+ * 
+ */
+    free(__pyx_v_self->c_ovrTrackerPose);
+
+    /* "psychxr/libovr/_libovr.pyx":1884
+ *         if self.c_ovrTrackerPose is not NULL and self.ptr_owner is True:
+ *             free(self.c_ovrTrackerPose)
+ *             self.c_ovrTrackerPose = NULL             # <<<<<<<<<<<<<<
+ * 
+ *         if self.c_ovrTrackerDesc is not NULL and self.ptr_owner is True:
+ */
+    __pyx_v_self->c_ovrTrackerPose = NULL;
+
+    /* "psychxr/libovr/_libovr.pyx":1882
+ * 
+ *     def __dealloc__(self):
+ *         if self.c_ovrTrackerPose is not NULL and self.ptr_owner is True:             # <<<<<<<<<<<<<<
+ *             free(self.c_ovrTrackerPose)
+ *             self.c_ovrTrackerPose = NULL
+ */
+  }
+
+  /* "psychxr/libovr/_libovr.pyx":1886
+ *             self.c_ovrTrackerPose = NULL
+ * 
+ *         if self.c_ovrTrackerDesc is not NULL and self.ptr_owner is True:             # <<<<<<<<<<<<<<
+ *             free(self.c_ovrTrackerDesc)
+ *             self.c_ovrTrackerDesc = NULL
+ */
+  __pyx_t_2 = ((__pyx_v_self->c_ovrTrackerDesc != NULL) != 0);
+  if (__pyx_t_2) {
+  } else {
+    __pyx_t_1 = __pyx_t_2;
+    goto __pyx_L7_bool_binop_done;
+  }
+  __pyx_t_2 = ((__pyx_v_self->ptr_owner == 1) != 0);
+  __pyx_t_1 = __pyx_t_2;
+  __pyx_L7_bool_binop_done:;
+  if (__pyx_t_1) {
+
+    /* "psychxr/libovr/_libovr.pyx":1887
+ * 
+ *         if self.c_ovrTrackerDesc is not NULL and self.ptr_owner is True:
+ *             free(self.c_ovrTrackerDesc)             # <<<<<<<<<<<<<<
+ *             self.c_ovrTrackerDesc = NULL
+ * 
+ */
+    free(__pyx_v_self->c_ovrTrackerDesc);
+
+    /* "psychxr/libovr/_libovr.pyx":1888
+ *         if self.c_ovrTrackerDesc is not NULL and self.ptr_owner is True:
+ *             free(self.c_ovrTrackerDesc)
+ *             self.c_ovrTrackerDesc = NULL             # <<<<<<<<<<<<<<
+ * 
+ *     @property
+ */
+    __pyx_v_self->c_ovrTrackerDesc = NULL;
+
+    /* "psychxr/libovr/_libovr.pyx":1886
+ *             self.c_ovrTrackerPose = NULL
+ * 
+ *         if self.c_ovrTrackerDesc is not NULL and self.ptr_owner is True:             # <<<<<<<<<<<<<<
+ *             free(self.c_ovrTrackerDesc)
+ *             self.c_ovrTrackerDesc = NULL
+ */
+  }
+
+  /* "psychxr/libovr/_libovr.pyx":1881
+ *         self._leveledPose = LibOVRPose.fromPtr(&self.c_ovrTrackerPose.LeveledPose)
+ * 
+ *     def __dealloc__(self):             # <<<<<<<<<<<<<<
+ *         if self.c_ovrTrackerPose is not NULL and self.ptr_owner is True:
+ *             free(self.c_ovrTrackerPose)
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "psychxr/libovr/_libovr.pyx":1891
  * 
  *     @property
  *     def trackerIndex(self):             # <<<<<<<<<<<<<<
@@ -13303,7 +13839,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_12tracke
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1833
+  /* "psychxr/libovr/_libovr.pyx":1892
  *     @property
  *     def trackerIndex(self):
  *         return self._trackerIndex             # <<<<<<<<<<<<<<
@@ -13311,13 +13847,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_12tracke
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_self->_trackerIndex); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1833, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_self->_trackerIndex); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1892, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1832
+  /* "psychxr/libovr/_libovr.pyx":1891
  * 
  *     @property
  *     def trackerIndex(self):             # <<<<<<<<<<<<<<
@@ -13336,11 +13872,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_12tracke
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1836
+/* "psychxr/libovr/_libovr.pyx":1895
  * 
  *     @property
  *     def pose(self):             # <<<<<<<<<<<<<<
- *         self._pose.c_data[0] = self.c_ovrTrackerPose.Pose
+ *         return self._pose
  * 
  */
 
@@ -13360,22 +13896,11 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4pose_1_
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4pose___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  ovrPosef __pyx_t_1;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1837
+  /* "psychxr/libovr/_libovr.pyx":1896
  *     @property
  *     def pose(self):
- *         self._pose.c_data[0] = self.c_ovrTrackerPose.Pose             # <<<<<<<<<<<<<<
- * 
- *         return self._pose
- */
-  __pyx_t_1 = __pyx_v_self->c_ovrTrackerPose.Pose;
-  (__pyx_v_self->_pose->c_data[0]) = __pyx_t_1;
-
-  /* "psychxr/libovr/_libovr.pyx":1839
- *         self._pose.c_data[0] = self.c_ovrTrackerPose.Pose
- * 
  *         return self._pose             # <<<<<<<<<<<<<<
  * 
  *     @property
@@ -13385,11 +13910,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4pose___
   __pyx_r = ((PyObject *)__pyx_v_self->_pose);
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1836
+  /* "psychxr/libovr/_libovr.pyx":1895
  * 
  *     @property
  *     def pose(self):             # <<<<<<<<<<<<<<
- *         self._pose.c_data[0] = self.c_ovrTrackerPose.Pose
+ *         return self._pose
  * 
  */
 
@@ -13400,11 +13925,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4pose___
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1842
+/* "psychxr/libovr/_libovr.pyx":1899
  * 
  *     @property
  *     def leveledPose(self):             # <<<<<<<<<<<<<<
- *         self._leveledPose.c_data[0] = self.c_ovrTrackerPose.LeveledPose
+ *         return self._leveledPose
  * 
  */
 
@@ -13424,22 +13949,11 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_11levele
 static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_11leveledPose___get__(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  ovrPosef __pyx_t_1;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1843
+  /* "psychxr/libovr/_libovr.pyx":1900
  *     @property
  *     def leveledPose(self):
- *         self._leveledPose.c_data[0] = self.c_ovrTrackerPose.LeveledPose             # <<<<<<<<<<<<<<
- * 
- *         return self._leveledPose
- */
-  __pyx_t_1 = __pyx_v_self->c_ovrTrackerPose.LeveledPose;
-  (__pyx_v_self->_leveledPose->c_data[0]) = __pyx_t_1;
-
-  /* "psychxr/libovr/_libovr.pyx":1845
- *         self._leveledPose.c_data[0] = self.c_ovrTrackerPose.LeveledPose
- * 
  *         return self._leveledPose             # <<<<<<<<<<<<<<
  * 
  *     @property
@@ -13449,11 +13963,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_11levele
   __pyx_r = ((PyObject *)__pyx_v_self->_leveledPose);
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1842
+  /* "psychxr/libovr/_libovr.pyx":1899
  * 
  *     @property
  *     def leveledPose(self):             # <<<<<<<<<<<<<<
- *         self._leveledPose.c_data[0] = self.c_ovrTrackerPose.LeveledPose
+ *         return self._leveledPose
  * 
  */
 
@@ -13464,7 +13978,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_11levele
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1848
+/* "psychxr/libovr/_libovr.pyx":1903
  * 
  *     @property
  *     def isConnected(self):             # <<<<<<<<<<<<<<
@@ -13491,7 +14005,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_11isConn
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1849
+  /* "psychxr/libovr/_libovr.pyx":1904
  *     @property
  *     def isConnected(self):
  *         return <bint>((libovr_capi.ovrTracker_Connected &             # <<<<<<<<<<<<<<
@@ -13500,20 +14014,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_11isConn
  */
   __Pyx_XDECREF(__pyx_r);
 
-  /* "psychxr/libovr/_libovr.pyx":1850
+  /* "psychxr/libovr/_libovr.pyx":1905
  *     def isConnected(self):
  *         return <bint>((libovr_capi.ovrTracker_Connected &
  *              self.c_ovrTrackerPose.TrackerFlags) ==             # <<<<<<<<<<<<<<
  *                       libovr_capi.ovrTracker_Connected)
  * 
  */
-  __pyx_t_1 = __Pyx_PyBool_FromLong((((ovrTracker_Connected & __pyx_v_self->c_ovrTrackerPose.TrackerFlags) == ovrTracker_Connected) != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1850, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((((ovrTracker_Connected & __pyx_v_self->c_ovrTrackerPose->TrackerFlags) == ovrTracker_Connected) != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1905, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1848
+  /* "psychxr/libovr/_libovr.pyx":1903
  * 
  *     @property
  *     def isConnected(self):             # <<<<<<<<<<<<<<
@@ -13532,7 +14046,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_11isConn
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1854
+/* "psychxr/libovr/_libovr.pyx":1909
  * 
  *     @property
  *     def isPoseTracked(self):             # <<<<<<<<<<<<<<
@@ -13559,7 +14073,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_13isPose
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1855
+  /* "psychxr/libovr/_libovr.pyx":1910
  *     @property
  *     def isPoseTracked(self):
  *         return <bint>((libovr_capi.ovrTracker_PoseTracked &             # <<<<<<<<<<<<<<
@@ -13568,20 +14082,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_13isPose
  */
   __Pyx_XDECREF(__pyx_r);
 
-  /* "psychxr/libovr/_libovr.pyx":1856
+  /* "psychxr/libovr/_libovr.pyx":1911
  *     def isPoseTracked(self):
  *         return <bint>((libovr_capi.ovrTracker_PoseTracked &
  *              self.c_ovrTrackerPose.TrackerFlags) ==             # <<<<<<<<<<<<<<
  *                       libovr_capi.ovrTracker_PoseTracked)
  * 
  */
-  __pyx_t_1 = __Pyx_PyBool_FromLong((((ovrTracker_PoseTracked & __pyx_v_self->c_ovrTrackerPose.TrackerFlags) == ovrTracker_PoseTracked) != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1856, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((((ovrTracker_PoseTracked & __pyx_v_self->c_ovrTrackerPose->TrackerFlags) == ovrTracker_PoseTracked) != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1911, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1854
+  /* "psychxr/libovr/_libovr.pyx":1909
  * 
  *     @property
  *     def isPoseTracked(self):             # <<<<<<<<<<<<<<
@@ -13600,7 +14114,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_13isPose
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1860
+/* "psychxr/libovr/_libovr.pyx":1915
  * 
  *     @property
  *     def frustum(self):             # <<<<<<<<<<<<<<
@@ -13633,67 +14147,67 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_7frustum
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1861
+  /* "psychxr/libovr/_libovr.pyx":1916
  *     @property
  *     def frustum(self):
  *         cdef np.ndarray to_return = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_ovrTrackerDesc.FrustumHFovInRadians,
  *             self.c_ovrTrackerDesc.FrustumVFovInRadians,
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1861, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1916, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1861, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1916, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1862
+  /* "psychxr/libovr/_libovr.pyx":1917
  *     def frustum(self):
  *         cdef np.ndarray to_return = np.asarray([
  *             self.c_ovrTrackerDesc.FrustumHFovInRadians,             # <<<<<<<<<<<<<<
  *             self.c_ovrTrackerDesc.FrustumVFovInRadians,
  *             self.c_ovrTrackerDesc.FrustumNearZInMeters,
  */
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc.FrustumHFovInRadians); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1862, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc->FrustumHFovInRadians); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1917, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "psychxr/libovr/_libovr.pyx":1863
+  /* "psychxr/libovr/_libovr.pyx":1918
  *         cdef np.ndarray to_return = np.asarray([
  *             self.c_ovrTrackerDesc.FrustumHFovInRadians,
  *             self.c_ovrTrackerDesc.FrustumVFovInRadians,             # <<<<<<<<<<<<<<
  *             self.c_ovrTrackerDesc.FrustumNearZInMeters,
  *             self.c_ovrTrackerDesc.FrustumFarZInMeters],
  */
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc.FrustumVFovInRadians); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1863, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc->FrustumVFovInRadians); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1918, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "psychxr/libovr/_libovr.pyx":1864
+  /* "psychxr/libovr/_libovr.pyx":1919
  *             self.c_ovrTrackerDesc.FrustumHFovInRadians,
  *             self.c_ovrTrackerDesc.FrustumVFovInRadians,
  *             self.c_ovrTrackerDesc.FrustumNearZInMeters,             # <<<<<<<<<<<<<<
  *             self.c_ovrTrackerDesc.FrustumFarZInMeters],
  *             dtype=np.float32)
  */
-  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc.FrustumNearZInMeters); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1864, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc->FrustumNearZInMeters); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1919, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "psychxr/libovr/_libovr.pyx":1865
+  /* "psychxr/libovr/_libovr.pyx":1920
  *             self.c_ovrTrackerDesc.FrustumVFovInRadians,
  *             self.c_ovrTrackerDesc.FrustumNearZInMeters,
  *             self.c_ovrTrackerDesc.FrustumFarZInMeters],             # <<<<<<<<<<<<<<
  *             dtype=np.float32)
  * 
  */
-  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc.FrustumFarZInMeters); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1865, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc->FrustumFarZInMeters); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1920, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "psychxr/libovr/_libovr.pyx":1861
+  /* "psychxr/libovr/_libovr.pyx":1916
  *     @property
  *     def frustum(self):
  *         cdef np.ndarray to_return = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_ovrTrackerDesc.FrustumHFovInRadians,
  *             self.c_ovrTrackerDesc.FrustumVFovInRadians,
  */
-  __pyx_t_6 = PyList_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1861, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1916, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_1);
   PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_1);
@@ -13707,46 +14221,46 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_7frustum
   __pyx_t_3 = 0;
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1861, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1916, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_6);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1866
+  /* "psychxr/libovr/_libovr.pyx":1921
  *             self.c_ovrTrackerDesc.FrustumNearZInMeters,
  *             self.c_ovrTrackerDesc.FrustumFarZInMeters],
  *             dtype=np.float32)             # <<<<<<<<<<<<<<
  * 
  *         return to_return
  */
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1866, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1921, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1866, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1921, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1866, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1921, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 1866, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 1921, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1861
+  /* "psychxr/libovr/_libovr.pyx":1916
  *     @property
  *     def frustum(self):
  *         cdef np.ndarray to_return = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_ovrTrackerDesc.FrustumHFovInRadians,
  *             self.c_ovrTrackerDesc.FrustumVFovInRadians,
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1861, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1916, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1861, __pyx_L1_error)
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1916, __pyx_L1_error)
   __pyx_v_to_return = ((PyArrayObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1868
+  /* "psychxr/libovr/_libovr.pyx":1923
  *             dtype=np.float32)
  * 
  *         return to_return             # <<<<<<<<<<<<<<
@@ -13758,7 +14272,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_7frustum
   __pyx_r = ((PyObject *)__pyx_v_to_return);
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1860
+  /* "psychxr/libovr/_libovr.pyx":1915
  * 
  *     @property
  *     def frustum(self):             # <<<<<<<<<<<<<<
@@ -13783,7 +14297,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_7frustum
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1871
+/* "psychxr/libovr/_libovr.pyx":1926
  * 
  *     @property
  *     def horizontalFov(self):             # <<<<<<<<<<<<<<
@@ -13810,7 +14324,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_13horizo
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1872
+  /* "psychxr/libovr/_libovr.pyx":1927
  *     @property
  *     def horizontalFov(self):
  *         return self.c_ovrTrackerDesc.FrustumHFovInRadians             # <<<<<<<<<<<<<<
@@ -13818,13 +14332,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_13horizo
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc.FrustumHFovInRadians); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1872, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc->FrustumHFovInRadians); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1927, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1871
+  /* "psychxr/libovr/_libovr.pyx":1926
  * 
  *     @property
  *     def horizontalFov(self):             # <<<<<<<<<<<<<<
@@ -13843,7 +14357,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_13horizo
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1875
+/* "psychxr/libovr/_libovr.pyx":1930
  * 
  *     @property
  *     def verticalFov(self):             # <<<<<<<<<<<<<<
@@ -13870,7 +14384,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_11vertic
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1876
+  /* "psychxr/libovr/_libovr.pyx":1931
  *     @property
  *     def verticalFov(self):
  *         return self.c_ovrTrackerDesc.FrustumVFovInRadians             # <<<<<<<<<<<<<<
@@ -13878,13 +14392,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_11vertic
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc.FrustumVFovInRadians); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1876, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc->FrustumVFovInRadians); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1931, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1875
+  /* "psychxr/libovr/_libovr.pyx":1930
  * 
  *     @property
  *     def verticalFov(self):             # <<<<<<<<<<<<<<
@@ -13903,7 +14417,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_11vertic
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1879
+/* "psychxr/libovr/_libovr.pyx":1934
  * 
  *     @property
  *     def nearZ(self):             # <<<<<<<<<<<<<<
@@ -13930,7 +14444,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_5nearZ__
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1880
+  /* "psychxr/libovr/_libovr.pyx":1935
  *     @property
  *     def nearZ(self):
  *         return self.c_ovrTrackerDesc.FrustumNearZInMeters             # <<<<<<<<<<<<<<
@@ -13938,13 +14452,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_5nearZ__
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc.FrustumNearZInMeters); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1880, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc->FrustumNearZInMeters); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1935, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1879
+  /* "psychxr/libovr/_libovr.pyx":1934
  * 
  *     @property
  *     def nearZ(self):             # <<<<<<<<<<<<<<
@@ -13963,7 +14477,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_5nearZ__
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1883
+/* "psychxr/libovr/_libovr.pyx":1938
  * 
  *     @property
  *     def farZ(self):             # <<<<<<<<<<<<<<
@@ -13990,7 +14504,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4farZ___
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1884
+  /* "psychxr/libovr/_libovr.pyx":1939
  *     @property
  *     def farZ(self):
  *         return self.c_ovrTrackerDesc.FrustumFarZInMeters             # <<<<<<<<<<<<<<
@@ -13998,13 +14512,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4farZ___
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc.FrustumFarZInMeters); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1884, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->c_ovrTrackerDesc->FrustumFarZInMeters); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1939, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1883
+  /* "psychxr/libovr/_libovr.pyx":1938
  * 
  *     @property
  *     def farZ(self):             # <<<<<<<<<<<<<<
@@ -14030,20 +14544,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4farZ___
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_5__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4__reduce_cython__[] = "LibOVRTrackerInfo.__reduce_cython__(self)";
-static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_5__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_7__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_6__reduce_cython__[] = "LibOVRTrackerInfo.__reduce_cython__(self)";
+static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_7__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4__reduce_cython__(((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *)__pyx_v_self));
+  __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_6__reduce_cython__(((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self) {
+static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_6__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -14085,20 +14599,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4__reduc
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_7__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static char __pyx_doc_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_6__setstate_cython__[] = "LibOVRTrackerInfo.__setstate_cython__(self, __pyx_state)";
-static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_7__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_9__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static char __pyx_doc_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_8__setstate_cython__[] = "LibOVRTrackerInfo.__setstate_cython__(self, __pyx_state)";
+static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_9__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_6__setstate_cython__(((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+  __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_8__setstate_cython__(((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_6__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_8__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -14132,7 +14646,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_6__setst
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1894
+/* "psychxr/libovr/_libovr.pyx":1949
  *     cdef bint ptr_owner
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -14165,7 +14679,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus___init__(str
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1909
+  /* "psychxr/libovr/_libovr.pyx":1964
  * 
  *         """
  *         self.newStruct()             # <<<<<<<<<<<<<<
@@ -14174,7 +14688,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus___init__(str
  */
   ((struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *)__pyx_v_self->__pyx_vtab)->newStruct(__pyx_v_self);
 
-  /* "psychxr/libovr/_libovr.pyx":1894
+  /* "psychxr/libovr/_libovr.pyx":1949
  *     cdef bint ptr_owner
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -14188,7 +14702,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus___init__(str
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1911
+/* "psychxr/libovr/_libovr.pyx":1966
  *         self.newStruct()
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
@@ -14217,7 +14731,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_2__cinit__(s
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1912
+  /* "psychxr/libovr/_libovr.pyx":1967
  * 
  *     def __cinit__(self):
  *         self.ptr_owner = False             # <<<<<<<<<<<<<<
@@ -14226,7 +14740,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_2__cinit__(s
  */
   __pyx_v_self->ptr_owner = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1911
+  /* "psychxr/libovr/_libovr.pyx":1966
  *         self.newStruct()
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
@@ -14240,7 +14754,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_2__cinit__(s
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1915
+/* "psychxr/libovr/_libovr.pyx":1970
  * 
  *     @staticmethod
  *     cdef LibOVRSessionStatus fromPtr(libovr_capi.ovrSessionStatus* ptr, bint owner=False):             # <<<<<<<<<<<<<<
@@ -14261,19 +14775,19 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *__pyx_f_7
     }
   }
 
-  /* "psychxr/libovr/_libovr.pyx":1918
+  /* "psychxr/libovr/_libovr.pyx":1973
  *         # bypass __init__ if wrapping a pointer
  *         cdef LibOVRSessionStatus wrapper = \
  *             LibOVRSessionStatus.__new__(LibOVRSessionStatus)             # <<<<<<<<<<<<<<
  *         wrapper.c_data = ptr
  *         wrapper.ptr_owner = owner
  */
-  __pyx_t_1 = ((PyObject *)__pyx_tp_new_7psychxr_6libovr_7_libovr_LibOVRSessionStatus(((PyTypeObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRSessionStatus), __pyx_empty_tuple, NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1918, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_tp_new_7psychxr_6libovr_7_libovr_LibOVRSessionStatus(((PyTypeObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRSessionStatus), __pyx_empty_tuple, NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1973, __pyx_L1_error)
   __Pyx_GOTREF(((PyObject *)__pyx_t_1));
   __pyx_v_wrapper = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1919
+  /* "psychxr/libovr/_libovr.pyx":1974
  *         cdef LibOVRSessionStatus wrapper = \
  *             LibOVRSessionStatus.__new__(LibOVRSessionStatus)
  *         wrapper.c_data = ptr             # <<<<<<<<<<<<<<
@@ -14282,7 +14796,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *__pyx_f_7
  */
   __pyx_v_wrapper->c_data = __pyx_v_ptr;
 
-  /* "psychxr/libovr/_libovr.pyx":1920
+  /* "psychxr/libovr/_libovr.pyx":1975
  *             LibOVRSessionStatus.__new__(LibOVRSessionStatus)
  *         wrapper.c_data = ptr
  *         wrapper.ptr_owner = owner             # <<<<<<<<<<<<<<
@@ -14291,7 +14805,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *__pyx_f_7
  */
   __pyx_v_wrapper->ptr_owner = __pyx_v_owner;
 
-  /* "psychxr/libovr/_libovr.pyx":1922
+  /* "psychxr/libovr/_libovr.pyx":1977
  *         wrapper.ptr_owner = owner
  * 
  *         return wrapper             # <<<<<<<<<<<<<<
@@ -14303,7 +14817,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *__pyx_f_7
   __pyx_r = __pyx_v_wrapper;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1915
+  /* "psychxr/libovr/_libovr.pyx":1970
  * 
  *     @staticmethod
  *     cdef LibOVRSessionStatus fromPtr(libovr_capi.ovrSessionStatus* ptr, bint owner=False):             # <<<<<<<<<<<<<<
@@ -14323,7 +14837,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *__pyx_f_7
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1924
+/* "psychxr/libovr/_libovr.pyx":1979
  *         return wrapper
  * 
  *     cdef void newStruct(self):             # <<<<<<<<<<<<<<
@@ -14337,7 +14851,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_newStruct(st
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("newStruct", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1925
+  /* "psychxr/libovr/_libovr.pyx":1980
  * 
  *     cdef void newStruct(self):
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?             # <<<<<<<<<<<<<<
@@ -14347,7 +14861,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_newStruct(st
   __pyx_t_1 = ((__pyx_v_self->c_data != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":1926
+    /* "psychxr/libovr/_libovr.pyx":1981
  *     cdef void newStruct(self):
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?
  *             return             # <<<<<<<<<<<<<<
@@ -14356,7 +14870,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_newStruct(st
  */
     goto __pyx_L0;
 
-    /* "psychxr/libovr/_libovr.pyx":1925
+    /* "psychxr/libovr/_libovr.pyx":1980
  * 
  *     cdef void newStruct(self):
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?             # <<<<<<<<<<<<<<
@@ -14365,7 +14879,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_newStruct(st
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":1929
+  /* "psychxr/libovr/_libovr.pyx":1984
  * 
  *         cdef libovr_capi.ovrSessionStatus* _ptr = \
  *             <libovr_capi.ovrSessionStatus*>malloc(             # <<<<<<<<<<<<<<
@@ -14374,7 +14888,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_newStruct(st
  */
   __pyx_v__ptr = ((ovrSessionStatus *)malloc((sizeof(ovrSessionStatus))));
 
-  /* "psychxr/libovr/_libovr.pyx":1932
+  /* "psychxr/libovr/_libovr.pyx":1987
  *                 sizeof(libovr_capi.ovrSessionStatus))
  * 
  *         if _ptr is NULL:             # <<<<<<<<<<<<<<
@@ -14384,16 +14898,16 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_newStruct(st
   __pyx_t_1 = ((__pyx_v__ptr == NULL) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "psychxr/libovr/_libovr.pyx":1933
+    /* "psychxr/libovr/_libovr.pyx":1988
  * 
  *         if _ptr is NULL:
  *             raise MemoryError             # <<<<<<<<<<<<<<
  * 
  *         self.c_data = _ptr
  */
-    PyErr_NoMemory(); __PYX_ERR(0, 1933, __pyx_L1_error)
+    PyErr_NoMemory(); __PYX_ERR(0, 1988, __pyx_L1_error)
 
-    /* "psychxr/libovr/_libovr.pyx":1932
+    /* "psychxr/libovr/_libovr.pyx":1987
  *                 sizeof(libovr_capi.ovrSessionStatus))
  * 
  *         if _ptr is NULL:             # <<<<<<<<<<<<<<
@@ -14402,7 +14916,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_newStruct(st
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":1935
+  /* "psychxr/libovr/_libovr.pyx":1990
  *             raise MemoryError
  * 
  *         self.c_data = _ptr             # <<<<<<<<<<<<<<
@@ -14411,7 +14925,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_newStruct(st
  */
   __pyx_v_self->c_data = __pyx_v__ptr;
 
-  /* "psychxr/libovr/_libovr.pyx":1936
+  /* "psychxr/libovr/_libovr.pyx":1991
  * 
  *         self.c_data = _ptr
  *         self.ptr_owner = True             # <<<<<<<<<<<<<<
@@ -14420,7 +14934,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_newStruct(st
  */
   __pyx_v_self->ptr_owner = 1;
 
-  /* "psychxr/libovr/_libovr.pyx":1924
+  /* "psychxr/libovr/_libovr.pyx":1979
  *         return wrapper
  * 
  *     cdef void newStruct(self):             # <<<<<<<<<<<<<<
@@ -14436,7 +14950,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_newStruct(st
   __Pyx_RefNannyFinishContext();
 }
 
-/* "psychxr/libovr/_libovr.pyx":1938
+/* "psychxr/libovr/_libovr.pyx":1993
  *         self.ptr_owner = True
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -14461,7 +14975,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_4__dealloc_
   int __pyx_t_2;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1939
+  /* "psychxr/libovr/_libovr.pyx":1994
  * 
  *     def __dealloc__(self):
  *         if self.c_data is not NULL and self.ptr_owner is True:             # <<<<<<<<<<<<<<
@@ -14479,7 +14993,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_4__dealloc_
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":1940
+    /* "psychxr/libovr/_libovr.pyx":1995
  *     def __dealloc__(self):
  *         if self.c_data is not NULL and self.ptr_owner is True:
  *             free(self.c_data)             # <<<<<<<<<<<<<<
@@ -14488,7 +15002,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_4__dealloc_
  */
     free(__pyx_v_self->c_data);
 
-    /* "psychxr/libovr/_libovr.pyx":1941
+    /* "psychxr/libovr/_libovr.pyx":1996
  *         if self.c_data is not NULL and self.ptr_owner is True:
  *             free(self.c_data)
  *             self.c_data = NULL             # <<<<<<<<<<<<<<
@@ -14497,7 +15011,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_4__dealloc_
  */
     __pyx_v_self->c_data = NULL;
 
-    /* "psychxr/libovr/_libovr.pyx":1939
+    /* "psychxr/libovr/_libovr.pyx":1994
  * 
  *     def __dealloc__(self):
  *         if self.c_data is not NULL and self.ptr_owner is True:             # <<<<<<<<<<<<<<
@@ -14506,7 +15020,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_4__dealloc_
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":1938
+  /* "psychxr/libovr/_libovr.pyx":1993
  *         self.ptr_owner = True
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -14518,7 +15032,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_4__dealloc_
   __Pyx_RefNannyFinishContext();
 }
 
-/* "psychxr/libovr/_libovr.pyx":1944
+/* "psychxr/libovr/_libovr.pyx":1999
  * 
  *     @property
  *     def isVisible(self):             # <<<<<<<<<<<<<<
@@ -14545,7 +15059,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_9isVis
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1946
+  /* "psychxr/libovr/_libovr.pyx":2001
  *     def isVisible(self):
  *         """True if the application has focus and visible in the HMD."""
  *         return self.c_data.IsVisible == libovr_capi.ovrTrue             # <<<<<<<<<<<<<<
@@ -14553,13 +15067,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_9isVis
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->IsVisible == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1946, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->IsVisible == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2001, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1944
+  /* "psychxr/libovr/_libovr.pyx":1999
  * 
  *     @property
  *     def isVisible(self):             # <<<<<<<<<<<<<<
@@ -14578,7 +15092,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_9isVis
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1949
+/* "psychxr/libovr/_libovr.pyx":2004
  * 
  *     @property
  *     def hmdPresent(self):             # <<<<<<<<<<<<<<
@@ -14605,7 +15119,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_10hmdP
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1951
+  /* "psychxr/libovr/_libovr.pyx":2006
  *     def hmdPresent(self):
  *         """True if the HMD is present."""
  *         return self.c_data.HmdPresent == libovr_capi.ovrTrue             # <<<<<<<<<<<<<<
@@ -14613,13 +15127,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_10hmdP
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->HmdPresent == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1951, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->HmdPresent == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2006, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1949
+  /* "psychxr/libovr/_libovr.pyx":2004
  * 
  *     @property
  *     def hmdPresent(self):             # <<<<<<<<<<<<<<
@@ -14638,7 +15152,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_10hmdP
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1954
+/* "psychxr/libovr/_libovr.pyx":2009
  * 
  *     @property
  *     def hmdMounted(self):             # <<<<<<<<<<<<<<
@@ -14665,7 +15179,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_10hmdM
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1956
+  /* "psychxr/libovr/_libovr.pyx":2011
  *     def hmdMounted(self):
  *         """True if the HMD is on the user's head."""
  *         return self.c_data.HmdMounted == libovr_capi.ovrTrue             # <<<<<<<<<<<<<<
@@ -14673,13 +15187,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_10hmdM
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->HmdMounted == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1956, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->HmdMounted == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2011, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1954
+  /* "psychxr/libovr/_libovr.pyx":2009
  * 
  *     @property
  *     def hmdMounted(self):             # <<<<<<<<<<<<<<
@@ -14698,7 +15212,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_10hmdM
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1959
+/* "psychxr/libovr/_libovr.pyx":2014
  * 
  *     @property
  *     def displayLost(self):             # <<<<<<<<<<<<<<
@@ -14725,7 +15239,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_11disp
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1961
+  /* "psychxr/libovr/_libovr.pyx":2016
  *     def displayLost(self):
  *         """True if the the display was lost."""
  *         return self.c_data.DisplayLost == libovr_capi.ovrTrue             # <<<<<<<<<<<<<<
@@ -14733,13 +15247,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_11disp
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->DisplayLost == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1961, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->DisplayLost == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2016, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1959
+  /* "psychxr/libovr/_libovr.pyx":2014
  * 
  *     @property
  *     def displayLost(self):             # <<<<<<<<<<<<<<
@@ -14758,7 +15272,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_11disp
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1964
+/* "psychxr/libovr/_libovr.pyx":2019
  * 
  *     @property
  *     def shouldQuit(self):             # <<<<<<<<<<<<<<
@@ -14785,7 +15299,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_10shou
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1966
+  /* "psychxr/libovr/_libovr.pyx":2021
  *     def shouldQuit(self):
  *         """True if the application was signaled to quit."""
  *         return self.c_data.ShouldQuit == libovr_capi.ovrTrue             # <<<<<<<<<<<<<<
@@ -14793,13 +15307,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_10shou
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->ShouldQuit == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1966, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->ShouldQuit == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2021, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1964
+  /* "psychxr/libovr/_libovr.pyx":2019
  * 
  *     @property
  *     def shouldQuit(self):             # <<<<<<<<<<<<<<
@@ -14818,7 +15332,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_10shou
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1969
+/* "psychxr/libovr/_libovr.pyx":2024
  * 
  *     @property
  *     def shouldRecenter(self):             # <<<<<<<<<<<<<<
@@ -14845,7 +15359,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_14shou
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1971
+  /* "psychxr/libovr/_libovr.pyx":2026
  *     def shouldRecenter(self):
  *         """True if the application was signaled to re-center."""
  *         return self.c_data.ShouldRecenter == libovr_capi.ovrTrue             # <<<<<<<<<<<<<<
@@ -14853,13 +15367,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_14shou
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->ShouldRecenter == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1971, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->ShouldRecenter == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2026, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1969
+  /* "psychxr/libovr/_libovr.pyx":2024
  * 
  *     @property
  *     def shouldRecenter(self):             # <<<<<<<<<<<<<<
@@ -14878,7 +15392,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_14shou
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1974
+/* "psychxr/libovr/_libovr.pyx":2029
  * 
  *     @property
  *     def hasInputFocus(self):             # <<<<<<<<<<<<<<
@@ -14905,7 +15419,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_13hasI
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1976
+  /* "psychxr/libovr/_libovr.pyx":2031
  *     def hasInputFocus(self):
  *         """True if the application has input focus."""
  *         return self.c_data.HasInputFocus == libovr_capi.ovrTrue             # <<<<<<<<<<<<<<
@@ -14913,13 +15427,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_13hasI
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->HasInputFocus == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1976, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->HasInputFocus == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2031, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1974
+  /* "psychxr/libovr/_libovr.pyx":2029
  * 
  *     @property
  *     def hasInputFocus(self):             # <<<<<<<<<<<<<<
@@ -14938,7 +15452,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_13hasI
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1979
+/* "psychxr/libovr/_libovr.pyx":2034
  * 
  *     @property
  *     def overlayPresent(self):             # <<<<<<<<<<<<<<
@@ -14965,7 +15479,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_14over
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1981
+  /* "psychxr/libovr/_libovr.pyx":2036
  *     def overlayPresent(self):
  *         """True if the system overlay is present."""
  *         return self.c_data.OverlayPresent == libovr_capi.ovrTrue             # <<<<<<<<<<<<<<
@@ -14973,13 +15487,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_14over
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->OverlayPresent == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1981, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->OverlayPresent == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2036, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1979
+  /* "psychxr/libovr/_libovr.pyx":2034
  * 
  *     @property
  *     def overlayPresent(self):             # <<<<<<<<<<<<<<
@@ -14998,7 +15512,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_14over
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1984
+/* "psychxr/libovr/_libovr.pyx":2039
  * 
  *     @property
  *     def depthRequested(self):             # <<<<<<<<<<<<<<
@@ -15025,7 +15539,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_14dept
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1987
+  /* "psychxr/libovr/_libovr.pyx":2042
  *         """True if the system requires a depth texture. Currently unused by
  *         PsychXR."""
  *         return self.c_data.DepthRequested == libovr_capi.ovrTrue             # <<<<<<<<<<<<<<
@@ -15033,13 +15547,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_14dept
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->DepthRequested == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1987, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->c_data->DepthRequested == ovrTrue)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2042, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":1984
+  /* "psychxr/libovr/_libovr.pyx":2039
  * 
  *     @property
  *     def depthRequested(self):             # <<<<<<<<<<<<<<
@@ -15167,7 +15681,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_8__set
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1996
+/* "psychxr/libovr/_libovr.pyx":2051
  *     cdef bint ptr_owner
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -15196,7 +15710,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo___init__(struct __
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":1997
+  /* "psychxr/libovr/_libovr.pyx":2052
  * 
  *     def __init__(self):
  *         self.newStruct()             # <<<<<<<<<<<<<<
@@ -15205,7 +15719,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo___init__(struct __
  */
   ((struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRHmdInfo *)__pyx_v_self->__pyx_vtab)->newStruct(__pyx_v_self);
 
-  /* "psychxr/libovr/_libovr.pyx":1996
+  /* "psychxr/libovr/_libovr.pyx":2051
  *     cdef bint ptr_owner
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -15219,7 +15733,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo___init__(struct __
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":1999
+/* "psychxr/libovr/_libovr.pyx":2054
  *         self.newStruct()
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
@@ -15248,7 +15762,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_2__cinit__(struct 
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2000
+  /* "psychxr/libovr/_libovr.pyx":2055
  * 
  *     def __cinit__(self):
  *         self.ptr_owner = False             # <<<<<<<<<<<<<<
@@ -15257,7 +15771,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_2__cinit__(struct 
  */
   __pyx_v_self->ptr_owner = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":1999
+  /* "psychxr/libovr/_libovr.pyx":2054
  *         self.newStruct()
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
@@ -15271,7 +15785,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_2__cinit__(struct 
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2003
+/* "psychxr/libovr/_libovr.pyx":2058
  * 
  *     @staticmethod
  *     cdef LibOVRHmdInfo fromPtr(libovr_capi.ovrHmdDesc* ptr, bint owner=False):             # <<<<<<<<<<<<<<
@@ -15292,19 +15806,19 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRHmdInfo *__pyx_f_7psychx
     }
   }
 
-  /* "psychxr/libovr/_libovr.pyx":2005
+  /* "psychxr/libovr/_libovr.pyx":2060
  *     cdef LibOVRHmdInfo fromPtr(libovr_capi.ovrHmdDesc* ptr, bint owner=False):
  *         # bypass __init__ if wrapping a pointer
  *         cdef LibOVRHmdInfo wrapper = LibOVRHmdInfo.__new__(LibOVRHmdInfo)             # <<<<<<<<<<<<<<
  *         wrapper.c_data = ptr
  *         wrapper.ptr_owner = owner
  */
-  __pyx_t_1 = ((PyObject *)__pyx_tp_new_7psychxr_6libovr_7_libovr_LibOVRHmdInfo(((PyTypeObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRHmdInfo), __pyx_empty_tuple, NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2005, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_tp_new_7psychxr_6libovr_7_libovr_LibOVRHmdInfo(((PyTypeObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRHmdInfo), __pyx_empty_tuple, NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2060, __pyx_L1_error)
   __Pyx_GOTREF(((PyObject *)__pyx_t_1));
   __pyx_v_wrapper = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRHmdInfo *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2006
+  /* "psychxr/libovr/_libovr.pyx":2061
  *         # bypass __init__ if wrapping a pointer
  *         cdef LibOVRHmdInfo wrapper = LibOVRHmdInfo.__new__(LibOVRHmdInfo)
  *         wrapper.c_data = ptr             # <<<<<<<<<<<<<<
@@ -15313,7 +15827,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRHmdInfo *__pyx_f_7psychx
  */
   __pyx_v_wrapper->c_data = __pyx_v_ptr;
 
-  /* "psychxr/libovr/_libovr.pyx":2007
+  /* "psychxr/libovr/_libovr.pyx":2062
  *         cdef LibOVRHmdInfo wrapper = LibOVRHmdInfo.__new__(LibOVRHmdInfo)
  *         wrapper.c_data = ptr
  *         wrapper.ptr_owner = owner             # <<<<<<<<<<<<<<
@@ -15322,7 +15836,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRHmdInfo *__pyx_f_7psychx
  */
   __pyx_v_wrapper->ptr_owner = __pyx_v_owner;
 
-  /* "psychxr/libovr/_libovr.pyx":2009
+  /* "psychxr/libovr/_libovr.pyx":2064
  *         wrapper.ptr_owner = owner
  * 
  *         return wrapper             # <<<<<<<<<<<<<<
@@ -15334,7 +15848,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRHmdInfo *__pyx_f_7psychx
   __pyx_r = __pyx_v_wrapper;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2003
+  /* "psychxr/libovr/_libovr.pyx":2058
  * 
  *     @staticmethod
  *     cdef LibOVRHmdInfo fromPtr(libovr_capi.ovrHmdDesc* ptr, bint owner=False):             # <<<<<<<<<<<<<<
@@ -15354,7 +15868,7 @@ static struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRHmdInfo *__pyx_f_7psychx
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2011
+/* "psychxr/libovr/_libovr.pyx":2066
  *         return wrapper
  * 
  *     cdef void newStruct(self):             # <<<<<<<<<<<<<<
@@ -15368,7 +15882,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_newStruct(struct _
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("newStruct", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2012
+  /* "psychxr/libovr/_libovr.pyx":2067
  * 
  *     cdef void newStruct(self):
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?             # <<<<<<<<<<<<<<
@@ -15378,7 +15892,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_newStruct(struct _
   __pyx_t_1 = ((__pyx_v_self->c_data != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":2013
+    /* "psychxr/libovr/_libovr.pyx":2068
  *     cdef void newStruct(self):
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?
  *             return             # <<<<<<<<<<<<<<
@@ -15387,7 +15901,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_newStruct(struct _
  */
     goto __pyx_L0;
 
-    /* "psychxr/libovr/_libovr.pyx":2012
+    /* "psychxr/libovr/_libovr.pyx":2067
  * 
  *     cdef void newStruct(self):
  *         if self.c_data is not NULL:  # already allocated, __init__ called twice?             # <<<<<<<<<<<<<<
@@ -15396,7 +15910,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_newStruct(struct _
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":2015
+  /* "psychxr/libovr/_libovr.pyx":2070
  *             return
  * 
  *         cdef libovr_capi.ovrHmdDesc* _ptr = <libovr_capi.ovrHmdDesc*>malloc(             # <<<<<<<<<<<<<<
@@ -15405,7 +15919,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_newStruct(struct _
  */
   __pyx_v__ptr = ((ovrHmdDesc *)malloc((sizeof(ovrHmdDesc))));
 
-  /* "psychxr/libovr/_libovr.pyx":2018
+  /* "psychxr/libovr/_libovr.pyx":2073
  *             sizeof(libovr_capi.ovrHmdDesc))
  * 
  *         if _ptr is NULL:             # <<<<<<<<<<<<<<
@@ -15415,16 +15929,16 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_newStruct(struct _
   __pyx_t_1 = ((__pyx_v__ptr == NULL) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "psychxr/libovr/_libovr.pyx":2019
+    /* "psychxr/libovr/_libovr.pyx":2074
  * 
  *         if _ptr is NULL:
  *             raise MemoryError             # <<<<<<<<<<<<<<
  * 
  *         self.c_data = _ptr
  */
-    PyErr_NoMemory(); __PYX_ERR(0, 2019, __pyx_L1_error)
+    PyErr_NoMemory(); __PYX_ERR(0, 2074, __pyx_L1_error)
 
-    /* "psychxr/libovr/_libovr.pyx":2018
+    /* "psychxr/libovr/_libovr.pyx":2073
  *             sizeof(libovr_capi.ovrHmdDesc))
  * 
  *         if _ptr is NULL:             # <<<<<<<<<<<<<<
@@ -15433,7 +15947,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_newStruct(struct _
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":2021
+  /* "psychxr/libovr/_libovr.pyx":2076
  *             raise MemoryError
  * 
  *         self.c_data = _ptr             # <<<<<<<<<<<<<<
@@ -15442,7 +15956,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_newStruct(struct _
  */
   __pyx_v_self->c_data = __pyx_v__ptr;
 
-  /* "psychxr/libovr/_libovr.pyx":2022
+  /* "psychxr/libovr/_libovr.pyx":2077
  * 
  *         self.c_data = _ptr
  *         self.ptr_owner = True             # <<<<<<<<<<<<<<
@@ -15451,7 +15965,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_newStruct(struct _
  */
   __pyx_v_self->ptr_owner = 1;
 
-  /* "psychxr/libovr/_libovr.pyx":2011
+  /* "psychxr/libovr/_libovr.pyx":2066
  *         return wrapper
  * 
  *     cdef void newStruct(self):             # <<<<<<<<<<<<<<
@@ -15467,7 +15981,7 @@ static void __pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_newStruct(struct _
   __Pyx_RefNannyFinishContext();
 }
 
-/* "psychxr/libovr/_libovr.pyx":2024
+/* "psychxr/libovr/_libovr.pyx":2079
  *         self.ptr_owner = True
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -15492,7 +16006,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_4__dealloc__(stru
   int __pyx_t_2;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2025
+  /* "psychxr/libovr/_libovr.pyx":2080
  * 
  *     def __dealloc__(self):
  *         if self.c_data is not NULL and self.ptr_owner is True:             # <<<<<<<<<<<<<<
@@ -15510,7 +16024,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_4__dealloc__(stru
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":2026
+    /* "psychxr/libovr/_libovr.pyx":2081
  *     def __dealloc__(self):
  *         if self.c_data is not NULL and self.ptr_owner is True:
  *             free(self.c_data)             # <<<<<<<<<<<<<<
@@ -15519,7 +16033,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_4__dealloc__(stru
  */
     free(__pyx_v_self->c_data);
 
-    /* "psychxr/libovr/_libovr.pyx":2027
+    /* "psychxr/libovr/_libovr.pyx":2082
  *         if self.c_data is not NULL and self.ptr_owner is True:
  *             free(self.c_data)
  *             self.c_data = NULL             # <<<<<<<<<<<<<<
@@ -15528,7 +16042,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_4__dealloc__(stru
  */
     __pyx_v_self->c_data = NULL;
 
-    /* "psychxr/libovr/_libovr.pyx":2025
+    /* "psychxr/libovr/_libovr.pyx":2080
  * 
  *     def __dealloc__(self):
  *         if self.c_data is not NULL and self.ptr_owner is True:             # <<<<<<<<<<<<<<
@@ -15537,7 +16051,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_4__dealloc__(stru
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":2024
+  /* "psychxr/libovr/_libovr.pyx":2079
  *         self.ptr_owner = True
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -15549,7 +16063,7 @@ static void __pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_4__dealloc__(stru
   __Pyx_RefNannyFinishContext();
 }
 
-/* "psychxr/libovr/_libovr.pyx":2030
+/* "psychxr/libovr/_libovr.pyx":2085
  * 
  *     @property
  *     def productName(self):             # <<<<<<<<<<<<<<
@@ -15577,7 +16091,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_11productNam
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2039
+  /* "psychxr/libovr/_libovr.pyx":2094
  * 
  *         """
  *         return self.c_data[0].ProductName.decode('utf-8')             # <<<<<<<<<<<<<<
@@ -15586,14 +16100,14 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_11productNam
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = (__pyx_v_self->c_data[0]).ProductName;
-  __pyx_t_2 = __Pyx_decode_c_string(__pyx_t_1, 0, strlen(__pyx_t_1), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2039, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_decode_c_string(__pyx_t_1, 0, strlen(__pyx_t_1), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2094, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2030
+  /* "psychxr/libovr/_libovr.pyx":2085
  * 
  *     @property
  *     def productName(self):             # <<<<<<<<<<<<<<
@@ -15612,7 +16126,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_11productNam
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2042
+/* "psychxr/libovr/_libovr.pyx":2097
  * 
  *     @property
  *     def manufacturer(self):             # <<<<<<<<<<<<<<
@@ -15640,7 +16154,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_12manufactur
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2051
+  /* "psychxr/libovr/_libovr.pyx":2106
  * 
  *         """
  *         return self.c_data[0].Manufacturer.decode('utf-8')             # <<<<<<<<<<<<<<
@@ -15649,14 +16163,14 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_12manufactur
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = (__pyx_v_self->c_data[0]).Manufacturer;
-  __pyx_t_2 = __Pyx_decode_c_string(__pyx_t_1, 0, strlen(__pyx_t_1), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2051, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_decode_c_string(__pyx_t_1, 0, strlen(__pyx_t_1), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2106, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2042
+  /* "psychxr/libovr/_libovr.pyx":2097
  * 
  *     @property
  *     def manufacturer(self):             # <<<<<<<<<<<<<<
@@ -15675,7 +16189,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_12manufactur
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2054
+/* "psychxr/libovr/_libovr.pyx":2109
  * 
  *     @property
  *     def serialNumber(self):             # <<<<<<<<<<<<<<
@@ -15703,7 +16217,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_12serialNumb
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2063
+  /* "psychxr/libovr/_libovr.pyx":2118
  * 
  *         """
  *         return self.c_data[0].SerialNumber.decode('utf-8')             # <<<<<<<<<<<<<<
@@ -15712,14 +16226,14 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_12serialNumb
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = (__pyx_v_self->c_data[0]).SerialNumber;
-  __pyx_t_2 = __Pyx_decode_c_string(__pyx_t_1, 0, strlen(__pyx_t_1), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2063, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_decode_c_string(__pyx_t_1, 0, strlen(__pyx_t_1), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2118, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2054
+  /* "psychxr/libovr/_libovr.pyx":2109
  * 
  *     @property
  *     def serialNumber(self):             # <<<<<<<<<<<<<<
@@ -15738,7 +16252,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_12serialNumb
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2066
+/* "psychxr/libovr/_libovr.pyx":2121
  * 
  *     @property
  *     def resolution(self):             # <<<<<<<<<<<<<<
@@ -15768,7 +16282,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_10resolution
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2075
+  /* "psychxr/libovr/_libovr.pyx":2130
  * 
  *         """
  *         return np.asarray((self.c_data[0].Resolution.w,             # <<<<<<<<<<<<<<
@@ -15776,32 +16290,32 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_10resolution
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2075, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2075, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int((__pyx_v_self->c_data[0]).Resolution.w); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2075, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int((__pyx_v_self->c_data[0]).Resolution.w); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "psychxr/libovr/_libovr.pyx":2076
+  /* "psychxr/libovr/_libovr.pyx":2131
  *         """
  *         return np.asarray((self.c_data[0].Resolution.w,
  *                            self.c_data[0].Resolution.h), dtype=int)             # <<<<<<<<<<<<<<
  * 
  *     @property
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int((__pyx_v_self->c_data[0]).Resolution.h); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2076, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int((__pyx_v_self->c_data[0]).Resolution.h); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "psychxr/libovr/_libovr.pyx":2075
+  /* "psychxr/libovr/_libovr.pyx":2130
  * 
  *         """
  *         return np.asarray((self.c_data[0].Resolution.w,             # <<<<<<<<<<<<<<
  *                            self.c_data[0].Resolution.h), dtype=int)
  * 
  */
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2075, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
@@ -15809,31 +16323,31 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_10resolution
   PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3);
   __pyx_t_1 = 0;
   __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2075, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2076
+  /* "psychxr/libovr/_libovr.pyx":2131
  *         """
  *         return np.asarray((self.c_data[0].Resolution.w,
  *                            self.c_data[0].Resolution.h), dtype=int)             # <<<<<<<<<<<<<<
  * 
  *     @property
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2076, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, ((PyObject *)(&PyInt_Type))) < 0) __PYX_ERR(0, 2076, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, ((PyObject *)(&PyInt_Type))) < 0) __PYX_ERR(0, 2131, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2075
+  /* "psychxr/libovr/_libovr.pyx":2130
  * 
  *         """
  *         return np.asarray((self.c_data[0].Resolution.w,             # <<<<<<<<<<<<<<
  *                            self.c_data[0].Resolution.h), dtype=int)
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2075, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -15842,7 +16356,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_10resolution
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2066
+  /* "psychxr/libovr/_libovr.pyx":2121
  * 
  *     @property
  *     def resolution(self):             # <<<<<<<<<<<<<<
@@ -15864,7 +16378,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_10resolution
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2079
+/* "psychxr/libovr/_libovr.pyx":2134
  * 
  *     @property
  *     def refreshRate(self):             # <<<<<<<<<<<<<<
@@ -15891,7 +16405,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_11refreshRat
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2088
+  /* "psychxr/libovr/_libovr.pyx":2143
  * 
  *         """
  *         return <float>self.c_data[0].DisplayRefreshRate             # <<<<<<<<<<<<<<
@@ -15899,13 +16413,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_11refreshRat
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(((float)(__pyx_v_self->c_data[0]).DisplayRefreshRate)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2088, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(((float)(__pyx_v_self->c_data[0]).DisplayRefreshRate)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2143, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2079
+  /* "psychxr/libovr/_libovr.pyx":2134
  * 
  *     @property
  *     def refreshRate(self):             # <<<<<<<<<<<<<<
@@ -15924,7 +16438,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_11refreshRat
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2091
+/* "psychxr/libovr/_libovr.pyx":2146
  * 
  *     @property
  *     def hid(self):             # <<<<<<<<<<<<<<
@@ -15953,7 +16467,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_3hid___get__
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2100
+  /* "psychxr/libovr/_libovr.pyx":2155
  * 
  *         """
  *         return <int>self.c_data[0].VendorId, <int>self.c_data[0].ProductId             # <<<<<<<<<<<<<<
@@ -15961,11 +16475,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_3hid___get__
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(((int)(__pyx_v_self->c_data[0]).VendorId)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2100, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(((int)(__pyx_v_self->c_data[0]).VendorId)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_From_int(((int)(__pyx_v_self->c_data[0]).ProductId)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2100, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(((int)(__pyx_v_self->c_data[0]).ProductId)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2100, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -15977,7 +16491,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_3hid___get__
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2091
+  /* "psychxr/libovr/_libovr.pyx":2146
  * 
  *     @property
  *     def hid(self):             # <<<<<<<<<<<<<<
@@ -15998,7 +16512,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_3hid___get__
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2103
+/* "psychxr/libovr/_libovr.pyx":2158
  * 
  *     @property
  *     def firmwareVersion(self):             # <<<<<<<<<<<<<<
@@ -16027,7 +16541,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15firmwareVe
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2112
+  /* "psychxr/libovr/_libovr.pyx":2167
  * 
  *         """
  *         return <int>self.c_data[0].FirmwareMajor, \             # <<<<<<<<<<<<<<
@@ -16035,27 +16549,27 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15firmwareVe
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(((int)(__pyx_v_self->c_data[0]).FirmwareMajor)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2112, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(((int)(__pyx_v_self->c_data[0]).FirmwareMajor)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2167, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "psychxr/libovr/_libovr.pyx":2113
+  /* "psychxr/libovr/_libovr.pyx":2168
  *         """
  *         return <int>self.c_data[0].FirmwareMajor, \
  *                <int>self.c_data[0].FirmwareMinor             # <<<<<<<<<<<<<<
  * 
  *     @property
  */
-  __pyx_t_2 = __Pyx_PyInt_From_int(((int)(__pyx_v_self->c_data[0]).FirmwareMinor)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2113, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(((int)(__pyx_v_self->c_data[0]).FirmwareMinor)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2168, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":2112
+  /* "psychxr/libovr/_libovr.pyx":2167
  * 
  *         """
  *         return <int>self.c_data[0].FirmwareMajor, \             # <<<<<<<<<<<<<<
  *                <int>self.c_data[0].FirmwareMinor
  * 
  */
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2112, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2167, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -16067,7 +16581,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15firmwareVe
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2103
+  /* "psychxr/libovr/_libovr.pyx":2158
  * 
  *     @property
  *     def firmwareVersion(self):             # <<<<<<<<<<<<<<
@@ -16088,7 +16602,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15firmwareVe
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2116
+/* "psychxr/libovr/_libovr.pyx":2171
  * 
  *     @property
  *     def defaultEyeFov(self):             # <<<<<<<<<<<<<<
@@ -16122,67 +16636,67 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_13defaultEye
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2126
+  /* "psychxr/libovr/_libovr.pyx":2181
  * 
  *         """
  *         cdef np.ndarray fovLeft = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_data[0].DefaultEyeFov[0].UpTan,
  *             self.c_data[0].DefaultEyeFov[0].DownTan,
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2126, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2181, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2126, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2181, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2127
+  /* "psychxr/libovr/_libovr.pyx":2182
  *         """
  *         cdef np.ndarray fovLeft = np.asarray([
  *             self.c_data[0].DefaultEyeFov[0].UpTan,             # <<<<<<<<<<<<<<
  *             self.c_data[0].DefaultEyeFov[0].DownTan,
  *             self.c_data[0].DefaultEyeFov[0].LeftTan,
  */
-  __pyx_t_1 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[0]).UpTan); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2127, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[0]).UpTan); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2182, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "psychxr/libovr/_libovr.pyx":2128
+  /* "psychxr/libovr/_libovr.pyx":2183
  *         cdef np.ndarray fovLeft = np.asarray([
  *             self.c_data[0].DefaultEyeFov[0].UpTan,
  *             self.c_data[0].DefaultEyeFov[0].DownTan,             # <<<<<<<<<<<<<<
  *             self.c_data[0].DefaultEyeFov[0].LeftTan,
  *             self.c_data[0].DefaultEyeFov[0].RightTan],
  */
-  __pyx_t_3 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[0]).DownTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2128, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[0]).DownTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2183, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "psychxr/libovr/_libovr.pyx":2129
+  /* "psychxr/libovr/_libovr.pyx":2184
  *             self.c_data[0].DefaultEyeFov[0].UpTan,
  *             self.c_data[0].DefaultEyeFov[0].DownTan,
  *             self.c_data[0].DefaultEyeFov[0].LeftTan,             # <<<<<<<<<<<<<<
  *             self.c_data[0].DefaultEyeFov[0].RightTan],
  *             dtype=np.float32)
  */
-  __pyx_t_4 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[0]).LeftTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2129, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[0]).LeftTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2184, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "psychxr/libovr/_libovr.pyx":2130
+  /* "psychxr/libovr/_libovr.pyx":2185
  *             self.c_data[0].DefaultEyeFov[0].DownTan,
  *             self.c_data[0].DefaultEyeFov[0].LeftTan,
  *             self.c_data[0].DefaultEyeFov[0].RightTan],             # <<<<<<<<<<<<<<
  *             dtype=np.float32)
  * 
  */
-  __pyx_t_5 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[0]).RightTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2130, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[0]).RightTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2185, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "psychxr/libovr/_libovr.pyx":2126
+  /* "psychxr/libovr/_libovr.pyx":2181
  * 
  *         """
  *         cdef np.ndarray fovLeft = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_data[0].DefaultEyeFov[0].UpTan,
  *             self.c_data[0].DefaultEyeFov[0].DownTan,
  */
-  __pyx_t_6 = PyList_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2126, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2181, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_1);
   PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_1);
@@ -16196,106 +16710,106 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_13defaultEye
   __pyx_t_3 = 0;
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2126, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2181, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_6);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2131
+  /* "psychxr/libovr/_libovr.pyx":2186
  *             self.c_data[0].DefaultEyeFov[0].LeftTan,
  *             self.c_data[0].DefaultEyeFov[0].RightTan],
  *             dtype=np.float32)             # <<<<<<<<<<<<<<
  * 
  *         cdef np.ndarray fovRight = np.asarray([
  */
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2131, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2131, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2131, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 2131, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 2186, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2126
+  /* "psychxr/libovr/_libovr.pyx":2181
  * 
  *         """
  *         cdef np.ndarray fovLeft = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_data[0].DefaultEyeFov[0].UpTan,
  *             self.c_data[0].DefaultEyeFov[0].DownTan,
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2126, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2181, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2126, __pyx_L1_error)
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2181, __pyx_L1_error)
   __pyx_v_fovLeft = ((PyArrayObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2133
+  /* "psychxr/libovr/_libovr.pyx":2188
  *             dtype=np.float32)
  * 
  *         cdef np.ndarray fovRight = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_data[0].DefaultEyeFov[1].UpTan,
  *             self.c_data[0].DefaultEyeFov[1].DownTan,
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2133, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2188, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2133, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2188, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2134
+  /* "psychxr/libovr/_libovr.pyx":2189
  * 
  *         cdef np.ndarray fovRight = np.asarray([
  *             self.c_data[0].DefaultEyeFov[1].UpTan,             # <<<<<<<<<<<<<<
  *             self.c_data[0].DefaultEyeFov[1].DownTan,
  *             self.c_data[0].DefaultEyeFov[1].LeftTan,
  */
-  __pyx_t_3 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[1]).UpTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2134, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[1]).UpTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2189, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "psychxr/libovr/_libovr.pyx":2135
+  /* "psychxr/libovr/_libovr.pyx":2190
  *         cdef np.ndarray fovRight = np.asarray([
  *             self.c_data[0].DefaultEyeFov[1].UpTan,
  *             self.c_data[0].DefaultEyeFov[1].DownTan,             # <<<<<<<<<<<<<<
  *             self.c_data[0].DefaultEyeFov[1].LeftTan,
  *             self.c_data[0].DefaultEyeFov[1].RightTan],
  */
-  __pyx_t_5 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[1]).DownTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2135, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[1]).DownTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2190, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "psychxr/libovr/_libovr.pyx":2136
+  /* "psychxr/libovr/_libovr.pyx":2191
  *             self.c_data[0].DefaultEyeFov[1].UpTan,
  *             self.c_data[0].DefaultEyeFov[1].DownTan,
  *             self.c_data[0].DefaultEyeFov[1].LeftTan,             # <<<<<<<<<<<<<<
  *             self.c_data[0].DefaultEyeFov[1].RightTan],
  *             dtype=np.float32)
  */
-  __pyx_t_2 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[1]).LeftTan); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2136, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[1]).LeftTan); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2191, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":2137
+  /* "psychxr/libovr/_libovr.pyx":2192
  *             self.c_data[0].DefaultEyeFov[1].DownTan,
  *             self.c_data[0].DefaultEyeFov[1].LeftTan,
  *             self.c_data[0].DefaultEyeFov[1].RightTan],             # <<<<<<<<<<<<<<
  *             dtype=np.float32)
  * 
  */
-  __pyx_t_4 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[1]).RightTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2137, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).DefaultEyeFov[1]).RightTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2192, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "psychxr/libovr/_libovr.pyx":2133
+  /* "psychxr/libovr/_libovr.pyx":2188
  *             dtype=np.float32)
  * 
  *         cdef np.ndarray fovRight = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_data[0].DefaultEyeFov[1].UpTan,
  *             self.c_data[0].DefaultEyeFov[1].DownTan,
  */
-  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2133, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2188, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_3);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
@@ -16309,46 +16823,46 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_13defaultEye
   __pyx_t_5 = 0;
   __pyx_t_2 = 0;
   __pyx_t_4 = 0;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2133, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2188, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2138
+  /* "psychxr/libovr/_libovr.pyx":2193
  *             self.c_data[0].DefaultEyeFov[1].LeftTan,
  *             self.c_data[0].DefaultEyeFov[1].RightTan],
  *             dtype=np.float32)             # <<<<<<<<<<<<<<
  * 
  *         return fovLeft, fovRight
  */
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2138, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2193, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2138, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2193, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2138, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2193, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 2138, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 2193, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2133
+  /* "psychxr/libovr/_libovr.pyx":2188
  *             dtype=np.float32)
  * 
  *         cdef np.ndarray fovRight = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_data[0].DefaultEyeFov[1].UpTan,
  *             self.c_data[0].DefaultEyeFov[1].DownTan,
  */
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2133, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2188, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2133, __pyx_L1_error)
+  if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2188, __pyx_L1_error)
   __pyx_v_fovRight = ((PyArrayObject *)__pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2140
+  /* "psychxr/libovr/_libovr.pyx":2195
  *             dtype=np.float32)
  * 
  *         return fovLeft, fovRight             # <<<<<<<<<<<<<<
@@ -16356,7 +16870,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_13defaultEye
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2140, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(((PyObject *)__pyx_v_fovLeft));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_fovLeft));
@@ -16368,7 +16882,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_13defaultEye
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2116
+  /* "psychxr/libovr/_libovr.pyx":2171
  * 
  *     @property
  *     def defaultEyeFov(self):             # <<<<<<<<<<<<<<
@@ -16394,7 +16908,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_13defaultEye
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2143
+/* "psychxr/libovr/_libovr.pyx":2198
  * 
  *     @property
  *     def maxEyeFov(self):             # <<<<<<<<<<<<<<
@@ -16442,67 +16956,67 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_9maxEyeFov__
   __pyx_pybuffernd_fov_right.data = NULL;
   __pyx_pybuffernd_fov_right.rcbuffer = &__pyx_pybuffer_fov_right;
 
-  /* "psychxr/libovr/_libovr.pyx":2153
+  /* "psychxr/libovr/_libovr.pyx":2208
  * 
  *         """
  *         cdef np.ndarray[float, ndim=1] fov_left = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_data[0].MaxEyeFov[0].UpTan,
  *             self.c_data[0].MaxEyeFov[0].DownTan,
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2153, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2208, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2153, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2208, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2154
+  /* "psychxr/libovr/_libovr.pyx":2209
  *         """
  *         cdef np.ndarray[float, ndim=1] fov_left = np.asarray([
  *             self.c_data[0].MaxEyeFov[0].UpTan,             # <<<<<<<<<<<<<<
  *             self.c_data[0].MaxEyeFov[0].DownTan,
  *             self.c_data[0].MaxEyeFov[0].LeftTan,
  */
-  __pyx_t_1 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[0]).UpTan); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2154, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[0]).UpTan); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2209, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "psychxr/libovr/_libovr.pyx":2155
+  /* "psychxr/libovr/_libovr.pyx":2210
  *         cdef np.ndarray[float, ndim=1] fov_left = np.asarray([
  *             self.c_data[0].MaxEyeFov[0].UpTan,
  *             self.c_data[0].MaxEyeFov[0].DownTan,             # <<<<<<<<<<<<<<
  *             self.c_data[0].MaxEyeFov[0].LeftTan,
  *             self.c_data[0].MaxEyeFov[0].RightTan],
  */
-  __pyx_t_3 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[0]).DownTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2155, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[0]).DownTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2210, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "psychxr/libovr/_libovr.pyx":2156
+  /* "psychxr/libovr/_libovr.pyx":2211
  *             self.c_data[0].MaxEyeFov[0].UpTan,
  *             self.c_data[0].MaxEyeFov[0].DownTan,
  *             self.c_data[0].MaxEyeFov[0].LeftTan,             # <<<<<<<<<<<<<<
  *             self.c_data[0].MaxEyeFov[0].RightTan],
  *             dtype=np.float32)
  */
-  __pyx_t_4 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[0]).LeftTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2156, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[0]).LeftTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2211, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "psychxr/libovr/_libovr.pyx":2157
+  /* "psychxr/libovr/_libovr.pyx":2212
  *             self.c_data[0].MaxEyeFov[0].DownTan,
  *             self.c_data[0].MaxEyeFov[0].LeftTan,
  *             self.c_data[0].MaxEyeFov[0].RightTan],             # <<<<<<<<<<<<<<
  *             dtype=np.float32)
  * 
  */
-  __pyx_t_5 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[0]).RightTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2157, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[0]).RightTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2212, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "psychxr/libovr/_libovr.pyx":2153
+  /* "psychxr/libovr/_libovr.pyx":2208
  * 
  *         """
  *         cdef np.ndarray[float, ndim=1] fov_left = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_data[0].MaxEyeFov[0].UpTan,
  *             self.c_data[0].MaxEyeFov[0].DownTan,
  */
-  __pyx_t_6 = PyList_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2153, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2208, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_1);
   PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_1);
@@ -16516,48 +17030,48 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_9maxEyeFov__
   __pyx_t_3 = 0;
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2153, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2208, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_6);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2158
+  /* "psychxr/libovr/_libovr.pyx":2213
  *             self.c_data[0].MaxEyeFov[0].LeftTan,
  *             self.c_data[0].MaxEyeFov[0].RightTan],
  *             dtype=np.float32)             # <<<<<<<<<<<<<<
  * 
  *         cdef np.ndarray[float, ndim=1] fov_right = np.asarray([
  */
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2158, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2213, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2158, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2213, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2158, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2213, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 2158, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 2213, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2153
+  /* "psychxr/libovr/_libovr.pyx":2208
  * 
  *         """
  *         cdef np.ndarray[float, ndim=1] fov_left = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_data[0].MaxEyeFov[0].UpTan,
  *             self.c_data[0].MaxEyeFov[0].DownTan,
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2153, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2208, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2153, __pyx_L1_error)
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2208, __pyx_L1_error)
   __pyx_t_7 = ((PyArrayObject *)__pyx_t_3);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_fov_left.rcbuffer->pybuffer, (PyObject*)__pyx_t_7, &__Pyx_TypeInfo_float, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_fov_left = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_fov_left.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 2153, __pyx_L1_error)
+      __PYX_ERR(0, 2208, __pyx_L1_error)
     } else {__pyx_pybuffernd_fov_left.diminfo[0].strides = __pyx_pybuffernd_fov_left.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_fov_left.diminfo[0].shape = __pyx_pybuffernd_fov_left.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -16565,67 +17079,67 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_9maxEyeFov__
   __pyx_v_fov_left = ((PyArrayObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2160
+  /* "psychxr/libovr/_libovr.pyx":2215
  *             dtype=np.float32)
  * 
  *         cdef np.ndarray[float, ndim=1] fov_right = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_data[0].MaxEyeFov[1].UpTan,
  *             self.c_data[0].MaxEyeFov[1].DownTan,
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2160, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2160, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2161
+  /* "psychxr/libovr/_libovr.pyx":2216
  * 
  *         cdef np.ndarray[float, ndim=1] fov_right = np.asarray([
  *             self.c_data[0].MaxEyeFov[1].UpTan,             # <<<<<<<<<<<<<<
  *             self.c_data[0].MaxEyeFov[1].DownTan,
  *             self.c_data[0].MaxEyeFov[1].LeftTan,
  */
-  __pyx_t_3 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[1]).UpTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2161, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[1]).UpTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "psychxr/libovr/_libovr.pyx":2162
+  /* "psychxr/libovr/_libovr.pyx":2217
  *         cdef np.ndarray[float, ndim=1] fov_right = np.asarray([
  *             self.c_data[0].MaxEyeFov[1].UpTan,
  *             self.c_data[0].MaxEyeFov[1].DownTan,             # <<<<<<<<<<<<<<
  *             self.c_data[0].MaxEyeFov[1].LeftTan,
  *             self.c_data[0].MaxEyeFov[1].RightTan],
  */
-  __pyx_t_5 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[1]).DownTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2162, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[1]).DownTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "psychxr/libovr/_libovr.pyx":2163
+  /* "psychxr/libovr/_libovr.pyx":2218
  *             self.c_data[0].MaxEyeFov[1].UpTan,
  *             self.c_data[0].MaxEyeFov[1].DownTan,
  *             self.c_data[0].MaxEyeFov[1].LeftTan,             # <<<<<<<<<<<<<<
  *             self.c_data[0].MaxEyeFov[1].RightTan],
  *             dtype=np.float32)
  */
-  __pyx_t_2 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[1]).LeftTan); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2163, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[1]).LeftTan); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2218, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":2164
+  /* "psychxr/libovr/_libovr.pyx":2219
  *             self.c_data[0].MaxEyeFov[1].DownTan,
  *             self.c_data[0].MaxEyeFov[1].LeftTan,
  *             self.c_data[0].MaxEyeFov[1].RightTan],             # <<<<<<<<<<<<<<
  *             dtype=np.float32)
  * 
  */
-  __pyx_t_4 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[1]).RightTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2164, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble(((__pyx_v_self->c_data[0]).MaxEyeFov[1]).RightTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2219, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "psychxr/libovr/_libovr.pyx":2160
+  /* "psychxr/libovr/_libovr.pyx":2215
  *             dtype=np.float32)
  * 
  *         cdef np.ndarray[float, ndim=1] fov_right = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_data[0].MaxEyeFov[1].UpTan,
  *             self.c_data[0].MaxEyeFov[1].DownTan,
  */
-  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2160, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_3);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
@@ -16639,48 +17153,48 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_9maxEyeFov__
   __pyx_t_5 = 0;
   __pyx_t_2 = 0;
   __pyx_t_4 = 0;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2160, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2165
+  /* "psychxr/libovr/_libovr.pyx":2220
  *             self.c_data[0].MaxEyeFov[1].LeftTan,
  *             self.c_data[0].MaxEyeFov[1].RightTan],
  *             dtype=np.float32)             # <<<<<<<<<<<<<<
  * 
  *         return fov_left, fov_right
  */
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2165, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2220, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2165, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2220, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2165, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2220, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 2165, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 2220, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2160
+  /* "psychxr/libovr/_libovr.pyx":2215
  *             dtype=np.float32)
  * 
  *         cdef np.ndarray[float, ndim=1] fov_right = np.asarray([             # <<<<<<<<<<<<<<
  *             self.c_data[0].MaxEyeFov[1].UpTan,
  *             self.c_data[0].MaxEyeFov[1].DownTan,
  */
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2160, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2160, __pyx_L1_error)
+  if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2215, __pyx_L1_error)
   __pyx_t_8 = ((PyArrayObject *)__pyx_t_5);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_fov_right.rcbuffer->pybuffer, (PyObject*)__pyx_t_8, &__Pyx_TypeInfo_float, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_fov_right = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_fov_right.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 2160, __pyx_L1_error)
+      __PYX_ERR(0, 2215, __pyx_L1_error)
     } else {__pyx_pybuffernd_fov_right.diminfo[0].strides = __pyx_pybuffernd_fov_right.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_fov_right.diminfo[0].shape = __pyx_pybuffernd_fov_right.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -16688,7 +17202,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_9maxEyeFov__
   __pyx_v_fov_right = ((PyArrayObject *)__pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2167
+  /* "psychxr/libovr/_libovr.pyx":2222
  *             dtype=np.float32)
  * 
  *         return fov_left, fov_right             # <<<<<<<<<<<<<<
@@ -16696,7 +17210,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_9maxEyeFov__
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2167, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2222, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(((PyObject *)__pyx_v_fov_left));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_fov_left));
@@ -16708,7 +17222,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_9maxEyeFov__
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2143
+  /* "psychxr/libovr/_libovr.pyx":2198
  * 
  *     @property
  *     def maxEyeFov(self):             # <<<<<<<<<<<<<<
@@ -16745,7 +17259,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_9maxEyeFov__
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2170
+/* "psychxr/libovr/_libovr.pyx":2225
  * 
  *     @property
  *     def symmetricEyeFov(self):             # <<<<<<<<<<<<<<
@@ -16799,7 +17313,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
   __pyx_pybuffernd_fov_right_out.data = NULL;
   __pyx_pybuffernd_fov_right_out.rcbuffer = &__pyx_pybuffer_fov_right_out;
 
-  /* "psychxr/libovr/_libovr.pyx":2185
+  /* "psychxr/libovr/_libovr.pyx":2240
  *         """
  *         cdef libovr_math.FovPort fov_left = \
  *             <libovr_math.FovPort>self.c_data[0].DefaultEyeFov[0]             # <<<<<<<<<<<<<<
@@ -16808,7 +17322,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
  */
   __pyx_v_fov_left = ((OVR::FovPort)((__pyx_v_self->c_data[0]).DefaultEyeFov[0]));
 
-  /* "psychxr/libovr/_libovr.pyx":2187
+  /* "psychxr/libovr/_libovr.pyx":2242
  *             <libovr_math.FovPort>self.c_data[0].DefaultEyeFov[0]
  *         cdef libovr_math.FovPort fov_right = \
  *             <libovr_math.FovPort>self.c_data[0].DefaultEyeFov[1]             # <<<<<<<<<<<<<<
@@ -16817,7 +17331,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
  */
   __pyx_v_fov_right = ((OVR::FovPort)((__pyx_v_self->c_data[0]).DefaultEyeFov[1]));
 
-  /* "psychxr/libovr/_libovr.pyx":2189
+  /* "psychxr/libovr/_libovr.pyx":2244
  *             <libovr_math.FovPort>self.c_data[0].DefaultEyeFov[1]
  * 
  *         cdef libovr_math.FovPort fov_max = libovr_math.FovPort.Max(             # <<<<<<<<<<<<<<
@@ -16826,7 +17340,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
  */
   __pyx_v_fov_max = OVR::FovPort::Max(((OVR::FovPort)__pyx_v_fov_left), ((OVR::FovPort)__pyx_v_fov_right));
 
-  /* "psychxr/libovr/_libovr.pyx":2192
+  /* "psychxr/libovr/_libovr.pyx":2247
  *             <libovr_math.FovPort>fov_left, <libovr_math.FovPort>fov_right)
  * 
  *         cdef float tan_half_fov_horz = maxf(fov_max.LeftTan, fov_max.RightTan)             # <<<<<<<<<<<<<<
@@ -16835,7 +17349,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
  */
   __pyx_v_tan_half_fov_horz = __pyx_f_7psychxr_6libovr_7_libovr_maxf(__pyx_v_fov_max.LeftTan, __pyx_v_fov_max.RightTan);
 
-  /* "psychxr/libovr/_libovr.pyx":2193
+  /* "psychxr/libovr/_libovr.pyx":2248
  * 
  *         cdef float tan_half_fov_horz = maxf(fov_max.LeftTan, fov_max.RightTan)
  *         cdef float tan_half_fov_vert = maxf(fov_max.DownTan, fov_max.UpTan)             # <<<<<<<<<<<<<<
@@ -16844,7 +17358,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
  */
   __pyx_v_tan_half_fov_vert = __pyx_f_7psychxr_6libovr_7_libovr_maxf(__pyx_v_fov_max.DownTan, __pyx_v_fov_max.UpTan);
 
-  /* "psychxr/libovr/_libovr.pyx":2196
+  /* "psychxr/libovr/_libovr.pyx":2251
  * 
  *         cdef libovr_capi.ovrFovPort fov_both
  *         fov_both.LeftTan = fov_both.RightTan = tan_half_fov_horz             # <<<<<<<<<<<<<<
@@ -16854,7 +17368,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
   __pyx_v_fov_both.LeftTan = __pyx_v_tan_half_fov_horz;
   __pyx_v_fov_both.RightTan = __pyx_v_tan_half_fov_horz;
 
-  /* "psychxr/libovr/_libovr.pyx":2197
+  /* "psychxr/libovr/_libovr.pyx":2252
  *         cdef libovr_capi.ovrFovPort fov_both
  *         fov_both.LeftTan = fov_both.RightTan = tan_half_fov_horz
  *         fov_both.UpTan = fov_both.DownTan = tan_half_fov_horz             # <<<<<<<<<<<<<<
@@ -16864,67 +17378,67 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
   __pyx_v_fov_both.UpTan = __pyx_v_tan_half_fov_horz;
   __pyx_v_fov_both.DownTan = __pyx_v_tan_half_fov_horz;
 
-  /* "psychxr/libovr/_libovr.pyx":2199
+  /* "psychxr/libovr/_libovr.pyx":2254
  *         fov_both.UpTan = fov_both.DownTan = tan_half_fov_horz
  * 
  *         cdef np.ndarray[float, ndim=1] fov_left_out = np.asarray([             # <<<<<<<<<<<<<<
  *             fov_both.UpTan,
  *             fov_both.DownTan,
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2199, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2254, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2199, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2254, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2200
+  /* "psychxr/libovr/_libovr.pyx":2255
  * 
  *         cdef np.ndarray[float, ndim=1] fov_left_out = np.asarray([
  *             fov_both.UpTan,             # <<<<<<<<<<<<<<
  *             fov_both.DownTan,
  *             fov_both.LeftTan,
  */
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_fov_both.UpTan); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2200, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_fov_both.UpTan); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2255, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "psychxr/libovr/_libovr.pyx":2201
+  /* "psychxr/libovr/_libovr.pyx":2256
  *         cdef np.ndarray[float, ndim=1] fov_left_out = np.asarray([
  *             fov_both.UpTan,
  *             fov_both.DownTan,             # <<<<<<<<<<<<<<
  *             fov_both.LeftTan,
  *             fov_both.RightTan],
  */
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_fov_both.DownTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2201, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_fov_both.DownTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2256, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "psychxr/libovr/_libovr.pyx":2202
+  /* "psychxr/libovr/_libovr.pyx":2257
  *             fov_both.UpTan,
  *             fov_both.DownTan,
  *             fov_both.LeftTan,             # <<<<<<<<<<<<<<
  *             fov_both.RightTan],
  *             dtype=np.float32)
  */
-  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_fov_both.LeftTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2202, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_fov_both.LeftTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2257, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "psychxr/libovr/_libovr.pyx":2203
+  /* "psychxr/libovr/_libovr.pyx":2258
  *             fov_both.DownTan,
  *             fov_both.LeftTan,
  *             fov_both.RightTan],             # <<<<<<<<<<<<<<
  *             dtype=np.float32)
  * 
  */
-  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_fov_both.RightTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2203, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_fov_both.RightTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2258, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "psychxr/libovr/_libovr.pyx":2199
+  /* "psychxr/libovr/_libovr.pyx":2254
  *         fov_both.UpTan = fov_both.DownTan = tan_half_fov_horz
  * 
  *         cdef np.ndarray[float, ndim=1] fov_left_out = np.asarray([             # <<<<<<<<<<<<<<
  *             fov_both.UpTan,
  *             fov_both.DownTan,
  */
-  __pyx_t_6 = PyList_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2199, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2254, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_1);
   PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_1);
@@ -16938,48 +17452,48 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
   __pyx_t_3 = 0;
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2199, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2254, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_6);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2204
+  /* "psychxr/libovr/_libovr.pyx":2259
  *             fov_both.LeftTan,
  *             fov_both.RightTan],
  *             dtype=np.float32)             # <<<<<<<<<<<<<<
  * 
  *         cdef np.ndarray[float, ndim=1] fov_right_out = np.asarray([
  */
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2204, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2259, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2204, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2259, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2204, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2259, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 2204, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 2259, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2199
+  /* "psychxr/libovr/_libovr.pyx":2254
  *         fov_both.UpTan = fov_both.DownTan = tan_half_fov_horz
  * 
  *         cdef np.ndarray[float, ndim=1] fov_left_out = np.asarray([             # <<<<<<<<<<<<<<
  *             fov_both.UpTan,
  *             fov_both.DownTan,
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2199, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2254, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2199, __pyx_L1_error)
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2254, __pyx_L1_error)
   __pyx_t_7 = ((PyArrayObject *)__pyx_t_3);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_fov_left_out.rcbuffer->pybuffer, (PyObject*)__pyx_t_7, &__Pyx_TypeInfo_float, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_fov_left_out = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_fov_left_out.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 2199, __pyx_L1_error)
+      __PYX_ERR(0, 2254, __pyx_L1_error)
     } else {__pyx_pybuffernd_fov_left_out.diminfo[0].strides = __pyx_pybuffernd_fov_left_out.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_fov_left_out.diminfo[0].shape = __pyx_pybuffernd_fov_left_out.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -16987,67 +17501,67 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
   __pyx_v_fov_left_out = ((PyArrayObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2206
+  /* "psychxr/libovr/_libovr.pyx":2261
  *             dtype=np.float32)
  * 
  *         cdef np.ndarray[float, ndim=1] fov_right_out = np.asarray([             # <<<<<<<<<<<<<<
  *             fov_both.UpTan,
  *             fov_both.DownTan,
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2206, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2261, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2206, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2261, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2207
+  /* "psychxr/libovr/_libovr.pyx":2262
  * 
  *         cdef np.ndarray[float, ndim=1] fov_right_out = np.asarray([
  *             fov_both.UpTan,             # <<<<<<<<<<<<<<
  *             fov_both.DownTan,
  *             fov_both.LeftTan,
  */
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_fov_both.UpTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2207, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_fov_both.UpTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2262, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "psychxr/libovr/_libovr.pyx":2208
+  /* "psychxr/libovr/_libovr.pyx":2263
  *         cdef np.ndarray[float, ndim=1] fov_right_out = np.asarray([
  *             fov_both.UpTan,
  *             fov_both.DownTan,             # <<<<<<<<<<<<<<
  *             fov_both.LeftTan,
  *             fov_both.RightTan],
  */
-  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_fov_both.DownTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2208, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_fov_both.DownTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2263, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "psychxr/libovr/_libovr.pyx":2209
+  /* "psychxr/libovr/_libovr.pyx":2264
  *             fov_both.UpTan,
  *             fov_both.DownTan,
  *             fov_both.LeftTan,             # <<<<<<<<<<<<<<
  *             fov_both.RightTan],
  *             dtype=np.float32)
  */
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_fov_both.LeftTan); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2209, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_fov_both.LeftTan); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2264, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":2210
+  /* "psychxr/libovr/_libovr.pyx":2265
  *             fov_both.DownTan,
  *             fov_both.LeftTan,
  *             fov_both.RightTan],             # <<<<<<<<<<<<<<
  *             dtype=np.float32)
  * 
  */
-  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_fov_both.RightTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2210, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_fov_both.RightTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2265, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "psychxr/libovr/_libovr.pyx":2206
+  /* "psychxr/libovr/_libovr.pyx":2261
  *             dtype=np.float32)
  * 
  *         cdef np.ndarray[float, ndim=1] fov_right_out = np.asarray([             # <<<<<<<<<<<<<<
  *             fov_both.UpTan,
  *             fov_both.DownTan,
  */
-  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2206, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2261, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_3);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
@@ -17061,48 +17575,48 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
   __pyx_t_5 = 0;
   __pyx_t_2 = 0;
   __pyx_t_4 = 0;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2206, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2261, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2211
+  /* "psychxr/libovr/_libovr.pyx":2266
  *             fov_both.LeftTan,
  *             fov_both.RightTan],
  *             dtype=np.float32)             # <<<<<<<<<<<<<<
  * 
  *         return fov_left_out, fov_right_out
  */
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2211, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2266, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2211, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2266, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2211, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2266, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 2211, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 2266, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2206
+  /* "psychxr/libovr/_libovr.pyx":2261
  *             dtype=np.float32)
  * 
  *         cdef np.ndarray[float, ndim=1] fov_right_out = np.asarray([             # <<<<<<<<<<<<<<
  *             fov_both.UpTan,
  *             fov_both.DownTan,
  */
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2206, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2261, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2206, __pyx_L1_error)
+  if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2261, __pyx_L1_error)
   __pyx_t_8 = ((PyArrayObject *)__pyx_t_5);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_fov_right_out.rcbuffer->pybuffer, (PyObject*)__pyx_t_8, &__Pyx_TypeInfo_float, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_fov_right_out = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_fov_right_out.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 2206, __pyx_L1_error)
+      __PYX_ERR(0, 2261, __pyx_L1_error)
     } else {__pyx_pybuffernd_fov_right_out.diminfo[0].strides = __pyx_pybuffernd_fov_right_out.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_fov_right_out.diminfo[0].shape = __pyx_pybuffernd_fov_right_out.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -17110,7 +17624,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
   __pyx_v_fov_right_out = ((PyArrayObject *)__pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2213
+  /* "psychxr/libovr/_libovr.pyx":2268
  *             dtype=np.float32)
  * 
  *         return fov_left_out, fov_right_out             # <<<<<<<<<<<<<<
@@ -17118,7 +17632,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2213, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2268, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(((PyObject *)__pyx_v_fov_left_out));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_fov_left_out));
@@ -17130,7 +17644,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_15symmetricE
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2170
+  /* "psychxr/libovr/_libovr.pyx":2225
  * 
  *     @property
  *     def symmetricEyeFov(self):             # <<<<<<<<<<<<<<
@@ -17276,7 +17790,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_8__setstate_
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2223
+/* "psychxr/libovr/_libovr.pyx":2278
  *     cdef libovr_capi.ovrPerfStatsPerCompositorFrame c_ovrPerfStatsPerCompositorFrame
  * 
  *     def __cinit__(self, *args, **kwargs):             # <<<<<<<<<<<<<<
@@ -17309,7 +17823,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat___cinit__(struct
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2224
+  /* "psychxr/libovr/_libovr.pyx":2279
  * 
  *     def __cinit__(self, *args, **kwargs):
  *         self.c_data = &self.c_ovrPerfStatsPerCompositorFrame             # <<<<<<<<<<<<<<
@@ -17318,7 +17832,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat___cinit__(struct
  */
   __pyx_v_self->c_data = (&__pyx_v_self->c_ovrPerfStatsPerCompositorFrame);
 
-  /* "psychxr/libovr/_libovr.pyx":2223
+  /* "psychxr/libovr/_libovr.pyx":2278
  *     cdef libovr_capi.ovrPerfStatsPerCompositorFrame c_ovrPerfStatsPerCompositorFrame
  * 
  *     def __cinit__(self, *args, **kwargs):             # <<<<<<<<<<<<<<
@@ -17332,7 +17846,7 @@ static int __pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat___cinit__(struct
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2227
+/* "psychxr/libovr/_libovr.pyx":2282
  * 
  *     @property
  *     def hmdVsyncIndex(self):             # <<<<<<<<<<<<<<
@@ -17359,7 +17873,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_13hmdVsync
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2232
+  /* "psychxr/libovr/_libovr.pyx":2287
  * 
  *         """
  *         return self.c_data[0].HmdVsyncIndex             # <<<<<<<<<<<<<<
@@ -17367,13 +17881,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_13hmdVsync
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int((__pyx_v_self->c_data[0]).HmdVsyncIndex); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2232, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int((__pyx_v_self->c_data[0]).HmdVsyncIndex); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2287, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2227
+  /* "psychxr/libovr/_libovr.pyx":2282
  * 
  *     @property
  *     def hmdVsyncIndex(self):             # <<<<<<<<<<<<<<
@@ -17392,7 +17906,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_13hmdVsync
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2235
+/* "psychxr/libovr/_libovr.pyx":2290
  * 
  *     @property
  *     def appFrameIndex(self):             # <<<<<<<<<<<<<<
@@ -17419,7 +17933,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_13appFrame
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2240
+  /* "psychxr/libovr/_libovr.pyx":2295
  * 
  *         """
  *         return self.c_data[0].AppFrameIndex             # <<<<<<<<<<<<<<
@@ -17427,13 +17941,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_13appFrame
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int((__pyx_v_self->c_data[0]).AppFrameIndex); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2240, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int((__pyx_v_self->c_data[0]).AppFrameIndex); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2295, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2235
+  /* "psychxr/libovr/_libovr.pyx":2290
  * 
  *     @property
  *     def appFrameIndex(self):             # <<<<<<<<<<<<<<
@@ -17452,7 +17966,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_13appFrame
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2243
+/* "psychxr/libovr/_libovr.pyx":2298
  * 
  *     @property
  *     def appDroppedFrameCount(self):             # <<<<<<<<<<<<<<
@@ -17479,7 +17993,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_20appDropp
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2244
+  /* "psychxr/libovr/_libovr.pyx":2299
  *     @property
  *     def appDroppedFrameCount(self):
  *         return self.c_data[0].AppDroppedFrameCount             # <<<<<<<<<<<<<<
@@ -17487,13 +18001,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_20appDropp
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int((__pyx_v_self->c_data[0]).AppDroppedFrameCount); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2244, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int((__pyx_v_self->c_data[0]).AppDroppedFrameCount); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2299, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2243
+  /* "psychxr/libovr/_libovr.pyx":2298
  * 
  *     @property
  *     def appDroppedFrameCount(self):             # <<<<<<<<<<<<<<
@@ -17512,7 +18026,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_20appDropp
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2247
+/* "psychxr/libovr/_libovr.pyx":2302
  * 
  *     @property
  *     def appQueueAheadTime(self):             # <<<<<<<<<<<<<<
@@ -17539,7 +18053,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_17appQueue
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2248
+  /* "psychxr/libovr/_libovr.pyx":2303
  *     @property
  *     def appQueueAheadTime(self):
  *         return self.c_data[0].AppQueueAheadTime             # <<<<<<<<<<<<<<
@@ -17547,13 +18061,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_17appQueue
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).AppQueueAheadTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2248, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).AppQueueAheadTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2303, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2247
+  /* "psychxr/libovr/_libovr.pyx":2302
  * 
  *     @property
  *     def appQueueAheadTime(self):             # <<<<<<<<<<<<<<
@@ -17572,7 +18086,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_17appQueue
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2251
+/* "psychxr/libovr/_libovr.pyx":2306
  * 
  *     @property
  *     def appCpuElapsedTime(self):             # <<<<<<<<<<<<<<
@@ -17599,7 +18113,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_17appCpuEl
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2252
+  /* "psychxr/libovr/_libovr.pyx":2307
  *     @property
  *     def appCpuElapsedTime(self):
  *         return self.c_data[0].AppCpuElapsedTime             # <<<<<<<<<<<<<<
@@ -17607,13 +18121,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_17appCpuEl
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).AppCpuElapsedTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2252, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).AppCpuElapsedTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2307, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2251
+  /* "psychxr/libovr/_libovr.pyx":2306
  * 
  *     @property
  *     def appCpuElapsedTime(self):             # <<<<<<<<<<<<<<
@@ -17632,7 +18146,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_17appCpuEl
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2255
+/* "psychxr/libovr/_libovr.pyx":2310
  * 
  *     @property
  *     def appGpuElapsedTime(self):             # <<<<<<<<<<<<<<
@@ -17659,7 +18173,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_17appGpuEl
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2256
+  /* "psychxr/libovr/_libovr.pyx":2311
  *     @property
  *     def appGpuElapsedTime(self):
  *         return self.c_data[0].AppGpuElapsedTime             # <<<<<<<<<<<<<<
@@ -17667,13 +18181,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_17appGpuEl
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).AppGpuElapsedTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2256, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).AppGpuElapsedTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2311, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2255
+  /* "psychxr/libovr/_libovr.pyx":2310
  * 
  *     @property
  *     def appGpuElapsedTime(self):             # <<<<<<<<<<<<<<
@@ -17692,7 +18206,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_17appGpuEl
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2259
+/* "psychxr/libovr/_libovr.pyx":2314
  * 
  *     @property
  *     def compositorFrameIndex(self):             # <<<<<<<<<<<<<<
@@ -17719,7 +18233,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_20composit
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2260
+  /* "psychxr/libovr/_libovr.pyx":2315
  *     @property
  *     def compositorFrameIndex(self):
  *         return self.c_data[0].CompositorFrameIndex             # <<<<<<<<<<<<<<
@@ -17727,13 +18241,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_20composit
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int((__pyx_v_self->c_data[0]).CompositorFrameIndex); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2260, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int((__pyx_v_self->c_data[0]).CompositorFrameIndex); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2259
+  /* "psychxr/libovr/_libovr.pyx":2314
  * 
  *     @property
  *     def compositorFrameIndex(self):             # <<<<<<<<<<<<<<
@@ -17752,7 +18266,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_20composit
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2263
+/* "psychxr/libovr/_libovr.pyx":2318
  * 
  *     @property
  *     def compositorLatency(self):             # <<<<<<<<<<<<<<
@@ -17779,7 +18293,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_17composit
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2264
+  /* "psychxr/libovr/_libovr.pyx":2319
  *     @property
  *     def compositorLatency(self):
  *         return self.c_data[0].CompositorLatency             # <<<<<<<<<<<<<<
@@ -17787,13 +18301,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_17composit
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).CompositorLatency); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2264, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).CompositorLatency); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2319, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2263
+  /* "psychxr/libovr/_libovr.pyx":2318
  * 
  *     @property
  *     def compositorLatency(self):             # <<<<<<<<<<<<<<
@@ -17812,7 +18326,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_17composit
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2267
+/* "psychxr/libovr/_libovr.pyx":2322
  * 
  *     @property
  *     def compositorCpuElapsedTime(self):             # <<<<<<<<<<<<<<
@@ -17839,7 +18353,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_24composit
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2268
+  /* "psychxr/libovr/_libovr.pyx":2323
  *     @property
  *     def compositorCpuElapsedTime(self):
  *         return self.c_data[0].CompositorCpuElapsedTime             # <<<<<<<<<<<<<<
@@ -17847,13 +18361,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_24composit
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).CompositorCpuElapsedTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2268, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).CompositorCpuElapsedTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2267
+  /* "psychxr/libovr/_libovr.pyx":2322
  * 
  *     @property
  *     def compositorCpuElapsedTime(self):             # <<<<<<<<<<<<<<
@@ -17872,7 +18386,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_24composit
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2271
+/* "psychxr/libovr/_libovr.pyx":2326
  * 
  *     @property
  *     def compositorGpuElapsedTime(self):             # <<<<<<<<<<<<<<
@@ -17899,7 +18413,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_24composit
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2272
+  /* "psychxr/libovr/_libovr.pyx":2327
  *     @property
  *     def compositorGpuElapsedTime(self):
  *         return self.c_data[0].CompositorGpuElapsedTime             # <<<<<<<<<<<<<<
@@ -17907,13 +18421,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_24composit
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).CompositorGpuElapsedTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2272, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).CompositorGpuElapsedTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2327, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2271
+  /* "psychxr/libovr/_libovr.pyx":2326
  * 
  *     @property
  *     def compositorGpuElapsedTime(self):             # <<<<<<<<<<<<<<
@@ -17932,7 +18446,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_24composit
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2275
+/* "psychxr/libovr/_libovr.pyx":2330
  * 
  *     @property
  *     def compositorCpuStartToGpuEndElapsedTime(self):             # <<<<<<<<<<<<<<
@@ -17959,7 +18473,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_37composit
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2276
+  /* "psychxr/libovr/_libovr.pyx":2331
  *     @property
  *     def compositorCpuStartToGpuEndElapsedTime(self):
  *         return self.c_data[0].CompositorCpuStartToGpuEndElapsedTime             # <<<<<<<<<<<<<<
@@ -17967,13 +18481,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_37composit
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).CompositorCpuStartToGpuEndElapsedTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2276, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).CompositorCpuStartToGpuEndElapsedTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2331, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2275
+  /* "psychxr/libovr/_libovr.pyx":2330
  * 
  *     @property
  *     def compositorCpuStartToGpuEndElapsedTime(self):             # <<<<<<<<<<<<<<
@@ -17992,7 +18506,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_37composit
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2279
+/* "psychxr/libovr/_libovr.pyx":2334
  * 
  *     @property
  *     def compositorGpuEndToVsyncElapsedTime(self):             # <<<<<<<<<<<<<<
@@ -18019,7 +18533,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_34composit
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2280
+  /* "psychxr/libovr/_libovr.pyx":2335
  *     @property
  *     def compositorGpuEndToVsyncElapsedTime(self):
  *         return self.c_data[0].CompositorGpuEndToVsyncElapsedTime             # <<<<<<<<<<<<<<
@@ -18027,13 +18541,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_34composit
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).CompositorGpuEndToVsyncElapsedTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2280, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_self->c_data[0]).CompositorGpuEndToVsyncElapsedTime); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2335, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2279
+  /* "psychxr/libovr/_libovr.pyx":2334
  * 
  *     @property
  *     def compositorGpuEndToVsyncElapsedTime(self):             # <<<<<<<<<<<<<<
@@ -18161,7 +18675,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_15LibOVRFrameStat_4__setstat
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2283
+/* "psychxr/libovr/_libovr.pyx":2338
  * 
  * 
  * def success(int result):             # <<<<<<<<<<<<<<
@@ -18179,7 +18693,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_3success(PyObject *__pyx_sel
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("success (wrapper)", 0);
   assert(__pyx_arg_result); {
-    __pyx_v_result = __Pyx_PyInt_As_int(__pyx_arg_result); if (unlikely((__pyx_v_result == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2283, __pyx_L3_error)
+    __pyx_v_result = __Pyx_PyInt_As_int(__pyx_arg_result); if (unlikely((__pyx_v_result == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2338, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -18200,7 +18714,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_2success(CYTHON_UNUSED PyObj
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("success", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2285
+  /* "psychxr/libovr/_libovr.pyx":2340
  * def success(int result):
  *     """Check if an API return indicates success."""
  *     return <bint>libovr_capi.OVR_SUCCESS(result)             # <<<<<<<<<<<<<<
@@ -18208,13 +18722,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_2success(CYTHON_UNUSED PyObj
  * def unqualifedSuccess(int result):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_f_7psychxr_6libovr_11libovr_capi_OVR_SUCCESS(__pyx_v_result) != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2285, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_f_7psychxr_6libovr_11libovr_capi_OVR_SUCCESS(__pyx_v_result) != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2340, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2283
+  /* "psychxr/libovr/_libovr.pyx":2338
  * 
  * 
  * def success(int result):             # <<<<<<<<<<<<<<
@@ -18233,7 +18747,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_2success(CYTHON_UNUSED PyObj
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2287
+/* "psychxr/libovr/_libovr.pyx":2342
  *     return <bint>libovr_capi.OVR_SUCCESS(result)
  * 
  * def unqualifedSuccess(int result):             # <<<<<<<<<<<<<<
@@ -18251,7 +18765,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_5unqualifedSuccess(PyObject 
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("unqualifedSuccess (wrapper)", 0);
   assert(__pyx_arg_result); {
-    __pyx_v_result = __Pyx_PyInt_As_int(__pyx_arg_result); if (unlikely((__pyx_v_result == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2287, __pyx_L3_error)
+    __pyx_v_result = __Pyx_PyInt_As_int(__pyx_arg_result); if (unlikely((__pyx_v_result == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2342, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -18272,7 +18786,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_4unqualifedSuccess(CYTHON_UN
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("unqualifedSuccess", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2289
+  /* "psychxr/libovr/_libovr.pyx":2344
  * def unqualifedSuccess(int result):
  *     """Check if an API return indicates unqualified success."""
  *     return <bint>libovr_capi.OVR_UNQUALIFIED_SUCCESS(result)             # <<<<<<<<<<<<<<
@@ -18280,13 +18794,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_4unqualifedSuccess(CYTHON_UN
  * def failure(int result):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_f_7psychxr_6libovr_11libovr_capi_OVR_UNQUALIFIED_SUCCESS(__pyx_v_result) != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2289, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_f_7psychxr_6libovr_11libovr_capi_OVR_UNQUALIFIED_SUCCESS(__pyx_v_result) != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2344, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2287
+  /* "psychxr/libovr/_libovr.pyx":2342
  *     return <bint>libovr_capi.OVR_SUCCESS(result)
  * 
  * def unqualifedSuccess(int result):             # <<<<<<<<<<<<<<
@@ -18305,7 +18819,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_4unqualifedSuccess(CYTHON_UN
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2291
+/* "psychxr/libovr/_libovr.pyx":2346
  *     return <bint>libovr_capi.OVR_UNQUALIFIED_SUCCESS(result)
  * 
  * def failure(int result):             # <<<<<<<<<<<<<<
@@ -18323,7 +18837,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_7failure(PyObject *__pyx_sel
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("failure (wrapper)", 0);
   assert(__pyx_arg_result); {
-    __pyx_v_result = __Pyx_PyInt_As_int(__pyx_arg_result); if (unlikely((__pyx_v_result == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2291, __pyx_L3_error)
+    __pyx_v_result = __Pyx_PyInt_As_int(__pyx_arg_result); if (unlikely((__pyx_v_result == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2346, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -18344,7 +18858,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_6failure(CYTHON_UNUSED PyObj
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("failure", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2293
+  /* "psychxr/libovr/_libovr.pyx":2348
  * def failure(int result):
  *     """Check if an API return indicates failure (error)."""
  *     return <bint>libovr_capi.OVR_FAILURE(result)             # <<<<<<<<<<<<<<
@@ -18352,13 +18866,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_6failure(CYTHON_UNUSED PyObj
  * def isOculusServiceRunning(int timeoutMS=100):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_f_7psychxr_6libovr_11libovr_capi_OVR_FAILURE(__pyx_v_result) != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2293, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_f_7psychxr_6libovr_11libovr_capi_OVR_FAILURE(__pyx_v_result) != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2348, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2291
+  /* "psychxr/libovr/_libovr.pyx":2346
  *     return <bint>libovr_capi.OVR_UNQUALIFIED_SUCCESS(result)
  * 
  * def failure(int result):             # <<<<<<<<<<<<<<
@@ -18377,7 +18891,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_6failure(CYTHON_UNUSED PyObj
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2295
+/* "psychxr/libovr/_libovr.pyx":2350
  *     return <bint>libovr_capi.OVR_FAILURE(result)
  * 
  * def isOculusServiceRunning(int timeoutMS=100):             # <<<<<<<<<<<<<<
@@ -18415,7 +18929,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_9isOculusServiceRunning(PyOb
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "isOculusServiceRunning") < 0)) __PYX_ERR(0, 2295, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "isOculusServiceRunning") < 0)) __PYX_ERR(0, 2350, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -18426,14 +18940,14 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_9isOculusServiceRunning(PyOb
       }
     }
     if (values[0]) {
-      __pyx_v_timeoutMS = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_timeoutMS == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2295, __pyx_L3_error)
+      __pyx_v_timeoutMS = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_timeoutMS == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2350, __pyx_L3_error)
     } else {
       __pyx_v_timeoutMS = ((int)0x64);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("isOculusServiceRunning", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2295, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("isOculusServiceRunning", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2350, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.isOculusServiceRunning", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -18453,7 +18967,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_8isOculusServiceRunning(CYTH
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("isOculusServiceRunning", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2308
+  /* "psychxr/libovr/_libovr.pyx":2363
  * 
  *     """
  *     cdef libovr_capi.ovrDetectResult result = libovr_capi.ovr_Detect(             # <<<<<<<<<<<<<<
@@ -18462,7 +18976,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_8isOculusServiceRunning(CYTH
  */
   __pyx_v_result = ovr_Detect(__pyx_v_timeoutMS);
 
-  /* "psychxr/libovr/_libovr.pyx":2311
+  /* "psychxr/libovr/_libovr.pyx":2366
  *         timeoutMS)
  * 
  *     return <bint>result.IsOculusServiceRunning             # <<<<<<<<<<<<<<
@@ -18470,13 +18984,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_8isOculusServiceRunning(CYTH
  * def isHmdConnected(int timeout_ms=100):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_result.IsOculusServiceRunning != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2311, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_result.IsOculusServiceRunning != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2366, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2295
+  /* "psychxr/libovr/_libovr.pyx":2350
  *     return <bint>libovr_capi.OVR_FAILURE(result)
  * 
  * def isOculusServiceRunning(int timeoutMS=100):             # <<<<<<<<<<<<<<
@@ -18495,7 +19009,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_8isOculusServiceRunning(CYTH
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2313
+/* "psychxr/libovr/_libovr.pyx":2368
  *     return <bint>result.IsOculusServiceRunning
  * 
  * def isHmdConnected(int timeout_ms=100):             # <<<<<<<<<<<<<<
@@ -18533,7 +19047,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_11isHmdConnected(PyObject *_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "isHmdConnected") < 0)) __PYX_ERR(0, 2313, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "isHmdConnected") < 0)) __PYX_ERR(0, 2368, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -18544,14 +19058,14 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_11isHmdConnected(PyObject *_
       }
     }
     if (values[0]) {
-      __pyx_v_timeout_ms = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_timeout_ms == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2313, __pyx_L3_error)
+      __pyx_v_timeout_ms = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_timeout_ms == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2368, __pyx_L3_error)
     } else {
       __pyx_v_timeout_ms = ((int)0x64);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("isHmdConnected", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2313, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("isHmdConnected", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2368, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.isHmdConnected", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -18571,7 +19085,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_10isHmdConnected(CYTHON_UNUS
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("isHmdConnected", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2326
+  /* "psychxr/libovr/_libovr.pyx":2381
  * 
  *     """
  *     cdef libovr_capi.ovrDetectResult result = libovr_capi.ovr_Detect(             # <<<<<<<<<<<<<<
@@ -18580,7 +19094,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_10isHmdConnected(CYTHON_UNUS
  */
   __pyx_v_result = ovr_Detect(__pyx_v_timeout_ms);
 
-  /* "psychxr/libovr/_libovr.pyx":2329
+  /* "psychxr/libovr/_libovr.pyx":2384
  *         timeout_ms)
  * 
  *     return <bint>result.IsOculusHMDConnected             # <<<<<<<<<<<<<<
@@ -18588,13 +19102,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_10isHmdConnected(CYTHON_UNUS
  * def getHmdInfo():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_result.IsOculusHMDConnected != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2329, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_result.IsOculusHMDConnected != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2384, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2313
+  /* "psychxr/libovr/_libovr.pyx":2368
  *     return <bint>result.IsOculusServiceRunning
  * 
  * def isHmdConnected(int timeout_ms=100):             # <<<<<<<<<<<<<<
@@ -18613,7 +19127,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_10isHmdConnected(CYTHON_UNUS
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2331
+/* "psychxr/libovr/_libovr.pyx":2386
  *     return <bint>result.IsOculusHMDConnected
  * 
  * def getHmdInfo():             # <<<<<<<<<<<<<<
@@ -18643,19 +19157,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_12getHmdInfo(CYTHON_UNUSED P
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getHmdInfo", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2341
+  /* "psychxr/libovr/_libovr.pyx":2396
  *     """
  *     global _hmdDesc
  *     cdef LibOVRHmdInfo toReturn = LibOVRHmdInfo()             # <<<<<<<<<<<<<<
  *     toReturn.c_data[0] = _hmdDesc
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRHmdInfo)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2341, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRHmdInfo)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2396, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_toReturn = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRHmdInfo *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2342
+  /* "psychxr/libovr/_libovr.pyx":2397
  *     global _hmdDesc
  *     cdef LibOVRHmdInfo toReturn = LibOVRHmdInfo()
  *     toReturn.c_data[0] = _hmdDesc             # <<<<<<<<<<<<<<
@@ -18664,7 +19178,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_12getHmdInfo(CYTHON_UNUSED P
  */
   (__pyx_v_toReturn->c_data[0]) = __pyx_v_7psychxr_6libovr_7_libovr__hmdDesc;
 
-  /* "psychxr/libovr/_libovr.pyx":2344
+  /* "psychxr/libovr/_libovr.pyx":2399
  *     toReturn.c_data[0] = _hmdDesc
  * 
  *     return toReturn             # <<<<<<<<<<<<<<
@@ -18676,7 +19190,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_12getHmdInfo(CYTHON_UNUSED P
   __pyx_r = ((PyObject *)__pyx_v_toReturn);
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2331
+  /* "psychxr/libovr/_libovr.pyx":2386
  *     return <bint>result.IsOculusHMDConnected
  * 
  * def getHmdInfo():             # <<<<<<<<<<<<<<
@@ -18696,7 +19210,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_12getHmdInfo(CYTHON_UNUSED P
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2346
+/* "psychxr/libovr/_libovr.pyx":2401
  *     return toReturn
  * 
  * def getUserHeight():             # <<<<<<<<<<<<<<
@@ -18726,7 +19240,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_14getUserHeight(CYTHON_UNUSE
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getUserHeight", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2357
+  /* "psychxr/libovr/_libovr.pyx":2412
  *     """
  *     global _ptrSession
  *     cdef float to_return = libovr_capi.ovr_GetFloat(             # <<<<<<<<<<<<<<
@@ -18735,7 +19249,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_14getUserHeight(CYTHON_UNUSE
  */
   __pyx_v_to_return = ovr_GetFloat(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((char const *)"PlayerHeight"), ((float)1.778));
 
-  /* "psychxr/libovr/_libovr.pyx":2362
+  /* "psychxr/libovr/_libovr.pyx":2417
  *         <float> 1.778)
  * 
  *     return to_return             # <<<<<<<<<<<<<<
@@ -18743,13 +19257,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_14getUserHeight(CYTHON_UNUSE
  * def getEyeHeight():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_to_return); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2362, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_to_return); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2417, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2346
+  /* "psychxr/libovr/_libovr.pyx":2401
  *     return toReturn
  * 
  * def getUserHeight():             # <<<<<<<<<<<<<<
@@ -18768,7 +19282,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_14getUserHeight(CYTHON_UNUSE
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2364
+/* "psychxr/libovr/_libovr.pyx":2419
  *     return to_return
  * 
  * def getEyeHeight():             # <<<<<<<<<<<<<<
@@ -18798,7 +19312,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_16getEyeHeight(CYTHON_UNUSED
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getEyeHeight", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2374
+  /* "psychxr/libovr/_libovr.pyx":2429
  *     """
  *     global _ptrSession
  *     cdef float to_return = libovr_capi.ovr_GetFloat(             # <<<<<<<<<<<<<<
@@ -18807,7 +19321,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_16getEyeHeight(CYTHON_UNUSED
  */
   __pyx_v_to_return = ovr_GetFloat(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((char const *)"EyeHeight"), ((float)1.675));
 
-  /* "psychxr/libovr/_libovr.pyx":2379
+  /* "psychxr/libovr/_libovr.pyx":2434
  *         <float> 1.675)
  * 
  *     return to_return             # <<<<<<<<<<<<<<
@@ -18815,13 +19329,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_16getEyeHeight(CYTHON_UNUSED
  * def getNeckEyeDist():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_to_return); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2379, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_to_return); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2434, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2364
+  /* "psychxr/libovr/_libovr.pyx":2419
  *     return to_return
  * 
  * def getEyeHeight():             # <<<<<<<<<<<<<<
@@ -18840,7 +19354,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_16getEyeHeight(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2381
+/* "psychxr/libovr/_libovr.pyx":2436
  *     return to_return
  * 
  * def getNeckEyeDist():             # <<<<<<<<<<<<<<
@@ -18873,7 +19387,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_18getNeckEyeDist(CYTHON_UNUS
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("getNeckEyeDist", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2393
+  /* "psychxr/libovr/_libovr.pyx":2448
  *     cdef float vals[2]
  * 
  *     cdef unsigned int ret = libovr_capi.ovr_GetFloatArray(             # <<<<<<<<<<<<<<
@@ -18882,7 +19396,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_18getNeckEyeDist(CYTHON_UNUS
  */
   __pyx_v_ret = ovr_GetFloatArray(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((char const *)"NeckEyeDistance"), __pyx_v_vals, ((unsigned int)2));
 
-  /* "psychxr/libovr/_libovr.pyx":2399
+  /* "psychxr/libovr/_libovr.pyx":2454
  *         <unsigned int>2)
  * 
  *     return <float> vals[0], <float> vals[1]             # <<<<<<<<<<<<<<
@@ -18890,11 +19404,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_18getNeckEyeDist(CYTHON_UNUS
  * def getEyeToNoseDist():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(((float)(__pyx_v_vals[0]))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2399, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(((float)(__pyx_v_vals[0]))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2454, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyFloat_FromDouble(((float)(__pyx_v_vals[1]))); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2399, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(((float)(__pyx_v_vals[1]))); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2454, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2399, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2454, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -18906,7 +19420,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_18getNeckEyeDist(CYTHON_UNUS
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2381
+  /* "psychxr/libovr/_libovr.pyx":2436
  *     return to_return
  * 
  * def getNeckEyeDist():             # <<<<<<<<<<<<<<
@@ -18927,7 +19441,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_18getNeckEyeDist(CYTHON_UNUS
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2401
+/* "psychxr/libovr/_libovr.pyx":2456
  *     return <float> vals[0], <float> vals[1]
  * 
  * def getEyeToNoseDist():             # <<<<<<<<<<<<<<
@@ -18960,7 +19474,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_20getEyeToNoseDist(CYTHON_UN
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("getEyeToNoseDist", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2413
+  /* "psychxr/libovr/_libovr.pyx":2468
  *     cdef float vals[2]
  * 
  *     cdef unsigned int ret = libovr_capi.ovr_GetFloatArray(             # <<<<<<<<<<<<<<
@@ -18969,7 +19483,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_20getEyeToNoseDist(CYTHON_UN
  */
   __pyx_v_ret = ovr_GetFloatArray(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((char const *)"EyeToNoseDist"), __pyx_v_vals, ((unsigned int)2));
 
-  /* "psychxr/libovr/_libovr.pyx":2419
+  /* "psychxr/libovr/_libovr.pyx":2474
  *         <unsigned int> 2)
  * 
  *     return <float>vals[0], <float> vals[1]             # <<<<<<<<<<<<<<
@@ -18977,11 +19491,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_20getEyeToNoseDist(CYTHON_UN
  * def initialize(bint focusAware=False, int connectionTimeout=0):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(((float)(__pyx_v_vals[0]))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2419, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(((float)(__pyx_v_vals[0]))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2474, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyFloat_FromDouble(((float)(__pyx_v_vals[1]))); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2419, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(((float)(__pyx_v_vals[1]))); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2474, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2419, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2474, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -18993,7 +19507,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_20getEyeToNoseDist(CYTHON_UN
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2401
+  /* "psychxr/libovr/_libovr.pyx":2456
  *     return <float> vals[0], <float> vals[1]
  * 
  * def getEyeToNoseDist():             # <<<<<<<<<<<<<<
@@ -19014,7 +19528,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_20getEyeToNoseDist(CYTHON_UN
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2421
+/* "psychxr/libovr/_libovr.pyx":2476
  *     return <float>vals[0], <float> vals[1]
  * 
  * def initialize(bint focusAware=False, int connectionTimeout=0):             # <<<<<<<<<<<<<<
@@ -19061,7 +19575,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_23initialize(PyObject *__pyx
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "initialize") < 0)) __PYX_ERR(0, 2421, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "initialize") < 0)) __PYX_ERR(0, 2476, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -19074,19 +19588,19 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_23initialize(PyObject *__pyx
       }
     }
     if (values[0]) {
-      __pyx_v_focusAware = __Pyx_PyObject_IsTrue(values[0]); if (unlikely((__pyx_v_focusAware == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2421, __pyx_L3_error)
+      __pyx_v_focusAware = __Pyx_PyObject_IsTrue(values[0]); if (unlikely((__pyx_v_focusAware == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2476, __pyx_L3_error)
     } else {
       __pyx_v_focusAware = ((int)0);
     }
     if (values[1]) {
-      __pyx_v_connectionTimeout = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_connectionTimeout == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2421, __pyx_L3_error)
+      __pyx_v_connectionTimeout = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_connectionTimeout == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2476, __pyx_L3_error)
     } else {
       __pyx_v_connectionTimeout = ((int)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("initialize", 0, 0, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2421, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("initialize", 0, 0, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2476, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.initialize", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -19108,7 +19622,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_22initialize(CYTHON_UNUSED P
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("initialize", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2449
+  /* "psychxr/libovr/_libovr.pyx":2504
  * 
  *     """
  *     cdef int32_t flags = libovr_capi.ovrInit_RequestVersion             # <<<<<<<<<<<<<<
@@ -19117,7 +19631,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_22initialize(CYTHON_UNUSED P
  */
   __pyx_v_flags = ovrInit_RequestVersion;
 
-  /* "psychxr/libovr/_libovr.pyx":2450
+  /* "psychxr/libovr/_libovr.pyx":2505
  *     """
  *     cdef int32_t flags = libovr_capi.ovrInit_RequestVersion
  *     if focusAware is True:             # <<<<<<<<<<<<<<
@@ -19127,7 +19641,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_22initialize(CYTHON_UNUSED P
   __pyx_t_1 = ((__pyx_v_focusAware == 1) != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":2451
+    /* "psychxr/libovr/_libovr.pyx":2506
  *     cdef int32_t flags = libovr_capi.ovrInit_RequestVersion
  *     if focusAware is True:
  *         flags |= libovr_capi.ovrInit_FocusAware             # <<<<<<<<<<<<<<
@@ -19136,7 +19650,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_22initialize(CYTHON_UNUSED P
  */
     __pyx_v_flags = (__pyx_v_flags | ovrInit_FocusAware);
 
-    /* "psychxr/libovr/_libovr.pyx":2450
+    /* "psychxr/libovr/_libovr.pyx":2505
  *     """
  *     cdef int32_t flags = libovr_capi.ovrInit_RequestVersion
  *     if focusAware is True:             # <<<<<<<<<<<<<<
@@ -19145,7 +19659,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_22initialize(CYTHON_UNUSED P
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":2456
+  /* "psychxr/libovr/_libovr.pyx":2511
  *     #    flags |= libovr_capi.ovrInit_Debug
  *     global _initParams
  *     _initParams.Flags = flags             # <<<<<<<<<<<<<<
@@ -19154,7 +19668,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_22initialize(CYTHON_UNUSED P
  */
   __pyx_v_7psychxr_6libovr_7_libovr__initParams.Flags = __pyx_v_flags;
 
-  /* "psychxr/libovr/_libovr.pyx":2457
+  /* "psychxr/libovr/_libovr.pyx":2512
  *     global _initParams
  *     _initParams.Flags = flags
  *     _initParams.RequestedMinorVersion = libovr_capi.OVR_MINOR_VERSION             # <<<<<<<<<<<<<<
@@ -19163,7 +19677,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_22initialize(CYTHON_UNUSED P
  */
   __pyx_v_7psychxr_6libovr_7_libovr__initParams.RequestedMinorVersion = OVR_MINOR_VERSION;
 
-  /* "psychxr/libovr/_libovr.pyx":2458
+  /* "psychxr/libovr/_libovr.pyx":2513
  *     _initParams.Flags = flags
  *     _initParams.RequestedMinorVersion = libovr_capi.OVR_MINOR_VERSION
  *     _initParams.LogCallback = NULL  # not used yet             # <<<<<<<<<<<<<<
@@ -19172,7 +19686,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_22initialize(CYTHON_UNUSED P
  */
   __pyx_v_7psychxr_6libovr_7_libovr__initParams.LogCallback = NULL;
 
-  /* "psychxr/libovr/_libovr.pyx":2459
+  /* "psychxr/libovr/_libovr.pyx":2514
  *     _initParams.RequestedMinorVersion = libovr_capi.OVR_MINOR_VERSION
  *     _initParams.LogCallback = NULL  # not used yet
  *     _initParams.ConnectionTimeoutMS = <uint32_t>connectionTimeout             # <<<<<<<<<<<<<<
@@ -19181,7 +19695,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_22initialize(CYTHON_UNUSED P
  */
   __pyx_v_7psychxr_6libovr_7_libovr__initParams.ConnectionTimeoutMS = ((uint32_t)__pyx_v_connectionTimeout);
 
-  /* "psychxr/libovr/_libovr.pyx":2460
+  /* "psychxr/libovr/_libovr.pyx":2515
  *     _initParams.LogCallback = NULL  # not used yet
  *     _initParams.ConnectionTimeoutMS = <uint32_t>connectionTimeout
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_Initialize(             # <<<<<<<<<<<<<<
@@ -19190,7 +19704,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_22initialize(CYTHON_UNUSED P
  */
   __pyx_v_result = ovr_Initialize((&__pyx_v_7psychxr_6libovr_7_libovr__initParams));
 
-  /* "psychxr/libovr/_libovr.pyx":2463
+  /* "psychxr/libovr/_libovr.pyx":2518
  *         &_initParams)
  * 
  *     return result  # failed to initalize, return error code             # <<<<<<<<<<<<<<
@@ -19198,13 +19712,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_22initialize(CYTHON_UNUSED P
  * def create():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2463, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2518, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2421
+  /* "psychxr/libovr/_libovr.pyx":2476
  *     return <float>vals[0], <float> vals[1]
  * 
  * def initialize(bint focusAware=False, int connectionTimeout=0):             # <<<<<<<<<<<<<<
@@ -19223,7 +19737,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_22initialize(CYTHON_UNUSED P
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2465
+/* "psychxr/libovr/_libovr.pyx":2520
  *     return result  # failed to initalize, return error code
  * 
  * def create():             # <<<<<<<<<<<<<<
@@ -19262,7 +19776,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
   ovrFovPort __pyx_t_9;
   __Pyx_RefNannySetupContext("create", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2485
+  /* "psychxr/libovr/_libovr.pyx":2540
  *     global _eyeRenderDesc
  * 
  *     result = libovr_capi.ovr_Create(&_ptrSession, &_gfxLuid)             # <<<<<<<<<<<<<<
@@ -19271,16 +19785,16 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
  */
   __pyx_v_result = ovr_Create((&__pyx_v_7psychxr_6libovr_7_libovr__ptrSession), (&__pyx_v_7psychxr_6libovr_7_libovr__gfxLuid));
 
-  /* "psychxr/libovr/_libovr.pyx":2486
+  /* "psychxr/libovr/_libovr.pyx":2541
  * 
  *     result = libovr_capi.ovr_Create(&_ptrSession, &_gfxLuid)
  *     check_result(result)             # <<<<<<<<<<<<<<
  *     if libovr_capi.OVR_FAILURE(result):
  *         return result  # failed to create session, return error code
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_check_result); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2486, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_check_result); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2541, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2486, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2541, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -19295,12 +19809,12 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2486, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2541, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2487
+  /* "psychxr/libovr/_libovr.pyx":2542
  *     result = libovr_capi.ovr_Create(&_ptrSession, &_gfxLuid)
  *     check_result(result)
  *     if libovr_capi.OVR_FAILURE(result):             # <<<<<<<<<<<<<<
@@ -19310,7 +19824,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
   __pyx_t_5 = (__pyx_f_7psychxr_6libovr_11libovr_capi_OVR_FAILURE(__pyx_v_result) != 0);
   if (__pyx_t_5) {
 
-    /* "psychxr/libovr/_libovr.pyx":2488
+    /* "psychxr/libovr/_libovr.pyx":2543
  *     check_result(result)
  *     if libovr_capi.OVR_FAILURE(result):
  *         return result  # failed to create session, return error code             # <<<<<<<<<<<<<<
@@ -19318,13 +19832,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
  *     # if we got to this point, everything should be fine
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2488, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2543, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_r = __pyx_t_1;
     __pyx_t_1 = 0;
     goto __pyx_L0;
 
-    /* "psychxr/libovr/_libovr.pyx":2487
+    /* "psychxr/libovr/_libovr.pyx":2542
  *     result = libovr_capi.ovr_Create(&_ptrSession, &_gfxLuid)
  *     check_result(result)
  *     if libovr_capi.OVR_FAILURE(result):             # <<<<<<<<<<<<<<
@@ -19333,7 +19847,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":2492
+  /* "psychxr/libovr/_libovr.pyx":2547
  *     # if we got to this point, everything should be fine
  *     # get HMD descriptor
  *     _hmdDesc = libovr_capi.ovr_GetHmdDesc(_ptrSession)             # <<<<<<<<<<<<<<
@@ -19342,7 +19856,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
  */
   __pyx_v_7psychxr_6libovr_7_libovr__hmdDesc = ovr_GetHmdDesc(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession);
 
-  /* "psychxr/libovr/_libovr.pyx":2496
+  /* "psychxr/libovr/_libovr.pyx":2551
  *     # configure the eye render descriptor to use the recommended FOV, this
  *     # can be changed later
  *     cdef Py_ssize_t i = 0             # <<<<<<<<<<<<<<
@@ -19351,7 +19865,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
  */
   __pyx_v_i = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2497
+  /* "psychxr/libovr/_libovr.pyx":2552
  *     # can be changed later
  *     cdef Py_ssize_t i = 0
  *     for i in range(libovr_capi.ovrEye_Count):             # <<<<<<<<<<<<<<
@@ -19363,7 +19877,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "psychxr/libovr/_libovr.pyx":2498
+    /* "psychxr/libovr/_libovr.pyx":2553
  *     cdef Py_ssize_t i = 0
  *     for i in range(libovr_capi.ovrEye_Count):
  *         _eyeRenderDesc[i] = libovr_capi.ovr_GetRenderDesc(             # <<<<<<<<<<<<<<
@@ -19372,7 +19886,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
  */
     (__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_i]) = ovr_GetRenderDesc(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((ovrEyeType)__pyx_v_i), (__pyx_v_7psychxr_6libovr_7_libovr__hmdDesc.DefaultEyeFov[__pyx_v_i]));
 
-    /* "psychxr/libovr/_libovr.pyx":2503
+    /* "psychxr/libovr/_libovr.pyx":2558
  *             _hmdDesc.DefaultEyeFov[i])
  * 
  *         _eyeLayer.Fov[i] = _eyeRenderDesc[i].Fov             # <<<<<<<<<<<<<<
@@ -19383,7 +19897,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
     (__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.Fov[__pyx_v_i]) = __pyx_t_9;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":2505
+  /* "psychxr/libovr/_libovr.pyx":2560
  *         _eyeLayer.Fov[i] = _eyeRenderDesc[i].Fov
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -19391,13 +19905,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
  * def destroyTextureSwapChain(int swapChain):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2505, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2560, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2465
+  /* "psychxr/libovr/_libovr.pyx":2520
  *     return result  # failed to initalize, return error code
  * 
  * def create():             # <<<<<<<<<<<<<<
@@ -19419,7 +19933,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_24create(CYTHON_UNUSED PyObj
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2507
+/* "psychxr/libovr/_libovr.pyx":2562
  *     return result
  * 
  * def destroyTextureSwapChain(int swapChain):             # <<<<<<<<<<<<<<
@@ -19437,7 +19951,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_27destroyTextureSwapChain(Py
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("destroyTextureSwapChain (wrapper)", 0);
   assert(__pyx_arg_swapChain); {
-    __pyx_v_swapChain = __Pyx_PyInt_As_int(__pyx_arg_swapChain); if (unlikely((__pyx_v_swapChain == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2507, __pyx_L3_error)
+    __pyx_v_swapChain = __Pyx_PyInt_As_int(__pyx_arg_swapChain); if (unlikely((__pyx_v_swapChain == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2562, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -19457,7 +19971,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_26destroyTextureSwapChain(CY
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("destroyTextureSwapChain", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2511
+  /* "psychxr/libovr/_libovr.pyx":2566
  *     global _ptrSession
  *     global _swapChains
  *     libovr_capi.ovr_DestroyTextureSwapChain(_ptrSession, _swapChains[swapChain])             # <<<<<<<<<<<<<<
@@ -19466,7 +19980,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_26destroyTextureSwapChain(CY
  */
   ovr_DestroyTextureSwapChain(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, (__pyx_v_7psychxr_6libovr_7_libovr__swapChains[__pyx_v_swapChain]));
 
-  /* "psychxr/libovr/_libovr.pyx":2512
+  /* "psychxr/libovr/_libovr.pyx":2567
  *     global _swapChains
  *     libovr_capi.ovr_DestroyTextureSwapChain(_ptrSession, _swapChains[swapChain])
  *     _swapChains[swapChain] = NULL             # <<<<<<<<<<<<<<
@@ -19475,7 +19989,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_26destroyTextureSwapChain(CY
  */
   (__pyx_v_7psychxr_6libovr_7_libovr__swapChains[__pyx_v_swapChain]) = NULL;
 
-  /* "psychxr/libovr/_libovr.pyx":2507
+  /* "psychxr/libovr/_libovr.pyx":2562
  *     return result
  * 
  * def destroyTextureSwapChain(int swapChain):             # <<<<<<<<<<<<<<
@@ -19490,7 +20004,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_26destroyTextureSwapChain(CY
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2514
+/* "psychxr/libovr/_libovr.pyx":2569
  *     _swapChains[swapChain] = NULL
  * 
  * def destroyMirrorTexture():             # <<<<<<<<<<<<<<
@@ -19519,7 +20033,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_28destroyMirrorTexture(CYTHO
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("destroyMirrorTexture", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2518
+  /* "psychxr/libovr/_libovr.pyx":2573
  *     global _ptrSession
  *     global _mirrorTexture
  *     if _mirrorTexture != NULL:             # <<<<<<<<<<<<<<
@@ -19529,7 +20043,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_28destroyMirrorTexture(CYTHO
   __pyx_t_1 = ((__pyx_v_7psychxr_6libovr_7_libovr__mirrorTexture != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":2519
+    /* "psychxr/libovr/_libovr.pyx":2574
  *     global _mirrorTexture
  *     if _mirrorTexture != NULL:
  *         libovr_capi.ovr_DestroyMirrorTexture(_ptrSession, _mirrorTexture)             # <<<<<<<<<<<<<<
@@ -19538,7 +20052,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_28destroyMirrorTexture(CYTHO
  */
     ovr_DestroyMirrorTexture(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, __pyx_v_7psychxr_6libovr_7_libovr__mirrorTexture);
 
-    /* "psychxr/libovr/_libovr.pyx":2518
+    /* "psychxr/libovr/_libovr.pyx":2573
  *     global _ptrSession
  *     global _mirrorTexture
  *     if _mirrorTexture != NULL:             # <<<<<<<<<<<<<<
@@ -19547,7 +20061,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_28destroyMirrorTexture(CYTHO
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":2514
+  /* "psychxr/libovr/_libovr.pyx":2569
  *     _swapChains[swapChain] = NULL
  * 
  * def destroyMirrorTexture():             # <<<<<<<<<<<<<<
@@ -19562,7 +20076,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_28destroyMirrorTexture(CYTHO
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2521
+/* "psychxr/libovr/_libovr.pyx":2576
  *         libovr_capi.ovr_DestroyMirrorTexture(_ptrSession, _mirrorTexture)
  * 
  * def destroy():             # <<<<<<<<<<<<<<
@@ -19590,7 +20104,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_30destroy(CYTHON_UNUSED PyOb
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("destroy", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2527
+  /* "psychxr/libovr/_libovr.pyx":2582
  *     global _eyeLayer
  *     # null eye textures in eye layer
  *     _eyeLayer.ColorTexture[0] = _eyeLayer.ColorTexture[1] = NULL             # <<<<<<<<<<<<<<
@@ -19600,7 +20114,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_30destroy(CYTHON_UNUSED PyOb
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.ColorTexture[0]) = NULL;
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.ColorTexture[1]) = NULL;
 
-  /* "psychxr/libovr/_libovr.pyx":2530
+  /* "psychxr/libovr/_libovr.pyx":2585
  * 
  *     # destroy the current session and shutdown
  *     libovr_capi.ovr_Destroy(_ptrSession)             # <<<<<<<<<<<<<<
@@ -19609,7 +20123,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_30destroy(CYTHON_UNUSED PyOb
  */
   ovr_Destroy(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession);
 
-  /* "psychxr/libovr/_libovr.pyx":2521
+  /* "psychxr/libovr/_libovr.pyx":2576
  *         libovr_capi.ovr_DestroyMirrorTexture(_ptrSession, _mirrorTexture)
  * 
  * def destroy():             # <<<<<<<<<<<<<<
@@ -19624,7 +20138,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_30destroy(CYTHON_UNUSED PyOb
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2532
+/* "psychxr/libovr/_libovr.pyx":2587
  *     libovr_capi.ovr_Destroy(_ptrSession)
  * 
  * def shutdown():             # <<<<<<<<<<<<<<
@@ -19652,7 +20166,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_32shutdown(CYTHON_UNUSED PyO
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("shutdown", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2540
+  /* "psychxr/libovr/_libovr.pyx":2595
  * 
  *     """
  *     libovr_capi.ovr_Shutdown()             # <<<<<<<<<<<<<<
@@ -19661,7 +20175,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_32shutdown(CYTHON_UNUSED PyO
  */
   ovr_Shutdown();
 
-  /* "psychxr/libovr/_libovr.pyx":2532
+  /* "psychxr/libovr/_libovr.pyx":2587
  *     libovr_capi.ovr_Destroy(_ptrSession)
  * 
  * def shutdown():             # <<<<<<<<<<<<<<
@@ -19676,7 +20190,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_32shutdown(CYTHON_UNUSED PyO
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2542
+/* "psychxr/libovr/_libovr.pyx":2597
  *     libovr_capi.ovr_Shutdown()
  * 
  * def getGraphicsLUID():             # <<<<<<<<<<<<<<
@@ -19706,7 +20220,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_34getGraphicsLUID(CYTHON_UNU
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("getGraphicsLUID", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2545
+  /* "psychxr/libovr/_libovr.pyx":2600
  *     """The graphics device LUID."""
  *     global _gfxLuid
  *     return _gfxLuid.Reserved.decode('utf-8')             # <<<<<<<<<<<<<<
@@ -19715,14 +20229,14 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_34getGraphicsLUID(CYTHON_UNU
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = __pyx_v_7psychxr_6libovr_7_libovr__gfxLuid.Reserved;
-  __pyx_t_2 = __Pyx_decode_c_string(__pyx_t_1, 0, strlen(__pyx_t_1), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2545, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_decode_c_string(__pyx_t_1, 0, strlen(__pyx_t_1), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2600, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2542
+  /* "psychxr/libovr/_libovr.pyx":2597
  *     libovr_capi.ovr_Shutdown()
  * 
  * def getGraphicsLUID():             # <<<<<<<<<<<<<<
@@ -19741,7 +20255,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_34getGraphicsLUID(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2547
+/* "psychxr/libovr/_libovr.pyx":2602
  *     return _gfxLuid.Reserved.decode('utf-8')
  * 
  * def setHighQuality(bint enable):             # <<<<<<<<<<<<<<
@@ -19759,7 +20273,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_37setHighQuality(PyObject *_
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setHighQuality (wrapper)", 0);
   assert(__pyx_arg_enable); {
-    __pyx_v_enable = __Pyx_PyObject_IsTrue(__pyx_arg_enable); if (unlikely((__pyx_v_enable == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2547, __pyx_L3_error)
+    __pyx_v_enable = __Pyx_PyObject_IsTrue(__pyx_arg_enable); if (unlikely((__pyx_v_enable == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2602, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -19780,7 +20294,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_36setHighQuality(CYTHON_UNUS
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("setHighQuality", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2551
+  /* "psychxr/libovr/_libovr.pyx":2606
  *     """
  *     global _eyeLayer
  *     if enable:             # <<<<<<<<<<<<<<
@@ -19790,7 +20304,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_36setHighQuality(CYTHON_UNUS
   __pyx_t_1 = (__pyx_v_enable != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":2552
+    /* "psychxr/libovr/_libovr.pyx":2607
  *     global _eyeLayer
  *     if enable:
  *         _eyeLayer.Header.Flags |= libovr_capi.ovrLayerFlag_HighQuality             # <<<<<<<<<<<<<<
@@ -19799,7 +20313,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_36setHighQuality(CYTHON_UNUS
  */
     __pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.Header.Flags = (__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.Header.Flags | ovrLayerFlag_HighQuality);
 
-    /* "psychxr/libovr/_libovr.pyx":2551
+    /* "psychxr/libovr/_libovr.pyx":2606
  *     """
  *     global _eyeLayer
  *     if enable:             # <<<<<<<<<<<<<<
@@ -19809,7 +20323,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_36setHighQuality(CYTHON_UNUS
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":2554
+  /* "psychxr/libovr/_libovr.pyx":2609
  *         _eyeLayer.Header.Flags |= libovr_capi.ovrLayerFlag_HighQuality
  *     else:
  *         _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HighQuality             # <<<<<<<<<<<<<<
@@ -19821,7 +20335,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_36setHighQuality(CYTHON_UNUS
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":2547
+  /* "psychxr/libovr/_libovr.pyx":2602
  *     return _gfxLuid.Reserved.decode('utf-8')
  * 
  * def setHighQuality(bint enable):             # <<<<<<<<<<<<<<
@@ -19836,7 +20350,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_36setHighQuality(CYTHON_UNUS
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2556
+/* "psychxr/libovr/_libovr.pyx":2611
  *         _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HighQuality
  * 
  * def setHeadLocked(bint enable):             # <<<<<<<<<<<<<<
@@ -19854,7 +20368,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_39setHeadLocked(PyObject *__
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setHeadLocked (wrapper)", 0);
   assert(__pyx_arg_enable); {
-    __pyx_v_enable = __Pyx_PyObject_IsTrue(__pyx_arg_enable); if (unlikely((__pyx_v_enable == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2556, __pyx_L3_error)
+    __pyx_v_enable = __Pyx_PyObject_IsTrue(__pyx_arg_enable); if (unlikely((__pyx_v_enable == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2611, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -19875,7 +20389,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_38setHeadLocked(CYTHON_UNUSE
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("setHeadLocked", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2564
+  /* "psychxr/libovr/_libovr.pyx":2619
  *     """
  *     global _eyeLayer
  *     if enable:             # <<<<<<<<<<<<<<
@@ -19885,7 +20399,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_38setHeadLocked(CYTHON_UNUSE
   __pyx_t_1 = (__pyx_v_enable != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":2565
+    /* "psychxr/libovr/_libovr.pyx":2620
  *     global _eyeLayer
  *     if enable:
  *         _eyeLayer.Header.Flags |= libovr_capi.ovrLayerFlag_HeadLocked             # <<<<<<<<<<<<<<
@@ -19894,7 +20408,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_38setHeadLocked(CYTHON_UNUSE
  */
     __pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.Header.Flags = (__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.Header.Flags | ovrLayerFlag_HeadLocked);
 
-    /* "psychxr/libovr/_libovr.pyx":2564
+    /* "psychxr/libovr/_libovr.pyx":2619
  *     """
  *     global _eyeLayer
  *     if enable:             # <<<<<<<<<<<<<<
@@ -19904,7 +20418,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_38setHeadLocked(CYTHON_UNUSE
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":2567
+  /* "psychxr/libovr/_libovr.pyx":2622
  *         _eyeLayer.Header.Flags |= libovr_capi.ovrLayerFlag_HeadLocked
  *     else:
  *         _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HeadLocked             # <<<<<<<<<<<<<<
@@ -19916,7 +20430,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_38setHeadLocked(CYTHON_UNUSE
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":2556
+  /* "psychxr/libovr/_libovr.pyx":2611
  *         _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HighQuality
  * 
  * def setHeadLocked(bint enable):             # <<<<<<<<<<<<<<
@@ -19931,7 +20445,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_38setHeadLocked(CYTHON_UNUSE
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2569
+/* "psychxr/libovr/_libovr.pyx":2624
  *         _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HeadLocked
  * 
  * def getPixelsPerTanAngleAtCenter(int eye):             # <<<<<<<<<<<<<<
@@ -19949,7 +20463,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_41getPixelsPerTanAngleAtCent
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getPixelsPerTanAngleAtCenter (wrapper)", 0);
   assert(__pyx_arg_eye); {
-    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2569, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2624, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -19974,7 +20488,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_40getPixelsPerTanAngleAtCent
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("getPixelsPerTanAngleAtCenter", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2590
+  /* "psychxr/libovr/_libovr.pyx":2645
  * 
  *     cdef libovr_capi.ovrVector2f toReturn = \
  *         _eyeRenderDesc[eye].PixelsPerTanAngleAtCenter             # <<<<<<<<<<<<<<
@@ -19984,7 +20498,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_40getPixelsPerTanAngleAtCent
   __pyx_t_1 = (__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).PixelsPerTanAngleAtCenter;
   __pyx_v_toReturn = __pyx_t_1;
 
-  /* "psychxr/libovr/_libovr.pyx":2592
+  /* "psychxr/libovr/_libovr.pyx":2647
  *         _eyeRenderDesc[eye].PixelsPerTanAngleAtCenter
  * 
  *     return toReturn.x, toReturn.y             # <<<<<<<<<<<<<<
@@ -19992,11 +20506,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_40getPixelsPerTanAngleAtCent
  * def getDistortedViewport(int eye):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_toReturn.x); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2592, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_toReturn.x); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2647, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_toReturn.y); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2592, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_toReturn.y); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2647, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2592, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2647, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
@@ -20008,7 +20522,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_40getPixelsPerTanAngleAtCent
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2569
+  /* "psychxr/libovr/_libovr.pyx":2624
  *         _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HeadLocked
  * 
  * def getPixelsPerTanAngleAtCenter(int eye):             # <<<<<<<<<<<<<<
@@ -20029,7 +20543,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_40getPixelsPerTanAngleAtCent
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2594
+/* "psychxr/libovr/_libovr.pyx":2649
  *     return toReturn.x, toReturn.y
  * 
  * def getDistortedViewport(int eye):             # <<<<<<<<<<<<<<
@@ -20047,7 +20561,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_43getDistortedViewport(PyObj
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getDistortedViewport (wrapper)", 0);
   assert(__pyx_arg_eye); {
-    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2594, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2649, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -20076,7 +20590,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_42getDistortedViewport(CYTHO
   PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("getDistortedViewport", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2606
+  /* "psychxr/libovr/_libovr.pyx":2661
  * 
  *     """
  *     cdef libovr_capi.ovrRecti distVp = _eyeRenderDesc[eye].DistortedViewport             # <<<<<<<<<<<<<<
@@ -20086,67 +20600,67 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_42getDistortedViewport(CYTHO
   __pyx_t_1 = (__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).DistortedViewport;
   __pyx_v_distVp = __pyx_t_1;
 
-  /* "psychxr/libovr/_libovr.pyx":2608
+  /* "psychxr/libovr/_libovr.pyx":2663
  *     cdef libovr_capi.ovrRecti distVp = _eyeRenderDesc[eye].DistortedViewport
  * 
  *     cdef np.ndarray toReturn = np.asarray([             # <<<<<<<<<<<<<<
  *         distVp.Pos.x,
  *         distVp.Pos.x,
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2608, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2663, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_asarray); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2608, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_asarray); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2663, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2609
+  /* "psychxr/libovr/_libovr.pyx":2664
  * 
  *     cdef np.ndarray toReturn = np.asarray([
  *         distVp.Pos.x,             # <<<<<<<<<<<<<<
  *         distVp.Pos.x,
  *         distVp.Size.w,
  */
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_distVp.Pos.x); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2609, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_distVp.Pos.x); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2664, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":2610
+  /* "psychxr/libovr/_libovr.pyx":2665
  *     cdef np.ndarray toReturn = np.asarray([
  *         distVp.Pos.x,
  *         distVp.Pos.x,             # <<<<<<<<<<<<<<
  *         distVp.Size.w,
  *         distVp.Size.h],
  */
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_distVp.Pos.x); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2610, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_distVp.Pos.x); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2665, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "psychxr/libovr/_libovr.pyx":2611
+  /* "psychxr/libovr/_libovr.pyx":2666
  *         distVp.Pos.x,
  *         distVp.Pos.x,
  *         distVp.Size.w,             # <<<<<<<<<<<<<<
  *         distVp.Size.h],
  *         dtype=np.int)
  */
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_distVp.Size.w); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2611, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_distVp.Size.w); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2666, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "psychxr/libovr/_libovr.pyx":2612
+  /* "psychxr/libovr/_libovr.pyx":2667
  *         distVp.Pos.x,
  *         distVp.Size.w,
  *         distVp.Size.h],             # <<<<<<<<<<<<<<
  *         dtype=np.int)
  * 
  */
-  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_distVp.Size.h); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2612, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_distVp.Size.h); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2667, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
 
-  /* "psychxr/libovr/_libovr.pyx":2608
+  /* "psychxr/libovr/_libovr.pyx":2663
  *     cdef libovr_capi.ovrRecti distVp = _eyeRenderDesc[eye].DistortedViewport
  * 
  *     cdef np.ndarray toReturn = np.asarray([             # <<<<<<<<<<<<<<
  *         distVp.Pos.x,
  *         distVp.Pos.x,
  */
-  __pyx_t_7 = PyList_New(4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 2608, __pyx_L1_error)
+  __pyx_t_7 = PyList_New(4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 2663, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_2);
   PyList_SET_ITEM(__pyx_t_7, 0, __pyx_t_2);
@@ -20160,46 +20674,46 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_42getDistortedViewport(CYTHO
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
   __pyx_t_6 = 0;
-  __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2608, __pyx_L1_error)
+  __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2663, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_7);
   PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_7);
   __pyx_t_7 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2613
+  /* "psychxr/libovr/_libovr.pyx":2668
  *         distVp.Size.w,
  *         distVp.Size.h],
  *         dtype=np.int)             # <<<<<<<<<<<<<<
  * 
  *     return toReturn
  */
-  __pyx_t_7 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 2613, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 2668, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2613, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2668, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_int); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2613, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_int); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2668, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 2613, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 2668, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2608
+  /* "psychxr/libovr/_libovr.pyx":2663
  *     cdef libovr_capi.ovrRecti distVp = _eyeRenderDesc[eye].DistortedViewport
  * 
  *     cdef np.ndarray toReturn = np.asarray([             # <<<<<<<<<<<<<<
  *         distVp.Pos.x,
  *         distVp.Pos.x,
  */
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, __pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2608, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, __pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2663, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2608, __pyx_L1_error)
+  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2663, __pyx_L1_error)
   __pyx_v_toReturn = ((PyArrayObject *)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2615
+  /* "psychxr/libovr/_libovr.pyx":2670
  *         dtype=np.int)
  * 
  *     return toReturn             # <<<<<<<<<<<<<<
@@ -20211,7 +20725,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_42getDistortedViewport(CYTHO
   __pyx_r = ((PyObject *)__pyx_v_toReturn);
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2594
+  /* "psychxr/libovr/_libovr.pyx":2649
  *     return toReturn.x, toReturn.y
  * 
  * def getDistortedViewport(int eye):             # <<<<<<<<<<<<<<
@@ -20236,7 +20750,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_42getDistortedViewport(CYTHO
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2617
+/* "psychxr/libovr/_libovr.pyx":2672
  *     return toReturn
  * 
  * def getEyeRenderFov(int eye):             # <<<<<<<<<<<<<<
@@ -20254,7 +20768,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_45getEyeRenderFov(PyObject *
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getEyeRenderFov (wrapper)", 0);
   assert(__pyx_arg_eye); {
-    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2617, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2672, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -20281,67 +20795,67 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_44getEyeRenderFov(CYTHON_UNU
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("getEyeRenderFov", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2647
+  /* "psychxr/libovr/_libovr.pyx":2702
  *     """
  *     global _eyeRenderDesc
  *     cdef np.ndarray to_return = np.asarray([             # <<<<<<<<<<<<<<
  *         _eyeRenderDesc[eye].Fov.UpTan,
  *         _eyeRenderDesc[eye].Fov.DownTan,
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2647, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2702, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2647, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2702, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2648
+  /* "psychxr/libovr/_libovr.pyx":2703
  *     global _eyeRenderDesc
  *     cdef np.ndarray to_return = np.asarray([
  *         _eyeRenderDesc[eye].Fov.UpTan,             # <<<<<<<<<<<<<<
  *         _eyeRenderDesc[eye].Fov.DownTan,
  *         _eyeRenderDesc[eye].Fov.LeftTan,
  */
-  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov.UpTan); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2648, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble((__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov.UpTan); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2703, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "psychxr/libovr/_libovr.pyx":2649
+  /* "psychxr/libovr/_libovr.pyx":2704
  *     cdef np.ndarray to_return = np.asarray([
  *         _eyeRenderDesc[eye].Fov.UpTan,
  *         _eyeRenderDesc[eye].Fov.DownTan,             # <<<<<<<<<<<<<<
  *         _eyeRenderDesc[eye].Fov.LeftTan,
  *         _eyeRenderDesc[eye].Fov.RightTan],
  */
-  __pyx_t_3 = PyFloat_FromDouble((__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov.DownTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2649, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble((__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov.DownTan); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2704, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "psychxr/libovr/_libovr.pyx":2650
+  /* "psychxr/libovr/_libovr.pyx":2705
  *         _eyeRenderDesc[eye].Fov.UpTan,
  *         _eyeRenderDesc[eye].Fov.DownTan,
  *         _eyeRenderDesc[eye].Fov.LeftTan,             # <<<<<<<<<<<<<<
  *         _eyeRenderDesc[eye].Fov.RightTan],
  *         dtype=np.float32)
  */
-  __pyx_t_4 = PyFloat_FromDouble((__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov.LeftTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2650, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble((__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov.LeftTan); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2705, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "psychxr/libovr/_libovr.pyx":2651
+  /* "psychxr/libovr/_libovr.pyx":2706
  *         _eyeRenderDesc[eye].Fov.DownTan,
  *         _eyeRenderDesc[eye].Fov.LeftTan,
  *         _eyeRenderDesc[eye].Fov.RightTan],             # <<<<<<<<<<<<<<
  *         dtype=np.float32)
  * 
  */
-  __pyx_t_5 = PyFloat_FromDouble((__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov.RightTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2651, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble((__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov.RightTan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2706, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "psychxr/libovr/_libovr.pyx":2647
+  /* "psychxr/libovr/_libovr.pyx":2702
  *     """
  *     global _eyeRenderDesc
  *     cdef np.ndarray to_return = np.asarray([             # <<<<<<<<<<<<<<
  *         _eyeRenderDesc[eye].Fov.UpTan,
  *         _eyeRenderDesc[eye].Fov.DownTan,
  */
-  __pyx_t_6 = PyList_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2647, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2702, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_1);
   PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_1);
@@ -20355,46 +20869,46 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_44getEyeRenderFov(CYTHON_UNU
   __pyx_t_3 = 0;
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2647, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 2702, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_6);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2652
+  /* "psychxr/libovr/_libovr.pyx":2707
  *         _eyeRenderDesc[eye].Fov.LeftTan,
  *         _eyeRenderDesc[eye].Fov.RightTan],
  *         dtype=np.float32)             # <<<<<<<<<<<<<<
  * 
  *     return to_return
  */
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2652, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 2707, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2652, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2707, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2652, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2707, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 2652, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 2707, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2647
+  /* "psychxr/libovr/_libovr.pyx":2702
  *     """
  *     global _eyeRenderDesc
  *     cdef np.ndarray to_return = np.asarray([             # <<<<<<<<<<<<<<
  *         _eyeRenderDesc[eye].Fov.UpTan,
  *         _eyeRenderDesc[eye].Fov.DownTan,
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2647, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2702, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2647, __pyx_L1_error)
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 2702, __pyx_L1_error)
   __pyx_v_to_return = ((PyArrayObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2654
+  /* "psychxr/libovr/_libovr.pyx":2709
  *         dtype=np.float32)
  * 
  *     return to_return             # <<<<<<<<<<<<<<
@@ -20406,7 +20920,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_44getEyeRenderFov(CYTHON_UNU
   __pyx_r = ((PyObject *)__pyx_v_to_return);
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2617
+  /* "psychxr/libovr/_libovr.pyx":2672
  *     return toReturn
  * 
  * def getEyeRenderFov(int eye):             # <<<<<<<<<<<<<<
@@ -20431,7 +20945,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_44getEyeRenderFov(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2656
+/* "psychxr/libovr/_libovr.pyx":2711
  *     return to_return
  * 
  * def setEyeRenderFov(int eye, object fov):             # <<<<<<<<<<<<<<
@@ -20472,11 +20986,11 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_47setEyeRenderFov(PyObject *
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_fov)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("setEyeRenderFov", 1, 2, 2, 1); __PYX_ERR(0, 2656, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("setEyeRenderFov", 1, 2, 2, 1); __PYX_ERR(0, 2711, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setEyeRenderFov") < 0)) __PYX_ERR(0, 2656, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setEyeRenderFov") < 0)) __PYX_ERR(0, 2711, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -20484,12 +20998,12 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_47setEyeRenderFov(PyObject *
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2656, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2711, __pyx_L3_error)
     __pyx_v_fov = values[1];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("setEyeRenderFov", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2656, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("setEyeRenderFov", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2711, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.setEyeRenderFov", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -20511,59 +21025,59 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_46setEyeRenderFov(CYTHON_UNU
   ovrFovPort __pyx_t_3;
   __Pyx_RefNannySetupContext("setEyeRenderFov", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2687
+  /* "psychxr/libovr/_libovr.pyx":2742
  * 
  *     cdef libovr_capi.ovrFovPort fov_in
  *     fov_in.UpTan = <float>fov[0]             # <<<<<<<<<<<<<<
  *     fov_in.DownTan = <float>fov[1]
  *     fov_in.LeftTan = <float>fov[2]
  */
-  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_fov, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2687, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_fov, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2742, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 2687, __pyx_L1_error)
+  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 2742, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_fov_in.UpTan = ((float)__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":2688
+  /* "psychxr/libovr/_libovr.pyx":2743
  *     cdef libovr_capi.ovrFovPort fov_in
  *     fov_in.UpTan = <float>fov[0]
  *     fov_in.DownTan = <float>fov[1]             # <<<<<<<<<<<<<<
  *     fov_in.LeftTan = <float>fov[2]
  *     fov_in.RightTan = <float>fov[3]
  */
-  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_fov, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2688, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_fov, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2743, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 2688, __pyx_L1_error)
+  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 2743, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_fov_in.DownTan = ((float)__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":2689
+  /* "psychxr/libovr/_libovr.pyx":2744
  *     fov_in.UpTan = <float>fov[0]
  *     fov_in.DownTan = <float>fov[1]
  *     fov_in.LeftTan = <float>fov[2]             # <<<<<<<<<<<<<<
  *     fov_in.RightTan = <float>fov[3]
  * 
  */
-  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_fov, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2689, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_fov, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2744, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 2689, __pyx_L1_error)
+  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 2744, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_fov_in.LeftTan = ((float)__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":2690
+  /* "psychxr/libovr/_libovr.pyx":2745
  *     fov_in.DownTan = <float>fov[1]
  *     fov_in.LeftTan = <float>fov[2]
  *     fov_in.RightTan = <float>fov[3]             # <<<<<<<<<<<<<<
  * 
  *     _eyeRenderDesc[<int>eye] = libovr_capi.ovr_GetRenderDesc(
  */
-  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_fov, 3, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2690, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_fov, 3, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2745, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 2690, __pyx_L1_error)
+  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 2745, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_fov_in.RightTan = ((float)__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":2692
+  /* "psychxr/libovr/_libovr.pyx":2747
  *     fov_in.RightTan = <float>fov[3]
  * 
  *     _eyeRenderDesc[<int>eye] = libovr_capi.ovr_GetRenderDesc(             # <<<<<<<<<<<<<<
@@ -20572,7 +21086,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_46setEyeRenderFov(CYTHON_UNU
  */
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[((int)__pyx_v_eye)]) = ovr_GetRenderDesc(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((ovrEyeType)__pyx_v_eye), __pyx_v_fov_in);
 
-  /* "psychxr/libovr/_libovr.pyx":2698
+  /* "psychxr/libovr/_libovr.pyx":2753
  * 
  *     # set in eye layer too
  *     _eyeLayer.Fov[eye] = _eyeRenderDesc[eye].Fov             # <<<<<<<<<<<<<<
@@ -20582,7 +21096,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_46setEyeRenderFov(CYTHON_UNU
   __pyx_t_3 = (__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov;
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.Fov[__pyx_v_eye]) = __pyx_t_3;
 
-  /* "psychxr/libovr/_libovr.pyx":2656
+  /* "psychxr/libovr/_libovr.pyx":2711
  *     return to_return
  * 
  * def setEyeRenderFov(int eye, object fov):             # <<<<<<<<<<<<<<
@@ -20603,7 +21117,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_46setEyeRenderFov(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2700
+/* "psychxr/libovr/_libovr.pyx":2755
  *     _eyeLayer.Fov[eye] = _eyeRenderDesc[eye].Fov
  * 
  * def getEyeAspectRatio(int eye):             # <<<<<<<<<<<<<<
@@ -20621,7 +21135,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_49getEyeAspectRatio(PyObject
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getEyeAspectRatio (wrapper)", 0);
   assert(__pyx_arg_eye); {
-    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2700, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2755, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -20645,7 +21159,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_48getEyeAspectRatio(CYTHON_U
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("getEyeAspectRatio", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2716
+  /* "psychxr/libovr/_libovr.pyx":2771
  *     """
  *     cdef libovr_math.FovPort fovPort = \
  *         <libovr_math.FovPort>_eyeRenderDesc[eye].Fov             # <<<<<<<<<<<<<<
@@ -20654,7 +21168,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_48getEyeAspectRatio(CYTHON_U
  */
   __pyx_v_fovPort = ((OVR::FovPort)(__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov);
 
-  /* "psychxr/libovr/_libovr.pyx":2718
+  /* "psychxr/libovr/_libovr.pyx":2773
  *         <libovr_math.FovPort>_eyeRenderDesc[eye].Fov
  * 
  *     return (fovPort.LeftTan + fovPort.RightTan) / \             # <<<<<<<<<<<<<<
@@ -20664,7 +21178,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_48getEyeAspectRatio(CYTHON_U
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = (__pyx_v_fovPort.LeftTan + __pyx_v_fovPort.RightTan);
 
-  /* "psychxr/libovr/_libovr.pyx":2719
+  /* "psychxr/libovr/_libovr.pyx":2774
  * 
  *     return (fovPort.LeftTan + fovPort.RightTan) / \
  *            (fovPort.UpTan + fovPort.DownTan)             # <<<<<<<<<<<<<<
@@ -20673,7 +21187,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_48getEyeAspectRatio(CYTHON_U
  */
   __pyx_t_2 = (__pyx_v_fovPort.UpTan + __pyx_v_fovPort.DownTan);
 
-  /* "psychxr/libovr/_libovr.pyx":2718
+  /* "psychxr/libovr/_libovr.pyx":2773
  *         <libovr_math.FovPort>_eyeRenderDesc[eye].Fov
  * 
  *     return (fovPort.LeftTan + fovPort.RightTan) / \             # <<<<<<<<<<<<<<
@@ -20682,15 +21196,15 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_48getEyeAspectRatio(CYTHON_U
  */
   if (unlikely(__pyx_t_2 == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 2718, __pyx_L1_error)
+    __PYX_ERR(0, 2773, __pyx_L1_error)
   }
-  __pyx_t_3 = PyFloat_FromDouble((__pyx_t_1 / __pyx_t_2)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2718, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble((__pyx_t_1 / __pyx_t_2)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2773, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2700
+  /* "psychxr/libovr/_libovr.pyx":2755
  *     _eyeLayer.Fov[eye] = _eyeRenderDesc[eye].Fov
  * 
  * def getEyeAspectRatio(int eye):             # <<<<<<<<<<<<<<
@@ -20709,7 +21223,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_48getEyeAspectRatio(CYTHON_U
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2721
+/* "psychxr/libovr/_libovr.pyx":2776
  *            (fovPort.UpTan + fovPort.DownTan)
  * 
  * def getEyeHorizontalFovRadians(int eye):             # <<<<<<<<<<<<<<
@@ -20727,7 +21241,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_51getEyeHorizontalFovRadians
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getEyeHorizontalFovRadians (wrapper)", 0);
   assert(__pyx_arg_eye); {
-    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2721, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2776, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -20749,7 +21263,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_50getEyeHorizontalFovRadians
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getEyeHorizontalFovRadians", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2737
+  /* "psychxr/libovr/_libovr.pyx":2792
  *     """
  *     cdef libovr_math.FovPort fovPort = \
  *         <libovr_math.FovPort>_eyeRenderDesc[eye].Fov             # <<<<<<<<<<<<<<
@@ -20758,7 +21272,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_50getEyeHorizontalFovRadians
  */
   __pyx_v_fovPort = ((OVR::FovPort)(__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov);
 
-  /* "psychxr/libovr/_libovr.pyx":2739
+  /* "psychxr/libovr/_libovr.pyx":2794
  *         <libovr_math.FovPort>_eyeRenderDesc[eye].Fov
  * 
  *     return fovPort.GetHorizontalFovRadians()             # <<<<<<<<<<<<<<
@@ -20766,13 +21280,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_50getEyeHorizontalFovRadians
  * def getEyeVerticalFovRadians(int eye):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_fovPort.GetHorizontalFovRadians()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2739, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_fovPort.GetHorizontalFovRadians()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2794, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2721
+  /* "psychxr/libovr/_libovr.pyx":2776
  *            (fovPort.UpTan + fovPort.DownTan)
  * 
  * def getEyeHorizontalFovRadians(int eye):             # <<<<<<<<<<<<<<
@@ -20791,7 +21305,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_50getEyeHorizontalFovRadians
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2741
+/* "psychxr/libovr/_libovr.pyx":2796
  *     return fovPort.GetHorizontalFovRadians()
  * 
  * def getEyeVerticalFovRadians(int eye):             # <<<<<<<<<<<<<<
@@ -20809,7 +21323,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_53getEyeVerticalFovRadians(P
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getEyeVerticalFovRadians (wrapper)", 0);
   assert(__pyx_arg_eye); {
-    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2741, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2796, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -20831,7 +21345,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_52getEyeVerticalFovRadians(C
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getEyeVerticalFovRadians", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2757
+  /* "psychxr/libovr/_libovr.pyx":2812
  *     """
  *     cdef libovr_math.FovPort fovPort = \
  *         <libovr_math.FovPort>_eyeRenderDesc[eye].Fov             # <<<<<<<<<<<<<<
@@ -20840,7 +21354,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_52getEyeVerticalFovRadians(C
  */
   __pyx_v_fovPort = ((OVR::FovPort)(__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov);
 
-  /* "psychxr/libovr/_libovr.pyx":2759
+  /* "psychxr/libovr/_libovr.pyx":2814
  *         <libovr_math.FovPort>_eyeRenderDesc[eye].Fov
  * 
  *     return fovPort.GetVerticalFovRadians()             # <<<<<<<<<<<<<<
@@ -20848,13 +21362,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_52getEyeVerticalFovRadians(C
  * def getEyeFocalLength(int eye):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_fovPort.GetVerticalFovRadians()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2759, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_fovPort.GetVerticalFovRadians()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2814, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2741
+  /* "psychxr/libovr/_libovr.pyx":2796
  *     return fovPort.GetHorizontalFovRadians()
  * 
  * def getEyeVerticalFovRadians(int eye):             # <<<<<<<<<<<<<<
@@ -20873,7 +21387,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_52getEyeVerticalFovRadians(C
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2761
+/* "psychxr/libovr/_libovr.pyx":2816
  *     return fovPort.GetVerticalFovRadians()
  * 
  * def getEyeFocalLength(int eye):             # <<<<<<<<<<<<<<
@@ -20891,7 +21405,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_55getEyeFocalLength(PyObject
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getEyeFocalLength (wrapper)", 0);
   assert(__pyx_arg_eye); {
-    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2761, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2816, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -20917,7 +21431,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_54getEyeFocalLength(CYTHON_U
   double __pyx_t_6;
   __Pyx_RefNannySetupContext("getEyeFocalLength", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2776
+  /* "psychxr/libovr/_libovr.pyx":2831
  * 
  *     """
  *     return 1.0 / tan(getEyeHorizontalFovRadians(eye) / 2.0)             # <<<<<<<<<<<<<<
@@ -20925,9 +21439,9 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_54getEyeFocalLength(CYTHON_U
  * def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_getEyeHorizontalFovRadians); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2776, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_getEyeHorizontalFovRadians); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2831, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_eye); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2776, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_eye); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2831, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -20942,26 +21456,26 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_54getEyeFocalLength(CYTHON_U
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2776, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2831, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyFloat_DivideObjC(__pyx_t_1, __pyx_float_2_0, 2.0, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2776, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyFloat_DivideObjC(__pyx_t_1, __pyx_float_2_0, 2.0, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2831, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_5 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_5 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 2776, __pyx_L1_error)
+  __pyx_t_5 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_5 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 2831, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_6 = tan(__pyx_t_5);
   if (unlikely(__pyx_t_6 == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 2776, __pyx_L1_error)
+    __PYX_ERR(0, 2831, __pyx_L1_error)
   }
-  __pyx_t_2 = PyFloat_FromDouble((1.0 / __pyx_t_6)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2776, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble((1.0 / __pyx_t_6)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2831, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2761
+  /* "psychxr/libovr/_libovr.pyx":2816
  *     return fovPort.GetVerticalFovRadians()
  * 
  * def getEyeFocalLength(int eye):             # <<<<<<<<<<<<<<
@@ -20983,7 +21497,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_54getEyeFocalLength(CYTHON_U
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2778
+/* "psychxr/libovr/_libovr.pyx":2833
  *     return 1.0 / tan(getEyeHorizontalFovRadians(eye) / 2.0)
  * 
  * def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):             # <<<<<<<<<<<<<<
@@ -21028,7 +21542,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_57calcEyeBufferSize(PyObject
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "calcEyeBufferSize") < 0)) __PYX_ERR(0, 2778, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "calcEyeBufferSize") < 0)) __PYX_ERR(0, 2833, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -21039,16 +21553,16 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_57calcEyeBufferSize(PyObject
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2778, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2833, __pyx_L3_error)
     if (values[1]) {
-      __pyx_v_texelsPerPixel = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_texelsPerPixel == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 2778, __pyx_L3_error)
+      __pyx_v_texelsPerPixel = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_texelsPerPixel == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 2833, __pyx_L3_error)
     } else {
       __pyx_v_texelsPerPixel = ((float)1.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("calcEyeBufferSize", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2778, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("calcEyeBufferSize", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2833, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.calcEyeBufferSize", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -21070,7 +21584,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_56calcEyeBufferSize(CYTHON_U
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("calcEyeBufferSize", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2826
+  /* "psychxr/libovr/_libovr.pyx":2881
  *     global _eyeRenderDesc
  * 
  *     cdef libovr_capi.ovrSizei buffSize = libovr_capi.ovr_GetFovTextureSize(             # <<<<<<<<<<<<<<
@@ -21079,7 +21593,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_56calcEyeBufferSize(CYTHON_U
  */
   __pyx_v_buffSize = ovr_GetFovTextureSize(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((ovrEyeType)0), (__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[0]).Fov, ((float)__pyx_v_texelsPerPixel));
 
-  /* "psychxr/libovr/_libovr.pyx":2832
+  /* "psychxr/libovr/_libovr.pyx":2887
  *         <float>texelsPerPixel)
  * 
  *     return buffSize.w, buffSize.h             # <<<<<<<<<<<<<<
@@ -21087,11 +21601,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_56calcEyeBufferSize(CYTHON_U
  * def getTextureSwapChainLengthGL(int swapChain):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_buffSize.w); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2832, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_buffSize.w); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2887, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_buffSize.h); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2832, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_buffSize.h); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2887, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2832, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2887, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -21103,7 +21617,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_56calcEyeBufferSize(CYTHON_U
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2778
+  /* "psychxr/libovr/_libovr.pyx":2833
  *     return 1.0 / tan(getEyeHorizontalFovRadians(eye) / 2.0)
  * 
  * def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):             # <<<<<<<<<<<<<<
@@ -21124,7 +21638,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_56calcEyeBufferSize(CYTHON_U
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2834
+/* "psychxr/libovr/_libovr.pyx":2889
  *     return buffSize.w, buffSize.h
  * 
  * def getTextureSwapChainLengthGL(int swapChain):             # <<<<<<<<<<<<<<
@@ -21142,7 +21656,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_59getTextureSwapChainLengthG
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getTextureSwapChainLengthGL (wrapper)", 0);
   assert(__pyx_arg_swapChain); {
-    __pyx_v_swapChain = __Pyx_PyInt_As_int(__pyx_arg_swapChain); if (unlikely((__pyx_v_swapChain == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2834, __pyx_L3_error)
+    __pyx_v_swapChain = __Pyx_PyInt_As_int(__pyx_arg_swapChain); if (unlikely((__pyx_v_swapChain == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2889, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -21168,7 +21682,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_58getTextureSwapChainLengthG
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("getTextureSwapChainLengthGL", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2851
+  /* "psychxr/libovr/_libovr.pyx":2906
  *     """
  *     cdef int outLength
  *     cdef libovr_capi.ovrResult result = 0             # <<<<<<<<<<<<<<
@@ -21177,7 +21691,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_58getTextureSwapChainLengthG
  */
   __pyx_v_result = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2857
+  /* "psychxr/libovr/_libovr.pyx":2912
  * 
  *     # check if there is a swap chain in the slot
  *     if _eyeLayer.ColorTexture[swapChain] == NULL:             # <<<<<<<<<<<<<<
@@ -21187,20 +21701,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_58getTextureSwapChainLengthG
   __pyx_t_1 = (((__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.ColorTexture[__pyx_v_swapChain]) == NULL) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "psychxr/libovr/_libovr.pyx":2858
+    /* "psychxr/libovr/_libovr.pyx":2913
  *     # check if there is a swap chain in the slot
  *     if _eyeLayer.ColorTexture[swapChain] == NULL:
  *         raise RuntimeError(             # <<<<<<<<<<<<<<
  *             "Cannot get swap chain length, NULL eye buffer texture.")
  * 
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__24, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2858, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__24, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2913, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 2858, __pyx_L1_error)
+    __PYX_ERR(0, 2913, __pyx_L1_error)
 
-    /* "psychxr/libovr/_libovr.pyx":2857
+    /* "psychxr/libovr/_libovr.pyx":2912
  * 
  *     # check if there is a swap chain in the slot
  *     if _eyeLayer.ColorTexture[swapChain] == NULL:             # <<<<<<<<<<<<<<
@@ -21209,7 +21723,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_58getTextureSwapChainLengthG
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":2862
+  /* "psychxr/libovr/_libovr.pyx":2917
  * 
  *     # get the current texture index within the swap chain
  *     result = libovr_capi.ovr_GetTextureSwapChainLength(             # <<<<<<<<<<<<<<
@@ -21218,7 +21732,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_58getTextureSwapChainLengthG
  */
   __pyx_v_result = ovr_GetTextureSwapChainLength(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, (__pyx_v_7psychxr_6libovr_7_libovr__swapChains[__pyx_v_swapChain]), (&__pyx_v_outLength));
 
-  /* "psychxr/libovr/_libovr.pyx":2865
+  /* "psychxr/libovr/_libovr.pyx":2920
  *         _ptrSession, _swapChains[swapChain], &outLength)
  * 
  *     return result, outLength             # <<<<<<<<<<<<<<
@@ -21226,11 +21740,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_58getTextureSwapChainLengthG
  * def getTextureSwapChainCurrentIndex(int swapChain):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2865, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2920, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_outLength); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2865, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_outLength); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2920, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2865, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2920, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
@@ -21242,7 +21756,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_58getTextureSwapChainLengthG
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2834
+  /* "psychxr/libovr/_libovr.pyx":2889
  *     return buffSize.w, buffSize.h
  * 
  * def getTextureSwapChainLengthGL(int swapChain):             # <<<<<<<<<<<<<<
@@ -21263,7 +21777,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_58getTextureSwapChainLengthG
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2867
+/* "psychxr/libovr/_libovr.pyx":2922
  *     return result, outLength
  * 
  * def getTextureSwapChainCurrentIndex(int swapChain):             # <<<<<<<<<<<<<<
@@ -21281,7 +21795,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_61getTextureSwapChainCurrent
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getTextureSwapChainCurrentIndex (wrapper)", 0);
   assert(__pyx_arg_swapChain); {
-    __pyx_v_swapChain = __Pyx_PyInt_As_int(__pyx_arg_swapChain); if (unlikely((__pyx_v_swapChain == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2867, __pyx_L3_error)
+    __pyx_v_swapChain = __Pyx_PyInt_As_int(__pyx_arg_swapChain); if (unlikely((__pyx_v_swapChain == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2922, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -21307,7 +21821,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_60getTextureSwapChainCurrent
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("getTextureSwapChainCurrentIndex", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2883
+  /* "psychxr/libovr/_libovr.pyx":2938
  * 
  *     """
  *     cdef int current_idx = 0             # <<<<<<<<<<<<<<
@@ -21316,7 +21830,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_60getTextureSwapChainCurrent
  */
   __pyx_v_current_idx = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2884
+  /* "psychxr/libovr/_libovr.pyx":2939
  *     """
  *     cdef int current_idx = 0
  *     cdef libovr_capi.ovrResult result = 0             # <<<<<<<<<<<<<<
@@ -21325,7 +21839,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_60getTextureSwapChainCurrent
  */
   __pyx_v_result = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2890
+  /* "psychxr/libovr/_libovr.pyx":2945
  * 
  *     # check if there is a swap chain in the slot
  *     if _eyeLayer.ColorTexture[swapChain] == NULL:             # <<<<<<<<<<<<<<
@@ -21335,20 +21849,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_60getTextureSwapChainCurrent
   __pyx_t_1 = (((__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.ColorTexture[__pyx_v_swapChain]) == NULL) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "psychxr/libovr/_libovr.pyx":2891
+    /* "psychxr/libovr/_libovr.pyx":2946
  *     # check if there is a swap chain in the slot
  *     if _eyeLayer.ColorTexture[swapChain] == NULL:
  *         raise RuntimeError(             # <<<<<<<<<<<<<<
  *             "Cannot get buffer ID, NULL eye buffer texture.")
  * 
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__25, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2891, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__25, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2946, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 2891, __pyx_L1_error)
+    __PYX_ERR(0, 2946, __pyx_L1_error)
 
-    /* "psychxr/libovr/_libovr.pyx":2890
+    /* "psychxr/libovr/_libovr.pyx":2945
  * 
  *     # check if there is a swap chain in the slot
  *     if _eyeLayer.ColorTexture[swapChain] == NULL:             # <<<<<<<<<<<<<<
@@ -21357,7 +21871,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_60getTextureSwapChainCurrent
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":2895
+  /* "psychxr/libovr/_libovr.pyx":2950
  * 
  *     # get the current texture index within the swap chain
  *     result = libovr_capi.ovr_GetTextureSwapChainCurrentIndex(             # <<<<<<<<<<<<<<
@@ -21366,7 +21880,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_60getTextureSwapChainCurrent
  */
   __pyx_v_result = ovr_GetTextureSwapChainCurrentIndex(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, (__pyx_v_7psychxr_6libovr_7_libovr__swapChains[__pyx_v_swapChain]), (&__pyx_v_current_idx));
 
-  /* "psychxr/libovr/_libovr.pyx":2898
+  /* "psychxr/libovr/_libovr.pyx":2953
  *         _ptrSession, _swapChains[swapChain], &current_idx)
  * 
  *     return result, current_idx             # <<<<<<<<<<<<<<
@@ -21374,11 +21888,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_60getTextureSwapChainCurrent
  * def getTextureSwapChainBufferGL(int swapChain, int index):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2898, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2953, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_current_idx); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2898, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_current_idx); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2953, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2898, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 2953, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
@@ -21390,7 +21904,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_60getTextureSwapChainCurrent
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2867
+  /* "psychxr/libovr/_libovr.pyx":2922
  *     return result, outLength
  * 
  * def getTextureSwapChainCurrentIndex(int swapChain):             # <<<<<<<<<<<<<<
@@ -21411,7 +21925,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_60getTextureSwapChainCurrent
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2900
+/* "psychxr/libovr/_libovr.pyx":2955
  *     return result, current_idx
  * 
  * def getTextureSwapChainBufferGL(int swapChain, int index):             # <<<<<<<<<<<<<<
@@ -21452,11 +21966,11 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_63getTextureSwapChainBufferG
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_index)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("getTextureSwapChainBufferGL", 1, 2, 2, 1); __PYX_ERR(0, 2900, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("getTextureSwapChainBufferGL", 1, 2, 2, 1); __PYX_ERR(0, 2955, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getTextureSwapChainBufferGL") < 0)) __PYX_ERR(0, 2900, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getTextureSwapChainBufferGL") < 0)) __PYX_ERR(0, 2955, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -21464,12 +21978,12 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_63getTextureSwapChainBufferG
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_swapChain = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_swapChain == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2900, __pyx_L3_error)
-    __pyx_v_index = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_index == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2900, __pyx_L3_error)
+    __pyx_v_swapChain = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_swapChain == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2955, __pyx_L3_error)
+    __pyx_v_index = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_index == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2955, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getTextureSwapChainBufferGL", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2900, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getTextureSwapChainBufferGL", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2955, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getTextureSwapChainBufferGL", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -21492,7 +22006,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_62getTextureSwapChainBufferG
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("getTextureSwapChainBufferGL", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2935
+  /* "psychxr/libovr/_libovr.pyx":2990
  * 
  *     """
  *     cdef unsigned int tex_id = 0  # OpenGL texture handle             # <<<<<<<<<<<<<<
@@ -21501,7 +22015,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_62getTextureSwapChainBufferG
  */
   __pyx_v_tex_id = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2941
+  /* "psychxr/libovr/_libovr.pyx":2996
  * 
  *     # get the next available texture ID from the swap chain
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetTextureSwapChainBufferGL(             # <<<<<<<<<<<<<<
@@ -21510,7 +22024,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_62getTextureSwapChainBufferG
  */
   __pyx_v_result = ovr_GetTextureSwapChainBufferGL(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, (__pyx_v_7psychxr_6libovr_7_libovr__swapChains[__pyx_v_swapChain]), __pyx_v_index, (&__pyx_v_tex_id));
 
-  /* "psychxr/libovr/_libovr.pyx":2944
+  /* "psychxr/libovr/_libovr.pyx":2999
  *         _ptrSession, _swapChains[swapChain], index, &tex_id)
  * 
  *     return result, tex_id             # <<<<<<<<<<<<<<
@@ -21518,11 +22032,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_62getTextureSwapChainBufferG
  * def createTextureSwapChainGL(int swapChain, int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB, int levels=1):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2944, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2999, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_From_unsigned_int(__pyx_v_tex_id); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2944, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_unsigned_int(__pyx_v_tex_id); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2999, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2944, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2999, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -21534,7 +22048,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_62getTextureSwapChainBufferG
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2900
+  /* "psychxr/libovr/_libovr.pyx":2955
  *     return result, current_idx
  * 
  * def getTextureSwapChainBufferGL(int swapChain, int index):             # <<<<<<<<<<<<<<
@@ -21555,7 +22069,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_62getTextureSwapChainBufferG
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":2946
+/* "psychxr/libovr/_libovr.pyx":3001
  *     return result, tex_id
  * 
  * def createTextureSwapChainGL(int swapChain, int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB, int levels=1):             # <<<<<<<<<<<<<<
@@ -21605,13 +22119,13 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_65createTextureSwapChainGL(P
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_width)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("createTextureSwapChainGL", 0, 3, 5, 1); __PYX_ERR(0, 2946, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("createTextureSwapChainGL", 0, 3, 5, 1); __PYX_ERR(0, 3001, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_height)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("createTextureSwapChainGL", 0, 3, 5, 2); __PYX_ERR(0, 2946, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("createTextureSwapChainGL", 0, 3, 5, 2); __PYX_ERR(0, 3001, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -21627,7 +22141,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_65createTextureSwapChainGL(P
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "createTextureSwapChainGL") < 0)) __PYX_ERR(0, 2946, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "createTextureSwapChainGL") < 0)) __PYX_ERR(0, 3001, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -21642,23 +22156,23 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_65createTextureSwapChainGL(P
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_swapChain = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_swapChain == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2946, __pyx_L3_error)
-    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2946, __pyx_L3_error)
-    __pyx_v_height = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_height == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2946, __pyx_L3_error)
+    __pyx_v_swapChain = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_swapChain == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3001, __pyx_L3_error)
+    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3001, __pyx_L3_error)
+    __pyx_v_height = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_height == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3001, __pyx_L3_error)
     if (values[3]) {
-      __pyx_v_textureFormat = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_textureFormat == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2946, __pyx_L3_error)
+      __pyx_v_textureFormat = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_textureFormat == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3001, __pyx_L3_error)
     } else {
       __pyx_v_textureFormat = __pyx_k__26;
     }
     if (values[4]) {
-      __pyx_v_levels = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_levels == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2946, __pyx_L3_error)
+      __pyx_v_levels = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_levels == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3001, __pyx_L3_error)
     } else {
       __pyx_v_levels = ((int)1);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("createTextureSwapChainGL", 0, 3, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 2946, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("createTextureSwapChainGL", 0, 3, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3001, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.createTextureSwapChainGL", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -21679,7 +22193,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("createTextureSwapChainGL", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":2997
+  /* "psychxr/libovr/_libovr.pyx":3052
  *     # configure the texture
  *     cdef libovr_capi.ovrTextureSwapChainDesc swapConfig
  *     swapConfig.Type = libovr_capi.ovrTexture_2D             # <<<<<<<<<<<<<<
@@ -21688,7 +22202,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
  */
   __pyx_v_swapConfig.Type = ovrTexture_2D;
 
-  /* "psychxr/libovr/_libovr.pyx":2998
+  /* "psychxr/libovr/_libovr.pyx":3053
  *     cdef libovr_capi.ovrTextureSwapChainDesc swapConfig
  *     swapConfig.Type = libovr_capi.ovrTexture_2D
  *     swapConfig.Format = <libovr_capi.ovrTextureFormat>textureFormat             # <<<<<<<<<<<<<<
@@ -21697,7 +22211,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
  */
   __pyx_v_swapConfig.Format = ((ovrTextureFormat)__pyx_v_textureFormat);
 
-  /* "psychxr/libovr/_libovr.pyx":2999
+  /* "psychxr/libovr/_libovr.pyx":3054
  *     swapConfig.Type = libovr_capi.ovrTexture_2D
  *     swapConfig.Format = <libovr_capi.ovrTextureFormat>textureFormat
  *     swapConfig.ArraySize = 1             # <<<<<<<<<<<<<<
@@ -21706,7 +22220,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
  */
   __pyx_v_swapConfig.ArraySize = 1;
 
-  /* "psychxr/libovr/_libovr.pyx":3000
+  /* "psychxr/libovr/_libovr.pyx":3055
  *     swapConfig.Format = <libovr_capi.ovrTextureFormat>textureFormat
  *     swapConfig.ArraySize = 1
  *     swapConfig.Width = <int>width             # <<<<<<<<<<<<<<
@@ -21715,7 +22229,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
  */
   __pyx_v_swapConfig.Width = ((int)__pyx_v_width);
 
-  /* "psychxr/libovr/_libovr.pyx":3001
+  /* "psychxr/libovr/_libovr.pyx":3056
  *     swapConfig.ArraySize = 1
  *     swapConfig.Width = <int>width
  *     swapConfig.Height = <int>height             # <<<<<<<<<<<<<<
@@ -21724,7 +22238,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
  */
   __pyx_v_swapConfig.Height = ((int)__pyx_v_height);
 
-  /* "psychxr/libovr/_libovr.pyx":3002
+  /* "psychxr/libovr/_libovr.pyx":3057
  *     swapConfig.Width = <int>width
  *     swapConfig.Height = <int>height
  *     swapConfig.MipLevels = <int>levels             # <<<<<<<<<<<<<<
@@ -21733,7 +22247,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
  */
   __pyx_v_swapConfig.MipLevels = ((int)__pyx_v_levels);
 
-  /* "psychxr/libovr/_libovr.pyx":3003
+  /* "psychxr/libovr/_libovr.pyx":3058
  *     swapConfig.Height = <int>height
  *     swapConfig.MipLevels = <int>levels
  *     swapConfig.SampleCount = 1             # <<<<<<<<<<<<<<
@@ -21742,7 +22256,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
  */
   __pyx_v_swapConfig.SampleCount = 1;
 
-  /* "psychxr/libovr/_libovr.pyx":3004
+  /* "psychxr/libovr/_libovr.pyx":3059
  *     swapConfig.MipLevels = <int>levels
  *     swapConfig.SampleCount = 1
  *     swapConfig.StaticImage = libovr_capi.ovrFalse  # always buffered             # <<<<<<<<<<<<<<
@@ -21751,7 +22265,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
  */
   __pyx_v_swapConfig.StaticImage = ovrFalse;
 
-  /* "psychxr/libovr/_libovr.pyx":3005
+  /* "psychxr/libovr/_libovr.pyx":3060
  *     swapConfig.SampleCount = 1
  *     swapConfig.StaticImage = libovr_capi.ovrFalse  # always buffered
  *     swapConfig.MiscFlags = libovr_capi.ovrTextureMisc_None             # <<<<<<<<<<<<<<
@@ -21760,7 +22274,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
  */
   __pyx_v_swapConfig.MiscFlags = ovrTextureMisc_None;
 
-  /* "psychxr/libovr/_libovr.pyx":3006
+  /* "psychxr/libovr/_libovr.pyx":3061
  *     swapConfig.StaticImage = libovr_capi.ovrFalse  # always buffered
  *     swapConfig.MiscFlags = libovr_capi.ovrTextureMisc_None
  *     swapConfig.BindFlags = libovr_capi.ovrTextureBind_None             # <<<<<<<<<<<<<<
@@ -21769,7 +22283,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
  */
   __pyx_v_swapConfig.BindFlags = ovrTextureBind_None;
 
-  /* "psychxr/libovr/_libovr.pyx":3010
+  /* "psychxr/libovr/_libovr.pyx":3065
  *     # create the swap chain
  *     cdef libovr_capi.ovrResult result = \
  *         libovr_capi.ovr_CreateTextureSwapChainGL(             # <<<<<<<<<<<<<<
@@ -21778,7 +22292,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
  */
   __pyx_v_result = ovr_CreateTextureSwapChainGL(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, (&__pyx_v_swapConfig), (&(__pyx_v_7psychxr_6libovr_7_libovr__swapChains[__pyx_v_swapChain])));
 
-  /* "psychxr/libovr/_libovr.pyx":3017
+  /* "psychxr/libovr/_libovr.pyx":3072
  *     #_eyeLayer.ColorTexture[swapChain] = _swapChains[swapChain]
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -21786,13 +22300,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
  * def setEyeColorTextureSwapChain(int eye, int swapChain):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3017, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3072, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":2946
+  /* "psychxr/libovr/_libovr.pyx":3001
  *     return result, tex_id
  * 
  * def createTextureSwapChainGL(int swapChain, int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB, int levels=1):             # <<<<<<<<<<<<<<
@@ -21811,7 +22325,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_64createTextureSwapChainGL(C
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3019
+/* "psychxr/libovr/_libovr.pyx":3074
  *     return result
  * 
  * def setEyeColorTextureSwapChain(int eye, int swapChain):             # <<<<<<<<<<<<<<
@@ -21852,11 +22366,11 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_67setEyeColorTextureSwapChai
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_swapChain)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("setEyeColorTextureSwapChain", 1, 2, 2, 1); __PYX_ERR(0, 3019, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("setEyeColorTextureSwapChain", 1, 2, 2, 1); __PYX_ERR(0, 3074, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setEyeColorTextureSwapChain") < 0)) __PYX_ERR(0, 3019, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setEyeColorTextureSwapChain") < 0)) __PYX_ERR(0, 3074, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -21864,12 +22378,12 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_67setEyeColorTextureSwapChai
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3019, __pyx_L3_error)
-    __pyx_v_swapChain = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_swapChain == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3019, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3074, __pyx_L3_error)
+    __pyx_v_swapChain = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_swapChain == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3074, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("setEyeColorTextureSwapChain", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3019, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("setEyeColorTextureSwapChain", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3074, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.setEyeColorTextureSwapChain", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -21887,7 +22401,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_66setEyeColorTextureSwapChai
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setEyeColorTextureSwapChain", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3063
+  /* "psychxr/libovr/_libovr.pyx":3118
  *     global _eyeLayer
  * 
  *     _eyeLayer.ColorTexture[eye] = _swapChains[swapChain]             # <<<<<<<<<<<<<<
@@ -21896,7 +22410,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_66setEyeColorTextureSwapChai
  */
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.ColorTexture[__pyx_v_eye]) = (__pyx_v_7psychxr_6libovr_7_libovr__swapChains[__pyx_v_swapChain]);
 
-  /* "psychxr/libovr/_libovr.pyx":3019
+  /* "psychxr/libovr/_libovr.pyx":3074
  *     return result
  * 
  * def setEyeColorTextureSwapChain(int eye, int swapChain):             # <<<<<<<<<<<<<<
@@ -21911,7 +22425,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_66setEyeColorTextureSwapChai
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3065
+/* "psychxr/libovr/_libovr.pyx":3120
  *     _eyeLayer.ColorTexture[eye] = _swapChains[swapChain]
  * 
  * def createMirrorTexture(int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB):             # <<<<<<<<<<<<<<
@@ -21955,7 +22469,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_69createMirrorTexture(PyObje
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_height)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("createMirrorTexture", 0, 2, 3, 1); __PYX_ERR(0, 3065, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("createMirrorTexture", 0, 2, 3, 1); __PYX_ERR(0, 3120, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -21965,7 +22479,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_69createMirrorTexture(PyObje
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "createMirrorTexture") < 0)) __PYX_ERR(0, 3065, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "createMirrorTexture") < 0)) __PYX_ERR(0, 3120, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -21977,17 +22491,17 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_69createMirrorTexture(PyObje
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_width = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3065, __pyx_L3_error)
-    __pyx_v_height = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_height == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3065, __pyx_L3_error)
+    __pyx_v_width = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3120, __pyx_L3_error)
+    __pyx_v_height = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_height == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3120, __pyx_L3_error)
     if (values[2]) {
-      __pyx_v_textureFormat = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_textureFormat == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3065, __pyx_L3_error)
+      __pyx_v_textureFormat = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_textureFormat == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3120, __pyx_L3_error)
     } else {
       __pyx_v_textureFormat = __pyx_k__27;
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("createMirrorTexture", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3065, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("createMirrorTexture", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3120, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.createMirrorTexture", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -22008,7 +22522,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_68createMirrorTexture(CYTHON
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("createMirrorTexture", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3117
+  /* "psychxr/libovr/_libovr.pyx":3172
  *     global _mirrorTexture
  * 
  *     mirrorDesc.Format = <libovr_capi.ovrTextureFormat>textureFormat             # <<<<<<<<<<<<<<
@@ -22017,7 +22531,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_68createMirrorTexture(CYTHON
  */
   __pyx_v_mirrorDesc.Format = ((ovrTextureFormat)__pyx_v_textureFormat);
 
-  /* "psychxr/libovr/_libovr.pyx":3118
+  /* "psychxr/libovr/_libovr.pyx":3173
  * 
  *     mirrorDesc.Format = <libovr_capi.ovrTextureFormat>textureFormat
  *     mirrorDesc.Width = <int>width             # <<<<<<<<<<<<<<
@@ -22026,7 +22540,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_68createMirrorTexture(CYTHON
  */
   __pyx_v_mirrorDesc.Width = ((int)__pyx_v_width);
 
-  /* "psychxr/libovr/_libovr.pyx":3119
+  /* "psychxr/libovr/_libovr.pyx":3174
  *     mirrorDesc.Format = <libovr_capi.ovrTextureFormat>textureFormat
  *     mirrorDesc.Width = <int>width
  *     mirrorDesc.Height = <int>height             # <<<<<<<<<<<<<<
@@ -22035,7 +22549,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_68createMirrorTexture(CYTHON
  */
   __pyx_v_mirrorDesc.Height = ((int)__pyx_v_height);
 
-  /* "psychxr/libovr/_libovr.pyx":3120
+  /* "psychxr/libovr/_libovr.pyx":3175
  *     mirrorDesc.Width = <int>width
  *     mirrorDesc.Height = <int>height
  *     mirrorDesc.MiscFlags = libovr_capi.ovrTextureMisc_None             # <<<<<<<<<<<<<<
@@ -22044,7 +22558,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_68createMirrorTexture(CYTHON
  */
   __pyx_v_mirrorDesc.MiscFlags = ovrTextureMisc_None;
 
-  /* "psychxr/libovr/_libovr.pyx":3121
+  /* "psychxr/libovr/_libovr.pyx":3176
  *     mirrorDesc.Height = <int>height
  *     mirrorDesc.MiscFlags = libovr_capi.ovrTextureMisc_None
  *     mirrorDesc.MirrorOptions = libovr_capi.ovrMirrorOption_Default             # <<<<<<<<<<<<<<
@@ -22053,7 +22567,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_68createMirrorTexture(CYTHON
  */
   __pyx_v_mirrorDesc.MirrorOptions = ovrMirrorOption_Default;
 
-  /* "psychxr/libovr/_libovr.pyx":3123
+  /* "psychxr/libovr/_libovr.pyx":3178
  *     mirrorDesc.MirrorOptions = libovr_capi.ovrMirrorOption_Default
  * 
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_CreateMirrorTextureGL(             # <<<<<<<<<<<<<<
@@ -22062,7 +22576,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_68createMirrorTexture(CYTHON
  */
   __pyx_v_result = ovr_CreateMirrorTextureGL(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, (&__pyx_v_mirrorDesc), (&__pyx_v_7psychxr_6libovr_7_libovr__mirrorTexture));
 
-  /* "psychxr/libovr/_libovr.pyx":3126
+  /* "psychxr/libovr/_libovr.pyx":3181
  *         _ptrSession, &mirrorDesc, &_mirrorTexture)
  * 
  *     return <int>result             # <<<<<<<<<<<<<<
@@ -22070,13 +22584,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_68createMirrorTexture(CYTHON
  * def getMirrorTexture():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(((int)__pyx_v_result)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3126, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(((int)__pyx_v_result)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3181, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3065
+  /* "psychxr/libovr/_libovr.pyx":3120
  *     _eyeLayer.ColorTexture[eye] = _swapChains[swapChain]
  * 
  * def createMirrorTexture(int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB):             # <<<<<<<<<<<<<<
@@ -22095,7 +22609,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_68createMirrorTexture(CYTHON
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3128
+/* "psychxr/libovr/_libovr.pyx":3183
  *     return <int>result
  * 
  * def getMirrorTexture():             # <<<<<<<<<<<<<<
@@ -22129,7 +22643,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_70getMirrorTexture(CYTHON_UN
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("getMirrorTexture", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3158
+  /* "psychxr/libovr/_libovr.pyx":3213
  *     global _mirrorTexture
  * 
  *     if _mirrorTexture == NULL:  # no texture created             # <<<<<<<<<<<<<<
@@ -22139,7 +22653,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_70getMirrorTexture(CYTHON_UN
   __pyx_t_1 = ((__pyx_v_7psychxr_6libovr_7_libovr__mirrorTexture == NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":3159
+    /* "psychxr/libovr/_libovr.pyx":3214
  * 
  *     if _mirrorTexture == NULL:  # no texture created
  *         return None             # <<<<<<<<<<<<<<
@@ -22150,7 +22664,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_70getMirrorTexture(CYTHON_UN
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "psychxr/libovr/_libovr.pyx":3158
+    /* "psychxr/libovr/_libovr.pyx":3213
  *     global _mirrorTexture
  * 
  *     if _mirrorTexture == NULL:  # no texture created             # <<<<<<<<<<<<<<
@@ -22159,7 +22673,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_70getMirrorTexture(CYTHON_UN
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3162
+  /* "psychxr/libovr/_libovr.pyx":3217
  * 
  *     cdef libovr_capi.ovrResult result = \
  *         libovr_capi.ovr_GetMirrorTextureBufferGL(             # <<<<<<<<<<<<<<
@@ -22168,7 +22682,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_70getMirrorTexture(CYTHON_UN
  */
   __pyx_v_result = ovr_GetMirrorTextureBufferGL(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, __pyx_v_7psychxr_6libovr_7_libovr__mirrorTexture, (&__pyx_v_mirror_id));
 
-  /* "psychxr/libovr/_libovr.pyx":3167
+  /* "psychxr/libovr/_libovr.pyx":3222
  *             &mirror_id)
  * 
  *     return <int>result, <unsigned int>mirror_id             # <<<<<<<<<<<<<<
@@ -22176,11 +22690,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_70getMirrorTexture(CYTHON_UN
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyInt_From_int(((int)__pyx_v_result)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 3167, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(((int)__pyx_v_result)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 3222, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_unsigned_int(((unsigned int)__pyx_v_mirror_id)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3167, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_unsigned_int(((unsigned int)__pyx_v_mirror_id)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3222, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3167, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3222, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
@@ -22192,7 +22706,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_70getMirrorTexture(CYTHON_UN
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3128
+  /* "psychxr/libovr/_libovr.pyx":3183
  *     return <int>result
  * 
  * def getMirrorTexture():             # <<<<<<<<<<<<<<
@@ -22213,7 +22727,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_70getMirrorTexture(CYTHON_UN
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3170
+/* "psychxr/libovr/_libovr.pyx":3225
  * 
  * 
  * def getTrackingState(double absTime, bint latencyMarker=True):             # <<<<<<<<<<<<<<
@@ -22258,7 +22772,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_73getTrackingState(PyObject 
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getTrackingState") < 0)) __PYX_ERR(0, 3170, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getTrackingState") < 0)) __PYX_ERR(0, 3225, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -22269,16 +22783,16 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_73getTrackingState(PyObject 
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_absTime = __pyx_PyFloat_AsDouble(values[0]); if (unlikely((__pyx_v_absTime == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 3170, __pyx_L3_error)
+    __pyx_v_absTime = __pyx_PyFloat_AsDouble(values[0]); if (unlikely((__pyx_v_absTime == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 3225, __pyx_L3_error)
     if (values[1]) {
-      __pyx_v_latencyMarker = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_latencyMarker == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3170, __pyx_L3_error)
+      __pyx_v_latencyMarker = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_latencyMarker == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3225, __pyx_L3_error)
     } else {
       __pyx_v_latencyMarker = ((int)1);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getTrackingState", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3170, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getTrackingState", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3225, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getTrackingState", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -22300,7 +22814,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_72getTrackingState(CYTHON_UN
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("getTrackingState", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3203
+  /* "psychxr/libovr/_libovr.pyx":3258
  * 
  *     cdef libovr_capi.ovrBool use_marker = \
  *         libovr_capi.ovrTrue if latencyMarker else libovr_capi.ovrFalse             # <<<<<<<<<<<<<<
@@ -22314,19 +22828,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_72getTrackingState(CYTHON_UN
   }
   __pyx_v_use_marker = __pyx_t_1;
 
-  /* "psychxr/libovr/_libovr.pyx":3206
+  /* "psychxr/libovr/_libovr.pyx":3261
  * 
  *     # tracking state object that is actually returned to Python land
  *     cdef LibOVRTrackingState toReturn = LibOVRTrackingState()             # <<<<<<<<<<<<<<
  *     toReturn.c_data[0] = libovr_capi.ovr_GetTrackingState(
  *         _ptrSession, absTime, use_marker)
  */
-  __pyx_t_2 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRTrackingState)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 3206, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRTrackingState)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 3261, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_v_toReturn = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackingState *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3207
+  /* "psychxr/libovr/_libovr.pyx":3262
  *     # tracking state object that is actually returned to Python land
  *     cdef LibOVRTrackingState toReturn = LibOVRTrackingState()
  *     toReturn.c_data[0] = libovr_capi.ovr_GetTrackingState(             # <<<<<<<<<<<<<<
@@ -22335,7 +22849,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_72getTrackingState(CYTHON_UN
  */
   (__pyx_v_toReturn->c_data[0]) = ovr_GetTrackingState(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, __pyx_v_absTime, __pyx_v_use_marker);
 
-  /* "psychxr/libovr/_libovr.pyx":3213
+  /* "psychxr/libovr/_libovr.pyx":3268
  *     #_eyeLayer.SensorSampleTime = toReturn.c_data[0].HeadPose.TimeInSeconds
  * 
  *     return toReturn             # <<<<<<<<<<<<<<
@@ -22347,7 +22861,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_72getTrackingState(CYTHON_UN
   __pyx_r = ((PyObject *)__pyx_v_toReturn);
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3170
+  /* "psychxr/libovr/_libovr.pyx":3225
  * 
  * 
  * def getTrackingState(double absTime, bint latencyMarker=True):             # <<<<<<<<<<<<<<
@@ -22367,7 +22881,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_72getTrackingState(CYTHON_UN
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3273
+/* "psychxr/libovr/_libovr.pyx":3328
  * #     return result, devicePose
  * 
  * def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):             # <<<<<<<<<<<<<<
@@ -22411,7 +22925,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_75getDevicePoses(PyObject *_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_absTime)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("getDevicePoses", 0, 2, 3, 1); __PYX_ERR(0, 3273, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("getDevicePoses", 0, 2, 3, 1); __PYX_ERR(0, 3328, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -22421,7 +22935,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_75getDevicePoses(PyObject *_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getDevicePoses") < 0)) __PYX_ERR(0, 3273, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getDevicePoses") < 0)) __PYX_ERR(0, 3328, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -22434,16 +22948,16 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_75getDevicePoses(PyObject *_
       }
     }
     __pyx_v_deviceTypes = values[0];
-    __pyx_v_absTime = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_absTime == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 3273, __pyx_L3_error)
+    __pyx_v_absTime = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_absTime == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 3328, __pyx_L3_error)
     if (values[2]) {
-      __pyx_v_latencyMarker = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_latencyMarker == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3273, __pyx_L3_error)
+      __pyx_v_latencyMarker = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_latencyMarker == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3328, __pyx_L3_error)
     } else {
       __pyx_v_latencyMarker = ((int)1);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getDevicePoses", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3273, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getDevicePoses", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3328, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getDevicePoses", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -22479,18 +22993,18 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
   int __pyx_t_11;
   __Pyx_RefNannySetupContext("getDevicePoses", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3334
+  /* "psychxr/libovr/_libovr.pyx":3389
  *     """
  *     # give a success code and empty pose list if an empty list was specified
  *     if not deviceTypes:             # <<<<<<<<<<<<<<
  *         return libovr_capi.ovrSuccess, []
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_deviceTypes); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 3334, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_deviceTypes); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 3389, __pyx_L1_error)
   __pyx_t_2 = ((!__pyx_t_1) != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":3335
+    /* "psychxr/libovr/_libovr.pyx":3390
  *     # give a success code and empty pose list if an empty list was specified
  *     if not deviceTypes:
  *         return libovr_capi.ovrSuccess, []             # <<<<<<<<<<<<<<
@@ -22498,11 +23012,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  *     global _ptrSession
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_3 = __Pyx_PyInt_From_ovrSuccessType(ovrSuccess); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3335, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyInt_From_ovrSuccessType(ovrSuccess); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3390, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PyList_New(0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3335, __pyx_L1_error)
+    __pyx_t_4 = PyList_New(0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3390, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3335, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3390, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_3);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3);
@@ -22514,7 +23028,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
     __pyx_t_5 = 0;
     goto __pyx_L0;
 
-    /* "psychxr/libovr/_libovr.pyx":3334
+    /* "psychxr/libovr/_libovr.pyx":3389
  *     """
  *     # give a success code and empty pose list if an empty list was specified
  *     if not deviceTypes:             # <<<<<<<<<<<<<<
@@ -22523,7 +23037,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3342
+  /* "psychxr/libovr/_libovr.pyx":3397
  * 
  *     # for computing app photon-to-motion latency
  *     if latencyMarker:             # <<<<<<<<<<<<<<
@@ -22533,7 +23047,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
   __pyx_t_2 = (__pyx_v_latencyMarker != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":3343
+    /* "psychxr/libovr/_libovr.pyx":3398
  *     # for computing app photon-to-motion latency
  *     if latencyMarker:
  *         _eyeLayer.SensorSampleTime = absTime             # <<<<<<<<<<<<<<
@@ -22542,7 +23056,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  */
     __pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.SensorSampleTime = __pyx_v_absTime;
 
-    /* "psychxr/libovr/_libovr.pyx":3342
+    /* "psychxr/libovr/_libovr.pyx":3397
  * 
  *     # for computing app photon-to-motion latency
  *     if latencyMarker:             # <<<<<<<<<<<<<<
@@ -22551,17 +23065,17 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3346
+  /* "psychxr/libovr/_libovr.pyx":3401
  * 
  *     # allocate arrays to store pose types and poses
  *     cdef int count = <int>len(deviceTypes)             # <<<<<<<<<<<<<<
  *     cdef libovr_capi.ovrTrackedDeviceType* devices = \
  *         <libovr_capi.ovrTrackedDeviceType*>malloc(
  */
-  __pyx_t_6 = PyObject_Length(__pyx_v_deviceTypes); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 3346, __pyx_L1_error)
+  __pyx_t_6 = PyObject_Length(__pyx_v_deviceTypes); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 3401, __pyx_L1_error)
   __pyx_v_count = ((int)__pyx_t_6);
 
-  /* "psychxr/libovr/_libovr.pyx":3348
+  /* "psychxr/libovr/_libovr.pyx":3403
  *     cdef int count = <int>len(deviceTypes)
  *     cdef libovr_capi.ovrTrackedDeviceType* devices = \
  *         <libovr_capi.ovrTrackedDeviceType*>malloc(             # <<<<<<<<<<<<<<
@@ -22570,7 +23084,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  */
   __pyx_v_devices = ((ovrTrackedDeviceType *)malloc((__pyx_v_count * (sizeof(ovrTrackedDeviceType)))));
 
-  /* "psychxr/libovr/_libovr.pyx":3350
+  /* "psychxr/libovr/_libovr.pyx":3405
  *         <libovr_capi.ovrTrackedDeviceType*>malloc(
  *             count * sizeof(libovr_capi.ovrTrackedDeviceType))
  *     if not devices:             # <<<<<<<<<<<<<<
@@ -22580,20 +23094,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
   __pyx_t_2 = ((!(__pyx_v_devices != 0)) != 0);
   if (unlikely(__pyx_t_2)) {
 
-    /* "psychxr/libovr/_libovr.pyx":3351
+    /* "psychxr/libovr/_libovr.pyx":3406
  *             count * sizeof(libovr_capi.ovrTrackedDeviceType))
  *     if not devices:
  *         raise MemoryError("Failed to allocate array 'devices'.")             # <<<<<<<<<<<<<<
  * 
  *     cdef int i = 0
  */
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_MemoryError, __pyx_tuple__28, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3351, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_MemoryError, __pyx_tuple__28, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3406, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_Raise(__pyx_t_5, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __PYX_ERR(0, 3351, __pyx_L1_error)
+    __PYX_ERR(0, 3406, __pyx_L1_error)
 
-    /* "psychxr/libovr/_libovr.pyx":3350
+    /* "psychxr/libovr/_libovr.pyx":3405
  *         <libovr_capi.ovrTrackedDeviceType*>malloc(
  *             count * sizeof(libovr_capi.ovrTrackedDeviceType))
  *     if not devices:             # <<<<<<<<<<<<<<
@@ -22602,7 +23116,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3353
+  /* "psychxr/libovr/_libovr.pyx":3408
  *         raise MemoryError("Failed to allocate array 'devices'.")
  * 
  *     cdef int i = 0             # <<<<<<<<<<<<<<
@@ -22611,7 +23125,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  */
   __pyx_v_i = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3354
+  /* "psychxr/libovr/_libovr.pyx":3409
  * 
  *     cdef int i = 0
  *     for i in range(count):             # <<<<<<<<<<<<<<
@@ -22623,21 +23137,21 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
   for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
     __pyx_v_i = __pyx_t_9;
 
-    /* "psychxr/libovr/_libovr.pyx":3355
+    /* "psychxr/libovr/_libovr.pyx":3410
  *     cdef int i = 0
  *     for i in range(count):
  *         devices[i] = <libovr_capi.ovrTrackedDeviceType>deviceTypes[i]             # <<<<<<<<<<<<<<
  * 
  *     cdef libovr_capi.ovrPoseStatef* devicePoses = \
  */
-    __pyx_t_5 = __Pyx_GetItemInt(__pyx_v_deviceTypes, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3355, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_GetItemInt(__pyx_v_deviceTypes, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3410, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_10 = ((ovrTrackedDeviceType)__Pyx_PyInt_As_ovrTrackedDeviceType(__pyx_t_5)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 3355, __pyx_L1_error)
+    __pyx_t_10 = ((ovrTrackedDeviceType)__Pyx_PyInt_As_ovrTrackedDeviceType(__pyx_t_5)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 3410, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     (__pyx_v_devices[__pyx_v_i]) = ((ovrTrackedDeviceType)__pyx_t_10);
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3358
+  /* "psychxr/libovr/_libovr.pyx":3413
  * 
  *     cdef libovr_capi.ovrPoseStatef* devicePoses = \
  *         <libovr_capi.ovrPoseStatef*>malloc(             # <<<<<<<<<<<<<<
@@ -22646,7 +23160,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  */
   __pyx_v_devicePoses = ((ovrPoseStatef *)malloc((__pyx_v_count * (sizeof(ovrPoseStatef)))));
 
-  /* "psychxr/libovr/_libovr.pyx":3360
+  /* "psychxr/libovr/_libovr.pyx":3415
  *         <libovr_capi.ovrPoseStatef*>malloc(
  *             count * sizeof(libovr_capi.ovrPoseStatef))
  *     if not devicePoses:             # <<<<<<<<<<<<<<
@@ -22656,20 +23170,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
   __pyx_t_2 = ((!(__pyx_v_devicePoses != 0)) != 0);
   if (unlikely(__pyx_t_2)) {
 
-    /* "psychxr/libovr/_libovr.pyx":3361
+    /* "psychxr/libovr/_libovr.pyx":3416
  *             count * sizeof(libovr_capi.ovrPoseStatef))
  *     if not devicePoses:
  *         raise MemoryError("Failed to allocate array 'devicePoses'.")             # <<<<<<<<<<<<<<
  * 
  *     # get the device poses
  */
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_MemoryError, __pyx_tuple__29, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3361, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_MemoryError, __pyx_tuple__29, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3416, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_Raise(__pyx_t_5, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __PYX_ERR(0, 3361, __pyx_L1_error)
+    __PYX_ERR(0, 3416, __pyx_L1_error)
 
-    /* "psychxr/libovr/_libovr.pyx":3360
+    /* "psychxr/libovr/_libovr.pyx":3415
  *         <libovr_capi.ovrPoseStatef*>malloc(
  *             count * sizeof(libovr_capi.ovrPoseStatef))
  *     if not devicePoses:             # <<<<<<<<<<<<<<
@@ -22678,7 +23192,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3364
+  /* "psychxr/libovr/_libovr.pyx":3419
  * 
  *     # get the device poses
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetDevicePoses(             # <<<<<<<<<<<<<<
@@ -22687,19 +23201,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  */
   __pyx_v_result = ovr_GetDevicePoses(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, __pyx_v_devices, __pyx_v_count, __pyx_v_absTime, __pyx_v_devicePoses);
 
-  /* "psychxr/libovr/_libovr.pyx":3372
+  /* "psychxr/libovr/_libovr.pyx":3427
  * 
  *     # build list of device poses
  *     cdef list outPoses = list()             # <<<<<<<<<<<<<<
  *     cdef LibOVRPoseState thisPose
  *     for i in range(count):
  */
-  __pyx_t_5 = PyList_New(0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3372, __pyx_L1_error)
+  __pyx_t_5 = PyList_New(0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3427, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_v_outPoses = ((PyObject*)__pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3374
+  /* "psychxr/libovr/_libovr.pyx":3429
  *     cdef list outPoses = list()
  *     cdef LibOVRPoseState thisPose
  *     for i in range(count):             # <<<<<<<<<<<<<<
@@ -22711,19 +23225,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
   for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
     __pyx_v_i = __pyx_t_9;
 
-    /* "psychxr/libovr/_libovr.pyx":3375
+    /* "psychxr/libovr/_libovr.pyx":3430
  *     cdef LibOVRPoseState thisPose
  *     for i in range(count):
  *         thisPose = LibOVRPoseState()  # new             # <<<<<<<<<<<<<<
  *         thisPose.c_data[0] = devicePoses[i]
  *         outPoses.append(thisPose)
  */
-    __pyx_t_5 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPoseState)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3375, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPoseState)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3430, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_XDECREF_SET(__pyx_v_thisPose, ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *)__pyx_t_5));
     __pyx_t_5 = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":3376
+    /* "psychxr/libovr/_libovr.pyx":3431
  *     for i in range(count):
  *         thisPose = LibOVRPoseState()  # new
  *         thisPose.c_data[0] = devicePoses[i]             # <<<<<<<<<<<<<<
@@ -22732,17 +23246,17 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  */
     (__pyx_v_thisPose->c_data[0]) = (__pyx_v_devicePoses[__pyx_v_i]);
 
-    /* "psychxr/libovr/_libovr.pyx":3377
+    /* "psychxr/libovr/_libovr.pyx":3432
  *         thisPose = LibOVRPoseState()  # new
  *         thisPose.c_data[0] = devicePoses[i]
  *         outPoses.append(thisPose)             # <<<<<<<<<<<<<<
  * 
  *     # free the allocated arrays
  */
-    __pyx_t_11 = __Pyx_PyList_Append(__pyx_v_outPoses, ((PyObject *)__pyx_v_thisPose)); if (unlikely(__pyx_t_11 == ((int)-1))) __PYX_ERR(0, 3377, __pyx_L1_error)
+    __pyx_t_11 = __Pyx_PyList_Append(__pyx_v_outPoses, ((PyObject *)__pyx_v_thisPose)); if (unlikely(__pyx_t_11 == ((int)-1))) __PYX_ERR(0, 3432, __pyx_L1_error)
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3380
+  /* "psychxr/libovr/_libovr.pyx":3435
  * 
  *     # free the allocated arrays
  *     free(devices)             # <<<<<<<<<<<<<<
@@ -22751,7 +23265,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  */
   free(__pyx_v_devices);
 
-  /* "psychxr/libovr/_libovr.pyx":3381
+  /* "psychxr/libovr/_libovr.pyx":3436
  *     # free the allocated arrays
  *     free(devices)
  *     free(devicePoses)             # <<<<<<<<<<<<<<
@@ -22760,7 +23274,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  */
   free(__pyx_v_devicePoses);
 
-  /* "psychxr/libovr/_libovr.pyx":3383
+  /* "psychxr/libovr/_libovr.pyx":3438
  *     free(devicePoses)
  * 
  *     return result, outPoses             # <<<<<<<<<<<<<<
@@ -22768,9 +23282,9 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
  * def calcEyePoses(LibOVRPose headPose):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_5 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3383, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3438, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3383, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3438, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5);
@@ -22782,7 +23296,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3273
+  /* "psychxr/libovr/_libovr.pyx":3328
  * #     return result, devicePose
  * 
  * def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):             # <<<<<<<<<<<<<<
@@ -22805,7 +23319,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_74getDevicePoses(CYTHON_UNUS
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3385
+/* "psychxr/libovr/_libovr.pyx":3440
  *     return result, outPoses
  * 
  * def calcEyePoses(LibOVRPose headPose):             # <<<<<<<<<<<<<<
@@ -22821,7 +23335,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_77calcEyePoses(PyObject *__p
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("calcEyePoses (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_headPose), __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPose, 1, "headPose", 0))) __PYX_ERR(0, 3385, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_headPose), __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPose, 1, "headPose", 0))) __PYX_ERR(0, 3440, __pyx_L1_error)
   __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(__pyx_self, ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)__pyx_v_headPose));
 
   /* function exit code */
@@ -22851,7 +23365,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
   OVR::Vector3f __pyx_t_6;
   __Pyx_RefNannySetupContext("calcEyePoses", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3433
+  /* "psychxr/libovr/_libovr.pyx":3488
  * 
  *     cdef libovr_capi.ovrPosef[2] hmdToEyePoses
  *     hmdToEyePoses[0] = _eyeRenderDesc[0].HmdToEyePose             # <<<<<<<<<<<<<<
@@ -22861,7 +23375,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
   __pyx_t_1 = (__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[0]).HmdToEyePose;
   (__pyx_v_hmdToEyePoses[0]) = __pyx_t_1;
 
-  /* "psychxr/libovr/_libovr.pyx":3434
+  /* "psychxr/libovr/_libovr.pyx":3489
  *     cdef libovr_capi.ovrPosef[2] hmdToEyePoses
  *     hmdToEyePoses[0] = _eyeRenderDesc[0].HmdToEyePose
  *     hmdToEyePoses[1] = _eyeRenderDesc[1].HmdToEyePose             # <<<<<<<<<<<<<<
@@ -22871,7 +23385,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
   __pyx_t_1 = (__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[1]).HmdToEyePose;
   (__pyx_v_hmdToEyePoses[1]) = __pyx_t_1;
 
-  /* "psychxr/libovr/_libovr.pyx":3437
+  /* "psychxr/libovr/_libovr.pyx":3492
  * 
  *      # calculate the eye poses
  *     libovr_capi.ovr_CalcEyePoses2(             # <<<<<<<<<<<<<<
@@ -22880,7 +23394,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
  */
   ovr_CalcEyePoses2((__pyx_v_headPose->c_data[0]), __pyx_v_hmdToEyePoses, __pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.RenderPose);
 
-  /* "psychxr/libovr/_libovr.pyx":3449
+  /* "psychxr/libovr/_libovr.pyx":3504
  *     cdef libovr_math.Matrix4f rm
  * 
  *     cdef int eye = 0             # <<<<<<<<<<<<<<
@@ -22889,7 +23403,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
  */
   __pyx_v_eye = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3450
+  /* "psychxr/libovr/_libovr.pyx":3505
  * 
  *     cdef int eye = 0
  *     for eye in range(libovr_capi.ovrEye_Count):             # <<<<<<<<<<<<<<
@@ -22901,7 +23415,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_eye = __pyx_t_4;
 
-    /* "psychxr/libovr/_libovr.pyx":3451
+    /* "psychxr/libovr/_libovr.pyx":3506
  *     cdef int eye = 0
  *     for eye in range(libovr_capi.ovrEye_Count):
  *         pos = <libovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position             # <<<<<<<<<<<<<<
@@ -22910,7 +23424,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
  */
     __pyx_v_pos = ((OVR::Vector3f)(__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.RenderPose[__pyx_v_eye]).Position);
 
-    /* "psychxr/libovr/_libovr.pyx":3452
+    /* "psychxr/libovr/_libovr.pyx":3507
  *     for eye in range(libovr_capi.ovrEye_Count):
  *         pos = <libovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position
  *         ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation             # <<<<<<<<<<<<<<
@@ -22919,7 +23433,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
  */
     __pyx_v_ori = ((OVR::Quatf)(__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.RenderPose[__pyx_v_eye]).Orientation);
 
-    /* "psychxr/libovr/_libovr.pyx":3454
+    /* "psychxr/libovr/_libovr.pyx":3509
  *         ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
  * 
  *         if not ori.IsNormalized():  # make sure orientation is normalized             # <<<<<<<<<<<<<<
@@ -22929,7 +23443,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
     __pyx_t_5 = ((!(__pyx_v_ori.IsNormalized() != 0)) != 0);
     if (__pyx_t_5) {
 
-      /* "psychxr/libovr/_libovr.pyx":3455
+      /* "psychxr/libovr/_libovr.pyx":3510
  * 
  *         if not ori.IsNormalized():  # make sure orientation is normalized
  *             ori.Normalize()             # <<<<<<<<<<<<<<
@@ -22938,7 +23452,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
  */
       __pyx_v_ori.Normalize();
 
-      /* "psychxr/libovr/_libovr.pyx":3454
+      /* "psychxr/libovr/_libovr.pyx":3509
  *         ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
  * 
  *         if not ori.IsNormalized():  # make sure orientation is normalized             # <<<<<<<<<<<<<<
@@ -22947,7 +23461,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
  */
     }
 
-    /* "psychxr/libovr/_libovr.pyx":3457
+    /* "psychxr/libovr/_libovr.pyx":3512
  *             ori.Normalize()
  * 
  *         rm = libovr_math.Matrix4f(ori)             # <<<<<<<<<<<<<<
@@ -22956,7 +23470,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
  */
     __pyx_v_rm = OVR::Matrix4f(__pyx_v_ori);
 
-    /* "psychxr/libovr/_libovr.pyx":3458
+    /* "psychxr/libovr/_libovr.pyx":3513
  * 
  *         rm = libovr_math.Matrix4f(ori)
  *         up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))             # <<<<<<<<<<<<<<
@@ -22967,11 +23481,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
       __pyx_t_6 = OVR::Vector3f(0., 1., 0.);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 3458, __pyx_L1_error)
+      __PYX_ERR(0, 3513, __pyx_L1_error)
     }
     __pyx_v_up = __pyx_v_rm.Transform(__pyx_t_6);
 
-    /* "psychxr/libovr/_libovr.pyx":3459
+    /* "psychxr/libovr/_libovr.pyx":3514
  *         rm = libovr_math.Matrix4f(ori)
  *         up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
  *         forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))             # <<<<<<<<<<<<<<
@@ -22982,11 +23496,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
       __pyx_t_6 = OVR::Vector3f(0., 0., -1.);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 3459, __pyx_L1_error)
+      __PYX_ERR(0, 3514, __pyx_L1_error)
     }
     __pyx_v_forward = __pyx_v_rm.Transform(__pyx_t_6);
 
-    /* "psychxr/libovr/_libovr.pyx":3460
+    /* "psychxr/libovr/_libovr.pyx":3515
  *         up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
  *         forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
  *         _eyeViewMatrix[eye] = \             # <<<<<<<<<<<<<<
@@ -22995,7 +23509,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
  */
     (__pyx_v_7psychxr_6libovr_7_libovr__eyeViewMatrix[__pyx_v_eye]) = OVR::Matrix4f::LookAtRH(__pyx_v_pos, (__pyx_v_pos + __pyx_v_forward), __pyx_v_up);
 
-    /* "psychxr/libovr/_libovr.pyx":3462
+    /* "psychxr/libovr/_libovr.pyx":3517
  *         _eyeViewMatrix[eye] = \
  *             libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
  *         _eyeViewProjectionMatrix[eye] = \             # <<<<<<<<<<<<<<
@@ -23005,7 +23519,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
     (__pyx_v_7psychxr_6libovr_7_libovr__eyeViewProjectionMatrix[__pyx_v_eye]) = ((__pyx_v_7psychxr_6libovr_7_libovr__eyeProjectionMatrix[__pyx_v_eye]) * (__pyx_v_7psychxr_6libovr_7_libovr__eyeViewMatrix[__pyx_v_eye]));
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3385
+  /* "psychxr/libovr/_libovr.pyx":3440
  *     return result, outPoses
  * 
  * def calcEyePoses(LibOVRPose headPose):             # <<<<<<<<<<<<<<
@@ -23025,7 +23539,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_76calcEyePoses(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3465
+/* "psychxr/libovr/_libovr.pyx":3520
  *             _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
  * 
  * def getHmdToEyePose(int eye):             # <<<<<<<<<<<<<<
@@ -23043,7 +23557,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_79getHmdToEyePose(PyObject *
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getHmdToEyePose (wrapper)", 0);
   assert(__pyx_arg_eye); {
-    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3465, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3520, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -23064,7 +23578,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_78getHmdToEyePose(CYTHON_UNU
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getHmdToEyePose", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3494
+  /* "psychxr/libovr/_libovr.pyx":3549
  *     """
  *     global _eyeRenderDesc
  *     return LibOVRPose.fromPtr(&_eyeRenderDesc[eye].HmdToEyePose)             # <<<<<<<<<<<<<<
@@ -23072,13 +23586,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_78getHmdToEyePose(CYTHON_UNU
  * def setHmdToEyePose(int eye, LibOVRPose eyePose):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPose->fromPtr((&(__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).HmdToEyePose), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3494, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPose->fromPtr((&(__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).HmdToEyePose), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3549, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3465
+  /* "psychxr/libovr/_libovr.pyx":3520
  *             _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
  * 
  * def getHmdToEyePose(int eye):             # <<<<<<<<<<<<<<
@@ -23097,7 +23611,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_78getHmdToEyePose(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3496
+/* "psychxr/libovr/_libovr.pyx":3551
  *     return LibOVRPose.fromPtr(&_eyeRenderDesc[eye].HmdToEyePose)
  * 
  * def setHmdToEyePose(int eye, LibOVRPose eyePose):             # <<<<<<<<<<<<<<
@@ -23138,11 +23652,11 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_81setHmdToEyePose(PyObject *
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_eyePose)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("setHmdToEyePose", 1, 2, 2, 1); __PYX_ERR(0, 3496, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("setHmdToEyePose", 1, 2, 2, 1); __PYX_ERR(0, 3551, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setHmdToEyePose") < 0)) __PYX_ERR(0, 3496, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setHmdToEyePose") < 0)) __PYX_ERR(0, 3551, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -23150,18 +23664,18 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_81setHmdToEyePose(PyObject *
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3496, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3551, __pyx_L3_error)
     __pyx_v_eyePose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)values[1]);
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("setHmdToEyePose", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3496, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("setHmdToEyePose", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3551, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.setHmdToEyePose", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_eyePose), __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPose, 1, "eyePose", 0))) __PYX_ERR(0, 3496, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_eyePose), __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPose, 1, "eyePose", 0))) __PYX_ERR(0, 3551, __pyx_L1_error)
   __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_80setHmdToEyePose(__pyx_self, __pyx_v_eye, __pyx_v_eyePose);
 
   /* function exit code */
@@ -23178,7 +23692,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_80setHmdToEyePose(CYTHON_UNU
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setHmdToEyePose", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3506
+  /* "psychxr/libovr/_libovr.pyx":3561
  *     """
  *     global _eyeRenderDesc
  *     _eyeRenderDesc[0].HmdToEyePose = eyePose.c_data[0]             # <<<<<<<<<<<<<<
@@ -23187,7 +23701,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_80setHmdToEyePose(CYTHON_UNU
  */
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[0]).HmdToEyePose = (__pyx_v_eyePose->c_data[0]);
 
-  /* "psychxr/libovr/_libovr.pyx":3496
+  /* "psychxr/libovr/_libovr.pyx":3551
  *     return LibOVRPose.fromPtr(&_eyeRenderDesc[eye].HmdToEyePose)
  * 
  * def setHmdToEyePose(int eye, LibOVRPose eyePose):             # <<<<<<<<<<<<<<
@@ -23202,7 +23716,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_80setHmdToEyePose(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3508
+/* "psychxr/libovr/_libovr.pyx":3563
  *     _eyeRenderDesc[0].HmdToEyePose = eyePose.c_data[0]
  * 
  * def getEyeRenderPose(int eye):             # <<<<<<<<<<<<<<
@@ -23220,7 +23734,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_83getEyeRenderPose(PyObject 
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getEyeRenderPose (wrapper)", 0);
   assert(__pyx_arg_eye); {
-    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3508, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3563, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -23241,7 +23755,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_82getEyeRenderPose(CYTHON_UN
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getEyeRenderPose", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3534
+  /* "psychxr/libovr/_libovr.pyx":3589
  *     """
  *     global _eyeLayer
  *     return LibOVRPose.fromPtr(&_eyeLayer.RenderPose[eye])             # <<<<<<<<<<<<<<
@@ -23249,13 +23763,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_82getEyeRenderPose(CYTHON_UN
  * def setEyeRenderPose(int eye, LibOVRPose value):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPose->fromPtr((&(__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.RenderPose[__pyx_v_eye])), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3534, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPose->fromPtr((&(__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.RenderPose[__pyx_v_eye])), NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3589, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3508
+  /* "psychxr/libovr/_libovr.pyx":3563
  *     _eyeRenderDesc[0].HmdToEyePose = eyePose.c_data[0]
  * 
  * def getEyeRenderPose(int eye):             # <<<<<<<<<<<<<<
@@ -23274,7 +23788,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_82getEyeRenderPose(CYTHON_UN
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3536
+/* "psychxr/libovr/_libovr.pyx":3591
  *     return LibOVRPose.fromPtr(&_eyeLayer.RenderPose[eye])
  * 
  * def setEyeRenderPose(int eye, LibOVRPose value):             # <<<<<<<<<<<<<<
@@ -23315,11 +23829,11 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_85setEyeRenderPose(PyObject 
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_value)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("setEyeRenderPose", 1, 2, 2, 1); __PYX_ERR(0, 3536, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("setEyeRenderPose", 1, 2, 2, 1); __PYX_ERR(0, 3591, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setEyeRenderPose") < 0)) __PYX_ERR(0, 3536, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setEyeRenderPose") < 0)) __PYX_ERR(0, 3591, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -23327,18 +23841,18 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_85setEyeRenderPose(PyObject 
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3536, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3591, __pyx_L3_error)
     __pyx_v_value = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)values[1]);
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("setEyeRenderPose", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3536, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("setEyeRenderPose", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3591, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.setEyeRenderPose", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_value), __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPose, 1, "value", 0))) __PYX_ERR(0, 3536, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_value), __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPose, 1, "value", 0))) __PYX_ERR(0, 3591, __pyx_L1_error)
   __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(__pyx_self, __pyx_v_eye, __pyx_v_value);
 
   /* function exit code */
@@ -23362,7 +23876,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
   OVR::Vector3f __pyx_t_2;
   __Pyx_RefNannySetupContext("setEyeRenderPose", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3549
+  /* "psychxr/libovr/_libovr.pyx":3604
  *     global _eyeViewProjectionMatrix
  * 
  *     _eyeLayer.RenderPose[eye] = value.c_data[0]             # <<<<<<<<<<<<<<
@@ -23371,7 +23885,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
  */
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.RenderPose[__pyx_v_eye]) = (__pyx_v_value->c_data[0]);
 
-  /* "psychxr/libovr/_libovr.pyx":3558
+  /* "psychxr/libovr/_libovr.pyx":3613
  *     cdef libovr_math.Matrix4f rm
  * 
  *     pos = <libovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position             # <<<<<<<<<<<<<<
@@ -23380,7 +23894,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
  */
   __pyx_v_pos = ((OVR::Vector3f)(__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.RenderPose[__pyx_v_eye]).Position);
 
-  /* "psychxr/libovr/_libovr.pyx":3559
+  /* "psychxr/libovr/_libovr.pyx":3614
  * 
  *     pos = <libovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position
  *     ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation             # <<<<<<<<<<<<<<
@@ -23389,7 +23903,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
  */
   __pyx_v_ori = ((OVR::Quatf)(__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.RenderPose[__pyx_v_eye]).Orientation);
 
-  /* "psychxr/libovr/_libovr.pyx":3561
+  /* "psychxr/libovr/_libovr.pyx":3616
  *     ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
  * 
  *     if not ori.IsNormalized():  # make sure orientation is normalized             # <<<<<<<<<<<<<<
@@ -23399,7 +23913,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
   __pyx_t_1 = ((!(__pyx_v_ori.IsNormalized() != 0)) != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":3562
+    /* "psychxr/libovr/_libovr.pyx":3617
  * 
  *     if not ori.IsNormalized():  # make sure orientation is normalized
  *         ori.Normalize()             # <<<<<<<<<<<<<<
@@ -23408,7 +23922,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
  */
     __pyx_v_ori.Normalize();
 
-    /* "psychxr/libovr/_libovr.pyx":3561
+    /* "psychxr/libovr/_libovr.pyx":3616
  *     ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
  * 
  *     if not ori.IsNormalized():  # make sure orientation is normalized             # <<<<<<<<<<<<<<
@@ -23417,7 +23931,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3564
+  /* "psychxr/libovr/_libovr.pyx":3619
  *         ori.Normalize()
  * 
  *     rm = libovr_math.Matrix4f(ori)             # <<<<<<<<<<<<<<
@@ -23426,7 +23940,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
  */
   __pyx_v_rm = OVR::Matrix4f(__pyx_v_ori);
 
-  /* "psychxr/libovr/_libovr.pyx":3565
+  /* "psychxr/libovr/_libovr.pyx":3620
  * 
  *     rm = libovr_math.Matrix4f(ori)
  *     up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))             # <<<<<<<<<<<<<<
@@ -23437,11 +23951,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
     __pyx_t_2 = OVR::Vector3f(0., 1., 0.);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 3565, __pyx_L1_error)
+    __PYX_ERR(0, 3620, __pyx_L1_error)
   }
   __pyx_v_up = __pyx_v_rm.Transform(__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":3566
+  /* "psychxr/libovr/_libovr.pyx":3621
  *     rm = libovr_math.Matrix4f(ori)
  *     up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
  *     forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))             # <<<<<<<<<<<<<<
@@ -23452,11 +23966,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
     __pyx_t_2 = OVR::Vector3f(0., 0., -1.);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 3566, __pyx_L1_error)
+    __PYX_ERR(0, 3621, __pyx_L1_error)
   }
   __pyx_v_forward = __pyx_v_rm.Transform(__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":3567
+  /* "psychxr/libovr/_libovr.pyx":3622
  *     up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
  *     forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
  *     _eyeViewMatrix[eye] = \             # <<<<<<<<<<<<<<
@@ -23465,7 +23979,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
  */
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeViewMatrix[__pyx_v_eye]) = OVR::Matrix4f::LookAtRH(__pyx_v_pos, (__pyx_v_pos + __pyx_v_forward), __pyx_v_up);
 
-  /* "psychxr/libovr/_libovr.pyx":3569
+  /* "psychxr/libovr/_libovr.pyx":3624
  *     _eyeViewMatrix[eye] = \
  *         libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
  *     _eyeViewProjectionMatrix[eye] = \             # <<<<<<<<<<<<<<
@@ -23474,7 +23988,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
  */
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeViewProjectionMatrix[__pyx_v_eye]) = ((__pyx_v_7psychxr_6libovr_7_libovr__eyeProjectionMatrix[__pyx_v_eye]) * (__pyx_v_7psychxr_6libovr_7_libovr__eyeViewMatrix[__pyx_v_eye]));
 
-  /* "psychxr/libovr/_libovr.pyx":3536
+  /* "psychxr/libovr/_libovr.pyx":3591
  *     return LibOVRPose.fromPtr(&_eyeLayer.RenderPose[eye])
  * 
  * def setEyeRenderPose(int eye, LibOVRPose value):             # <<<<<<<<<<<<<<
@@ -23494,7 +24008,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_84setEyeRenderPose(CYTHON_UN
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3572
+/* "psychxr/libovr/_libovr.pyx":3627
  *         _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
  * 
  * def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, object outMatrix=None):             # <<<<<<<<<<<<<<
@@ -23558,7 +24072,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_87getEyeProjectionMatrix(PyO
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getEyeProjectionMatrix") < 0)) __PYX_ERR(0, 3572, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getEyeProjectionMatrix") < 0)) __PYX_ERR(0, 3627, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -23573,14 +24087,14 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_87getEyeProjectionMatrix(PyO
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3572, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3627, __pyx_L3_error)
     if (values[1]) {
-      __pyx_v_nearClip = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_nearClip == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 3572, __pyx_L3_error)
+      __pyx_v_nearClip = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_nearClip == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 3627, __pyx_L3_error)
     } else {
       __pyx_v_nearClip = ((float)0.01);
     }
     if (values[2]) {
-      __pyx_v_farClip = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_farClip == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 3572, __pyx_L3_error)
+      __pyx_v_farClip = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_farClip == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 3627, __pyx_L3_error)
     } else {
       __pyx_v_farClip = ((float)1000.0);
     }
@@ -23588,7 +24102,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_87getEyeProjectionMatrix(PyO
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getEyeProjectionMatrix", 0, 1, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3572, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getEyeProjectionMatrix", 0, 1, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3627, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getEyeProjectionMatrix", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -23637,7 +24151,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
   __pyx_pybuffernd_to_return.data = NULL;
   __pyx_pybuffernd_to_return.rcbuffer = &__pyx_pybuffer_to_return;
 
-  /* "psychxr/libovr/_libovr.pyx":3603
+  /* "psychxr/libovr/_libovr.pyx":3658
  *     cdef np.ndarray[np.float32_t, ndim=2] to_return
  * 
  *     if outMatrix is None:             # <<<<<<<<<<<<<<
@@ -23648,32 +24162,32 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":3604
+    /* "psychxr/libovr/_libovr.pyx":3659
  * 
  *     if outMatrix is None:
  *         to_return = np.zeros((4, 4), dtype=np.float32)             # <<<<<<<<<<<<<<
  *     else:
  *         to_return = outMatrix
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3604, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3659, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3604, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3659, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3604, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3659, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3604, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3659, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float32); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 3604, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float32); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 3659, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 3604, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 3659, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__8, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 3604, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__8, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 3659, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 3604, __pyx_L1_error)
+    if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 3659, __pyx_L1_error)
     __pyx_t_7 = ((PyArrayObject *)__pyx_t_6);
     {
       __Pyx_BufFmt_StackElem __pyx_stack[1];
@@ -23690,13 +24204,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
         __pyx_t_9 = __pyx_t_10 = __pyx_t_11 = 0;
       }
       __pyx_pybuffernd_to_return.diminfo[0].strides = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_to_return.diminfo[0].shape = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_to_return.diminfo[1].strides = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_to_return.diminfo[1].shape = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.shape[1];
-      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 3604, __pyx_L1_error)
+      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 3659, __pyx_L1_error)
     }
     __pyx_t_7 = 0;
     __pyx_v_to_return = ((PyArrayObject *)__pyx_t_6);
     __pyx_t_6 = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":3603
+    /* "psychxr/libovr/_libovr.pyx":3658
  *     cdef np.ndarray[np.float32_t, ndim=2] to_return
  * 
  *     if outMatrix is None:             # <<<<<<<<<<<<<<
@@ -23706,7 +24220,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3606
+  /* "psychxr/libovr/_libovr.pyx":3661
  *         to_return = np.zeros((4, 4), dtype=np.float32)
  *     else:
  *         to_return = outMatrix             # <<<<<<<<<<<<<<
@@ -23714,7 +24228,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
  *     _eyeProjectionMatrix[eye] = \
  */
   /*else*/ {
-    if (!(likely(((__pyx_v_outMatrix) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_outMatrix, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 3606, __pyx_L1_error)
+    if (!(likely(((__pyx_v_outMatrix) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_outMatrix, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 3661, __pyx_L1_error)
     __pyx_t_6 = __pyx_v_outMatrix;
     __Pyx_INCREF(__pyx_t_6);
     {
@@ -23732,14 +24246,14 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
         __pyx_t_11 = __pyx_t_10 = __pyx_t_9 = 0;
       }
       __pyx_pybuffernd_to_return.diminfo[0].strides = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_to_return.diminfo[0].shape = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_to_return.diminfo[1].strides = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_to_return.diminfo[1].shape = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.shape[1];
-      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 3606, __pyx_L1_error)
+      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 3661, __pyx_L1_error)
     }
     __pyx_v_to_return = ((PyArrayObject *)__pyx_t_6);
     __pyx_t_6 = 0;
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":3608
+  /* "psychxr/libovr/_libovr.pyx":3663
  *         to_return = outMatrix
  * 
  *     _eyeProjectionMatrix[eye] = \             # <<<<<<<<<<<<<<
@@ -23748,19 +24262,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
  */
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeProjectionMatrix[__pyx_v_eye]) = ((OVR::Matrix4f)ovrMatrix4f_Projection((__pyx_v_7psychxr_6libovr_7_libovr__eyeRenderDesc[__pyx_v_eye]).Fov, __pyx_v_nearClip, __pyx_v_farClip, ovrProjection_ClipRangeOpenGL));
 
-  /* "psychxr/libovr/_libovr.pyx":3616
+  /* "psychxr/libovr/_libovr.pyx":3671
  * 
  *     # fast copy matrix to numpy array
  *     cdef float [:, :] mv = to_return             # <<<<<<<<<<<<<<
  *     cdef Py_ssize_t i, j
  *     cdef Py_ssize_t N = 4
  */
-  __pyx_t_12 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(((PyObject *)__pyx_v_to_return), PyBUF_WRITABLE); if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 3616, __pyx_L1_error)
+  __pyx_t_12 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(((PyObject *)__pyx_v_to_return), PyBUF_WRITABLE); if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 3671, __pyx_L1_error)
   __pyx_v_mv = __pyx_t_12;
   __pyx_t_12.memview = NULL;
   __pyx_t_12.data = NULL;
 
-  /* "psychxr/libovr/_libovr.pyx":3618
+  /* "psychxr/libovr/_libovr.pyx":3673
  *     cdef float [:, :] mv = to_return
  *     cdef Py_ssize_t i, j
  *     cdef Py_ssize_t N = 4             # <<<<<<<<<<<<<<
@@ -23769,7 +24283,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
  */
   __pyx_v_N = 4;
 
-  /* "psychxr/libovr/_libovr.pyx":3619
+  /* "psychxr/libovr/_libovr.pyx":3674
  *     cdef Py_ssize_t i, j
  *     cdef Py_ssize_t N = 4
  *     i = j = 0             # <<<<<<<<<<<<<<
@@ -23779,7 +24293,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
   __pyx_v_i = 0;
   __pyx_v_j = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3620
+  /* "psychxr/libovr/_libovr.pyx":3675
  *     cdef Py_ssize_t N = 4
  *     i = j = 0
  *     for i in range(N):             # <<<<<<<<<<<<<<
@@ -23791,7 +24305,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
   for (__pyx_t_15 = 0; __pyx_t_15 < __pyx_t_14; __pyx_t_15+=1) {
     __pyx_v_i = __pyx_t_15;
 
-    /* "psychxr/libovr/_libovr.pyx":3621
+    /* "psychxr/libovr/_libovr.pyx":3676
  *     i = j = 0
  *     for i in range(N):
  *         for j in range(N):             # <<<<<<<<<<<<<<
@@ -23803,7 +24317,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
     for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
       __pyx_v_j = __pyx_t_18;
 
-      /* "psychxr/libovr/_libovr.pyx":3622
+      /* "psychxr/libovr/_libovr.pyx":3677
  *     for i in range(N):
  *         for j in range(N):
  *             mv[i, j] = _eyeProjectionMatrix[eye].M[i][j]             # <<<<<<<<<<<<<<
@@ -23823,13 +24337,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
       } else if (unlikely(__pyx_t_20 >= __pyx_v_mv.shape[1])) __pyx_t_8 = 1;
       if (unlikely(__pyx_t_8 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_8);
-        __PYX_ERR(0, 3622, __pyx_L1_error)
+        __PYX_ERR(0, 3677, __pyx_L1_error)
       }
       *((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_mv.data + __pyx_t_19 * __pyx_v_mv.strides[0]) ) + __pyx_t_20 * __pyx_v_mv.strides[1]) )) = (((__pyx_v_7psychxr_6libovr_7_libovr__eyeProjectionMatrix[__pyx_v_eye]).M[__pyx_v_i])[__pyx_v_j]);
     }
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3624
+  /* "psychxr/libovr/_libovr.pyx":3679
  *             mv[i, j] = _eyeProjectionMatrix[eye].M[i][j]
  * 
  *     if outMatrix is None:             # <<<<<<<<<<<<<<
@@ -23840,7 +24354,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":3625
+    /* "psychxr/libovr/_libovr.pyx":3680
  * 
  *     if outMatrix is None:
  *         return to_return             # <<<<<<<<<<<<<<
@@ -23852,7 +24366,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
     __pyx_r = ((PyObject *)__pyx_v_to_return);
     goto __pyx_L0;
 
-    /* "psychxr/libovr/_libovr.pyx":3624
+    /* "psychxr/libovr/_libovr.pyx":3679
  *             mv[i, j] = _eyeProjectionMatrix[eye].M[i][j]
  * 
  *     if outMatrix is None:             # <<<<<<<<<<<<<<
@@ -23861,7 +24375,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3572
+  /* "psychxr/libovr/_libovr.pyx":3627
  *         _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
  * 
  * def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, object outMatrix=None):             # <<<<<<<<<<<<<<
@@ -23897,7 +24411,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_86getEyeProjectionMatrix(CYT
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3627
+/* "psychxr/libovr/_libovr.pyx":3682
  *         return to_return
  * 
  * def getEyeRenderViewport(int eye, object outRect=None):             # <<<<<<<<<<<<<<
@@ -23943,7 +24457,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_89getEyeRenderViewport(PyObj
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getEyeRenderViewport") < 0)) __PYX_ERR(0, 3627, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getEyeRenderViewport") < 0)) __PYX_ERR(0, 3682, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -23954,12 +24468,12 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_89getEyeRenderViewport(PyObj
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3627, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3682, __pyx_L3_error)
     __pyx_v_outRect = values[1];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getEyeRenderViewport", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3627, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getEyeRenderViewport", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3682, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getEyeRenderViewport", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -24000,7 +24514,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
   __pyx_pybuffernd_to_return.data = NULL;
   __pyx_pybuffernd_to_return.rcbuffer = &__pyx_pybuffer_to_return;
 
-  /* "psychxr/libovr/_libovr.pyx":3650
+  /* "psychxr/libovr/_libovr.pyx":3705
  *     cdef np.ndarray[np.int_t, ndim=1] to_return
  * 
  *     if outRect is None:             # <<<<<<<<<<<<<<
@@ -24011,32 +24525,32 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":3651
+    /* "psychxr/libovr/_libovr.pyx":3706
  * 
  *     if outRect is None:
  *         to_return = np.zeros((4,), dtype=np.int)             # <<<<<<<<<<<<<<
  *     else:
  *         to_return = outRect
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3651, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3706, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3651, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3706, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3651, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3706, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3651, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3706, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_int); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 3651, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_int); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 3706, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 3651, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 3706, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__31, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 3651, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__31, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 3706, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 3651, __pyx_L1_error)
+    if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 3706, __pyx_L1_error)
     __pyx_t_7 = ((PyArrayObject *)__pyx_t_6);
     {
       __Pyx_BufFmt_StackElem __pyx_stack[1];
@@ -24053,13 +24567,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
         __pyx_t_9 = __pyx_t_10 = __pyx_t_11 = 0;
       }
       __pyx_pybuffernd_to_return.diminfo[0].strides = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_to_return.diminfo[0].shape = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.shape[0];
-      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 3651, __pyx_L1_error)
+      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 3706, __pyx_L1_error)
     }
     __pyx_t_7 = 0;
     __pyx_v_to_return = ((PyArrayObject *)__pyx_t_6);
     __pyx_t_6 = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":3650
+    /* "psychxr/libovr/_libovr.pyx":3705
  *     cdef np.ndarray[np.int_t, ndim=1] to_return
  * 
  *     if outRect is None:             # <<<<<<<<<<<<<<
@@ -24069,7 +24583,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3653
+  /* "psychxr/libovr/_libovr.pyx":3708
  *         to_return = np.zeros((4,), dtype=np.int)
  *     else:
  *         to_return = outRect             # <<<<<<<<<<<<<<
@@ -24077,7 +24591,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
  *     to_return[0] = _eyeLayer.Viewport[eye].Pos.x
  */
   /*else*/ {
-    if (!(likely(((__pyx_v_outRect) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_outRect, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 3653, __pyx_L1_error)
+    if (!(likely(((__pyx_v_outRect) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_outRect, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 3708, __pyx_L1_error)
     __pyx_t_6 = __pyx_v_outRect;
     __Pyx_INCREF(__pyx_t_6);
     {
@@ -24095,14 +24609,14 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
         __pyx_t_11 = __pyx_t_10 = __pyx_t_9 = 0;
       }
       __pyx_pybuffernd_to_return.diminfo[0].strides = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_to_return.diminfo[0].shape = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.shape[0];
-      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 3653, __pyx_L1_error)
+      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 3708, __pyx_L1_error)
     }
     __pyx_v_to_return = ((PyArrayObject *)__pyx_t_6);
     __pyx_t_6 = 0;
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":3655
+  /* "psychxr/libovr/_libovr.pyx":3710
  *         to_return = outRect
  * 
  *     to_return[0] = _eyeLayer.Viewport[eye].Pos.x             # <<<<<<<<<<<<<<
@@ -24118,11 +24632,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
   } else if (unlikely(__pyx_t_12 >= __pyx_pybuffernd_to_return.diminfo[0].shape)) __pyx_t_13 = 0;
   if (unlikely(__pyx_t_13 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_13);
-    __PYX_ERR(0, 3655, __pyx_L1_error)
+    __PYX_ERR(0, 3710, __pyx_L1_error)
   }
   *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_int_t *, __pyx_pybuffernd_to_return.rcbuffer->pybuffer.buf, __pyx_t_12, __pyx_pybuffernd_to_return.diminfo[0].strides) = __pyx_t_8;
 
-  /* "psychxr/libovr/_libovr.pyx":3656
+  /* "psychxr/libovr/_libovr.pyx":3711
  * 
  *     to_return[0] = _eyeLayer.Viewport[eye].Pos.x
  *     to_return[1] = _eyeLayer.Viewport[eye].Pos.y             # <<<<<<<<<<<<<<
@@ -24138,11 +24652,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
   } else if (unlikely(__pyx_t_14 >= __pyx_pybuffernd_to_return.diminfo[0].shape)) __pyx_t_13 = 0;
   if (unlikely(__pyx_t_13 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_13);
-    __PYX_ERR(0, 3656, __pyx_L1_error)
+    __PYX_ERR(0, 3711, __pyx_L1_error)
   }
   *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_int_t *, __pyx_pybuffernd_to_return.rcbuffer->pybuffer.buf, __pyx_t_14, __pyx_pybuffernd_to_return.diminfo[0].strides) = __pyx_t_8;
 
-  /* "psychxr/libovr/_libovr.pyx":3657
+  /* "psychxr/libovr/_libovr.pyx":3712
  *     to_return[0] = _eyeLayer.Viewport[eye].Pos.x
  *     to_return[1] = _eyeLayer.Viewport[eye].Pos.y
  *     to_return[2] = _eyeLayer.Viewport[eye].Size.w             # <<<<<<<<<<<<<<
@@ -24158,11 +24672,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
   } else if (unlikely(__pyx_t_15 >= __pyx_pybuffernd_to_return.diminfo[0].shape)) __pyx_t_13 = 0;
   if (unlikely(__pyx_t_13 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_13);
-    __PYX_ERR(0, 3657, __pyx_L1_error)
+    __PYX_ERR(0, 3712, __pyx_L1_error)
   }
   *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_int_t *, __pyx_pybuffernd_to_return.rcbuffer->pybuffer.buf, __pyx_t_15, __pyx_pybuffernd_to_return.diminfo[0].strides) = __pyx_t_8;
 
-  /* "psychxr/libovr/_libovr.pyx":3658
+  /* "psychxr/libovr/_libovr.pyx":3713
  *     to_return[1] = _eyeLayer.Viewport[eye].Pos.y
  *     to_return[2] = _eyeLayer.Viewport[eye].Size.w
  *     to_return[3] = _eyeLayer.Viewport[eye].Size.h             # <<<<<<<<<<<<<<
@@ -24178,11 +24692,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
   } else if (unlikely(__pyx_t_16 >= __pyx_pybuffernd_to_return.diminfo[0].shape)) __pyx_t_13 = 0;
   if (unlikely(__pyx_t_13 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_13);
-    __PYX_ERR(0, 3658, __pyx_L1_error)
+    __PYX_ERR(0, 3713, __pyx_L1_error)
   }
   *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_int_t *, __pyx_pybuffernd_to_return.rcbuffer->pybuffer.buf, __pyx_t_16, __pyx_pybuffernd_to_return.diminfo[0].strides) = __pyx_t_8;
 
-  /* "psychxr/libovr/_libovr.pyx":3660
+  /* "psychxr/libovr/_libovr.pyx":3715
  *     to_return[3] = _eyeLayer.Viewport[eye].Size.h
  * 
  *     if outRect is None:             # <<<<<<<<<<<<<<
@@ -24193,7 +24707,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":3661
+    /* "psychxr/libovr/_libovr.pyx":3716
  * 
  *     if outRect is None:
  *         return to_return             # <<<<<<<<<<<<<<
@@ -24205,7 +24719,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
     __pyx_r = ((PyObject *)__pyx_v_to_return);
     goto __pyx_L0;
 
-    /* "psychxr/libovr/_libovr.pyx":3660
+    /* "psychxr/libovr/_libovr.pyx":3715
  *     to_return[3] = _eyeLayer.Viewport[eye].Size.h
  * 
  *     if outRect is None:             # <<<<<<<<<<<<<<
@@ -24214,7 +24728,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3627
+  /* "psychxr/libovr/_libovr.pyx":3682
  *         return to_return
  * 
  * def getEyeRenderViewport(int eye, object outRect=None):             # <<<<<<<<<<<<<<
@@ -24248,7 +24762,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_88getEyeRenderViewport(CYTHO
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3663
+/* "psychxr/libovr/_libovr.pyx":3718
  *         return to_return
  * 
  * def setEyeRenderViewport(int eye, object values):             # <<<<<<<<<<<<<<
@@ -24289,11 +24803,11 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_91setEyeRenderViewport(PyObj
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_values)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("setEyeRenderViewport", 1, 2, 2, 1); __PYX_ERR(0, 3663, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("setEyeRenderViewport", 1, 2, 2, 1); __PYX_ERR(0, 3718, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setEyeRenderViewport") < 0)) __PYX_ERR(0, 3663, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setEyeRenderViewport") < 0)) __PYX_ERR(0, 3718, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -24301,12 +24815,12 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_91setEyeRenderViewport(PyObj
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3663, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3718, __pyx_L3_error)
     __pyx_v_values = values[1];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("setEyeRenderViewport", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3663, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("setEyeRenderViewport", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3718, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.setEyeRenderViewport", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -24326,59 +24840,59 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_90setEyeRenderViewport(CYTHO
   int __pyx_t_2;
   __Pyx_RefNannySetupContext("setEyeRenderViewport", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3696
+  /* "psychxr/libovr/_libovr.pyx":3751
  *     """
  *     global _eyeLayer
  *     _eyeLayer.Viewport[eye].Pos.x = <int>values[0]             # <<<<<<<<<<<<<<
  *     _eyeLayer.Viewport[eye].Pos.y = <int>values[1]
  *     _eyeLayer.Viewport[eye].Size.w = <int>values[2]
  */
-  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_values, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3696, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_values, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3751, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3696, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3751, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.Viewport[__pyx_v_eye]).Pos.x = ((int)__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":3697
+  /* "psychxr/libovr/_libovr.pyx":3752
  *     global _eyeLayer
  *     _eyeLayer.Viewport[eye].Pos.x = <int>values[0]
  *     _eyeLayer.Viewport[eye].Pos.y = <int>values[1]             # <<<<<<<<<<<<<<
  *     _eyeLayer.Viewport[eye].Size.w = <int>values[2]
  *     _eyeLayer.Viewport[eye].Size.h = <int>values[3]
  */
-  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_values, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3697, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_values, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3752, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3697, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3752, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.Viewport[__pyx_v_eye]).Pos.y = ((int)__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":3698
+  /* "psychxr/libovr/_libovr.pyx":3753
  *     _eyeLayer.Viewport[eye].Pos.x = <int>values[0]
  *     _eyeLayer.Viewport[eye].Pos.y = <int>values[1]
  *     _eyeLayer.Viewport[eye].Size.w = <int>values[2]             # <<<<<<<<<<<<<<
  *     _eyeLayer.Viewport[eye].Size.h = <int>values[3]
  * 
  */
-  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_values, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3698, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_values, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3753, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3698, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3753, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.Viewport[__pyx_v_eye]).Size.w = ((int)__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":3699
+  /* "psychxr/libovr/_libovr.pyx":3754
  *     _eyeLayer.Viewport[eye].Pos.y = <int>values[1]
  *     _eyeLayer.Viewport[eye].Size.w = <int>values[2]
  *     _eyeLayer.Viewport[eye].Size.h = <int>values[3]             # <<<<<<<<<<<<<<
  * 
  * def getEyeViewMatrix(int eye, object outMatrix=None):
  */
-  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_values, 3, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3699, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_values, 3, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3754, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3699, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3754, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   (__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.Viewport[__pyx_v_eye]).Size.h = ((int)__pyx_t_2);
 
-  /* "psychxr/libovr/_libovr.pyx":3663
+  /* "psychxr/libovr/_libovr.pyx":3718
  *         return to_return
  * 
  * def setEyeRenderViewport(int eye, object values):             # <<<<<<<<<<<<<<
@@ -24399,7 +24913,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_90setEyeRenderViewport(CYTHO
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3701
+/* "psychxr/libovr/_libovr.pyx":3756
  *     _eyeLayer.Viewport[eye].Size.h = <int>values[3]
  * 
  * def getEyeViewMatrix(int eye, object outMatrix=None):             # <<<<<<<<<<<<<<
@@ -24445,7 +24959,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_93getEyeViewMatrix(PyObject 
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getEyeViewMatrix") < 0)) __PYX_ERR(0, 3701, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getEyeViewMatrix") < 0)) __PYX_ERR(0, 3756, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -24456,12 +24970,12 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_93getEyeViewMatrix(PyObject 
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3701, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3756, __pyx_L3_error)
     __pyx_v_outMatrix = values[1];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getEyeViewMatrix", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3701, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getEyeViewMatrix", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3756, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getEyeViewMatrix", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -24508,7 +25022,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
   __pyx_pybuffernd_to_return.data = NULL;
   __pyx_pybuffernd_to_return.rcbuffer = &__pyx_pybuffer_to_return;
 
-  /* "psychxr/libovr/_libovr.pyx":3724
+  /* "psychxr/libovr/_libovr.pyx":3779
  *     cdef np.ndarray[np.float32_t, ndim=2] to_return
  * 
  *     if outMatrix is None:             # <<<<<<<<<<<<<<
@@ -24519,32 +25033,32 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":3725
+    /* "psychxr/libovr/_libovr.pyx":3780
  * 
  *     if outMatrix is None:
  *         to_return = np.zeros((4, 4), dtype=np.float32)             # <<<<<<<<<<<<<<
  *     else:
  *         to_return = outMatrix
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3725, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3780, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3725, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3780, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3725, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3780, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3725, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 3780, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float32); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 3725, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float32); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 3780, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 3725, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 3780, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__8, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 3725, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__8, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 3780, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 3725, __pyx_L1_error)
+    if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 3780, __pyx_L1_error)
     __pyx_t_7 = ((PyArrayObject *)__pyx_t_6);
     {
       __Pyx_BufFmt_StackElem __pyx_stack[1];
@@ -24561,13 +25075,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
         __pyx_t_9 = __pyx_t_10 = __pyx_t_11 = 0;
       }
       __pyx_pybuffernd_to_return.diminfo[0].strides = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_to_return.diminfo[0].shape = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_to_return.diminfo[1].strides = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_to_return.diminfo[1].shape = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.shape[1];
-      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 3725, __pyx_L1_error)
+      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 3780, __pyx_L1_error)
     }
     __pyx_t_7 = 0;
     __pyx_v_to_return = ((PyArrayObject *)__pyx_t_6);
     __pyx_t_6 = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":3724
+    /* "psychxr/libovr/_libovr.pyx":3779
  *     cdef np.ndarray[np.float32_t, ndim=2] to_return
  * 
  *     if outMatrix is None:             # <<<<<<<<<<<<<<
@@ -24577,7 +25091,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3727
+  /* "psychxr/libovr/_libovr.pyx":3782
  *         to_return = np.zeros((4, 4), dtype=np.float32)
  *     else:
  *         to_return = outMatrix             # <<<<<<<<<<<<<<
@@ -24585,7 +25099,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
  *     cdef Py_ssize_t i, j, N
  */
   /*else*/ {
-    if (!(likely(((__pyx_v_outMatrix) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_outMatrix, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 3727, __pyx_L1_error)
+    if (!(likely(((__pyx_v_outMatrix) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_outMatrix, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 3782, __pyx_L1_error)
     __pyx_t_6 = __pyx_v_outMatrix;
     __Pyx_INCREF(__pyx_t_6);
     {
@@ -24603,14 +25117,14 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
         __pyx_t_11 = __pyx_t_10 = __pyx_t_9 = 0;
       }
       __pyx_pybuffernd_to_return.diminfo[0].strides = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_to_return.diminfo[0].shape = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_to_return.diminfo[1].strides = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_to_return.diminfo[1].shape = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.shape[1];
-      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 3727, __pyx_L1_error)
+      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 3782, __pyx_L1_error)
     }
     __pyx_v_to_return = ((PyArrayObject *)__pyx_t_6);
     __pyx_t_6 = 0;
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":3730
+  /* "psychxr/libovr/_libovr.pyx":3785
  * 
  *     cdef Py_ssize_t i, j, N
  *     i = j = 0             # <<<<<<<<<<<<<<
@@ -24620,7 +25134,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
   __pyx_v_i = 0;
   __pyx_v_j = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3731
+  /* "psychxr/libovr/_libovr.pyx":3786
  *     cdef Py_ssize_t i, j, N
  *     i = j = 0
  *     N = 4             # <<<<<<<<<<<<<<
@@ -24629,7 +25143,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
  */
   __pyx_v_N = 4;
 
-  /* "psychxr/libovr/_libovr.pyx":3732
+  /* "psychxr/libovr/_libovr.pyx":3787
  *     i = j = 0
  *     N = 4
  *     for i in range(N):             # <<<<<<<<<<<<<<
@@ -24641,7 +25155,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
   for (__pyx_t_14 = 0; __pyx_t_14 < __pyx_t_13; __pyx_t_14+=1) {
     __pyx_v_i = __pyx_t_14;
 
-    /* "psychxr/libovr/_libovr.pyx":3733
+    /* "psychxr/libovr/_libovr.pyx":3788
  *     N = 4
  *     for i in range(N):
  *         for j in range(N):             # <<<<<<<<<<<<<<
@@ -24653,7 +25167,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
     for (__pyx_t_17 = 0; __pyx_t_17 < __pyx_t_16; __pyx_t_17+=1) {
       __pyx_v_j = __pyx_t_17;
 
-      /* "psychxr/libovr/_libovr.pyx":3734
+      /* "psychxr/libovr/_libovr.pyx":3789
  *     for i in range(N):
  *         for j in range(N):
  *             to_return[i, j] = _eyeViewMatrix[eye].M[i][j]             # <<<<<<<<<<<<<<
@@ -24673,13 +25187,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
       } else if (unlikely(__pyx_t_19 >= __pyx_pybuffernd_to_return.diminfo[1].shape)) __pyx_t_8 = 1;
       if (unlikely(__pyx_t_8 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_8);
-        __PYX_ERR(0, 3734, __pyx_L1_error)
+        __PYX_ERR(0, 3789, __pyx_L1_error)
       }
       *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_to_return.rcbuffer->pybuffer.buf, __pyx_t_18, __pyx_pybuffernd_to_return.diminfo[0].strides, __pyx_t_19, __pyx_pybuffernd_to_return.diminfo[1].strides) = (((__pyx_v_7psychxr_6libovr_7_libovr__eyeViewMatrix[__pyx_v_eye]).M[__pyx_v_i])[__pyx_v_j]);
     }
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3736
+  /* "psychxr/libovr/_libovr.pyx":3791
  *             to_return[i, j] = _eyeViewMatrix[eye].M[i][j]
  * 
  *     if outMatrix is None:             # <<<<<<<<<<<<<<
@@ -24690,7 +25204,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":3737
+    /* "psychxr/libovr/_libovr.pyx":3792
  * 
  *     if outMatrix is None:
  *         return to_return             # <<<<<<<<<<<<<<
@@ -24702,7 +25216,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
     __pyx_r = ((PyObject *)__pyx_v_to_return);
     goto __pyx_L0;
 
-    /* "psychxr/libovr/_libovr.pyx":3736
+    /* "psychxr/libovr/_libovr.pyx":3791
  *             to_return[i, j] = _eyeViewMatrix[eye].M[i][j]
  * 
  *     if outMatrix is None:             # <<<<<<<<<<<<<<
@@ -24711,7 +25225,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3701
+  /* "psychxr/libovr/_libovr.pyx":3756
  *     _eyeLayer.Viewport[eye].Size.h = <int>values[3]
  * 
  * def getEyeViewMatrix(int eye, object outMatrix=None):             # <<<<<<<<<<<<<<
@@ -24745,7 +25259,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_92getEyeViewMatrix(CYTHON_UN
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3739
+/* "psychxr/libovr/_libovr.pyx":3794
  *         return to_return
  * 
  * def getPredictedDisplayTime(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
@@ -24783,7 +25297,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_95getPredictedDisplayTime(Py
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getPredictedDisplayTime") < 0)) __PYX_ERR(0, 3739, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getPredictedDisplayTime") < 0)) __PYX_ERR(0, 3794, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -24794,14 +25308,14 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_95getPredictedDisplayTime(Py
       }
     }
     if (values[0]) {
-      __pyx_v_frameIndex = __Pyx_PyInt_As_unsigned_int(values[0]); if (unlikely((__pyx_v_frameIndex == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3739, __pyx_L3_error)
+      __pyx_v_frameIndex = __Pyx_PyInt_As_unsigned_int(values[0]); if (unlikely((__pyx_v_frameIndex == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3794, __pyx_L3_error)
     } else {
       __pyx_v_frameIndex = ((unsigned int)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getPredictedDisplayTime", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3739, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getPredictedDisplayTime", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3794, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getPredictedDisplayTime", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -24821,7 +25335,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_94getPredictedDisplayTime(CY
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getPredictedDisplayTime", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3754
+  /* "psychxr/libovr/_libovr.pyx":3809
  *     """
  *     global _ptrSession
  *     cdef double t_sec = libovr_capi.ovr_GetPredictedDisplayTime(             # <<<<<<<<<<<<<<
@@ -24830,7 +25344,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_94getPredictedDisplayTime(CY
  */
   __pyx_v_t_sec = ovr_GetPredictedDisplayTime(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, __pyx_v_frameIndex);
 
-  /* "psychxr/libovr/_libovr.pyx":3758
+  /* "psychxr/libovr/_libovr.pyx":3813
  *         frameIndex)
  * 
  *     return t_sec             # <<<<<<<<<<<<<<
@@ -24838,13 +25352,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_94getPredictedDisplayTime(CY
  * def timeInSeconds():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_t_sec); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3758, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_t_sec); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3813, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3739
+  /* "psychxr/libovr/_libovr.pyx":3794
  *         return to_return
  * 
  * def getPredictedDisplayTime(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
@@ -24863,7 +25377,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_94getPredictedDisplayTime(CY
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3760
+/* "psychxr/libovr/_libovr.pyx":3815
  *     return t_sec
  * 
  * def timeInSeconds():             # <<<<<<<<<<<<<<
@@ -24893,7 +25407,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_96timeInSeconds(CYTHON_UNUSE
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("timeInSeconds", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3769
+  /* "psychxr/libovr/_libovr.pyx":3824
  * 
  *     """
  *     cdef double t_sec = libovr_capi.ovr_GetTimeInSeconds()             # <<<<<<<<<<<<<<
@@ -24902,7 +25416,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_96timeInSeconds(CYTHON_UNUSE
  */
   __pyx_v_t_sec = ovr_GetTimeInSeconds();
 
-  /* "psychxr/libovr/_libovr.pyx":3771
+  /* "psychxr/libovr/_libovr.pyx":3826
  *     cdef double t_sec = libovr_capi.ovr_GetTimeInSeconds()
  * 
  *     return t_sec             # <<<<<<<<<<<<<<
@@ -24910,13 +25424,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_96timeInSeconds(CYTHON_UNUSE
  * def perfHudMode(str mode):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_t_sec); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3771, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_t_sec); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3826, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3760
+  /* "psychxr/libovr/_libovr.pyx":3815
  *     return t_sec
  * 
  * def timeInSeconds():             # <<<<<<<<<<<<<<
@@ -24935,7 +25449,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_96timeInSeconds(CYTHON_UNUSE
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3773
+/* "psychxr/libovr/_libovr.pyx":3828
  *     return t_sec
  * 
  * def perfHudMode(str mode):             # <<<<<<<<<<<<<<
@@ -24951,7 +25465,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_99perfHudMode(PyObject *__py
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("perfHudMode (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_mode), (&PyString_Type), 1, "mode", 1))) __PYX_ERR(0, 3773, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_mode), (&PyString_Type), 1, "mode", 1))) __PYX_ERR(0, 3828, __pyx_L1_error)
   __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_98perfHudMode(__pyx_self, ((PyObject*)__pyx_v_mode));
 
   /* function exit code */
@@ -24978,7 +25492,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_98perfHudMode(CYTHON_UNUSED 
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("perfHudMode", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3791
+  /* "psychxr/libovr/_libovr.pyx":3846
  *     """
  *     global _ptrSession
  *     cdef int perfHudMode = 0             # <<<<<<<<<<<<<<
@@ -24987,7 +25501,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_98perfHudMode(CYTHON_UNUSED 
  */
   __pyx_v_perfHudMode = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3793
+  /* "psychxr/libovr/_libovr.pyx":3848
  *     cdef int perfHudMode = 0
  * 
  *     try:             # <<<<<<<<<<<<<<
@@ -25003,7 +25517,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_98perfHudMode(CYTHON_UNUSED 
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
-      /* "psychxr/libovr/_libovr.pyx":3794
+      /* "psychxr/libovr/_libovr.pyx":3849
  * 
  *     try:
  *         perfHudMode = <int>_performance_hud_modes[mode]             # <<<<<<<<<<<<<<
@@ -25012,15 +25526,15 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_98perfHudMode(CYTHON_UNUSED 
  */
       if (unlikely(__pyx_v_7psychxr_6libovr_7_libovr__performance_hud_modes == Py_None)) {
         PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-        __PYX_ERR(0, 3794, __pyx_L3_error)
+        __PYX_ERR(0, 3849, __pyx_L3_error)
       }
-      __pyx_t_4 = __Pyx_PyDict_GetItem(__pyx_v_7psychxr_6libovr_7_libovr__performance_hud_modes, __pyx_v_mode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3794, __pyx_L3_error)
+      __pyx_t_4 = __Pyx_PyDict_GetItem(__pyx_v_7psychxr_6libovr_7_libovr__performance_hud_modes, __pyx_v_mode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 3849, __pyx_L3_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_4); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3794, __pyx_L3_error)
+      __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_4); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3849, __pyx_L3_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __pyx_v_perfHudMode = ((int)__pyx_t_5);
 
-      /* "psychxr/libovr/_libovr.pyx":3793
+      /* "psychxr/libovr/_libovr.pyx":3848
  *     cdef int perfHudMode = 0
  * 
  *     try:             # <<<<<<<<<<<<<<
@@ -25035,7 +25549,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_98perfHudMode(CYTHON_UNUSED 
     __pyx_L3_error:;
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":3795
+    /* "psychxr/libovr/_libovr.pyx":3850
  *     try:
  *         perfHudMode = <int>_performance_hud_modes[mode]
  *     except KeyError:             # <<<<<<<<<<<<<<
@@ -25045,28 +25559,28 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_98perfHudMode(CYTHON_UNUSED 
     __pyx_t_5 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
     if (__pyx_t_5) {
       __Pyx_AddTraceback("psychxr.libovr._libovr.perfHudMode", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_6, &__pyx_t_7) < 0) __PYX_ERR(0, 3795, __pyx_L5_except_error)
+      if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_6, &__pyx_t_7) < 0) __PYX_ERR(0, 3850, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_GOTREF(__pyx_t_7);
 
-      /* "psychxr/libovr/_libovr.pyx":3796
+      /* "psychxr/libovr/_libovr.pyx":3851
  *         perfHudMode = <int>_performance_hud_modes[mode]
  *     except KeyError:
  *         raise KeyError("Invalid performance HUD mode specified.")             # <<<<<<<<<<<<<<
  * 
  *     cdef libovr_capi.ovrBool ret = libovr_capi.ovr_SetInt(
  */
-      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_KeyError, __pyx_tuple__32, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 3796, __pyx_L5_except_error)
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_KeyError, __pyx_tuple__32, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 3851, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_Raise(__pyx_t_8, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __PYX_ERR(0, 3796, __pyx_L5_except_error)
+      __PYX_ERR(0, 3851, __pyx_L5_except_error)
     }
     goto __pyx_L5_except_error;
     __pyx_L5_except_error:;
 
-    /* "psychxr/libovr/_libovr.pyx":3793
+    /* "psychxr/libovr/_libovr.pyx":3848
  *     cdef int perfHudMode = 0
  * 
  *     try:             # <<<<<<<<<<<<<<
@@ -25081,7 +25595,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_98perfHudMode(CYTHON_UNUSED 
     __pyx_L8_try_end:;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3798
+  /* "psychxr/libovr/_libovr.pyx":3853
  *         raise KeyError("Invalid performance HUD mode specified.")
  * 
  *     cdef libovr_capi.ovrBool ret = libovr_capi.ovr_SetInt(             # <<<<<<<<<<<<<<
@@ -25090,7 +25604,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_98perfHudMode(CYTHON_UNUSED 
  */
   __pyx_v_ret = ovr_SetInt(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((char const *)"PerfHudMode"), __pyx_v_perfHudMode);
 
-  /* "psychxr/libovr/_libovr.pyx":3773
+  /* "psychxr/libovr/_libovr.pyx":3828
  *     return t_sec
  * 
  * def perfHudMode(str mode):             # <<<<<<<<<<<<<<
@@ -25114,7 +25628,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_98perfHudMode(CYTHON_UNUSED 
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3801
+/* "psychxr/libovr/_libovr.pyx":3856
  *         _ptrSession, b"PerfHudMode", perfHudMode)
  * 
  * def hidePerfHud():             # <<<<<<<<<<<<<<
@@ -25143,7 +25657,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_100hidePerfHud(CYTHON_UNUSED
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("hidePerfHud", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3809
+  /* "psychxr/libovr/_libovr.pyx":3864
  *     """
  *     global _ptrSession
  *     cdef libovr_capi.ovrBool ret = libovr_capi.ovr_SetInt(             # <<<<<<<<<<<<<<
@@ -25152,7 +25666,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_100hidePerfHud(CYTHON_UNUSED
  */
   __pyx_v_ret = ovr_SetInt(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((char const *)"PerfHudMode"), ovrPerfHud_Off);
 
-  /* "psychxr/libovr/_libovr.pyx":3801
+  /* "psychxr/libovr/_libovr.pyx":3856
  *         _ptrSession, b"PerfHudMode", perfHudMode)
  * 
  * def hidePerfHud():             # <<<<<<<<<<<<<<
@@ -25167,7 +25681,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_100hidePerfHud(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3812
+/* "psychxr/libovr/_libovr.pyx":3867
  *         _ptrSession, b"PerfHudMode", libovr_capi.ovrPerfHud_Off)
  * 
  * def perfHudModes():             # <<<<<<<<<<<<<<
@@ -25196,7 +25710,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_102perfHudModes(CYTHON_UNUSE
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("perfHudModes", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3814
+  /* "psychxr/libovr/_libovr.pyx":3869
  * def perfHudModes():
  *     """List of valid performance HUD modes."""
  *     return [*_performance_hud_modes]             # <<<<<<<<<<<<<<
@@ -25204,13 +25718,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_102perfHudModes(CYTHON_UNUSE
  * # def getEyeViewport(int eye):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PySequence_List(__pyx_v_7psychxr_6libovr_7_libovr__performance_hud_modes); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3814, __pyx_L1_error)
+  __pyx_t_1 = PySequence_List(__pyx_v_7psychxr_6libovr_7_libovr__performance_hud_modes); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3869, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3812
+  /* "psychxr/libovr/_libovr.pyx":3867
  *         _ptrSession, b"PerfHudMode", libovr_capi.ovrPerfHud_Off)
  * 
  * def perfHudModes():             # <<<<<<<<<<<<<<
@@ -25229,7 +25743,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_102perfHudModes(CYTHON_UNUSE
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3858
+/* "psychxr/libovr/_libovr.pyx":3913
  * #     _eyeLayer.Viewport[eye] = viewportRect
  * 
  * def waitToBeginFrame(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
@@ -25267,7 +25781,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_105waitToBeginFrame(PyObject
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "waitToBeginFrame") < 0)) __PYX_ERR(0, 3858, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "waitToBeginFrame") < 0)) __PYX_ERR(0, 3913, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -25278,14 +25792,14 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_105waitToBeginFrame(PyObject
       }
     }
     if (values[0]) {
-      __pyx_v_frameIndex = __Pyx_PyInt_As_unsigned_int(values[0]); if (unlikely((__pyx_v_frameIndex == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3858, __pyx_L3_error)
+      __pyx_v_frameIndex = __Pyx_PyInt_As_unsigned_int(values[0]); if (unlikely((__pyx_v_frameIndex == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3913, __pyx_L3_error)
     } else {
       __pyx_v_frameIndex = ((unsigned int)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("waitToBeginFrame", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3858, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("waitToBeginFrame", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3913, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.waitToBeginFrame", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -25305,7 +25819,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_104waitToBeginFrame(CYTHON_U
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("waitToBeginFrame", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3878
+  /* "psychxr/libovr/_libovr.pyx":3933
  *     global _ptrSession
  *     cdef libovr_capi.ovrResult result = \
  *         libovr_capi.ovr_WaitToBeginFrame(_ptrSession, frameIndex)             # <<<<<<<<<<<<<<
@@ -25314,7 +25828,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_104waitToBeginFrame(CYTHON_U
  */
   __pyx_v_result = ovr_WaitToBeginFrame(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, __pyx_v_frameIndex);
 
-  /* "psychxr/libovr/_libovr.pyx":3880
+  /* "psychxr/libovr/_libovr.pyx":3935
  *         libovr_capi.ovr_WaitToBeginFrame(_ptrSession, frameIndex)
  * 
  *     return <int>result             # <<<<<<<<<<<<<<
@@ -25322,13 +25836,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_104waitToBeginFrame(CYTHON_U
  * def beginFrame(unsigned int frameIndex=0):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(((int)__pyx_v_result)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3880, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(((int)__pyx_v_result)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3935, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3858
+  /* "psychxr/libovr/_libovr.pyx":3913
  * #     _eyeLayer.Viewport[eye] = viewportRect
  * 
  * def waitToBeginFrame(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
@@ -25347,7 +25861,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_104waitToBeginFrame(CYTHON_U
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3882
+/* "psychxr/libovr/_libovr.pyx":3937
  *     return <int>result
  * 
  * def beginFrame(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
@@ -25385,7 +25899,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_107beginFrame(PyObject *__py
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "beginFrame") < 0)) __PYX_ERR(0, 3882, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "beginFrame") < 0)) __PYX_ERR(0, 3937, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -25396,14 +25910,14 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_107beginFrame(PyObject *__py
       }
     }
     if (values[0]) {
-      __pyx_v_frameIndex = __Pyx_PyInt_As_unsigned_int(values[0]); if (unlikely((__pyx_v_frameIndex == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3882, __pyx_L3_error)
+      __pyx_v_frameIndex = __Pyx_PyInt_As_unsigned_int(values[0]); if (unlikely((__pyx_v_frameIndex == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3937, __pyx_L3_error)
     } else {
       __pyx_v_frameIndex = ((unsigned int)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("beginFrame", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3882, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("beginFrame", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3937, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.beginFrame", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -25423,7 +25937,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_106beginFrame(CYTHON_UNUSED 
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("beginFrame", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3899
+  /* "psychxr/libovr/_libovr.pyx":3954
  *     global _ptrSession
  *     cdef libovr_capi.ovrResult result = \
  *         libovr_capi.ovr_BeginFrame(_ptrSession, frameIndex)             # <<<<<<<<<<<<<<
@@ -25432,7 +25946,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_106beginFrame(CYTHON_UNUSED 
  */
   __pyx_v_result = ovr_BeginFrame(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, __pyx_v_frameIndex);
 
-  /* "psychxr/libovr/_libovr.pyx":3901
+  /* "psychxr/libovr/_libovr.pyx":3956
  *         libovr_capi.ovr_BeginFrame(_ptrSession, frameIndex)
  * 
  *     return <int>result             # <<<<<<<<<<<<<<
@@ -25440,13 +25954,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_106beginFrame(CYTHON_UNUSED 
  * def commitTextureSwapChain(int eye):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(((int)__pyx_v_result)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3901, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(((int)__pyx_v_result)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3956, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3882
+  /* "psychxr/libovr/_libovr.pyx":3937
  *     return <int>result
  * 
  * def beginFrame(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
@@ -25465,7 +25979,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_106beginFrame(CYTHON_UNUSED 
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3903
+/* "psychxr/libovr/_libovr.pyx":3958
  *     return <int>result
  * 
  * def commitTextureSwapChain(int eye):             # <<<<<<<<<<<<<<
@@ -25483,7 +25997,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_109commitTextureSwapChain(Py
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("commitTextureSwapChain (wrapper)", 0);
   assert(__pyx_arg_eye); {
-    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3903, __pyx_L3_error)
+    __pyx_v_eye = __Pyx_PyInt_As_int(__pyx_arg_eye); if (unlikely((__pyx_v_eye == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3958, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -25505,7 +26019,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_108commitTextureSwapChain(CY
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("commitTextureSwapChain", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3930
+  /* "psychxr/libovr/_libovr.pyx":3985
  *     global _swapChains
  *     global _ptrSession
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_CommitTextureSwapChain(             # <<<<<<<<<<<<<<
@@ -25514,7 +26028,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_108commitTextureSwapChain(CY
  */
   __pyx_v_result = ovr_CommitTextureSwapChain(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, (__pyx_v_7psychxr_6libovr_7_libovr__swapChains[__pyx_v_eye]));
 
-  /* "psychxr/libovr/_libovr.pyx":3934
+  /* "psychxr/libovr/_libovr.pyx":3989
  *         _swapChains[eye])
  * 
  *     return <int>result             # <<<<<<<<<<<<<<
@@ -25522,13 +26036,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_108commitTextureSwapChain(CY
  * def endFrame(unsigned int frameIndex=0):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(((int)__pyx_v_result)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3934, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(((int)__pyx_v_result)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3989, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3903
+  /* "psychxr/libovr/_libovr.pyx":3958
  *     return <int>result
  * 
  * def commitTextureSwapChain(int eye):             # <<<<<<<<<<<<<<
@@ -25547,7 +26061,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_108commitTextureSwapChain(CY
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3936
+/* "psychxr/libovr/_libovr.pyx":3991
  *     return <int>result
  * 
  * def endFrame(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
@@ -25585,7 +26099,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_111endFrame(PyObject *__pyx_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "endFrame") < 0)) __PYX_ERR(0, 3936, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "endFrame") < 0)) __PYX_ERR(0, 3991, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -25596,14 +26110,14 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_111endFrame(PyObject *__pyx_
       }
     }
     if (values[0]) {
-      __pyx_v_frameIndex = __Pyx_PyInt_As_unsigned_int(values[0]); if (unlikely((__pyx_v_frameIndex == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3936, __pyx_L3_error)
+      __pyx_v_frameIndex = __Pyx_PyInt_As_unsigned_int(values[0]); if (unlikely((__pyx_v_frameIndex == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3991, __pyx_L3_error)
     } else {
       __pyx_v_frameIndex = ((unsigned int)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("endFrame", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3936, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("endFrame", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 3991, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.endFrame", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -25624,7 +26138,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_110endFrame(CYTHON_UNUSED Py
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("endFrame", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3963
+  /* "psychxr/libovr/_libovr.pyx":4018
  *     global _eyeLayer
  * 
  *     cdef libovr_capi.ovrLayerHeader* layers = &_eyeLayer.Header             # <<<<<<<<<<<<<<
@@ -25633,7 +26147,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_110endFrame(CYTHON_UNUSED Py
  */
   __pyx_v_layers = (&__pyx_v_7psychxr_6libovr_7_libovr__eyeLayer.Header);
 
-  /* "psychxr/libovr/_libovr.pyx":3964
+  /* "psychxr/libovr/_libovr.pyx":4019
  * 
  *     cdef libovr_capi.ovrLayerHeader* layers = &_eyeLayer.Header
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_EndFrame(             # <<<<<<<<<<<<<<
@@ -25642,7 +26156,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_110endFrame(CYTHON_UNUSED Py
  */
   __pyx_v_result = ovr_EndFrame(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, __pyx_v_frameIndex, NULL, (&__pyx_v_layers), ((unsigned int)1));
 
-  /* "psychxr/libovr/_libovr.pyx":3971
+  /* "psychxr/libovr/_libovr.pyx":4026
  *         <unsigned int>1)
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -25650,13 +26164,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_110endFrame(CYTHON_UNUSED Py
  * def resetFrameStats():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3971, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4026, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3936
+  /* "psychxr/libovr/_libovr.pyx":3991
  *     return <int>result
  * 
  * def endFrame(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
@@ -25675,7 +26189,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_110endFrame(CYTHON_UNUSED Py
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3973
+/* "psychxr/libovr/_libovr.pyx":4028
  *     return result
  * 
  * def resetFrameStats():             # <<<<<<<<<<<<<<
@@ -25705,7 +26219,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_112resetFrameStats(CYTHON_UN
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("resetFrameStats", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3983
+  /* "psychxr/libovr/_libovr.pyx":4038
  *     """
  *     global _ptrSession
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_ResetPerfStats(_ptrSession)             # <<<<<<<<<<<<<<
@@ -25714,7 +26228,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_112resetFrameStats(CYTHON_UN
  */
   __pyx_v_result = ovr_ResetPerfStats(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession);
 
-  /* "psychxr/libovr/_libovr.pyx":3985
+  /* "psychxr/libovr/_libovr.pyx":4040
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_ResetPerfStats(_ptrSession)
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -25722,13 +26236,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_112resetFrameStats(CYTHON_UN
  * def getTrackingOriginType():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3985, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4040, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":3973
+  /* "psychxr/libovr/_libovr.pyx":4028
  *     return result
  * 
  * def resetFrameStats():             # <<<<<<<<<<<<<<
@@ -25747,7 +26261,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_112resetFrameStats(CYTHON_UN
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":3987
+/* "psychxr/libovr/_libovr.pyx":4042
  *     return result
  * 
  * def getTrackingOriginType():             # <<<<<<<<<<<<<<
@@ -25776,7 +26290,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_114getTrackingOriginType(CYT
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getTrackingOriginType", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":3997
+  /* "psychxr/libovr/_libovr.pyx":4052
  *     global _ptrSession
  *     cdef libovr_capi.ovrTrackingOrigin origin = \
  *         libovr_capi.ovr_GetTrackingOriginType(_ptrSession)             # <<<<<<<<<<<<<<
@@ -25785,7 +26299,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_114getTrackingOriginType(CYT
  */
   __pyx_v_origin = ovr_GetTrackingOriginType(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession);
 
-  /* "psychxr/libovr/_libovr.pyx":3999
+  /* "psychxr/libovr/_libovr.pyx":4054
  *         libovr_capi.ovr_GetTrackingOriginType(_ptrSession)
  * 
  *     if origin == libovr_capi.ovrTrackingOrigin_FloorLevel:             # <<<<<<<<<<<<<<
@@ -25795,7 +26309,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_114getTrackingOriginType(CYT
   switch (__pyx_v_origin) {
     case ovrTrackingOrigin_FloorLevel:
 
-    /* "psychxr/libovr/_libovr.pyx":4000
+    /* "psychxr/libovr/_libovr.pyx":4055
  * 
  *     if origin == libovr_capi.ovrTrackingOrigin_FloorLevel:
  *         return 'floor'             # <<<<<<<<<<<<<<
@@ -25807,7 +26321,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_114getTrackingOriginType(CYT
     __pyx_r = __pyx_n_s_floor;
     goto __pyx_L0;
 
-    /* "psychxr/libovr/_libovr.pyx":3999
+    /* "psychxr/libovr/_libovr.pyx":4054
  *         libovr_capi.ovr_GetTrackingOriginType(_ptrSession)
  * 
  *     if origin == libovr_capi.ovrTrackingOrigin_FloorLevel:             # <<<<<<<<<<<<<<
@@ -25817,7 +26331,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_114getTrackingOriginType(CYT
     break;
     case ovrTrackingOrigin_EyeLevel:
 
-    /* "psychxr/libovr/_libovr.pyx":4002
+    /* "psychxr/libovr/_libovr.pyx":4057
  *         return 'floor'
  *     elif origin == libovr_capi.ovrTrackingOrigin_EyeLevel:
  *         return 'eye'             # <<<<<<<<<<<<<<
@@ -25829,7 +26343,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_114getTrackingOriginType(CYT
     __pyx_r = __pyx_n_s_eye;
     goto __pyx_L0;
 
-    /* "psychxr/libovr/_libovr.pyx":4001
+    /* "psychxr/libovr/_libovr.pyx":4056
  *     if origin == libovr_capi.ovrTrackingOrigin_FloorLevel:
  *         return 'floor'
  *     elif origin == libovr_capi.ovrTrackingOrigin_EyeLevel:             # <<<<<<<<<<<<<<
@@ -25840,7 +26354,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_114getTrackingOriginType(CYT
     default: break;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":3987
+  /* "psychxr/libovr/_libovr.pyx":4042
  *     return result
  * 
  * def getTrackingOriginType():             # <<<<<<<<<<<<<<
@@ -25856,7 +26370,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_114getTrackingOriginType(CYT
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4004
+/* "psychxr/libovr/_libovr.pyx":4059
  *         return 'eye'
  * 
  * def setTrackingOriginType(str value):             # <<<<<<<<<<<<<<
@@ -25872,7 +26386,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_117setTrackingOriginType(PyO
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setTrackingOriginType (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_value), (&PyString_Type), 1, "value", 1))) __PYX_ERR(0, 4004, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_value), (&PyString_Type), 1, "value", 1))) __PYX_ERR(0, 4059, __pyx_L1_error)
   __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_116setTrackingOriginType(__pyx_self, ((PyObject*)__pyx_v_value));
 
   /* function exit code */
@@ -25893,18 +26407,18 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_116setTrackingOriginType(CYT
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("setTrackingOriginType", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4007
+  /* "psychxr/libovr/_libovr.pyx":4062
  *     cdef libovr_capi.ovrResult result
  *     global _ptrSession
  *     if value == 'floor':             # <<<<<<<<<<<<<<
  *         result = libovr_capi.ovr_SetTrackingOriginType(
  *             _ptrSession, libovr_capi.ovrTrackingOrigin_FloorLevel)
  */
-  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_value, __pyx_n_s_floor, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 4007, __pyx_L1_error)
+  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_value, __pyx_n_s_floor, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 4062, __pyx_L1_error)
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4008
+    /* "psychxr/libovr/_libovr.pyx":4063
  *     global _ptrSession
  *     if value == 'floor':
  *         result = libovr_capi.ovr_SetTrackingOriginType(             # <<<<<<<<<<<<<<
@@ -25913,7 +26427,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_116setTrackingOriginType(CYT
  */
     __pyx_v_result = ovr_SetTrackingOriginType(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ovrTrackingOrigin_FloorLevel);
 
-    /* "psychxr/libovr/_libovr.pyx":4007
+    /* "psychxr/libovr/_libovr.pyx":4062
  *     cdef libovr_capi.ovrResult result
  *     global _ptrSession
  *     if value == 'floor':             # <<<<<<<<<<<<<<
@@ -25923,18 +26437,18 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_116setTrackingOriginType(CYT
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4010
+  /* "psychxr/libovr/_libovr.pyx":4065
  *         result = libovr_capi.ovr_SetTrackingOriginType(
  *             _ptrSession, libovr_capi.ovrTrackingOrigin_FloorLevel)
  *     elif value == 'eye':             # <<<<<<<<<<<<<<
  *         result = libovr_capi.ovr_SetTrackingOriginType(
  *             _ptrSession, libovr_capi.ovrTrackingOrigin_EyeLevel)
  */
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_value, __pyx_n_s_eye, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4010, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_value, __pyx_n_s_eye, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4065, __pyx_L1_error)
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":4011
+    /* "psychxr/libovr/_libovr.pyx":4066
  *             _ptrSession, libovr_capi.ovrTrackingOrigin_FloorLevel)
  *     elif value == 'eye':
  *         result = libovr_capi.ovr_SetTrackingOriginType(             # <<<<<<<<<<<<<<
@@ -25943,7 +26457,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_116setTrackingOriginType(CYT
  */
     __pyx_v_result = ovr_SetTrackingOriginType(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ovrTrackingOrigin_EyeLevel);
 
-    /* "psychxr/libovr/_libovr.pyx":4010
+    /* "psychxr/libovr/_libovr.pyx":4065
  *         result = libovr_capi.ovr_SetTrackingOriginType(
  *             _ptrSession, libovr_capi.ovrTrackingOrigin_FloorLevel)
  *     elif value == 'eye':             # <<<<<<<<<<<<<<
@@ -25953,7 +26467,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_116setTrackingOriginType(CYT
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":4014
+  /* "psychxr/libovr/_libovr.pyx":4069
  *             _ptrSession, libovr_capi.ovrTrackingOrigin_EyeLevel)
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -25961,13 +26475,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_116setTrackingOriginType(CYT
  * def recenterTrackingOrigin():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4014, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4069, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4004
+  /* "psychxr/libovr/_libovr.pyx":4059
  *         return 'eye'
  * 
  * def setTrackingOriginType(str value):             # <<<<<<<<<<<<<<
@@ -25986,7 +26500,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_116setTrackingOriginType(CYT
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4016
+/* "psychxr/libovr/_libovr.pyx":4071
  *     return result
  * 
  * def recenterTrackingOrigin():             # <<<<<<<<<<<<<<
@@ -26016,7 +26530,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_118recenterTrackingOrigin(CY
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("recenterTrackingOrigin", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4025
+  /* "psychxr/libovr/_libovr.pyx":4080
  *     """
  *     global _ptrSession
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_RecenterTrackingOrigin(             # <<<<<<<<<<<<<<
@@ -26025,7 +26539,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_118recenterTrackingOrigin(CY
  */
   __pyx_v_result = ovr_RecenterTrackingOrigin(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession);
 
-  /* "psychxr/libovr/_libovr.pyx":4028
+  /* "psychxr/libovr/_libovr.pyx":4083
  *         _ptrSession)
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -26033,13 +26547,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_118recenterTrackingOrigin(CY
  * def specifyTrackingOrigin(LibOVRPose newOrigin):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4028, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4083, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4016
+  /* "psychxr/libovr/_libovr.pyx":4071
  *     return result
  * 
  * def recenterTrackingOrigin():             # <<<<<<<<<<<<<<
@@ -26058,7 +26572,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_118recenterTrackingOrigin(CY
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4030
+/* "psychxr/libovr/_libovr.pyx":4085
  *     return result
  * 
  * def specifyTrackingOrigin(LibOVRPose newOrigin):             # <<<<<<<<<<<<<<
@@ -26074,7 +26588,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_121specifyTrackingOrigin(PyO
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("specifyTrackingOrigin (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_newOrigin), __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPose, 1, "newOrigin", 0))) __PYX_ERR(0, 4030, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_newOrigin), __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPose, 1, "newOrigin", 0))) __PYX_ERR(0, 4085, __pyx_L1_error)
   __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_120specifyTrackingOrigin(__pyx_self, ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)__pyx_v_newOrigin));
 
   /* function exit code */
@@ -26093,7 +26607,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_120specifyTrackingOrigin(CYT
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("specifyTrackingOrigin", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4040
+  /* "psychxr/libovr/_libovr.pyx":4095
  *     """
  *     global _ptrSession
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_SpecifyTrackingOrigin(             # <<<<<<<<<<<<<<
@@ -26102,7 +26616,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_120specifyTrackingOrigin(CYT
  */
   __pyx_v_result = ovr_SpecifyTrackingOrigin(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, (__pyx_v_newOrigin->c_data[0]));
 
-  /* "psychxr/libovr/_libovr.pyx":4044
+  /* "psychxr/libovr/_libovr.pyx":4099
  *         newOrigin.c_data[0])
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -26110,13 +26624,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_120specifyTrackingOrigin(CYT
  * def clearShouldRecenterFlag():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4044, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4099, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4030
+  /* "psychxr/libovr/_libovr.pyx":4085
  *     return result
  * 
  * def specifyTrackingOrigin(LibOVRPose newOrigin):             # <<<<<<<<<<<<<<
@@ -26135,7 +26649,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_120specifyTrackingOrigin(CYT
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4046
+/* "psychxr/libovr/_libovr.pyx":4101
  *     return result
  * 
  * def clearShouldRecenterFlag():             # <<<<<<<<<<<<<<
@@ -26163,7 +26677,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_122clearShouldRecenterFlag(C
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("clearShouldRecenterFlag", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4051
+  /* "psychxr/libovr/_libovr.pyx":4106
  *     """
  *     global _ptrSession
  *     libovr_capi.ovr_ClearShouldRecenterFlag(_ptrSession)             # <<<<<<<<<<<<<<
@@ -26172,7 +26686,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_122clearShouldRecenterFlag(C
  */
   ovr_ClearShouldRecenterFlag(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession);
 
-  /* "psychxr/libovr/_libovr.pyx":4046
+  /* "psychxr/libovr/_libovr.pyx":4101
  *     return result
  * 
  * def clearShouldRecenterFlag():             # <<<<<<<<<<<<<<
@@ -26187,7 +26701,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_122clearShouldRecenterFlag(C
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4053
+/* "psychxr/libovr/_libovr.pyx":4108
  *     libovr_capi.ovr_ClearShouldRecenterFlag(_ptrSession)
  * 
  * def getTrackerCount():             # <<<<<<<<<<<<<<
@@ -26217,7 +26731,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_124getTrackerCount(CYTHON_UN
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getTrackerCount", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4056
+  /* "psychxr/libovr/_libovr.pyx":4111
  *     """Get the number of attached trackers."""
  *     global _ptrSession
  *     cdef unsigned int trackerCount = libovr_capi.ovr_GetTrackerCount(             # <<<<<<<<<<<<<<
@@ -26226,7 +26740,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_124getTrackerCount(CYTHON_UN
  */
   __pyx_v_trackerCount = ovr_GetTrackerCount(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession);
 
-  /* "psychxr/libovr/_libovr.pyx":4059
+  /* "psychxr/libovr/_libovr.pyx":4114
  *         _ptrSession)
  * 
  *     return <int>trackerCount             # <<<<<<<<<<<<<<
@@ -26234,13 +26748,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_124getTrackerCount(CYTHON_UN
  * def getTrackerInfo(int trackerIndex):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(((int)__pyx_v_trackerCount)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4059, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(((int)__pyx_v_trackerCount)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4114, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4053
+  /* "psychxr/libovr/_libovr.pyx":4108
  *     libovr_capi.ovr_ClearShouldRecenterFlag(_ptrSession)
  * 
  * def getTrackerCount():             # <<<<<<<<<<<<<<
@@ -26259,7 +26773,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_124getTrackerCount(CYTHON_UN
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4061
+/* "psychxr/libovr/_libovr.pyx":4116
  *     return <int>trackerCount
  * 
  * def getTrackerInfo(int trackerIndex):             # <<<<<<<<<<<<<<
@@ -26277,7 +26791,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_127getTrackerInfo(PyObject *
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getTrackerInfo (wrapper)", 0);
   assert(__pyx_arg_trackerIndex); {
-    __pyx_v_trackerIndex = __Pyx_PyInt_As_int(__pyx_arg_trackerIndex); if (unlikely((__pyx_v_trackerIndex == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4061, __pyx_L3_error)
+    __pyx_v_trackerIndex = __Pyx_PyInt_As_int(__pyx_arg_trackerIndex); if (unlikely((__pyx_v_trackerIndex == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4116, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -26299,19 +26813,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_126getTrackerInfo(CYTHON_UNU
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getTrackerInfo", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4071
+  /* "psychxr/libovr/_libovr.pyx":4126
  * 
  *     """
  *     cdef LibOVRTrackerInfo to_return = LibOVRTrackerInfo()             # <<<<<<<<<<<<<<
  *     global _ptrSession
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4071, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4126, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_to_return = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4075
+  /* "psychxr/libovr/_libovr.pyx":4130
  * 
  *     # set the tracker index
  *     to_return._trackerIndex = <unsigned int>trackerIndex             # <<<<<<<<<<<<<<
@@ -26320,25 +26834,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_126getTrackerInfo(CYTHON_UNU
  */
   __pyx_v_to_return->_trackerIndex = ((unsigned int)__pyx_v_trackerIndex);
 
-  /* "psychxr/libovr/_libovr.pyx":4078
+  /* "psychxr/libovr/_libovr.pyx":4133
  * 
  *     # set the descriptor data
- *     to_return.c_ovrTrackerDesc = libovr_capi.ovr_GetTrackerDesc(             # <<<<<<<<<<<<<<
+ *     to_return.c_ovrTrackerDesc[0] = libovr_capi.ovr_GetTrackerDesc(             # <<<<<<<<<<<<<<
  *         _ptrSession, <unsigned int>trackerIndex)
  *     # get the tracker pose
  */
-  __pyx_v_to_return->c_ovrTrackerDesc = ovr_GetTrackerDesc(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((unsigned int)__pyx_v_trackerIndex));
+  (__pyx_v_to_return->c_ovrTrackerDesc[0]) = ovr_GetTrackerDesc(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((unsigned int)__pyx_v_trackerIndex));
 
-  /* "psychxr/libovr/_libovr.pyx":4081
+  /* "psychxr/libovr/_libovr.pyx":4136
  *         _ptrSession, <unsigned int>trackerIndex)
  *     # get the tracker pose
- *     to_return.c_ovrTrackerPose = libovr_capi.ovr_GetTrackerPose(             # <<<<<<<<<<<<<<
+ *     to_return.c_ovrTrackerPose[0] = libovr_capi.ovr_GetTrackerPose(             # <<<<<<<<<<<<<<
  *         _ptrSession, <unsigned int>trackerIndex)
  * 
  */
-  __pyx_v_to_return->c_ovrTrackerPose = ovr_GetTrackerPose(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((unsigned int)__pyx_v_trackerIndex));
+  (__pyx_v_to_return->c_ovrTrackerPose[0]) = ovr_GetTrackerPose(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((unsigned int)__pyx_v_trackerIndex));
 
-  /* "psychxr/libovr/_libovr.pyx":4084
+  /* "psychxr/libovr/_libovr.pyx":4139
  *         _ptrSession, <unsigned int>trackerIndex)
  * 
  *     return to_return             # <<<<<<<<<<<<<<
@@ -26350,7 +26864,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_126getTrackerInfo(CYTHON_UNU
   __pyx_r = ((PyObject *)__pyx_v_to_return);
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4061
+  /* "psychxr/libovr/_libovr.pyx":4116
  *     return <int>trackerCount
  * 
  * def getTrackerInfo(int trackerIndex):             # <<<<<<<<<<<<<<
@@ -26370,7 +26884,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_126getTrackerInfo(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4086
+/* "psychxr/libovr/_libovr.pyx":4141
  *     return to_return
  * 
  * def refreshPerformanceStats():             # <<<<<<<<<<<<<<
@@ -26408,7 +26922,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_128refreshPerformanceStats(C
   int __pyx_t_5;
   __Pyx_RefNannySetupContext("refreshPerformanceStats", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4094
+  /* "psychxr/libovr/_libovr.pyx":4149
  *     global _ptrSession
  *     global _frameStats
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetPerfStats(             # <<<<<<<<<<<<<<
@@ -26417,19 +26931,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_128refreshPerformanceStats(C
  */
   __pyx_v_result = ovr_GetPerfStats(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, (&__pyx_v_7psychxr_6libovr_7_libovr__frameStats));
 
-  /* "psychxr/libovr/_libovr.pyx":4099
+  /* "psychxr/libovr/_libovr.pyx":4154
  * 
  *     # clear
  *     cdef list compFrameStats = list()             # <<<<<<<<<<<<<<
  * 
  *     cdef int statIdx = 0
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4099, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_compFrameStats = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4101
+  /* "psychxr/libovr/_libovr.pyx":4156
  *     cdef list compFrameStats = list()
  * 
  *     cdef int statIdx = 0             # <<<<<<<<<<<<<<
@@ -26438,7 +26952,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_128refreshPerformanceStats(C
  */
   __pyx_v_statIdx = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4102
+  /* "psychxr/libovr/_libovr.pyx":4157
  * 
  *     cdef int statIdx = 0
  *     cdef int numStats = _frameStats.FrameStatsCount             # <<<<<<<<<<<<<<
@@ -26448,7 +26962,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_128refreshPerformanceStats(C
   __pyx_t_2 = __pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStatsCount;
   __pyx_v_numStats = __pyx_t_2;
 
-  /* "psychxr/libovr/_libovr.pyx":4103
+  /* "psychxr/libovr/_libovr.pyx":4158
  *     cdef int statIdx = 0
  *     cdef int numStats = _frameStats.FrameStatsCount
  *     for statIdx in range(numStats):             # <<<<<<<<<<<<<<
@@ -26460,19 +26974,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_128refreshPerformanceStats(C
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_statIdx = __pyx_t_4;
 
-    /* "psychxr/libovr/_libovr.pyx":4104
+    /* "psychxr/libovr/_libovr.pyx":4159
  *     cdef int numStats = _frameStats.FrameStatsCount
  *     for statIdx in range(numStats):
  *         frameStat = LibOVRFrameStat()             # <<<<<<<<<<<<<<
  *         frameStat.c_data[0] = _frameStats.FrameStats[statIdx]
  *         compFrameStats.append(frameStat)
  */
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRFrameStat)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4104, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRFrameStat)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4159, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_XDECREF_SET(__pyx_v_frameStat, ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRFrameStat *)__pyx_t_1));
     __pyx_t_1 = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":4105
+    /* "psychxr/libovr/_libovr.pyx":4160
  *     for statIdx in range(numStats):
  *         frameStat = LibOVRFrameStat()
  *         frameStat.c_data[0] = _frameStats.FrameStats[statIdx]             # <<<<<<<<<<<<<<
@@ -26481,17 +26995,17 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_128refreshPerformanceStats(C
  */
     (__pyx_v_frameStat->c_data[0]) = (__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStats[__pyx_v_statIdx]);
 
-    /* "psychxr/libovr/_libovr.pyx":4106
+    /* "psychxr/libovr/_libovr.pyx":4161
  *         frameStat = LibOVRFrameStat()
  *         frameStat.c_data[0] = _frameStats.FrameStats[statIdx]
  *         compFrameStats.append(frameStat)             # <<<<<<<<<<<<<<
  * 
  *     return result
  */
-    __pyx_t_5 = __Pyx_PyList_Append(__pyx_v_compFrameStats, ((PyObject *)__pyx_v_frameStat)); if (unlikely(__pyx_t_5 == ((int)-1))) __PYX_ERR(0, 4106, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyList_Append(__pyx_v_compFrameStats, ((PyObject *)__pyx_v_frameStat)); if (unlikely(__pyx_t_5 == ((int)-1))) __PYX_ERR(0, 4161, __pyx_L1_error)
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4108
+  /* "psychxr/libovr/_libovr.pyx":4163
  *         compFrameStats.append(frameStat)
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -26499,13 +27013,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_128refreshPerformanceStats(C
  * def updatePerfStats():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4108, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4163, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4086
+  /* "psychxr/libovr/_libovr.pyx":4141
  *     return to_return
  * 
  * def refreshPerformanceStats():             # <<<<<<<<<<<<<<
@@ -26526,7 +27040,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_128refreshPerformanceStats(C
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4110
+/* "psychxr/libovr/_libovr.pyx":4165
  *     return result
  * 
  * def updatePerfStats():             # <<<<<<<<<<<<<<
@@ -26557,7 +27071,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_130updatePerfStats(CYTHON_UN
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("updatePerfStats", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4123
+  /* "psychxr/libovr/_libovr.pyx":4178
  *     global _lastFrameStats
  * 
  *     if _frameStats.FrameStatsCount > 0:             # <<<<<<<<<<<<<<
@@ -26567,7 +27081,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_130updatePerfStats(CYTHON_UN
   __pyx_t_1 = ((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStatsCount > 0) != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":4124
+    /* "psychxr/libovr/_libovr.pyx":4179
  * 
  *     if _frameStats.FrameStatsCount > 0:
  *         if _frameStats.FrameStats[0].HmdVsyncIndex > 0:             # <<<<<<<<<<<<<<
@@ -26577,7 +27091,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_130updatePerfStats(CYTHON_UN
     __pyx_t_1 = (((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStats[0]).HmdVsyncIndex > 0) != 0);
     if (__pyx_t_1) {
 
-      /* "psychxr/libovr/_libovr.pyx":4126
+      /* "psychxr/libovr/_libovr.pyx":4181
  *         if _frameStats.FrameStats[0].HmdVsyncIndex > 0:
  *             # copy last frame stats
  *             _lastFrameStats = _frameStats.FrameStats[0]             # <<<<<<<<<<<<<<
@@ -26586,7 +27100,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_130updatePerfStats(CYTHON_UN
  */
       __pyx_v_7psychxr_6libovr_7_libovr__lastFrameStats = (__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStats[0]);
 
-      /* "psychxr/libovr/_libovr.pyx":4124
+      /* "psychxr/libovr/_libovr.pyx":4179
  * 
  *     if _frameStats.FrameStatsCount > 0:
  *         if _frameStats.FrameStats[0].HmdVsyncIndex > 0:             # <<<<<<<<<<<<<<
@@ -26595,7 +27109,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_130updatePerfStats(CYTHON_UN
  */
     }
 
-    /* "psychxr/libovr/_libovr.pyx":4123
+    /* "psychxr/libovr/_libovr.pyx":4178
  *     global _lastFrameStats
  * 
  *     if _frameStats.FrameStatsCount > 0:             # <<<<<<<<<<<<<<
@@ -26604,7 +27118,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_130updatePerfStats(CYTHON_UN
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4128
+  /* "psychxr/libovr/_libovr.pyx":4183
  *             _lastFrameStats = _frameStats.FrameStats[0]
  * 
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetPerfStats(             # <<<<<<<<<<<<<<
@@ -26613,7 +27127,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_130updatePerfStats(CYTHON_UN
  */
   __pyx_v_result = ovr_GetPerfStats(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, (&__pyx_v_7psychxr_6libovr_7_libovr__frameStats));
 
-  /* "psychxr/libovr/_libovr.pyx":4131
+  /* "psychxr/libovr/_libovr.pyx":4186
  *         _ptrSession, &_frameStats)
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -26621,13 +27135,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_130updatePerfStats(CYTHON_UN
  * def getAdaptiveGpuPerformanceScale():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4131, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4110
+  /* "psychxr/libovr/_libovr.pyx":4165
  *     return result
  * 
  * def updatePerfStats():             # <<<<<<<<<<<<<<
@@ -26646,7 +27160,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_130updatePerfStats(CYTHON_UN
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4133
+/* "psychxr/libovr/_libovr.pyx":4188
  *     return result
  * 
  * def getAdaptiveGpuPerformanceScale():             # <<<<<<<<<<<<<<
@@ -26675,7 +27189,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_132getAdaptiveGpuPerformance
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getAdaptiveGpuPerformanceScale", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4142
+  /* "psychxr/libovr/_libovr.pyx":4197
  *     """
  *     global _frameStats
  *     return _frameStats.AdaptiveGpuPerformanceScale             # <<<<<<<<<<<<<<
@@ -26683,13 +27197,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_132getAdaptiveGpuPerformance
  * def getFrameStatsCount():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_7psychxr_6libovr_7_libovr__frameStats.AdaptiveGpuPerformanceScale); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4142, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_7psychxr_6libovr_7_libovr__frameStats.AdaptiveGpuPerformanceScale); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4197, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4133
+  /* "psychxr/libovr/_libovr.pyx":4188
  *     return result
  * 
  * def getAdaptiveGpuPerformanceScale():             # <<<<<<<<<<<<<<
@@ -26708,7 +27222,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_132getAdaptiveGpuPerformance
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4144
+/* "psychxr/libovr/_libovr.pyx":4199
  *     return _frameStats.AdaptiveGpuPerformanceScale
  * 
  * def getFrameStatsCount():             # <<<<<<<<<<<<<<
@@ -26737,7 +27251,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_134getFrameStatsCount(CYTHON
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getFrameStatsCount", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4153
+  /* "psychxr/libovr/_libovr.pyx":4208
  *     """
  *     global _frameStats
  *     return _frameStats.FrameStatsCount             # <<<<<<<<<<<<<<
@@ -26745,13 +27259,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_134getFrameStatsCount(CYTHON
  * def anyFrameStatsDropped():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStatsCount); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4153, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStatsCount); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4208, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4144
+  /* "psychxr/libovr/_libovr.pyx":4199
  *     return _frameStats.AdaptiveGpuPerformanceScale
  * 
  * def getFrameStatsCount():             # <<<<<<<<<<<<<<
@@ -26770,7 +27284,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_134getFrameStatsCount(CYTHON
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4155
+/* "psychxr/libovr/_libovr.pyx":4210
  *     return _frameStats.FrameStatsCount
  * 
  * def anyFrameStatsDropped():             # <<<<<<<<<<<<<<
@@ -26799,7 +27313,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_136anyFrameStatsDropped(CYTH
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("anyFrameStatsDropped", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4167
+  /* "psychxr/libovr/_libovr.pyx":4222
  *     """
  *     global _frameStats
  *     return <bint>_frameStats.AnyFrameStatsDropped             # <<<<<<<<<<<<<<
@@ -26807,13 +27321,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_136anyFrameStatsDropped(CYTH
  * def checkAswIsAvailable():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.AnyFrameStatsDropped != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4167, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.AnyFrameStatsDropped != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4222, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4155
+  /* "psychxr/libovr/_libovr.pyx":4210
  *     return _frameStats.FrameStatsCount
  * 
  * def anyFrameStatsDropped():             # <<<<<<<<<<<<<<
@@ -26832,7 +27346,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_136anyFrameStatsDropped(CYTH
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4169
+/* "psychxr/libovr/_libovr.pyx":4224
  *     return <bint>_frameStats.AnyFrameStatsDropped
  * 
  * def checkAswIsAvailable():             # <<<<<<<<<<<<<<
@@ -26861,7 +27375,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_138checkAswIsAvailable(CYTHO
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("checkAswIsAvailable", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4178
+  /* "psychxr/libovr/_libovr.pyx":4233
  *     """
  *     global _frameStats
  *     return <bint>_frameStats.AswIsAvailable             # <<<<<<<<<<<<<<
@@ -26869,13 +27383,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_138checkAswIsAvailable(CYTHO
  * def getVisibleProcessId():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.AswIsAvailable != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4178, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.AswIsAvailable != 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4233, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4169
+  /* "psychxr/libovr/_libovr.pyx":4224
  *     return <bint>_frameStats.AnyFrameStatsDropped
  * 
  * def checkAswIsAvailable():             # <<<<<<<<<<<<<<
@@ -26894,7 +27408,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_138checkAswIsAvailable(CYTHO
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4180
+/* "psychxr/libovr/_libovr.pyx":4235
  *     return <bint>_frameStats.AswIsAvailable
  * 
  * def getVisibleProcessId():             # <<<<<<<<<<<<<<
@@ -26923,7 +27437,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_140getVisibleProcessId(CYTHO
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getVisibleProcessId", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4190
+  /* "psychxr/libovr/_libovr.pyx":4245
  *     """
  *     global _frameStats
  *     return <int>_frameStats.VisibleProcessId             # <<<<<<<<<<<<<<
@@ -26931,13 +27445,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_140getVisibleProcessId(CYTHO
  * def checkAppLastFrameDropped():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(((int)__pyx_v_7psychxr_6libovr_7_libovr__frameStats.VisibleProcessId)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4190, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(((int)__pyx_v_7psychxr_6libovr_7_libovr__frameStats.VisibleProcessId)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4245, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4180
+  /* "psychxr/libovr/_libovr.pyx":4235
  *     return <bint>_frameStats.AswIsAvailable
  * 
  * def getVisibleProcessId():             # <<<<<<<<<<<<<<
@@ -26956,7 +27470,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_140getVisibleProcessId(CYTHO
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4192
+/* "psychxr/libovr/_libovr.pyx":4247
  *     return <int>_frameStats.VisibleProcessId
  * 
  * def checkAppLastFrameDropped():             # <<<<<<<<<<<<<<
@@ -26986,7 +27500,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_142checkAppLastFrameDropped(
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("checkAppLastFrameDropped", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4204
+  /* "psychxr/libovr/_libovr.pyx":4259
  *     global _frameStats
  * 
  *     if _frameStats.FrameStatsCount > 0:             # <<<<<<<<<<<<<<
@@ -26996,7 +27510,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_142checkAppLastFrameDropped(
   __pyx_t_1 = ((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStatsCount > 0) != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":4205
+    /* "psychxr/libovr/_libovr.pyx":4260
  * 
  *     if _frameStats.FrameStatsCount > 0:
  *         if _frameStats.FrameStats[0].HmdVsyncIndex > 0:             # <<<<<<<<<<<<<<
@@ -27006,7 +27520,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_142checkAppLastFrameDropped(
     __pyx_t_1 = (((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStats[0]).HmdVsyncIndex > 0) != 0);
     if (__pyx_t_1) {
 
-      /* "psychxr/libovr/_libovr.pyx":4206
+      /* "psychxr/libovr/_libovr.pyx":4261
  *     if _frameStats.FrameStatsCount > 0:
  *         if _frameStats.FrameStats[0].HmdVsyncIndex > 0:
  *             return _frameStats.FrameStats[0].AppDroppedFrameCount > \             # <<<<<<<<<<<<<<
@@ -27015,20 +27529,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_142checkAppLastFrameDropped(
  */
       __Pyx_XDECREF(__pyx_r);
 
-      /* "psychxr/libovr/_libovr.pyx":4207
+      /* "psychxr/libovr/_libovr.pyx":4262
  *         if _frameStats.FrameStats[0].HmdVsyncIndex > 0:
  *             return _frameStats.FrameStats[0].AppDroppedFrameCount > \
  *                    _lastFrameStats.AppDroppedFrameCount             # <<<<<<<<<<<<<<
  * 
  *     return False
  */
-      __pyx_t_2 = __Pyx_PyBool_FromLong(((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStats[0]).AppDroppedFrameCount > __pyx_v_7psychxr_6libovr_7_libovr__lastFrameStats.AppDroppedFrameCount)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4206, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyBool_FromLong(((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStats[0]).AppDroppedFrameCount > __pyx_v_7psychxr_6libovr_7_libovr__lastFrameStats.AppDroppedFrameCount)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4261, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __pyx_r = __pyx_t_2;
       __pyx_t_2 = 0;
       goto __pyx_L0;
 
-      /* "psychxr/libovr/_libovr.pyx":4205
+      /* "psychxr/libovr/_libovr.pyx":4260
  * 
  *     if _frameStats.FrameStatsCount > 0:
  *         if _frameStats.FrameStats[0].HmdVsyncIndex > 0:             # <<<<<<<<<<<<<<
@@ -27037,7 +27551,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_142checkAppLastFrameDropped(
  */
     }
 
-    /* "psychxr/libovr/_libovr.pyx":4204
+    /* "psychxr/libovr/_libovr.pyx":4259
  *     global _frameStats
  * 
  *     if _frameStats.FrameStatsCount > 0:             # <<<<<<<<<<<<<<
@@ -27046,7 +27560,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_142checkAppLastFrameDropped(
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4209
+  /* "psychxr/libovr/_libovr.pyx":4264
  *                    _lastFrameStats.AppDroppedFrameCount
  * 
  *     return False             # <<<<<<<<<<<<<<
@@ -27058,7 +27572,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_142checkAppLastFrameDropped(
   __pyx_r = Py_False;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4192
+  /* "psychxr/libovr/_libovr.pyx":4247
  *     return <int>_frameStats.VisibleProcessId
  * 
  * def checkAppLastFrameDropped():             # <<<<<<<<<<<<<<
@@ -27077,7 +27591,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_142checkAppLastFrameDropped(
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4211
+/* "psychxr/libovr/_libovr.pyx":4266
  *     return False
  * 
  * def checkCompLastFrameDropped():             # <<<<<<<<<<<<<<
@@ -27107,7 +27621,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_144checkCompLastFrameDropped
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("checkCompLastFrameDropped", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4223
+  /* "psychxr/libovr/_libovr.pyx":4278
  *     global _frameStats
  * 
  *     if _frameStats.FrameStatsCount > 0:             # <<<<<<<<<<<<<<
@@ -27117,7 +27631,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_144checkCompLastFrameDropped
   __pyx_t_1 = ((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStatsCount > 0) != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":4224
+    /* "psychxr/libovr/_libovr.pyx":4279
  * 
  *     if _frameStats.FrameStatsCount > 0:
  *         if _frameStats.FrameStats[0].HmdVsyncIndex > 0:             # <<<<<<<<<<<<<<
@@ -27127,7 +27641,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_144checkCompLastFrameDropped
     __pyx_t_1 = (((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStats[0]).HmdVsyncIndex > 0) != 0);
     if (__pyx_t_1) {
 
-      /* "psychxr/libovr/_libovr.pyx":4225
+      /* "psychxr/libovr/_libovr.pyx":4280
  *     if _frameStats.FrameStatsCount > 0:
  *         if _frameStats.FrameStats[0].HmdVsyncIndex > 0:
  *             return _frameStats.FrameStats[0].CompositorDroppedFrameCount > \             # <<<<<<<<<<<<<<
@@ -27136,20 +27650,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_144checkCompLastFrameDropped
  */
       __Pyx_XDECREF(__pyx_r);
 
-      /* "psychxr/libovr/_libovr.pyx":4226
+      /* "psychxr/libovr/_libovr.pyx":4281
  *         if _frameStats.FrameStats[0].HmdVsyncIndex > 0:
  *             return _frameStats.FrameStats[0].CompositorDroppedFrameCount > \
  *                    _lastFrameStats.CompositorDroppedFrameCount             # <<<<<<<<<<<<<<
  * 
  *     return False
  */
-      __pyx_t_2 = __Pyx_PyBool_FromLong(((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStats[0]).CompositorDroppedFrameCount > __pyx_v_7psychxr_6libovr_7_libovr__lastFrameStats.CompositorDroppedFrameCount)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4225, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyBool_FromLong(((__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStats[0]).CompositorDroppedFrameCount > __pyx_v_7psychxr_6libovr_7_libovr__lastFrameStats.CompositorDroppedFrameCount)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4280, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __pyx_r = __pyx_t_2;
       __pyx_t_2 = 0;
       goto __pyx_L0;
 
-      /* "psychxr/libovr/_libovr.pyx":4224
+      /* "psychxr/libovr/_libovr.pyx":4279
  * 
  *     if _frameStats.FrameStatsCount > 0:
  *         if _frameStats.FrameStats[0].HmdVsyncIndex > 0:             # <<<<<<<<<<<<<<
@@ -27158,7 +27672,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_144checkCompLastFrameDropped
  */
     }
 
-    /* "psychxr/libovr/_libovr.pyx":4223
+    /* "psychxr/libovr/_libovr.pyx":4278
  *     global _frameStats
  * 
  *     if _frameStats.FrameStatsCount > 0:             # <<<<<<<<<<<<<<
@@ -27167,7 +27681,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_144checkCompLastFrameDropped
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4228
+  /* "psychxr/libovr/_libovr.pyx":4283
  *                    _lastFrameStats.CompositorDroppedFrameCount
  * 
  *     return False             # <<<<<<<<<<<<<<
@@ -27179,7 +27693,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_144checkCompLastFrameDropped
   __pyx_r = Py_False;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4211
+  /* "psychxr/libovr/_libovr.pyx":4266
  *     return False
  * 
  * def checkCompLastFrameDropped():             # <<<<<<<<<<<<<<
@@ -27198,7 +27712,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_144checkCompLastFrameDropped
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4245
+/* "psychxr/libovr/_libovr.pyx":4300
  * #     return toReturn
  * 
  * def getFrameStats(int frameStatIndex=0):             # <<<<<<<<<<<<<<
@@ -27236,7 +27750,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_147getFrameStats(PyObject *_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getFrameStats") < 0)) __PYX_ERR(0, 4245, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getFrameStats") < 0)) __PYX_ERR(0, 4300, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -27247,14 +27761,14 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_147getFrameStats(PyObject *_
       }
     }
     if (values[0]) {
-      __pyx_v_frameStatIndex = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_frameStatIndex == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4245, __pyx_L3_error)
+      __pyx_v_frameStatIndex = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_frameStatIndex == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4300, __pyx_L3_error)
     } else {
       __pyx_v_frameStatIndex = ((int)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getFrameStats", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4245, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getFrameStats", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4300, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getFrameStats", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -27276,7 +27790,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_146getFrameStats(CYTHON_UNUS
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("getFrameStats", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4267
+  /* "psychxr/libovr/_libovr.pyx":4322
  *     global _frameStats
  * 
  *     if 0 > frameStatIndex >= _frameStats.FrameStatsCount:             # <<<<<<<<<<<<<<
@@ -27290,20 +27804,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_146getFrameStats(CYTHON_UNUS
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (unlikely(__pyx_t_2)) {
 
-    /* "psychxr/libovr/_libovr.pyx":4268
+    /* "psychxr/libovr/_libovr.pyx":4323
  * 
  *     if 0 > frameStatIndex >= _frameStats.FrameStatsCount:
  *         raise IndexError("Frame stats index out of range.")             # <<<<<<<<<<<<<<
  * 
  *     cdef LibOVRFrameStat stat = LibOVRFrameStat()
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IndexError, __pyx_tuple__33, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4268, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IndexError, __pyx_tuple__33, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4323, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 4268, __pyx_L1_error)
+    __PYX_ERR(0, 4323, __pyx_L1_error)
 
-    /* "psychxr/libovr/_libovr.pyx":4267
+    /* "psychxr/libovr/_libovr.pyx":4322
  *     global _frameStats
  * 
  *     if 0 > frameStatIndex >= _frameStats.FrameStatsCount:             # <<<<<<<<<<<<<<
@@ -27312,19 +27826,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_146getFrameStats(CYTHON_UNUS
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4270
+  /* "psychxr/libovr/_libovr.pyx":4325
  *         raise IndexError("Frame stats index out of range.")
  * 
  *     cdef LibOVRFrameStat stat = LibOVRFrameStat()             # <<<<<<<<<<<<<<
  *     stat.c_data[0] = _frameStats.FrameStats[0]
  * 
  */
-  __pyx_t_3 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRFrameStat)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4270, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRFrameStat)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4325, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_v_stat = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRFrameStat *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4271
+  /* "psychxr/libovr/_libovr.pyx":4326
  * 
  *     cdef LibOVRFrameStat stat = LibOVRFrameStat()
  *     stat.c_data[0] = _frameStats.FrameStats[0]             # <<<<<<<<<<<<<<
@@ -27333,7 +27847,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_146getFrameStats(CYTHON_UNUS
  */
   (__pyx_v_stat->c_data[0]) = (__pyx_v_7psychxr_6libovr_7_libovr__frameStats.FrameStats[0]);
 
-  /* "psychxr/libovr/_libovr.pyx":4273
+  /* "psychxr/libovr/_libovr.pyx":4328
  *     stat.c_data[0] = _frameStats.FrameStats[0]
  * 
  *     return stat             # <<<<<<<<<<<<<<
@@ -27345,7 +27859,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_146getFrameStats(CYTHON_UNUS
   __pyx_r = ((PyObject *)__pyx_v_stat);
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4245
+  /* "psychxr/libovr/_libovr.pyx":4300
  * #     return toReturn
  * 
  * def getFrameStats(int frameStatIndex=0):             # <<<<<<<<<<<<<<
@@ -27365,7 +27879,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_146getFrameStats(CYTHON_UNUS
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4275
+/* "psychxr/libovr/_libovr.pyx":4330
  *     return stat
  * 
  * def getLastErrorInfo():             # <<<<<<<<<<<<<<
@@ -27400,7 +27914,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_148getLastErrorInfo(CYTHON_U
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("getLastErrorInfo", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4287
+  /* "psychxr/libovr/_libovr.pyx":4342
  *     """
  *     cdef libovr_capi.ovrErrorInfo lastErrorInfo  # store our last error here
  *     libovr_capi.ovr_GetLastErrorInfo(&lastErrorInfo)             # <<<<<<<<<<<<<<
@@ -27409,7 +27923,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_148getLastErrorInfo(CYTHON_U
  */
   ovr_GetLastErrorInfo((&__pyx_v_lastErrorInfo));
 
-  /* "psychxr/libovr/_libovr.pyx":4289
+  /* "psychxr/libovr/_libovr.pyx":4344
  *     libovr_capi.ovr_GetLastErrorInfo(&lastErrorInfo)
  * 
  *     cdef libovr_capi.ovrResult result = lastErrorInfo.Result             # <<<<<<<<<<<<<<
@@ -27419,7 +27933,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_148getLastErrorInfo(CYTHON_U
   __pyx_t_1 = __pyx_v_lastErrorInfo.Result;
   __pyx_v_result = __pyx_t_1;
 
-  /* "psychxr/libovr/_libovr.pyx":4290
+  /* "psychxr/libovr/_libovr.pyx":4345
  * 
  *     cdef libovr_capi.ovrResult result = lastErrorInfo.Result
  *     cdef str errorString = lastErrorInfo.ErrorString.decode("utf-8")             # <<<<<<<<<<<<<<
@@ -27427,14 +27941,14 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_148getLastErrorInfo(CYTHON_U
  *     return <int>result, errorString
  */
   __pyx_t_2 = __pyx_v_lastErrorInfo.ErrorString;
-  __pyx_t_3 = __Pyx_decode_c_string(__pyx_t_2, 0, strlen(__pyx_t_2), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4290, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_decode_c_string(__pyx_t_2, 0, strlen(__pyx_t_2), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4345, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (!(likely(PyString_CheckExact(__pyx_t_3))||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 4290, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_3))||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 4345, __pyx_L1_error)
   __Pyx_INCREF(__pyx_t_3);
   __pyx_v_errorString = ((PyObject*)__pyx_t_3);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4292
+  /* "psychxr/libovr/_libovr.pyx":4347
  *     cdef str errorString = lastErrorInfo.ErrorString.decode("utf-8")
  * 
  *     return <int>result, errorString             # <<<<<<<<<<<<<<
@@ -27442,9 +27956,9 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_148getLastErrorInfo(CYTHON_U
  * def setBoundaryColor(float red, float green, float blue):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyInt_From_int(((int)__pyx_v_result)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4292, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(((int)__pyx_v_result)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4347, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 4292, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 4347, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
@@ -27456,7 +27970,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_148getLastErrorInfo(CYTHON_U
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4275
+  /* "psychxr/libovr/_libovr.pyx":4330
  *     return stat
  * 
  * def getLastErrorInfo():             # <<<<<<<<<<<<<<
@@ -27477,7 +27991,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_148getLastErrorInfo(CYTHON_U
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4294
+/* "psychxr/libovr/_libovr.pyx":4349
  *     return <int>result, errorString
  * 
  * def setBoundaryColor(float red, float green, float blue):             # <<<<<<<<<<<<<<
@@ -27521,17 +28035,17 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_151setBoundaryColor(PyObject
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_green)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("setBoundaryColor", 1, 3, 3, 1); __PYX_ERR(0, 4294, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("setBoundaryColor", 1, 3, 3, 1); __PYX_ERR(0, 4349, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_blue)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("setBoundaryColor", 1, 3, 3, 2); __PYX_ERR(0, 4294, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("setBoundaryColor", 1, 3, 3, 2); __PYX_ERR(0, 4349, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setBoundaryColor") < 0)) __PYX_ERR(0, 4294, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setBoundaryColor") < 0)) __PYX_ERR(0, 4349, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -27540,13 +28054,13 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_151setBoundaryColor(PyObject
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_red = __pyx_PyFloat_AsFloat(values[0]); if (unlikely((__pyx_v_red == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 4294, __pyx_L3_error)
-    __pyx_v_green = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_green == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 4294, __pyx_L3_error)
-    __pyx_v_blue = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_blue == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 4294, __pyx_L3_error)
+    __pyx_v_red = __pyx_PyFloat_AsFloat(values[0]); if (unlikely((__pyx_v_red == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 4349, __pyx_L3_error)
+    __pyx_v_green = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_green == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 4349, __pyx_L3_error)
+    __pyx_v_blue = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_blue == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 4349, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("setBoundaryColor", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4294, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("setBoundaryColor", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4349, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.setBoundaryColor", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -27567,7 +28081,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_150setBoundaryColor(CYTHON_U
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("setBoundaryColor", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4314
+  /* "psychxr/libovr/_libovr.pyx":4369
  * 
  *     cdef libovr_capi.ovrColorf color
  *     color.r = <float>red             # <<<<<<<<<<<<<<
@@ -27576,7 +28090,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_150setBoundaryColor(CYTHON_U
  */
   __pyx_v_color.r = ((float)__pyx_v_red);
 
-  /* "psychxr/libovr/_libovr.pyx":4315
+  /* "psychxr/libovr/_libovr.pyx":4370
  *     cdef libovr_capi.ovrColorf color
  *     color.r = <float>red
  *     color.g = <float>green             # <<<<<<<<<<<<<<
@@ -27585,7 +28099,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_150setBoundaryColor(CYTHON_U
  */
   __pyx_v_color.g = ((float)__pyx_v_green);
 
-  /* "psychxr/libovr/_libovr.pyx":4316
+  /* "psychxr/libovr/_libovr.pyx":4371
  *     color.r = <float>red
  *     color.g = <float>green
  *     color.b = <float>blue             # <<<<<<<<<<<<<<
@@ -27594,7 +28108,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_150setBoundaryColor(CYTHON_U
  */
   __pyx_v_color.b = ((float)__pyx_v_blue);
 
-  /* "psychxr/libovr/_libovr.pyx":4318
+  /* "psychxr/libovr/_libovr.pyx":4373
  *     color.b = <float>blue
  * 
  *     _boundryStyle.Color = color             # <<<<<<<<<<<<<<
@@ -27603,7 +28117,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_150setBoundaryColor(CYTHON_U
  */
   __pyx_v_7psychxr_6libovr_7_libovr__boundryStyle.Color = __pyx_v_color;
 
-  /* "psychxr/libovr/_libovr.pyx":4320
+  /* "psychxr/libovr/_libovr.pyx":4375
  *     _boundryStyle.Color = color
  * 
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_SetBoundaryLookAndFeel(             # <<<<<<<<<<<<<<
@@ -27612,7 +28126,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_150setBoundaryColor(CYTHON_U
  */
   __pyx_v_result = ovr_SetBoundaryLookAndFeel(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, (&__pyx_v_7psychxr_6libovr_7_libovr__boundryStyle));
 
-  /* "psychxr/libovr/_libovr.pyx":4324
+  /* "psychxr/libovr/_libovr.pyx":4379
  *         &_boundryStyle)
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -27620,13 +28134,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_150setBoundaryColor(CYTHON_U
  * def resetBoundaryColor():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4324, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4379, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4294
+  /* "psychxr/libovr/_libovr.pyx":4349
  *     return <int>result, errorString
  * 
  * def setBoundaryColor(float red, float green, float blue):             # <<<<<<<<<<<<<<
@@ -27645,7 +28159,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_150setBoundaryColor(CYTHON_U
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4326
+/* "psychxr/libovr/_libovr.pyx":4381
  *     return result
  * 
  * def resetBoundaryColor():             # <<<<<<<<<<<<<<
@@ -27675,7 +28189,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_152resetBoundaryColor(CYTHON
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("resetBoundaryColor", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4331
+  /* "psychxr/libovr/_libovr.pyx":4386
  *     """
  *     global _ptrSession
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_ResetBoundaryLookAndFeel(             # <<<<<<<<<<<<<<
@@ -27684,7 +28198,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_152resetBoundaryColor(CYTHON
  */
   __pyx_v_result = ovr_ResetBoundaryLookAndFeel(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession);
 
-  /* "psychxr/libovr/_libovr.pyx":4334
+  /* "psychxr/libovr/_libovr.pyx":4389
  *         _ptrSession)
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -27692,13 +28206,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_152resetBoundaryColor(CYTHON
  * def getBoundaryVisible():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4334, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4389, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4326
+  /* "psychxr/libovr/_libovr.pyx":4381
  *     return result
  * 
  * def resetBoundaryColor():             # <<<<<<<<<<<<<<
@@ -27717,7 +28231,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_152resetBoundaryColor(CYTHON
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4336
+/* "psychxr/libovr/_libovr.pyx":4391
  *     return result
  * 
  * def getBoundaryVisible():             # <<<<<<<<<<<<<<
@@ -27750,7 +28264,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_154getBoundaryVisible(CYTHON
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("getBoundaryVisible", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4350
+  /* "psychxr/libovr/_libovr.pyx":4405
  *     global _ptrSession
  *     cdef libovr_capi.ovrBool is_visible
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetBoundaryVisible(             # <<<<<<<<<<<<<<
@@ -27759,7 +28273,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_154getBoundaryVisible(CYTHON
  */
   __pyx_v_result = ovr_GetBoundaryVisible(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, (&__pyx_v_is_visible));
 
-  /* "psychxr/libovr/_libovr.pyx":4353
+  /* "psychxr/libovr/_libovr.pyx":4408
  *         _ptrSession, &is_visible)
  * 
  *     return result, is_visible             # <<<<<<<<<<<<<<
@@ -27767,11 +28281,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_154getBoundaryVisible(CYTHON
  * def showBoundary():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4353, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4408, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_From_ovrBool(__pyx_v_is_visible); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4353, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_ovrBool(__pyx_v_is_visible); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4408, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4353, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4408, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -27783,7 +28297,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_154getBoundaryVisible(CYTHON
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4336
+  /* "psychxr/libovr/_libovr.pyx":4391
  *     return result
  * 
  * def getBoundaryVisible():             # <<<<<<<<<<<<<<
@@ -27804,7 +28318,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_154getBoundaryVisible(CYTHON
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4355
+/* "psychxr/libovr/_libovr.pyx":4410
  *     return result, is_visible
  * 
  * def showBoundary():             # <<<<<<<<<<<<<<
@@ -27834,7 +28348,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_156showBoundary(CYTHON_UNUSE
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("showBoundary", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4363
+  /* "psychxr/libovr/_libovr.pyx":4418
  *     """
  *     global _ptrSession
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_RequestBoundaryVisible(             # <<<<<<<<<<<<<<
@@ -27843,7 +28357,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_156showBoundary(CYTHON_UNUSE
  */
   __pyx_v_result = ovr_RequestBoundaryVisible(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ovrTrue);
 
-  /* "psychxr/libovr/_libovr.pyx":4366
+  /* "psychxr/libovr/_libovr.pyx":4421
  *         _ptrSession, libovr_capi.ovrTrue)
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -27851,13 +28365,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_156showBoundary(CYTHON_UNUSE
  * def hideBoundary():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4366, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4421, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4355
+  /* "psychxr/libovr/_libovr.pyx":4410
  *     return result, is_visible
  * 
  * def showBoundary():             # <<<<<<<<<<<<<<
@@ -27876,7 +28390,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_156showBoundary(CYTHON_UNUSE
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4368
+/* "psychxr/libovr/_libovr.pyx":4423
  *     return result
  * 
  * def hideBoundary():             # <<<<<<<<<<<<<<
@@ -27906,7 +28420,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_158hideBoundary(CYTHON_UNUSE
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("hideBoundary", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4371
+  /* "psychxr/libovr/_libovr.pyx":4426
  *     """Hide the boundry."""
  *     global _ptrSession
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_RequestBoundaryVisible(             # <<<<<<<<<<<<<<
@@ -27915,7 +28429,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_158hideBoundary(CYTHON_UNUSE
  */
   __pyx_v_result = ovr_RequestBoundaryVisible(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ovrFalse);
 
-  /* "psychxr/libovr/_libovr.pyx":4374
+  /* "psychxr/libovr/_libovr.pyx":4429
  *         _ptrSession, libovr_capi.ovrFalse)
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -27923,13 +28437,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_158hideBoundary(CYTHON_UNUSE
  * def getBoundaryDimensions(str boundaryType='PlayArea'):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4374, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4429, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4368
+  /* "psychxr/libovr/_libovr.pyx":4423
  *     return result
  * 
  * def hideBoundary():             # <<<<<<<<<<<<<<
@@ -27948,7 +28462,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_158hideBoundary(CYTHON_UNUSE
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4376
+/* "psychxr/libovr/_libovr.pyx":4431
  *     return result
  * 
  * def getBoundaryDimensions(str boundaryType='PlayArea'):             # <<<<<<<<<<<<<<
@@ -27987,7 +28501,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_161getBoundaryDimensions(PyO
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getBoundaryDimensions") < 0)) __PYX_ERR(0, 4376, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getBoundaryDimensions") < 0)) __PYX_ERR(0, 4431, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -28001,13 +28515,13 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_161getBoundaryDimensions(PyO
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getBoundaryDimensions", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4376, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getBoundaryDimensions", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4431, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getBoundaryDimensions", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_boundaryType), (&PyString_Type), 1, "boundaryType", 1))) __PYX_ERR(0, 4376, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_boundaryType), (&PyString_Type), 1, "boundaryType", 1))) __PYX_ERR(0, 4431, __pyx_L1_error)
   __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(__pyx_self, __pyx_v_boundaryType);
 
   /* function exit code */
@@ -28042,18 +28556,18 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(CYT
   __pyx_pybuffernd_to_return.data = NULL;
   __pyx_pybuffernd_to_return.rcbuffer = &__pyx_pybuffer_to_return;
 
-  /* "psychxr/libovr/_libovr.pyx":4392
+  /* "psychxr/libovr/_libovr.pyx":4447
  *     global _ptrSession
  *     cdef libovr_capi.ovrBoundaryType btype
  *     if boundaryType == 'PlayArea':             # <<<<<<<<<<<<<<
  *         btype = libovr_capi.ovrBoundary_PlayArea
  *     elif boundaryType == 'Outer':
  */
-  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_boundaryType, __pyx_n_s_PlayArea, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 4392, __pyx_L1_error)
+  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_boundaryType, __pyx_n_s_PlayArea, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 4447, __pyx_L1_error)
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4393
+    /* "psychxr/libovr/_libovr.pyx":4448
  *     cdef libovr_capi.ovrBoundaryType btype
  *     if boundaryType == 'PlayArea':
  *         btype = libovr_capi.ovrBoundary_PlayArea             # <<<<<<<<<<<<<<
@@ -28062,7 +28576,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(CYT
  */
     __pyx_v_btype = ovrBoundary_PlayArea;
 
-    /* "psychxr/libovr/_libovr.pyx":4392
+    /* "psychxr/libovr/_libovr.pyx":4447
  *     global _ptrSession
  *     cdef libovr_capi.ovrBoundaryType btype
  *     if boundaryType == 'PlayArea':             # <<<<<<<<<<<<<<
@@ -28072,18 +28586,18 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(CYT
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4394
+  /* "psychxr/libovr/_libovr.pyx":4449
  *     if boundaryType == 'PlayArea':
  *         btype = libovr_capi.ovrBoundary_PlayArea
  *     elif boundaryType == 'Outer':             # <<<<<<<<<<<<<<
  *         btype = libovr_capi.ovrBoundary_Outer
  *     else:
  */
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_boundaryType, __pyx_n_s_Outer, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4394, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_boundaryType, __pyx_n_s_Outer, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4449, __pyx_L1_error)
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (likely(__pyx_t_1)) {
 
-    /* "psychxr/libovr/_libovr.pyx":4395
+    /* "psychxr/libovr/_libovr.pyx":4450
  *         btype = libovr_capi.ovrBoundary_PlayArea
  *     elif boundaryType == 'Outer':
  *         btype = libovr_capi.ovrBoundary_Outer             # <<<<<<<<<<<<<<
@@ -28092,7 +28606,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(CYT
  */
     __pyx_v_btype = ovrBoundary_Outer;
 
-    /* "psychxr/libovr/_libovr.pyx":4394
+    /* "psychxr/libovr/_libovr.pyx":4449
  *     if boundaryType == 'PlayArea':
  *         btype = libovr_capi.ovrBoundary_PlayArea
  *     elif boundaryType == 'Outer':             # <<<<<<<<<<<<<<
@@ -28102,7 +28616,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(CYT
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4397
+  /* "psychxr/libovr/_libovr.pyx":4452
  *         btype = libovr_capi.ovrBoundary_Outer
  *     else:
  *         raise ValueError("Invalid boundary type specified.")             # <<<<<<<<<<<<<<
@@ -28110,15 +28624,15 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(CYT
  *     cdef libovr_capi.ovrVector3f vec_out
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__34, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4397, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__34, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4452, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 4397, __pyx_L1_error)
+    __PYX_ERR(0, 4452, __pyx_L1_error)
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":4400
+  /* "psychxr/libovr/_libovr.pyx":4455
  * 
  *     cdef libovr_capi.ovrVector3f vec_out
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetBoundaryDimensions(             # <<<<<<<<<<<<<<
@@ -28127,33 +28641,33 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(CYT
  */
   __pyx_v_result = ovr_GetBoundaryDimensions(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, __pyx_v_btype, (&__pyx_v_vec_out));
 
-  /* "psychxr/libovr/_libovr.pyx":4403
+  /* "psychxr/libovr/_libovr.pyx":4458
  *             _ptrSession, btype, &vec_out)
  * 
  *     cdef np.ndarray[np.float32_t, ndim=1] to_return = np.asarray(             # <<<<<<<<<<<<<<
  *         (vec_out.x, vec_out.y, vec_out.z), dtype=np.float32)
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4403, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4458, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 4403, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 4458, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4404
+  /* "psychxr/libovr/_libovr.pyx":4459
  * 
  *     cdef np.ndarray[np.float32_t, ndim=1] to_return = np.asarray(
  *         (vec_out.x, vec_out.y, vec_out.z), dtype=np.float32)             # <<<<<<<<<<<<<<
  * 
  *     return result, to_return
  */
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_vec_out.x); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4404, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_vec_out.x); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4459, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_vec_out.y); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 4404, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_vec_out.y); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 4459, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyFloat_FromDouble(__pyx_v_vec_out.z); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4404, __pyx_L1_error)
+  __pyx_t_6 = PyFloat_FromDouble(__pyx_v_vec_out.z); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4459, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = PyTuple_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 4404, __pyx_L1_error)
+  __pyx_t_7 = PyTuple_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 4459, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3);
@@ -28165,55 +28679,55 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(CYT
   __pyx_t_5 = 0;
   __pyx_t_6 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4403
+  /* "psychxr/libovr/_libovr.pyx":4458
  *             _ptrSession, btype, &vec_out)
  * 
  *     cdef np.ndarray[np.float32_t, ndim=1] to_return = np.asarray(             # <<<<<<<<<<<<<<
  *         (vec_out.x, vec_out.y, vec_out.z), dtype=np.float32)
  * 
  */
-  __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4403, __pyx_L1_error)
+  __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4458, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_7);
   PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_7);
   __pyx_t_7 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4404
+  /* "psychxr/libovr/_libovr.pyx":4459
  * 
  *     cdef np.ndarray[np.float32_t, ndim=1] to_return = np.asarray(
  *         (vec_out.x, vec_out.y, vec_out.z), dtype=np.float32)             # <<<<<<<<<<<<<<
  * 
  *     return result, to_return
  */
-  __pyx_t_7 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 4404, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 4459, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 4404, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 4459, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float32); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4404, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float32); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4459, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 4404, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 4459, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4403
+  /* "psychxr/libovr/_libovr.pyx":4458
  *             _ptrSession, btype, &vec_out)
  * 
  *     cdef np.ndarray[np.float32_t, ndim=1] to_return = np.asarray(             # <<<<<<<<<<<<<<
  *         (vec_out.x, vec_out.y, vec_out.z), dtype=np.float32)
  * 
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4403, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4458, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 4403, __pyx_L1_error)
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 4458, __pyx_L1_error)
   __pyx_t_8 = ((PyArrayObject *)__pyx_t_3);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_to_return.rcbuffer->pybuffer, (PyObject*)__pyx_t_8, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float32_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_to_return = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_to_return.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 4403, __pyx_L1_error)
+      __PYX_ERR(0, 4458, __pyx_L1_error)
     } else {__pyx_pybuffernd_to_return.diminfo[0].strides = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_to_return.diminfo[0].shape = __pyx_pybuffernd_to_return.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -28221,7 +28735,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(CYT
   __pyx_v_to_return = ((PyArrayObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4406
+  /* "psychxr/libovr/_libovr.pyx":4461
  *         (vec_out.x, vec_out.y, vec_out.z), dtype=np.float32)
  * 
  *     return result, to_return             # <<<<<<<<<<<<<<
@@ -28229,9 +28743,9 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(CYT
  * #def getBoundaryPoints(str boundaryType='PlayArea'):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4406, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4461, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 4406, __pyx_L1_error)
+  __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 4461, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3);
@@ -28243,7 +28757,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(CYT
   __pyx_t_7 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4376
+  /* "psychxr/libovr/_libovr.pyx":4431
  *     return result
  * 
  * def getBoundaryDimensions(str boundaryType='PlayArea'):             # <<<<<<<<<<<<<<
@@ -28276,7 +28790,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_160getBoundaryDimensions(CYT
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4412
+/* "psychxr/libovr/_libovr.pyx":4467
  * #    pass  # TODO: make this work.
  * 
  * def getConnectedControllerTypes():             # <<<<<<<<<<<<<<
@@ -28309,7 +28823,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
   int __pyx_t_3;
   __Pyx_RefNannySetupContext("getConnectedControllerTypes", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4437
+  /* "psychxr/libovr/_libovr.pyx":4492
  *     """
  *     global _ptrSession
  *     cdef unsigned int result = libovr_capi.ovr_GetConnectedControllerTypes(             # <<<<<<<<<<<<<<
@@ -28318,19 +28832,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
  */
   __pyx_v_result = ovr_GetConnectedControllerTypes(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession);
 
-  /* "psychxr/libovr/_libovr.pyx":4440
+  /* "psychxr/libovr/_libovr.pyx":4495
  *         _ptrSession)
  * 
  *     cdef list toReturn = list()             # <<<<<<<<<<<<<<
  *     if (libovr_capi.ovrControllerType_XBox & result) == \
  *         libovr_capi.ovrControllerType_XBox:
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4440, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4495, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_toReturn = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4441
+  /* "psychxr/libovr/_libovr.pyx":4496
  * 
  *     cdef list toReturn = list()
  *     if (libovr_capi.ovrControllerType_XBox & result) == \             # <<<<<<<<<<<<<<
@@ -28340,19 +28854,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
   __pyx_t_2 = (((ovrControllerType_XBox & __pyx_v_result) == ovrControllerType_XBox) != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4443
+    /* "psychxr/libovr/_libovr.pyx":4498
  *     if (libovr_capi.ovrControllerType_XBox & result) == \
  *         libovr_capi.ovrControllerType_XBox:
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_XBOX)             # <<<<<<<<<<<<<<
  *     if (libovr_capi.ovrControllerType_Remote & result) == \
  *         libovr_capi.ovrControllerType_Remote:
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4443, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4498, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_toReturn, __pyx_t_1); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 4443, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_toReturn, __pyx_t_1); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 4498, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":4441
+    /* "psychxr/libovr/_libovr.pyx":4496
  * 
  *     cdef list toReturn = list()
  *     if (libovr_capi.ovrControllerType_XBox & result) == \             # <<<<<<<<<<<<<<
@@ -28361,7 +28875,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4444
+  /* "psychxr/libovr/_libovr.pyx":4499
  *         libovr_capi.ovrControllerType_XBox:
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_XBOX)
  *     if (libovr_capi.ovrControllerType_Remote & result) == \             # <<<<<<<<<<<<<<
@@ -28371,19 +28885,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
   __pyx_t_2 = (((ovrControllerType_Remote & __pyx_v_result) == ovrControllerType_Remote) != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4446
+    /* "psychxr/libovr/_libovr.pyx":4501
  *     if (libovr_capi.ovrControllerType_Remote & result) == \
  *         libovr_capi.ovrControllerType_Remote:
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_REMOTE)             # <<<<<<<<<<<<<<
  *     if (libovr_capi.ovrControllerType_Touch & result) == \
  *         libovr_capi.ovrControllerType_Touch:
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4446, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4501, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_toReturn, __pyx_t_1); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 4446, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_toReturn, __pyx_t_1); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 4501, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":4444
+    /* "psychxr/libovr/_libovr.pyx":4499
  *         libovr_capi.ovrControllerType_XBox:
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_XBOX)
  *     if (libovr_capi.ovrControllerType_Remote & result) == \             # <<<<<<<<<<<<<<
@@ -28392,7 +28906,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4447
+  /* "psychxr/libovr/_libovr.pyx":4502
  *         libovr_capi.ovrControllerType_Remote:
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_REMOTE)
  *     if (libovr_capi.ovrControllerType_Touch & result) == \             # <<<<<<<<<<<<<<
@@ -28402,19 +28916,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
   __pyx_t_2 = (((ovrControllerType_Touch & __pyx_v_result) == ovrControllerType_Touch) != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4449
+    /* "psychxr/libovr/_libovr.pyx":4504
  *     if (libovr_capi.ovrControllerType_Touch & result) == \
  *         libovr_capi.ovrControllerType_Touch:
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_TOUCH)             # <<<<<<<<<<<<<<
  *         # if we have the touch controller, don't poll single controllers
  *         return toReturn
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4449, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4504, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_toReturn, __pyx_t_1); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 4449, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_toReturn, __pyx_t_1); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 4504, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":4451
+    /* "psychxr/libovr/_libovr.pyx":4506
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_TOUCH)
  *         # if we have the touch controller, don't poll single controllers
  *         return toReturn             # <<<<<<<<<<<<<<
@@ -28426,7 +28940,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
     __pyx_r = __pyx_v_toReturn;
     goto __pyx_L0;
 
-    /* "psychxr/libovr/_libovr.pyx":4447
+    /* "psychxr/libovr/_libovr.pyx":4502
  *         libovr_capi.ovrControllerType_Remote:
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_REMOTE)
  *     if (libovr_capi.ovrControllerType_Touch & result) == \             # <<<<<<<<<<<<<<
@@ -28435,7 +28949,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4453
+  /* "psychxr/libovr/_libovr.pyx":4508
  *         return toReturn
  * 
  *     if (libovr_capi.ovrControllerType_LTouch & result) == \             # <<<<<<<<<<<<<<
@@ -28445,19 +28959,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
   __pyx_t_2 = (((ovrControllerType_LTouch & __pyx_v_result) == ovrControllerType_LTouch) != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4455
+    /* "psychxr/libovr/_libovr.pyx":4510
  *     if (libovr_capi.ovrControllerType_LTouch & result) == \
  *         libovr_capi.ovrControllerType_LTouch:
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_LTOUCH)             # <<<<<<<<<<<<<<
  *     if (libovr_capi.ovrControllerType_RTouch & result) == \
  *         libovr_capi.ovrControllerType_RTouch:
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4455, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4510, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_toReturn, __pyx_t_1); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 4455, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_toReturn, __pyx_t_1); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 4510, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":4453
+    /* "psychxr/libovr/_libovr.pyx":4508
  *         return toReturn
  * 
  *     if (libovr_capi.ovrControllerType_LTouch & result) == \             # <<<<<<<<<<<<<<
@@ -28466,7 +28980,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4456
+  /* "psychxr/libovr/_libovr.pyx":4511
  *         libovr_capi.ovrControllerType_LTouch:
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_LTOUCH)
  *     if (libovr_capi.ovrControllerType_RTouch & result) == \             # <<<<<<<<<<<<<<
@@ -28476,19 +28990,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
   __pyx_t_2 = (((ovrControllerType_RTouch & __pyx_v_result) == ovrControllerType_RTouch) != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4458
+    /* "psychxr/libovr/_libovr.pyx":4513
  *     if (libovr_capi.ovrControllerType_RTouch & result) == \
  *         libovr_capi.ovrControllerType_RTouch:
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_RTOUCH)             # <<<<<<<<<<<<<<
  * 
  *     return toReturn
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4458, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4513, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_toReturn, __pyx_t_1); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 4458, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_toReturn, __pyx_t_1); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 4513, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":4456
+    /* "psychxr/libovr/_libovr.pyx":4511
  *         libovr_capi.ovrControllerType_LTouch:
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_LTOUCH)
  *     if (libovr_capi.ovrControllerType_RTouch & result) == \             # <<<<<<<<<<<<<<
@@ -28497,7 +29011,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
  */
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4460
+  /* "psychxr/libovr/_libovr.pyx":4515
  *         toReturn.append(LIBOVR_CONTROLLER_TYPE_RTOUCH)
  * 
  *     return toReturn             # <<<<<<<<<<<<<<
@@ -28509,7 +29023,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
   __pyx_r = __pyx_v_toReturn;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4412
+  /* "psychxr/libovr/_libovr.pyx":4467
  * #    pass  # TODO: make this work.
  * 
  * def getConnectedControllerTypes():             # <<<<<<<<<<<<<<
@@ -28529,7 +29043,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_162getConnectedControllerTyp
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4462
+/* "psychxr/libovr/_libovr.pyx":4517
  *     return toReturn
  * 
  * def updateInputState(int controller):             # <<<<<<<<<<<<<<
@@ -28547,7 +29061,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_165updateInputState(PyObject
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("updateInputState (wrapper)", 0);
   assert(__pyx_arg_controller); {
-    __pyx_v_controller = __Pyx_PyInt_As_int(__pyx_arg_controller); if (unlikely((__pyx_v_controller == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4462, __pyx_L3_error)
+    __pyx_v_controller = __Pyx_PyInt_As_int(__pyx_arg_controller); if (unlikely((__pyx_v_controller == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4517, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -28575,25 +29089,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
   int __pyx_t_4;
   __Pyx_RefNannySetupContext("updateInputState", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4482
+  /* "psychxr/libovr/_libovr.pyx":4537
  *     # get the controller index in the states array
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:             # <<<<<<<<<<<<<<
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4482, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4537, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4482, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4537, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4482, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4537, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4482, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4537, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4483
+    /* "psychxr/libovr/_libovr.pyx":4538
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0             # <<<<<<<<<<<<<<
@@ -28602,7 +29116,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
  */
     __pyx_v_idx = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":4482
+    /* "psychxr/libovr/_libovr.pyx":4537
  *     # get the controller index in the states array
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:             # <<<<<<<<<<<<<<
@@ -28612,25 +29126,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4484
+  /* "psychxr/libovr/_libovr.pyx":4539
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:             # <<<<<<<<<<<<<<
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4484, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4539, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4484, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4539, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4484, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4539, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4484, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4539, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4485
+    /* "psychxr/libovr/_libovr.pyx":4540
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1             # <<<<<<<<<<<<<<
@@ -28639,7 +29153,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
  */
     __pyx_v_idx = 1;
 
-    /* "psychxr/libovr/_libovr.pyx":4484
+    /* "psychxr/libovr/_libovr.pyx":4539
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:             # <<<<<<<<<<<<<<
@@ -28649,25 +29163,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4486
+  /* "psychxr/libovr/_libovr.pyx":4541
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:             # <<<<<<<<<<<<<<
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4486, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4541, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4486, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4541, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4486, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4541, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4486, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4541, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4487
+    /* "psychxr/libovr/_libovr.pyx":4542
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2             # <<<<<<<<<<<<<<
@@ -28676,7 +29190,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
  */
     __pyx_v_idx = 2;
 
-    /* "psychxr/libovr/_libovr.pyx":4486
+    /* "psychxr/libovr/_libovr.pyx":4541
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:             # <<<<<<<<<<<<<<
@@ -28686,25 +29200,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4488
+  /* "psychxr/libovr/_libovr.pyx":4543
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:             # <<<<<<<<<<<<<<
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4488, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4543, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4488, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4543, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4488, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4543, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4488, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4543, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4489
+    /* "psychxr/libovr/_libovr.pyx":4544
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3             # <<<<<<<<<<<<<<
@@ -28713,7 +29227,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
  */
     __pyx_v_idx = 3;
 
-    /* "psychxr/libovr/_libovr.pyx":4488
+    /* "psychxr/libovr/_libovr.pyx":4543
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:             # <<<<<<<<<<<<<<
@@ -28723,25 +29237,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4490
+  /* "psychxr/libovr/_libovr.pyx":4545
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:             # <<<<<<<<<<<<<<
  *         idx = 4
  *     else:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4490, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4545, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4490, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4545, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4490, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4545, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4490, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4545, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (likely(__pyx_t_4)) {
 
-    /* "psychxr/libovr/_libovr.pyx":4491
+    /* "psychxr/libovr/_libovr.pyx":4546
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
  *         idx = 4             # <<<<<<<<<<<<<<
@@ -28750,7 +29264,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
  */
     __pyx_v_idx = 4;
 
-    /* "psychxr/libovr/_libovr.pyx":4490
+    /* "psychxr/libovr/_libovr.pyx":4545
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:             # <<<<<<<<<<<<<<
@@ -28760,7 +29274,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4493
+  /* "psychxr/libovr/_libovr.pyx":4548
  *         idx = 4
  *     else:
  *         raise ValueError("Invalid controller type specified.")             # <<<<<<<<<<<<<<
@@ -28768,15 +29282,15 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
  *     # pointer to the current and previous input state
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4493, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4548, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 4493, __pyx_L1_error)
+    __PYX_ERR(0, 4548, __pyx_L1_error)
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":4497
+  /* "psychxr/libovr/_libovr.pyx":4552
  *     # pointer to the current and previous input state
  *     cdef libovr_capi.ovrInputState* previousInputState = \
  *         &_prevInputState[idx]             # <<<<<<<<<<<<<<
@@ -28785,7 +29299,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
  */
   __pyx_v_previousInputState = (&(__pyx_v_7psychxr_6libovr_7_libovr__prevInputState[__pyx_v_idx]));
 
-  /* "psychxr/libovr/_libovr.pyx":4499
+  /* "psychxr/libovr/_libovr.pyx":4554
  *         &_prevInputState[idx]
  *     cdef libovr_capi.ovrInputState* currentInputState = \
  *         &_inputStates[idx]             # <<<<<<<<<<<<<<
@@ -28794,7 +29308,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
  */
   __pyx_v_currentInputState = (&(__pyx_v_7psychxr_6libovr_7_libovr__inputStates[__pyx_v_idx]));
 
-  /* "psychxr/libovr/_libovr.pyx":4502
+  /* "psychxr/libovr/_libovr.pyx":4557
  * 
  *     # copy the current input state into the previous before updating
  *     previousInputState[0] = currentInputState[0]             # <<<<<<<<<<<<<<
@@ -28803,7 +29317,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
  */
   (__pyx_v_previousInputState[0]) = (__pyx_v_currentInputState[0]);
 
-  /* "psychxr/libovr/_libovr.pyx":4505
+  /* "psychxr/libovr/_libovr.pyx":4560
  * 
  *     # get the current input state
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetInputState(             # <<<<<<<<<<<<<<
@@ -28812,7 +29326,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
  */
   __pyx_v_result = ovr_GetInputState(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((ovrControllerType)__pyx_v_controller), __pyx_v_currentInputState);
 
-  /* "psychxr/libovr/_libovr.pyx":4510
+  /* "psychxr/libovr/_libovr.pyx":4565
  *         currentInputState)
  * 
  *     return result, currentInputState.TimeInSeconds             # <<<<<<<<<<<<<<
@@ -28820,11 +29334,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
  * def getButton(int controller, int button, str testState='continuous'):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4510, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4565, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_currentInputState->TimeInSeconds); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4510, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_currentInputState->TimeInSeconds); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4565, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4510, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4565, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
@@ -28836,7 +29350,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4462
+  /* "psychxr/libovr/_libovr.pyx":4517
  *     return toReturn
  * 
  * def updateInputState(int controller):             # <<<<<<<<<<<<<<
@@ -28857,7 +29371,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_164updateInputState(CYTHON_U
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4512
+/* "psychxr/libovr/_libovr.pyx":4567
  *     return result, currentInputState.TimeInSeconds
  * 
  * def getButton(int controller, int button, str testState='continuous'):             # <<<<<<<<<<<<<<
@@ -28902,7 +29416,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_167getButton(PyObject *__pyx
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_button)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("getButton", 0, 2, 3, 1); __PYX_ERR(0, 4512, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("getButton", 0, 2, 3, 1); __PYX_ERR(0, 4567, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -28912,7 +29426,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_167getButton(PyObject *__pyx
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getButton") < 0)) __PYX_ERR(0, 4512, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getButton") < 0)) __PYX_ERR(0, 4567, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -28924,19 +29438,19 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_167getButton(PyObject *__pyx
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_controller = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_controller == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4512, __pyx_L3_error)
-    __pyx_v_button = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_button == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4512, __pyx_L3_error)
+    __pyx_v_controller = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_controller == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4567, __pyx_L3_error)
+    __pyx_v_button = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_button == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4567, __pyx_L3_error)
     __pyx_v_testState = ((PyObject*)values[2]);
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getButton", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4512, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getButton", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4567, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getButton", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_testState), (&PyString_Type), 1, "testState", 1))) __PYX_ERR(0, 4512, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_testState), (&PyString_Type), 1, "testState", 1))) __PYX_ERR(0, 4567, __pyx_L1_error)
   __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_166getButton(__pyx_self, __pyx_v_controller, __pyx_v_button, __pyx_v_testState);
 
   /* function exit code */
@@ -28966,25 +29480,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
   int __pyx_t_8;
   __Pyx_RefNannySetupContext("getButton", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4591
+  /* "psychxr/libovr/_libovr.pyx":4646
  *     # get the controller index in the states array
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:             # <<<<<<<<<<<<<<
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4591, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4646, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4591, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4646, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4591, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4646, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4591, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4646, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4592
+    /* "psychxr/libovr/_libovr.pyx":4647
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0             # <<<<<<<<<<<<<<
@@ -28993,7 +29507,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
  */
     __pyx_v_idx = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":4591
+    /* "psychxr/libovr/_libovr.pyx":4646
  *     # get the controller index in the states array
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:             # <<<<<<<<<<<<<<
@@ -29003,25 +29517,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4593
+  /* "psychxr/libovr/_libovr.pyx":4648
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:             # <<<<<<<<<<<<<<
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4593, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4648, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4593, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4648, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4593, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4648, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4593, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4648, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4594
+    /* "psychxr/libovr/_libovr.pyx":4649
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1             # <<<<<<<<<<<<<<
@@ -29030,7 +29544,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
  */
     __pyx_v_idx = 1;
 
-    /* "psychxr/libovr/_libovr.pyx":4593
+    /* "psychxr/libovr/_libovr.pyx":4648
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:             # <<<<<<<<<<<<<<
@@ -29040,25 +29554,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4595
+  /* "psychxr/libovr/_libovr.pyx":4650
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:             # <<<<<<<<<<<<<<
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4595, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4650, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4595, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4650, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4595, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4650, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4595, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4650, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4596
+    /* "psychxr/libovr/_libovr.pyx":4651
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2             # <<<<<<<<<<<<<<
@@ -29067,7 +29581,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
  */
     __pyx_v_idx = 2;
 
-    /* "psychxr/libovr/_libovr.pyx":4595
+    /* "psychxr/libovr/_libovr.pyx":4650
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:             # <<<<<<<<<<<<<<
@@ -29077,25 +29591,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4597
+  /* "psychxr/libovr/_libovr.pyx":4652
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:             # <<<<<<<<<<<<<<
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4597, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4652, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4597, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4652, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4597, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4652, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4597, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4652, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4598
+    /* "psychxr/libovr/_libovr.pyx":4653
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3             # <<<<<<<<<<<<<<
@@ -29104,7 +29618,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
  */
     __pyx_v_idx = 3;
 
-    /* "psychxr/libovr/_libovr.pyx":4597
+    /* "psychxr/libovr/_libovr.pyx":4652
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:             # <<<<<<<<<<<<<<
@@ -29114,25 +29628,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4599
+  /* "psychxr/libovr/_libovr.pyx":4654
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:             # <<<<<<<<<<<<<<
  *         idx = 4
  *     else:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4599, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4654, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4599, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4654, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4599, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4654, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4599, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4654, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (likely(__pyx_t_4)) {
 
-    /* "psychxr/libovr/_libovr.pyx":4600
+    /* "psychxr/libovr/_libovr.pyx":4655
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
  *         idx = 4             # <<<<<<<<<<<<<<
@@ -29141,7 +29655,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
  */
     __pyx_v_idx = 4;
 
-    /* "psychxr/libovr/_libovr.pyx":4599
+    /* "psychxr/libovr/_libovr.pyx":4654
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:             # <<<<<<<<<<<<<<
@@ -29151,7 +29665,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4602
+  /* "psychxr/libovr/_libovr.pyx":4657
  *         idx = 4
  *     else:
  *         raise ValueError("Invalid controller type specified.")             # <<<<<<<<<<<<<<
@@ -29159,15 +29673,15 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
  *     # get the time the controller was polled
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4602, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4657, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 4602, __pyx_L1_error)
+    __PYX_ERR(0, 4657, __pyx_L1_error)
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":4605
+  /* "psychxr/libovr/_libovr.pyx":4660
  * 
  *     # get the time the controller was polled
  *     cdef double t_sec = _inputStates[idx].TimeInSeconds             # <<<<<<<<<<<<<<
@@ -29177,7 +29691,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
   __pyx_t_5 = (__pyx_v_7psychxr_6libovr_7_libovr__inputStates[__pyx_v_idx]).TimeInSeconds;
   __pyx_v_t_sec = __pyx_t_5;
 
-  /* "psychxr/libovr/_libovr.pyx":4608
+  /* "psychxr/libovr/_libovr.pyx":4663
  * 
  *     # pointer to the current and previous input state
  *     cdef unsigned int curButtons = _inputStates[idx].Buttons             # <<<<<<<<<<<<<<
@@ -29187,7 +29701,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
   __pyx_t_6 = (__pyx_v_7psychxr_6libovr_7_libovr__inputStates[__pyx_v_idx]).Buttons;
   __pyx_v_curButtons = __pyx_t_6;
 
-  /* "psychxr/libovr/_libovr.pyx":4609
+  /* "psychxr/libovr/_libovr.pyx":4664
  *     # pointer to the current and previous input state
  *     cdef unsigned int curButtons = _inputStates[idx].Buttons
  *     cdef unsigned int prvButtons = _prevInputState[idx].Buttons             # <<<<<<<<<<<<<<
@@ -29197,7 +29711,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
   __pyx_t_6 = (__pyx_v_7psychxr_6libovr_7_libovr__prevInputState[__pyx_v_idx]).Buttons;
   __pyx_v_prvButtons = __pyx_t_6;
 
-  /* "psychxr/libovr/_libovr.pyx":4612
+  /* "psychxr/libovr/_libovr.pyx":4667
  * 
  *     # test if the button was pressed
  *     cdef bint stateResult = False             # <<<<<<<<<<<<<<
@@ -29206,18 +29720,18 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
  */
   __pyx_v_stateResult = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4613
+  /* "psychxr/libovr/_libovr.pyx":4668
  *     # test if the button was pressed
  *     cdef bint stateResult = False
  *     if testState == 'continuous':             # <<<<<<<<<<<<<<
  *         stateResult = (curButtons & button) == button
  *     elif testState == 'rising' or testState == 'pressed':
  */
-  __pyx_t_4 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_continuous, Py_EQ)); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4613, __pyx_L1_error)
+  __pyx_t_4 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_continuous, Py_EQ)); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4668, __pyx_L1_error)
   __pyx_t_7 = (__pyx_t_4 != 0);
   if (__pyx_t_7) {
 
-    /* "psychxr/libovr/_libovr.pyx":4614
+    /* "psychxr/libovr/_libovr.pyx":4669
  *     cdef bint stateResult = False
  *     if testState == 'continuous':
  *         stateResult = (curButtons & button) == button             # <<<<<<<<<<<<<<
@@ -29226,7 +29740,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
  */
     __pyx_v_stateResult = ((__pyx_v_curButtons & __pyx_v_button) == __pyx_v_button);
 
-    /* "psychxr/libovr/_libovr.pyx":4613
+    /* "psychxr/libovr/_libovr.pyx":4668
  *     # test if the button was pressed
  *     cdef bint stateResult = False
  *     if testState == 'continuous':             # <<<<<<<<<<<<<<
@@ -29236,27 +29750,27 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
     goto __pyx_L4;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4615
+  /* "psychxr/libovr/_libovr.pyx":4670
  *     if testState == 'continuous':
  *         stateResult = (curButtons & button) == button
  *     elif testState == 'rising' or testState == 'pressed':             # <<<<<<<<<<<<<<
  *         # rising edge, will trigger once when pressed
  *         stateResult = (curButtons & button) == button and \
  */
-  __pyx_t_4 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_rising, Py_EQ)); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4615, __pyx_L1_error)
+  __pyx_t_4 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_rising, Py_EQ)); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4670, __pyx_L1_error)
   __pyx_t_8 = (__pyx_t_4 != 0);
   if (!__pyx_t_8) {
   } else {
     __pyx_t_7 = __pyx_t_8;
     goto __pyx_L5_bool_binop_done;
   }
-  __pyx_t_8 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_pressed, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 4615, __pyx_L1_error)
+  __pyx_t_8 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_pressed, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 4670, __pyx_L1_error)
   __pyx_t_4 = (__pyx_t_8 != 0);
   __pyx_t_7 = __pyx_t_4;
   __pyx_L5_bool_binop_done:;
   if (__pyx_t_7) {
 
-    /* "psychxr/libovr/_libovr.pyx":4617
+    /* "psychxr/libovr/_libovr.pyx":4672
  *     elif testState == 'rising' or testState == 'pressed':
  *         # rising edge, will trigger once when pressed
  *         stateResult = (curButtons & button) == button and \             # <<<<<<<<<<<<<<
@@ -29270,7 +29784,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
       goto __pyx_L7_bool_binop_done;
     }
 
-    /* "psychxr/libovr/_libovr.pyx":4618
+    /* "psychxr/libovr/_libovr.pyx":4673
  *         # rising edge, will trigger once when pressed
  *         stateResult = (curButtons & button) == button and \
  *                       (prvButtons & button) != button             # <<<<<<<<<<<<<<
@@ -29282,7 +29796,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
     __pyx_L7_bool_binop_done:;
     __pyx_v_stateResult = __pyx_t_7;
 
-    /* "psychxr/libovr/_libovr.pyx":4615
+    /* "psychxr/libovr/_libovr.pyx":4670
  *     if testState == 'continuous':
  *         stateResult = (curButtons & button) == button
  *     elif testState == 'rising' or testState == 'pressed':             # <<<<<<<<<<<<<<
@@ -29292,27 +29806,27 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
     goto __pyx_L4;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4619
+  /* "psychxr/libovr/_libovr.pyx":4674
  *         stateResult = (curButtons & button) == button and \
  *                       (prvButtons & button) != button
  *     elif testState == 'falling' or testState == 'released':             # <<<<<<<<<<<<<<
  *         # falling edge, will trigger once when released
  *         stateResult = (curButtons & button) != button and \
  */
-  __pyx_t_4 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_falling, Py_EQ)); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4619, __pyx_L1_error)
+  __pyx_t_4 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_falling, Py_EQ)); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4674, __pyx_L1_error)
   __pyx_t_8 = (__pyx_t_4 != 0);
   if (!__pyx_t_8) {
   } else {
     __pyx_t_7 = __pyx_t_8;
     goto __pyx_L9_bool_binop_done;
   }
-  __pyx_t_8 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_released, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 4619, __pyx_L1_error)
+  __pyx_t_8 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_released, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 4674, __pyx_L1_error)
   __pyx_t_4 = (__pyx_t_8 != 0);
   __pyx_t_7 = __pyx_t_4;
   __pyx_L9_bool_binop_done:;
   if (likely(__pyx_t_7)) {
 
-    /* "psychxr/libovr/_libovr.pyx":4621
+    /* "psychxr/libovr/_libovr.pyx":4676
  *     elif testState == 'falling' or testState == 'released':
  *         # falling edge, will trigger once when released
  *         stateResult = (curButtons & button) != button and \             # <<<<<<<<<<<<<<
@@ -29326,7 +29840,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
       goto __pyx_L11_bool_binop_done;
     }
 
-    /* "psychxr/libovr/_libovr.pyx":4622
+    /* "psychxr/libovr/_libovr.pyx":4677
  *         # falling edge, will trigger once when released
  *         stateResult = (curButtons & button) != button and \
  *                       (prvButtons & button) == button             # <<<<<<<<<<<<<<
@@ -29338,7 +29852,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
     __pyx_L11_bool_binop_done:;
     __pyx_v_stateResult = __pyx_t_7;
 
-    /* "psychxr/libovr/_libovr.pyx":4619
+    /* "psychxr/libovr/_libovr.pyx":4674
  *         stateResult = (curButtons & button) == button and \
  *                       (prvButtons & button) != button
  *     elif testState == 'falling' or testState == 'released':             # <<<<<<<<<<<<<<
@@ -29348,7 +29862,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
     goto __pyx_L4;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4624
+  /* "psychxr/libovr/_libovr.pyx":4679
  *                       (prvButtons & button) == button
  *     else:
  *         raise ValueError("Invalid trigger mode specified.")             # <<<<<<<<<<<<<<
@@ -29356,15 +29870,15 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
  *     return stateResult, t_sec
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__36, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4624, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__36, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4679, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 4624, __pyx_L1_error)
+    __PYX_ERR(0, 4679, __pyx_L1_error)
   }
   __pyx_L4:;
 
-  /* "psychxr/libovr/_libovr.pyx":4626
+  /* "psychxr/libovr/_libovr.pyx":4681
  *         raise ValueError("Invalid trigger mode specified.")
  * 
  *     return stateResult, t_sec             # <<<<<<<<<<<<<<
@@ -29372,11 +29886,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
  * def getTouch(str controller, object touch, str testState='continuous'):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_v_stateResult); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4626, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_v_stateResult); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4681, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_t_sec); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4626, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_t_sec); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4681, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4626, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4681, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
@@ -29388,7 +29902,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4512
+  /* "psychxr/libovr/_libovr.pyx":4567
  *     return result, currentInputState.TimeInSeconds
  * 
  * def getButton(int controller, int button, str testState='continuous'):             # <<<<<<<<<<<<<<
@@ -29409,7 +29923,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_166getButton(CYTHON_UNUSED P
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4628
+/* "psychxr/libovr/_libovr.pyx":4683
  *     return stateResult, t_sec
  * 
  * def getTouch(str controller, object touch, str testState='continuous'):             # <<<<<<<<<<<<<<
@@ -29454,7 +29968,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_169getTouch(PyObject *__pyx_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_touch)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("getTouch", 0, 2, 3, 1); __PYX_ERR(0, 4628, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("getTouch", 0, 2, 3, 1); __PYX_ERR(0, 4683, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -29464,7 +29978,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_169getTouch(PyObject *__pyx_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getTouch") < 0)) __PYX_ERR(0, 4628, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getTouch") < 0)) __PYX_ERR(0, 4683, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -29482,14 +29996,14 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_169getTouch(PyObject *__pyx_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getTouch", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4628, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getTouch", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4683, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getTouch", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_controller), (&PyString_Type), 1, "controller", 1))) __PYX_ERR(0, 4628, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_testState), (&PyString_Type), 1, "testState", 1))) __PYX_ERR(0, 4628, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_controller), (&PyString_Type), 1, "controller", 1))) __PYX_ERR(0, 4683, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_testState), (&PyString_Type), 1, "testState", 1))) __PYX_ERR(0, 4683, __pyx_L1_error)
   __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(__pyx_self, __pyx_v_controller, __pyx_v_touch, __pyx_v_testState);
 
   /* function exit code */
@@ -29519,20 +30033,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("getTouch", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4690
+  /* "psychxr/libovr/_libovr.pyx":4745
  *     # get the controller index in the states array
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:             # <<<<<<<<<<<<<<
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4690, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4745, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4690, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4745, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4691
+    /* "psychxr/libovr/_libovr.pyx":4746
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0             # <<<<<<<<<<<<<<
@@ -29541,7 +30055,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
  */
     __pyx_v_idx = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":4690
+    /* "psychxr/libovr/_libovr.pyx":4745
  *     # get the controller index in the states array
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:             # <<<<<<<<<<<<<<
@@ -29551,20 +30065,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4692
+  /* "psychxr/libovr/_libovr.pyx":4747
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:             # <<<<<<<<<<<<<<
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4692, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4747, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4692, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4747, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4693
+    /* "psychxr/libovr/_libovr.pyx":4748
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1             # <<<<<<<<<<<<<<
@@ -29573,7 +30087,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
  */
     __pyx_v_idx = 1;
 
-    /* "psychxr/libovr/_libovr.pyx":4692
+    /* "psychxr/libovr/_libovr.pyx":4747
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:             # <<<<<<<<<<<<<<
@@ -29583,20 +30097,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4694
+  /* "psychxr/libovr/_libovr.pyx":4749
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:             # <<<<<<<<<<<<<<
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4694, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4749, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4694, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4749, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4695
+    /* "psychxr/libovr/_libovr.pyx":4750
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2             # <<<<<<<<<<<<<<
@@ -29605,7 +30119,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
  */
     __pyx_v_idx = 2;
 
-    /* "psychxr/libovr/_libovr.pyx":4694
+    /* "psychxr/libovr/_libovr.pyx":4749
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:             # <<<<<<<<<<<<<<
@@ -29615,20 +30129,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4696
+  /* "psychxr/libovr/_libovr.pyx":4751
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:             # <<<<<<<<<<<<<<
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4696, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4751, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4696, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4751, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4697
+    /* "psychxr/libovr/_libovr.pyx":4752
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3             # <<<<<<<<<<<<<<
@@ -29637,7 +30151,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
  */
     __pyx_v_idx = 3;
 
-    /* "psychxr/libovr/_libovr.pyx":4696
+    /* "psychxr/libovr/_libovr.pyx":4751
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:             # <<<<<<<<<<<<<<
@@ -29647,20 +30161,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4698
+  /* "psychxr/libovr/_libovr.pyx":4753
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:             # <<<<<<<<<<<<<<
  *         idx = 4
  *     else:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4698, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4753, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4698, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4753, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (likely(__pyx_t_2)) {
 
-    /* "psychxr/libovr/_libovr.pyx":4699
+    /* "psychxr/libovr/_libovr.pyx":4754
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
  *         idx = 4             # <<<<<<<<<<<<<<
@@ -29669,7 +30183,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
  */
     __pyx_v_idx = 4;
 
-    /* "psychxr/libovr/_libovr.pyx":4698
+    /* "psychxr/libovr/_libovr.pyx":4753
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:             # <<<<<<<<<<<<<<
@@ -29679,7 +30193,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4701
+  /* "psychxr/libovr/_libovr.pyx":4756
  *         idx = 4
  *     else:
  *         raise ValueError("Invalid controller type specified.")             # <<<<<<<<<<<<<<
@@ -29687,15 +30201,15 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
  *     # get the time the controller was polled
  */
   /*else*/ {
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4701, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4756, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 4701, __pyx_L1_error)
+    __PYX_ERR(0, 4756, __pyx_L1_error)
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":4704
+  /* "psychxr/libovr/_libovr.pyx":4759
  * 
  *     # get the time the controller was polled
  *     cdef double t_sec = _inputStates[idx].TimeInSeconds             # <<<<<<<<<<<<<<
@@ -29705,7 +30219,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
   __pyx_t_3 = (__pyx_v_7psychxr_6libovr_7_libovr__inputStates[__pyx_v_idx]).TimeInSeconds;
   __pyx_v_t_sec = __pyx_t_3;
 
-  /* "psychxr/libovr/_libovr.pyx":4707
+  /* "psychxr/libovr/_libovr.pyx":4762
  * 
  *     # pointer to the current and previous input state
  *     cdef unsigned int curTouches = _inputStates[idx].Touches             # <<<<<<<<<<<<<<
@@ -29715,7 +30229,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
   __pyx_t_4 = (__pyx_v_7psychxr_6libovr_7_libovr__inputStates[__pyx_v_idx]).Touches;
   __pyx_v_curTouches = __pyx_t_4;
 
-  /* "psychxr/libovr/_libovr.pyx":4708
+  /* "psychxr/libovr/_libovr.pyx":4763
  *     # pointer to the current and previous input state
  *     cdef unsigned int curTouches = _inputStates[idx].Touches
  *     cdef unsigned int prvTouches = _prevInputState[idx].Touches             # <<<<<<<<<<<<<<
@@ -29725,7 +30239,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
   __pyx_t_4 = (__pyx_v_7psychxr_6libovr_7_libovr__prevInputState[__pyx_v_idx]).Touches;
   __pyx_v_prvTouches = __pyx_t_4;
 
-  /* "psychxr/libovr/_libovr.pyx":4711
+  /* "psychxr/libovr/_libovr.pyx":4766
  * 
  *     # test if the button was pressed
  *     cdef bint stateResult = False             # <<<<<<<<<<<<<<
@@ -29734,36 +30248,36 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
  */
   __pyx_v_stateResult = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4712
+  /* "psychxr/libovr/_libovr.pyx":4767
  *     # test if the button was pressed
  *     cdef bint stateResult = False
  *     if testState == 'continuous':             # <<<<<<<<<<<<<<
  *         stateResult = (curTouches & touch) == touch
  *     elif testState == 'rising' or testState == 'pressed':
  */
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_continuous, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4712, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_continuous, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4767, __pyx_L1_error)
   __pyx_t_5 = (__pyx_t_2 != 0);
   if (__pyx_t_5) {
 
-    /* "psychxr/libovr/_libovr.pyx":4713
+    /* "psychxr/libovr/_libovr.pyx":4768
  *     cdef bint stateResult = False
  *     if testState == 'continuous':
  *         stateResult = (curTouches & touch) == touch             # <<<<<<<<<<<<<<
  *     elif testState == 'rising' or testState == 'pressed':
  *         # rising edge, will trigger once when pressed
  */
-    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_curTouches); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4713, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_curTouches); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4768, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = PyNumber_And(__pyx_t_1, __pyx_v_touch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4713, __pyx_L1_error)
+    __pyx_t_6 = PyNumber_And(__pyx_t_1, __pyx_v_touch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4768, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyObject_RichCompare(__pyx_t_6, __pyx_v_touch, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4713, __pyx_L1_error)
+    __pyx_t_1 = PyObject_RichCompare(__pyx_t_6, __pyx_v_touch, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4768, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4713, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4768, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_v_stateResult = __pyx_t_5;
 
-    /* "psychxr/libovr/_libovr.pyx":4712
+    /* "psychxr/libovr/_libovr.pyx":4767
  *     # test if the button was pressed
  *     cdef bint stateResult = False
  *     if testState == 'continuous':             # <<<<<<<<<<<<<<
@@ -29773,41 +30287,41 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
     goto __pyx_L4;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4714
+  /* "psychxr/libovr/_libovr.pyx":4769
  *     if testState == 'continuous':
  *         stateResult = (curTouches & touch) == touch
  *     elif testState == 'rising' or testState == 'pressed':             # <<<<<<<<<<<<<<
  *         # rising edge, will trigger once when pressed
  *         stateResult = (curTouches & touch) == touch and \
  */
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_rising, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4714, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_rising, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4769, __pyx_L1_error)
   __pyx_t_7 = (__pyx_t_2 != 0);
   if (!__pyx_t_7) {
   } else {
     __pyx_t_5 = __pyx_t_7;
     goto __pyx_L5_bool_binop_done;
   }
-  __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_pressed, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 4714, __pyx_L1_error)
+  __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_pressed, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 4769, __pyx_L1_error)
   __pyx_t_2 = (__pyx_t_7 != 0);
   __pyx_t_5 = __pyx_t_2;
   __pyx_L5_bool_binop_done:;
   if (__pyx_t_5) {
 
-    /* "psychxr/libovr/_libovr.pyx":4716
+    /* "psychxr/libovr/_libovr.pyx":4771
  *     elif testState == 'rising' or testState == 'pressed':
  *         # rising edge, will trigger once when pressed
  *         stateResult = (curTouches & touch) == touch and \             # <<<<<<<<<<<<<<
  *                       (prvTouches & touch) != touch
  *     elif testState == 'falling' or testState == 'released':
  */
-    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_curTouches); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4716, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_curTouches); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4771, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = PyNumber_And(__pyx_t_1, __pyx_v_touch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4716, __pyx_L1_error)
+    __pyx_t_6 = PyNumber_And(__pyx_t_1, __pyx_v_touch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4771, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyObject_RichCompare(__pyx_t_6, __pyx_v_touch, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4716, __pyx_L1_error)
+    __pyx_t_1 = PyObject_RichCompare(__pyx_t_6, __pyx_v_touch, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4771, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4716, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4771, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     if (__pyx_t_2) {
     } else {
@@ -29815,27 +30329,27 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
       goto __pyx_L7_bool_binop_done;
     }
 
-    /* "psychxr/libovr/_libovr.pyx":4717
+    /* "psychxr/libovr/_libovr.pyx":4772
  *         # rising edge, will trigger once when pressed
  *         stateResult = (curTouches & touch) == touch and \
  *                       (prvTouches & touch) != touch             # <<<<<<<<<<<<<<
  *     elif testState == 'falling' or testState == 'released':
  *         # falling edge, will trigger once when released
  */
-    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_prvTouches); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4717, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_prvTouches); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4772, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = PyNumber_And(__pyx_t_1, __pyx_v_touch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4717, __pyx_L1_error)
+    __pyx_t_6 = PyNumber_And(__pyx_t_1, __pyx_v_touch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4772, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyObject_RichCompare(__pyx_t_6, __pyx_v_touch, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4717, __pyx_L1_error)
+    __pyx_t_1 = PyObject_RichCompare(__pyx_t_6, __pyx_v_touch, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4772, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4717, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4772, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_5 = __pyx_t_2;
     __pyx_L7_bool_binop_done:;
     __pyx_v_stateResult = __pyx_t_5;
 
-    /* "psychxr/libovr/_libovr.pyx":4714
+    /* "psychxr/libovr/_libovr.pyx":4769
  *     if testState == 'continuous':
  *         stateResult = (curTouches & touch) == touch
  *     elif testState == 'rising' or testState == 'pressed':             # <<<<<<<<<<<<<<
@@ -29845,41 +30359,41 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
     goto __pyx_L4;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4718
+  /* "psychxr/libovr/_libovr.pyx":4773
  *         stateResult = (curTouches & touch) == touch and \
  *                       (prvTouches & touch) != touch
  *     elif testState == 'falling' or testState == 'released':             # <<<<<<<<<<<<<<
  *         # falling edge, will trigger once when released
  *         stateResult = (curTouches & touch) != touch and \
  */
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_falling, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4718, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_falling, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4773, __pyx_L1_error)
   __pyx_t_7 = (__pyx_t_2 != 0);
   if (!__pyx_t_7) {
   } else {
     __pyx_t_5 = __pyx_t_7;
     goto __pyx_L9_bool_binop_done;
   }
-  __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_released, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 4718, __pyx_L1_error)
+  __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_v_testState, __pyx_n_s_released, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 4773, __pyx_L1_error)
   __pyx_t_2 = (__pyx_t_7 != 0);
   __pyx_t_5 = __pyx_t_2;
   __pyx_L9_bool_binop_done:;
   if (likely(__pyx_t_5)) {
 
-    /* "psychxr/libovr/_libovr.pyx":4720
+    /* "psychxr/libovr/_libovr.pyx":4775
  *     elif testState == 'falling' or testState == 'released':
  *         # falling edge, will trigger once when released
  *         stateResult = (curTouches & touch) != touch and \             # <<<<<<<<<<<<<<
  *                       (prvTouches & touch) == touch
  *     else:
  */
-    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_curTouches); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4720, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_curTouches); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4775, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = PyNumber_And(__pyx_t_1, __pyx_v_touch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4720, __pyx_L1_error)
+    __pyx_t_6 = PyNumber_And(__pyx_t_1, __pyx_v_touch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4775, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyObject_RichCompare(__pyx_t_6, __pyx_v_touch, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4720, __pyx_L1_error)
+    __pyx_t_1 = PyObject_RichCompare(__pyx_t_6, __pyx_v_touch, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4775, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4720, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4775, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     if (__pyx_t_2) {
     } else {
@@ -29887,27 +30401,27 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
       goto __pyx_L11_bool_binop_done;
     }
 
-    /* "psychxr/libovr/_libovr.pyx":4721
+    /* "psychxr/libovr/_libovr.pyx":4776
  *         # falling edge, will trigger once when released
  *         stateResult = (curTouches & touch) != touch and \
  *                       (prvTouches & touch) == touch             # <<<<<<<<<<<<<<
  *     else:
  *         raise ValueError("Invalid trigger mode specified.")
  */
-    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_prvTouches); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4721, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_prvTouches); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4776, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = PyNumber_And(__pyx_t_1, __pyx_v_touch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4721, __pyx_L1_error)
+    __pyx_t_6 = PyNumber_And(__pyx_t_1, __pyx_v_touch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4776, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyObject_RichCompare(__pyx_t_6, __pyx_v_touch, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4721, __pyx_L1_error)
+    __pyx_t_1 = PyObject_RichCompare(__pyx_t_6, __pyx_v_touch, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4776, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4721, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4776, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_5 = __pyx_t_2;
     __pyx_L11_bool_binop_done:;
     __pyx_v_stateResult = __pyx_t_5;
 
-    /* "psychxr/libovr/_libovr.pyx":4718
+    /* "psychxr/libovr/_libovr.pyx":4773
  *         stateResult = (curTouches & touch) == touch and \
  *                       (prvTouches & touch) != touch
  *     elif testState == 'falling' or testState == 'released':             # <<<<<<<<<<<<<<
@@ -29917,7 +30431,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
     goto __pyx_L4;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4723
+  /* "psychxr/libovr/_libovr.pyx":4778
  *                       (prvTouches & touch) == touch
  *     else:
  *         raise ValueError("Invalid trigger mode specified.")             # <<<<<<<<<<<<<<
@@ -29925,15 +30439,15 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
  *     return stateResult, t_sec
  */
   /*else*/ {
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__36, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4723, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__36, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4778, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 4723, __pyx_L1_error)
+    __PYX_ERR(0, 4778, __pyx_L1_error)
   }
   __pyx_L4:;
 
-  /* "psychxr/libovr/_libovr.pyx":4725
+  /* "psychxr/libovr/_libovr.pyx":4780
  *         raise ValueError("Invalid trigger mode specified.")
  * 
  *     return stateResult, t_sec             # <<<<<<<<<<<<<<
@@ -29941,11 +30455,11 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
  * def getThumbstickValues(int controller, bint deadzone=False):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_v_stateResult); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4725, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_v_stateResult); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4780, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = PyFloat_FromDouble(__pyx_v_t_sec); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4725, __pyx_L1_error)
+  __pyx_t_6 = PyFloat_FromDouble(__pyx_v_t_sec); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4780, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_8 = PyTuple_New(2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 4725, __pyx_L1_error)
+  __pyx_t_8 = PyTuple_New(2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 4780, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_1);
@@ -29957,7 +30471,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
   __pyx_t_8 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4628
+  /* "psychxr/libovr/_libovr.pyx":4683
  *     return stateResult, t_sec
  * 
  * def getTouch(str controller, object touch, str testState='continuous'):             # <<<<<<<<<<<<<<
@@ -29978,7 +30492,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_168getTouch(CYTHON_UNUSED Py
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4727
+/* "psychxr/libovr/_libovr.pyx":4782
  *     return stateResult, t_sec
  * 
  * def getThumbstickValues(int controller, bint deadzone=False):             # <<<<<<<<<<<<<<
@@ -30023,7 +30537,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_171getThumbstickValues(PyObj
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getThumbstickValues") < 0)) __PYX_ERR(0, 4727, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getThumbstickValues") < 0)) __PYX_ERR(0, 4782, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -30034,16 +30548,16 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_171getThumbstickValues(PyObj
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_controller = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_controller == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4727, __pyx_L3_error)
+    __pyx_v_controller = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_controller == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4782, __pyx_L3_error)
     if (values[1]) {
-      __pyx_v_deadzone = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_deadzone == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4727, __pyx_L3_error)
+      __pyx_v_deadzone = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_deadzone == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4782, __pyx_L3_error)
     } else {
       __pyx_v_deadzone = ((int)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getThumbstickValues", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4727, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getThumbstickValues", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4782, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getThumbstickValues", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -30075,25 +30589,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("getThumbstickValues", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4767
+  /* "psychxr/libovr/_libovr.pyx":4822
  *     # get the controller index in the states array
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:             # <<<<<<<<<<<<<<
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4767, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4822, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4767, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4822, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4767, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4822, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4767, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4822, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4768
+    /* "psychxr/libovr/_libovr.pyx":4823
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0             # <<<<<<<<<<<<<<
@@ -30102,7 +30616,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
  */
     __pyx_v_idx = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":4767
+    /* "psychxr/libovr/_libovr.pyx":4822
  *     # get the controller index in the states array
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:             # <<<<<<<<<<<<<<
@@ -30112,25 +30626,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4769
+  /* "psychxr/libovr/_libovr.pyx":4824
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:             # <<<<<<<<<<<<<<
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4769, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4824, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4769, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4824, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4769, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4824, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4769, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4824, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4770
+    /* "psychxr/libovr/_libovr.pyx":4825
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1             # <<<<<<<<<<<<<<
@@ -30139,7 +30653,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
  */
     __pyx_v_idx = 1;
 
-    /* "psychxr/libovr/_libovr.pyx":4769
+    /* "psychxr/libovr/_libovr.pyx":4824
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:             # <<<<<<<<<<<<<<
@@ -30149,25 +30663,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4771
+  /* "psychxr/libovr/_libovr.pyx":4826
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:             # <<<<<<<<<<<<<<
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4771, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4826, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4771, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4826, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4771, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4826, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4771, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4826, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4772
+    /* "psychxr/libovr/_libovr.pyx":4827
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2             # <<<<<<<<<<<<<<
@@ -30176,7 +30690,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
  */
     __pyx_v_idx = 2;
 
-    /* "psychxr/libovr/_libovr.pyx":4771
+    /* "psychxr/libovr/_libovr.pyx":4826
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:             # <<<<<<<<<<<<<<
@@ -30186,25 +30700,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4773
+  /* "psychxr/libovr/_libovr.pyx":4828
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:             # <<<<<<<<<<<<<<
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4773, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4828, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4773, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4828, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4773, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4828, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4773, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4828, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4774
+    /* "psychxr/libovr/_libovr.pyx":4829
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3             # <<<<<<<<<<<<<<
@@ -30213,7 +30727,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
  */
     __pyx_v_idx = 3;
 
-    /* "psychxr/libovr/_libovr.pyx":4773
+    /* "psychxr/libovr/_libovr.pyx":4828
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:             # <<<<<<<<<<<<<<
@@ -30223,25 +30737,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4775
+  /* "psychxr/libovr/_libovr.pyx":4830
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:             # <<<<<<<<<<<<<<
  *         idx = 4
  *     else:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4775, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4830, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4775, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4830, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4775, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4830, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4775, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4830, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (likely(__pyx_t_4)) {
 
-    /* "psychxr/libovr/_libovr.pyx":4776
+    /* "psychxr/libovr/_libovr.pyx":4831
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
  *         idx = 4             # <<<<<<<<<<<<<<
@@ -30250,7 +30764,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
  */
     __pyx_v_idx = 4;
 
-    /* "psychxr/libovr/_libovr.pyx":4775
+    /* "psychxr/libovr/_libovr.pyx":4830
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:             # <<<<<<<<<<<<<<
@@ -30260,7 +30774,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4778
+  /* "psychxr/libovr/_libovr.pyx":4833
  *         idx = 4
  *     else:
  *         raise ValueError("Invalid controller type specified.")             # <<<<<<<<<<<<<<
@@ -30268,15 +30782,15 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
  *     # pointer to the current and previous input state
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4778, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4833, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 4778, __pyx_L1_error)
+    __PYX_ERR(0, 4833, __pyx_L1_error)
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":4781
+  /* "psychxr/libovr/_libovr.pyx":4836
  * 
  *     # pointer to the current and previous input state
  *     cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]             # <<<<<<<<<<<<<<
@@ -30285,7 +30799,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
  */
   __pyx_v_currentInputState = (&(__pyx_v_7psychxr_6libovr_7_libovr__inputStates[__pyx_v_idx]));
 
-  /* "psychxr/libovr/_libovr.pyx":4783
+  /* "psychxr/libovr/_libovr.pyx":4838
  *     cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]
  * 
  *     cdef float thumbstick_x0 = 0.0             # <<<<<<<<<<<<<<
@@ -30294,7 +30808,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
  */
   __pyx_v_thumbstick_x0 = 0.0;
 
-  /* "psychxr/libovr/_libovr.pyx":4784
+  /* "psychxr/libovr/_libovr.pyx":4839
  * 
  *     cdef float thumbstick_x0 = 0.0
  *     cdef float thumbstick_y0 = 0.0             # <<<<<<<<<<<<<<
@@ -30303,7 +30817,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
  */
   __pyx_v_thumbstick_y0 = 0.0;
 
-  /* "psychxr/libovr/_libovr.pyx":4785
+  /* "psychxr/libovr/_libovr.pyx":4840
  *     cdef float thumbstick_x0 = 0.0
  *     cdef float thumbstick_y0 = 0.0
  *     cdef float thumbstick_x1 = 0.0             # <<<<<<<<<<<<<<
@@ -30312,7 +30826,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
  */
   __pyx_v_thumbstick_x1 = 0.0;
 
-  /* "psychxr/libovr/_libovr.pyx":4786
+  /* "psychxr/libovr/_libovr.pyx":4841
  *     cdef float thumbstick_y0 = 0.0
  *     cdef float thumbstick_x1 = 0.0
  *     cdef float thumbstick_y1 = 0.0             # <<<<<<<<<<<<<<
@@ -30321,7 +30835,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
  */
   __pyx_v_thumbstick_y1 = 0.0;
 
-  /* "psychxr/libovr/_libovr.pyx":4788
+  /* "psychxr/libovr/_libovr.pyx":4843
  *     cdef float thumbstick_y1 = 0.0
  * 
  *     if deadzone:             # <<<<<<<<<<<<<<
@@ -30331,7 +30845,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
   __pyx_t_4 = (__pyx_v_deadzone != 0);
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4789
+    /* "psychxr/libovr/_libovr.pyx":4844
  * 
  *     if deadzone:
  *         thumbstick_x0 = currentInputState[0].Thumbstick[0].x             # <<<<<<<<<<<<<<
@@ -30341,7 +30855,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     __pyx_t_5 = ((__pyx_v_currentInputState[0]).Thumbstick[0]).x;
     __pyx_v_thumbstick_x0 = __pyx_t_5;
 
-    /* "psychxr/libovr/_libovr.pyx":4790
+    /* "psychxr/libovr/_libovr.pyx":4845
  *     if deadzone:
  *         thumbstick_x0 = currentInputState[0].Thumbstick[0].x
  *         thumbstick_y0 = currentInputState[0].Thumbstick[0].y             # <<<<<<<<<<<<<<
@@ -30351,7 +30865,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     __pyx_t_5 = ((__pyx_v_currentInputState[0]).Thumbstick[0]).y;
     __pyx_v_thumbstick_y0 = __pyx_t_5;
 
-    /* "psychxr/libovr/_libovr.pyx":4791
+    /* "psychxr/libovr/_libovr.pyx":4846
  *         thumbstick_x0 = currentInputState[0].Thumbstick[0].x
  *         thumbstick_y0 = currentInputState[0].Thumbstick[0].y
  *         thumbstick_x1 = currentInputState[0].Thumbstick[1].x             # <<<<<<<<<<<<<<
@@ -30361,7 +30875,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     __pyx_t_5 = ((__pyx_v_currentInputState[0]).Thumbstick[1]).x;
     __pyx_v_thumbstick_x1 = __pyx_t_5;
 
-    /* "psychxr/libovr/_libovr.pyx":4792
+    /* "psychxr/libovr/_libovr.pyx":4847
  *         thumbstick_y0 = currentInputState[0].Thumbstick[0].y
  *         thumbstick_x1 = currentInputState[0].Thumbstick[1].x
  *         thumbstick_y1 = currentInputState[0].Thumbstick[1].y             # <<<<<<<<<<<<<<
@@ -30371,7 +30885,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     __pyx_t_5 = ((__pyx_v_currentInputState[0]).Thumbstick[1]).y;
     __pyx_v_thumbstick_y1 = __pyx_t_5;
 
-    /* "psychxr/libovr/_libovr.pyx":4788
+    /* "psychxr/libovr/_libovr.pyx":4843
  *     cdef float thumbstick_y1 = 0.0
  * 
  *     if deadzone:             # <<<<<<<<<<<<<<
@@ -30381,7 +30895,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     goto __pyx_L4;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4794
+  /* "psychxr/libovr/_libovr.pyx":4849
  *         thumbstick_y1 = currentInputState[0].Thumbstick[1].y
  *     else:
  *         thumbstick_x0 = currentInputState[0].ThumbstickNoDeadzone[0].x             # <<<<<<<<<<<<<<
@@ -30392,7 +30906,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     __pyx_t_5 = ((__pyx_v_currentInputState[0]).ThumbstickNoDeadzone[0]).x;
     __pyx_v_thumbstick_x0 = __pyx_t_5;
 
-    /* "psychxr/libovr/_libovr.pyx":4795
+    /* "psychxr/libovr/_libovr.pyx":4850
  *     else:
  *         thumbstick_x0 = currentInputState[0].ThumbstickNoDeadzone[0].x
  *         thumbstick_y0 = currentInputState[0].ThumbstickNoDeadzone[0].y             # <<<<<<<<<<<<<<
@@ -30402,7 +30916,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     __pyx_t_5 = ((__pyx_v_currentInputState[0]).ThumbstickNoDeadzone[0]).y;
     __pyx_v_thumbstick_y0 = __pyx_t_5;
 
-    /* "psychxr/libovr/_libovr.pyx":4796
+    /* "psychxr/libovr/_libovr.pyx":4851
  *         thumbstick_x0 = currentInputState[0].ThumbstickNoDeadzone[0].x
  *         thumbstick_y0 = currentInputState[0].ThumbstickNoDeadzone[0].y
  *         thumbstick_x1 = currentInputState[0].ThumbstickNoDeadzone[1].x             # <<<<<<<<<<<<<<
@@ -30412,7 +30926,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
     __pyx_t_5 = ((__pyx_v_currentInputState[0]).ThumbstickNoDeadzone[1]).x;
     __pyx_v_thumbstick_x1 = __pyx_t_5;
 
-    /* "psychxr/libovr/_libovr.pyx":4797
+    /* "psychxr/libovr/_libovr.pyx":4852
  *         thumbstick_y0 = currentInputState[0].ThumbstickNoDeadzone[0].y
  *         thumbstick_x1 = currentInputState[0].ThumbstickNoDeadzone[1].x
  *         thumbstick_y1 = currentInputState[0].ThumbstickNoDeadzone[1].y             # <<<<<<<<<<<<<<
@@ -30424,7 +30938,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
   }
   __pyx_L4:;
 
-  /* "psychxr/libovr/_libovr.pyx":4799
+  /* "psychxr/libovr/_libovr.pyx":4854
  *         thumbstick_y1 = currentInputState[0].ThumbstickNoDeadzone[1].y
  * 
  *     return np.array((thumbstick_x0, thumbstick_y0), dtype=np.float32), \             # <<<<<<<<<<<<<<
@@ -30432,16 +30946,16 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4799, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4854, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4799, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4854, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_thumbstick_x0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4799, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_thumbstick_x0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4854, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_thumbstick_y0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4799, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_thumbstick_y0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4854, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4799, __pyx_L1_error)
+  __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4854, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_3);
@@ -30449,43 +30963,43 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
   PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_t_1);
   __pyx_t_3 = 0;
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4799, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4854, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_6);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_6);
   __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4799, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4854, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4799, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4854, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_float32); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 4799, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_float32); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 4854, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) __PYX_ERR(0, 4799, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) __PYX_ERR(0, 4854, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 4799, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 4854, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4800
+  /* "psychxr/libovr/_libovr.pyx":4855
  * 
  *     return np.array((thumbstick_x0, thumbstick_y0), dtype=np.float32), \
  *            np.array((thumbstick_x1, thumbstick_y1), dtype=np.float32)             # <<<<<<<<<<<<<<
  * 
  * def getIndexTriggerValues(int controller, bint deadzone=False):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4800, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4855, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4800, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4855, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = PyFloat_FromDouble(__pyx_v_thumbstick_x1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4800, __pyx_L1_error)
+  __pyx_t_6 = PyFloat_FromDouble(__pyx_v_thumbstick_x1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4855, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_thumbstick_y1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4800, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_thumbstick_y1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4855, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4800, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4855, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_6);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_6);
@@ -30493,34 +31007,34 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
   PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_2);
   __pyx_t_6 = 0;
   __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4800, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4855, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4800, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4855, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4800, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4855, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 4800, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 4855, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_8) < 0) __PYX_ERR(0, 4800, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_8) < 0) __PYX_ERR(0, 4855, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 4800, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 4855, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4799
+  /* "psychxr/libovr/_libovr.pyx":4854
  *         thumbstick_y1 = currentInputState[0].ThumbstickNoDeadzone[1].y
  * 
  *     return np.array((thumbstick_x0, thumbstick_y0), dtype=np.float32), \             # <<<<<<<<<<<<<<
  *            np.array((thumbstick_x1, thumbstick_y1), dtype=np.float32)
  * 
  */
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4799, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4854, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_7);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_7);
@@ -30532,7 +31046,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4727
+  /* "psychxr/libovr/_libovr.pyx":4782
  *     return stateResult, t_sec
  * 
  * def getThumbstickValues(int controller, bint deadzone=False):             # <<<<<<<<<<<<<<
@@ -30556,7 +31070,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_170getThumbstickValues(CYTHO
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4802
+/* "psychxr/libovr/_libovr.pyx":4857
  *            np.array((thumbstick_x1, thumbstick_y1), dtype=np.float32)
  * 
  * def getIndexTriggerValues(int controller, bint deadzone=False):             # <<<<<<<<<<<<<<
@@ -30601,7 +31115,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_173getIndexTriggerValues(PyO
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getIndexTriggerValues") < 0)) __PYX_ERR(0, 4802, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getIndexTriggerValues") < 0)) __PYX_ERR(0, 4857, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -30612,16 +31126,16 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_173getIndexTriggerValues(PyO
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_controller = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_controller == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4802, __pyx_L3_error)
+    __pyx_v_controller = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_controller == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4857, __pyx_L3_error)
     if (values[1]) {
-      __pyx_v_deadzone = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_deadzone == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4802, __pyx_L3_error)
+      __pyx_v_deadzone = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_deadzone == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4857, __pyx_L3_error)
     } else {
       __pyx_v_deadzone = ((int)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getIndexTriggerValues", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4802, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getIndexTriggerValues", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4857, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getIndexTriggerValues", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -30649,25 +31163,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("getIndexTriggerValues", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4831
+  /* "psychxr/libovr/_libovr.pyx":4886
  *     # get the controller index in the states array
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:             # <<<<<<<<<<<<<<
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4831, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4886, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4831, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4886, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4831, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4886, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4831, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4886, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4832
+    /* "psychxr/libovr/_libovr.pyx":4887
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0             # <<<<<<<<<<<<<<
@@ -30676,7 +31190,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
  */
     __pyx_v_idx = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":4831
+    /* "psychxr/libovr/_libovr.pyx":4886
  *     # get the controller index in the states array
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:             # <<<<<<<<<<<<<<
@@ -30686,25 +31200,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4833
+  /* "psychxr/libovr/_libovr.pyx":4888
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:             # <<<<<<<<<<<<<<
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4833, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4888, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4833, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4888, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4833, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4888, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4833, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4888, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4834
+    /* "psychxr/libovr/_libovr.pyx":4889
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1             # <<<<<<<<<<<<<<
@@ -30713,7 +31227,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
  */
     __pyx_v_idx = 1;
 
-    /* "psychxr/libovr/_libovr.pyx":4833
+    /* "psychxr/libovr/_libovr.pyx":4888
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:             # <<<<<<<<<<<<<<
@@ -30723,25 +31237,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4835
+  /* "psychxr/libovr/_libovr.pyx":4890
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:             # <<<<<<<<<<<<<<
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4835, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4890, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4835, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4890, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4835, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4890, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4835, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4890, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4836
+    /* "psychxr/libovr/_libovr.pyx":4891
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2             # <<<<<<<<<<<<<<
@@ -30750,7 +31264,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
  */
     __pyx_v_idx = 2;
 
-    /* "psychxr/libovr/_libovr.pyx":4835
+    /* "psychxr/libovr/_libovr.pyx":4890
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:             # <<<<<<<<<<<<<<
@@ -30760,25 +31274,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4837
+  /* "psychxr/libovr/_libovr.pyx":4892
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:             # <<<<<<<<<<<<<<
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4837, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4892, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4837, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4892, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4837, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4892, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4837, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4892, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4838
+    /* "psychxr/libovr/_libovr.pyx":4893
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3             # <<<<<<<<<<<<<<
@@ -30787,7 +31301,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
  */
     __pyx_v_idx = 3;
 
-    /* "psychxr/libovr/_libovr.pyx":4837
+    /* "psychxr/libovr/_libovr.pyx":4892
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:             # <<<<<<<<<<<<<<
@@ -30797,25 +31311,25 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4839
+  /* "psychxr/libovr/_libovr.pyx":4894
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:             # <<<<<<<<<<<<<<
  *         idx = 4
  *     else:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4839, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_controller); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4894, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4839, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4894, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4839, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4894, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4839, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 4894, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (likely(__pyx_t_4)) {
 
-    /* "psychxr/libovr/_libovr.pyx":4840
+    /* "psychxr/libovr/_libovr.pyx":4895
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
  *         idx = 4             # <<<<<<<<<<<<<<
@@ -30824,7 +31338,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
  */
     __pyx_v_idx = 4;
 
-    /* "psychxr/libovr/_libovr.pyx":4839
+    /* "psychxr/libovr/_libovr.pyx":4894
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:             # <<<<<<<<<<<<<<
@@ -30834,7 +31348,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4842
+  /* "psychxr/libovr/_libovr.pyx":4897
  *         idx = 4
  *     else:
  *         raise ValueError("Invalid controller type specified.")             # <<<<<<<<<<<<<<
@@ -30842,15 +31356,15 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
  *     # pointer to the current and previous input state
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4842, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4897, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 4842, __pyx_L1_error)
+    __PYX_ERR(0, 4897, __pyx_L1_error)
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":4845
+  /* "psychxr/libovr/_libovr.pyx":4900
  * 
  *     # pointer to the current and previous input state
  *     cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]             # <<<<<<<<<<<<<<
@@ -30859,7 +31373,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
  */
   __pyx_v_currentInputState = (&(__pyx_v_7psychxr_6libovr_7_libovr__inputStates[__pyx_v_idx]));
 
-  /* "psychxr/libovr/_libovr.pyx":4847
+  /* "psychxr/libovr/_libovr.pyx":4902
  *     cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]
  * 
  *     cdef float triggerLeft = 0.0             # <<<<<<<<<<<<<<
@@ -30868,7 +31382,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
  */
   __pyx_v_triggerLeft = 0.0;
 
-  /* "psychxr/libovr/_libovr.pyx":4848
+  /* "psychxr/libovr/_libovr.pyx":4903
  * 
  *     cdef float triggerLeft = 0.0
  *     cdef float triggerRight = 0.0             # <<<<<<<<<<<<<<
@@ -30877,7 +31391,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
  */
   __pyx_v_triggerRight = 0.0;
 
-  /* "psychxr/libovr/_libovr.pyx":4850
+  /* "psychxr/libovr/_libovr.pyx":4905
  *     cdef float triggerRight = 0.0
  * 
  *     if deadzone:             # <<<<<<<<<<<<<<
@@ -30887,7 +31401,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
   __pyx_t_4 = (__pyx_v_deadzone != 0);
   if (__pyx_t_4) {
 
-    /* "psychxr/libovr/_libovr.pyx":4851
+    /* "psychxr/libovr/_libovr.pyx":4906
  * 
  *     if deadzone:
  *         triggerLeft = currentInputState[0].IndexTrigger[0]             # <<<<<<<<<<<<<<
@@ -30896,7 +31410,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
  */
     __pyx_v_triggerLeft = ((__pyx_v_currentInputState[0]).IndexTrigger[0]);
 
-    /* "psychxr/libovr/_libovr.pyx":4852
+    /* "psychxr/libovr/_libovr.pyx":4907
  *     if deadzone:
  *         triggerLeft = currentInputState[0].IndexTrigger[0]
  *         triggerRight = currentInputState[0].IndexTrigger[1]             # <<<<<<<<<<<<<<
@@ -30905,7 +31419,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
  */
     __pyx_v_triggerRight = ((__pyx_v_currentInputState[0]).IndexTrigger[1]);
 
-    /* "psychxr/libovr/_libovr.pyx":4850
+    /* "psychxr/libovr/_libovr.pyx":4905
  *     cdef float triggerRight = 0.0
  * 
  *     if deadzone:             # <<<<<<<<<<<<<<
@@ -30915,7 +31429,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
     goto __pyx_L4;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4854
+  /* "psychxr/libovr/_libovr.pyx":4909
  *         triggerRight = currentInputState[0].IndexTrigger[1]
  *     else:
  *         triggerLeft = currentInputState[0].IndexTriggerNoDeadzone[0]             # <<<<<<<<<<<<<<
@@ -30925,7 +31439,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
   /*else*/ {
     __pyx_v_triggerLeft = ((__pyx_v_currentInputState[0]).IndexTriggerNoDeadzone[0]);
 
-    /* "psychxr/libovr/_libovr.pyx":4855
+    /* "psychxr/libovr/_libovr.pyx":4910
  *     else:
  *         triggerLeft = currentInputState[0].IndexTriggerNoDeadzone[0]
  *         triggerRight = currentInputState[0].IndexTriggerNoDeadzone[1]             # <<<<<<<<<<<<<<
@@ -30936,7 +31450,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
   }
   __pyx_L4:;
 
-  /* "psychxr/libovr/_libovr.pyx":4857
+  /* "psychxr/libovr/_libovr.pyx":4912
  *         triggerRight = currentInputState[0].IndexTriggerNoDeadzone[1]
  * 
  *     return np.array((triggerLeft, triggerRight), dtype=np.float32)             # <<<<<<<<<<<<<<
@@ -30944,16 +31458,16 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
  * def getHandTriggerValues(str controller, bint deadzone=False):
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4857, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4912, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4857, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4912, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_triggerLeft); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4857, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_triggerLeft); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4912, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_triggerRight); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4857, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_triggerRight); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4912, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 4857, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 4912, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3);
@@ -30961,21 +31475,21 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
   PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_1);
   __pyx_t_3 = 0;
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4857, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4912, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 4857, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 4912, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4857, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4912, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_float32); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4857, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_float32); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4912, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 4857, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 4912, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4857, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4912, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -30984,7 +31498,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4802
+  /* "psychxr/libovr/_libovr.pyx":4857
  *            np.array((thumbstick_x1, thumbstick_y1), dtype=np.float32)
  * 
  * def getIndexTriggerValues(int controller, bint deadzone=False):             # <<<<<<<<<<<<<<
@@ -31007,7 +31521,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_172getIndexTriggerValues(CYT
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4859
+/* "psychxr/libovr/_libovr.pyx":4914
  *     return np.array((triggerLeft, triggerRight), dtype=np.float32)
  * 
  * def getHandTriggerValues(str controller, bint deadzone=False):             # <<<<<<<<<<<<<<
@@ -31052,7 +31566,7 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_175getHandTriggerValues(PyOb
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getHandTriggerValues") < 0)) __PYX_ERR(0, 4859, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getHandTriggerValues") < 0)) __PYX_ERR(0, 4914, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -31065,20 +31579,20 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_175getHandTriggerValues(PyOb
     }
     __pyx_v_controller = ((PyObject*)values[0]);
     if (values[1]) {
-      __pyx_v_deadzone = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_deadzone == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4859, __pyx_L3_error)
+      __pyx_v_deadzone = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_deadzone == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4914, __pyx_L3_error)
     } else {
       __pyx_v_deadzone = ((int)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getHandTriggerValues", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4859, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("getHandTriggerValues", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4914, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.getHandTriggerValues", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_controller), (&PyString_Type), 1, "controller", 1))) __PYX_ERR(0, 4859, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_controller), (&PyString_Type), 1, "controller", 1))) __PYX_ERR(0, 4914, __pyx_L1_error)
   __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(__pyx_self, __pyx_v_controller, __pyx_v_deadzone);
 
   /* function exit code */
@@ -31105,20 +31619,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("getHandTriggerValues", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4865
+  /* "psychxr/libovr/_libovr.pyx":4920
  *     # get the controller index in the states array
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:             # <<<<<<<<<<<<<<
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4865, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_XBOX); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4920, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4865, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4920, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4866
+    /* "psychxr/libovr/_libovr.pyx":4921
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0             # <<<<<<<<<<<<<<
@@ -31127,7 +31641,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
  */
     __pyx_v_idx = 0;
 
-    /* "psychxr/libovr/_libovr.pyx":4865
+    /* "psychxr/libovr/_libovr.pyx":4920
  *     # get the controller index in the states array
  *     cdef int idx
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:             # <<<<<<<<<<<<<<
@@ -31137,20 +31651,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4867
+  /* "psychxr/libovr/_libovr.pyx":4922
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:             # <<<<<<<<<<<<<<
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4867, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_REMOTE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4922, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4867, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4922, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4868
+    /* "psychxr/libovr/_libovr.pyx":4923
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1             # <<<<<<<<<<<<<<
@@ -31159,7 +31673,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
  */
     __pyx_v_idx = 1;
 
-    /* "psychxr/libovr/_libovr.pyx":4867
+    /* "psychxr/libovr/_libovr.pyx":4922
  *     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
  *         idx = 0
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:             # <<<<<<<<<<<<<<
@@ -31169,20 +31683,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4869
+  /* "psychxr/libovr/_libovr.pyx":4924
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:             # <<<<<<<<<<<<<<
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4869, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_TOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4924, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4869, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4924, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4870
+    /* "psychxr/libovr/_libovr.pyx":4925
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2             # <<<<<<<<<<<<<<
@@ -31191,7 +31705,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
  */
     __pyx_v_idx = 2;
 
-    /* "psychxr/libovr/_libovr.pyx":4869
+    /* "psychxr/libovr/_libovr.pyx":4924
  *     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
  *         idx = 1
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:             # <<<<<<<<<<<<<<
@@ -31201,20 +31715,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4871
+  /* "psychxr/libovr/_libovr.pyx":4926
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:             # <<<<<<<<<<<<<<
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4871, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_LTOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4926, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4871, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4926, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4872
+    /* "psychxr/libovr/_libovr.pyx":4927
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3             # <<<<<<<<<<<<<<
@@ -31223,7 +31737,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
  */
     __pyx_v_idx = 3;
 
-    /* "psychxr/libovr/_libovr.pyx":4871
+    /* "psychxr/libovr/_libovr.pyx":4926
  *     elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
  *         idx = 2
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:             # <<<<<<<<<<<<<<
@@ -31233,20 +31747,20 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4873
+  /* "psychxr/libovr/_libovr.pyx":4928
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:             # <<<<<<<<<<<<<<
  *         idx = 4
  *     else:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4873, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_CONTROLLER_TYPE_RTOUCH); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4928, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4873, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_controller, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4928, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (likely(__pyx_t_2)) {
 
-    /* "psychxr/libovr/_libovr.pyx":4874
+    /* "psychxr/libovr/_libovr.pyx":4929
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
  *         idx = 4             # <<<<<<<<<<<<<<
@@ -31255,7 +31769,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
  */
     __pyx_v_idx = 4;
 
-    /* "psychxr/libovr/_libovr.pyx":4873
+    /* "psychxr/libovr/_libovr.pyx":4928
  *     elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
  *         idx = 3
  *     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:             # <<<<<<<<<<<<<<
@@ -31265,7 +31779,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4876
+  /* "psychxr/libovr/_libovr.pyx":4931
  *         idx = 4
  *     else:
  *         raise ValueError("Invalid controller type specified.")             # <<<<<<<<<<<<<<
@@ -31273,15 +31787,15 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
  *     # pointer to the current and previous input state
  */
   /*else*/ {
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4876, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4931, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 4876, __pyx_L1_error)
+    __PYX_ERR(0, 4931, __pyx_L1_error)
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":4879
+  /* "psychxr/libovr/_libovr.pyx":4934
  * 
  *     # pointer to the current and previous input state
  *     cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]             # <<<<<<<<<<<<<<
@@ -31290,7 +31804,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
  */
   __pyx_v_currentInputState = (&(__pyx_v_7psychxr_6libovr_7_libovr__inputStates[__pyx_v_idx]));
 
-  /* "psychxr/libovr/_libovr.pyx":4881
+  /* "psychxr/libovr/_libovr.pyx":4936
  *     cdef libovr_capi.ovrInputState* currentInputState = &_inputStates[idx]
  * 
  *     cdef float triggerLeft = 0.0             # <<<<<<<<<<<<<<
@@ -31299,7 +31813,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
  */
   __pyx_v_triggerLeft = 0.0;
 
-  /* "psychxr/libovr/_libovr.pyx":4882
+  /* "psychxr/libovr/_libovr.pyx":4937
  * 
  *     cdef float triggerLeft = 0.0
  *     cdef float triggerRight = 0.0             # <<<<<<<<<<<<<<
@@ -31308,7 +31822,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
  */
   __pyx_v_triggerRight = 0.0;
 
-  /* "psychxr/libovr/_libovr.pyx":4884
+  /* "psychxr/libovr/_libovr.pyx":4939
  *     cdef float triggerRight = 0.0
  * 
  *     if deadzone:             # <<<<<<<<<<<<<<
@@ -31318,7 +31832,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
   __pyx_t_2 = (__pyx_v_deadzone != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4885
+    /* "psychxr/libovr/_libovr.pyx":4940
  * 
  *     if deadzone:
  *         triggerLeft = currentInputState[0].HandTrigger[0]             # <<<<<<<<<<<<<<
@@ -31327,7 +31841,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
  */
     __pyx_v_triggerLeft = ((__pyx_v_currentInputState[0]).HandTrigger[0]);
 
-    /* "psychxr/libovr/_libovr.pyx":4886
+    /* "psychxr/libovr/_libovr.pyx":4941
  *     if deadzone:
  *         triggerLeft = currentInputState[0].HandTrigger[0]
  *         triggerRight = currentInputState[0].HandTrigger[1]             # <<<<<<<<<<<<<<
@@ -31336,7 +31850,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
  */
     __pyx_v_triggerRight = ((__pyx_v_currentInputState[0]).HandTrigger[1]);
 
-    /* "psychxr/libovr/_libovr.pyx":4884
+    /* "psychxr/libovr/_libovr.pyx":4939
  *     cdef float triggerRight = 0.0
  * 
  *     if deadzone:             # <<<<<<<<<<<<<<
@@ -31346,7 +31860,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
     goto __pyx_L4;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4888
+  /* "psychxr/libovr/_libovr.pyx":4943
  *         triggerRight = currentInputState[0].HandTrigger[1]
  *     else:
  *         triggerLeft = currentInputState[0].HandTriggerNoDeadzone[0]             # <<<<<<<<<<<<<<
@@ -31356,7 +31870,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
   /*else*/ {
     __pyx_v_triggerLeft = ((__pyx_v_currentInputState[0]).HandTriggerNoDeadzone[0]);
 
-    /* "psychxr/libovr/_libovr.pyx":4889
+    /* "psychxr/libovr/_libovr.pyx":4944
  *     else:
  *         triggerLeft = currentInputState[0].HandTriggerNoDeadzone[0]
  *         triggerRight = currentInputState[0].HandTriggerNoDeadzone[1]             # <<<<<<<<<<<<<<
@@ -31367,7 +31881,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
   }
   __pyx_L4:;
 
-  /* "psychxr/libovr/_libovr.pyx":4891
+  /* "psychxr/libovr/_libovr.pyx":4946
  *         triggerRight = currentInputState[0].HandTriggerNoDeadzone[1]
  * 
  *     return np.array((triggerLeft, triggerRight), dtype=np.float32)             # <<<<<<<<<<<<<<
@@ -31375,16 +31889,16 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
  * def setControllerVibration(int controller, str frequency, float amplitude):
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4891, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4946, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4891, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4946, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_triggerLeft); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4891, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_triggerLeft); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4946, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_triggerRight); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 4891, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_triggerRight); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 4946, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 4891, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 4946, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
@@ -31392,21 +31906,21 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
   PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_4);
   __pyx_t_1 = 0;
   __pyx_t_4 = 0;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 4891, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 4946, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 4891, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 4946, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4891, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4946, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_float32); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4891, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_float32); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4946, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 4891, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 4946, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4891, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 4946, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -31415,7 +31929,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4859
+  /* "psychxr/libovr/_libovr.pyx":4914
  *     return np.array((triggerLeft, triggerRight), dtype=np.float32)
  * 
  * def getHandTriggerValues(str controller, bint deadzone=False):             # <<<<<<<<<<<<<<
@@ -31438,7 +31952,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_174getHandTriggerValues(CYTH
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4893
+/* "psychxr/libovr/_libovr.pyx":4948
  *     return np.array((triggerLeft, triggerRight), dtype=np.float32)
  * 
  * def setControllerVibration(int controller, str frequency, float amplitude):             # <<<<<<<<<<<<<<
@@ -31482,17 +31996,17 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_177setControllerVibration(Py
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_frequency)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("setControllerVibration", 1, 3, 3, 1); __PYX_ERR(0, 4893, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("setControllerVibration", 1, 3, 3, 1); __PYX_ERR(0, 4948, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_amplitude)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("setControllerVibration", 1, 3, 3, 2); __PYX_ERR(0, 4893, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("setControllerVibration", 1, 3, 3, 2); __PYX_ERR(0, 4948, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setControllerVibration") < 0)) __PYX_ERR(0, 4893, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setControllerVibration") < 0)) __PYX_ERR(0, 4948, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -31501,19 +32015,19 @@ static PyObject *__pyx_pw_7psychxr_6libovr_7_libovr_177setControllerVibration(Py
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_controller = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_controller == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4893, __pyx_L3_error)
+    __pyx_v_controller = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_controller == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 4948, __pyx_L3_error)
     __pyx_v_frequency = ((PyObject*)values[1]);
-    __pyx_v_amplitude = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_amplitude == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 4893, __pyx_L3_error)
+    __pyx_v_amplitude = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_amplitude == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 4948, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("setControllerVibration", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4893, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("setControllerVibration", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4948, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("psychxr.libovr._libovr.setControllerVibration", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_frequency), (&PyString_Type), 1, "frequency", 1))) __PYX_ERR(0, 4893, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_frequency), (&PyString_Type), 1, "frequency", 1))) __PYX_ERR(0, 4948, __pyx_L1_error)
   __pyx_r = __pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(__pyx_self, __pyx_v_controller, __pyx_v_frequency, __pyx_v_amplitude);
 
   /* function exit code */
@@ -31535,7 +32049,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(CY
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("setControllerVibration", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4930
+  /* "psychxr/libovr/_libovr.pyx":4985
  * 
  *     # get frequency associated with the string
  *     cdef float freq = 0.0             # <<<<<<<<<<<<<<
@@ -31544,18 +32058,18 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(CY
  */
   __pyx_v_freq = 0.0;
 
-  /* "psychxr/libovr/_libovr.pyx":4931
+  /* "psychxr/libovr/_libovr.pyx":4986
  *     # get frequency associated with the string
  *     cdef float freq = 0.0
  *     if frequency == 'off':             # <<<<<<<<<<<<<<
  *         freq = amplitude = 0.0
  *     elif frequency == 'low':
  */
-  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_frequency, __pyx_n_s_off, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 4931, __pyx_L1_error)
+  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_frequency, __pyx_n_s_off, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 4986, __pyx_L1_error)
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "psychxr/libovr/_libovr.pyx":4932
+    /* "psychxr/libovr/_libovr.pyx":4987
  *     cdef float freq = 0.0
  *     if frequency == 'off':
  *         freq = amplitude = 0.0             # <<<<<<<<<<<<<<
@@ -31565,7 +32079,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(CY
     __pyx_v_freq = 0.0;
     __pyx_v_amplitude = 0.0;
 
-    /* "psychxr/libovr/_libovr.pyx":4931
+    /* "psychxr/libovr/_libovr.pyx":4986
  *     # get frequency associated with the string
  *     cdef float freq = 0.0
  *     if frequency == 'off':             # <<<<<<<<<<<<<<
@@ -31575,18 +32089,18 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(CY
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4933
+  /* "psychxr/libovr/_libovr.pyx":4988
  *     if frequency == 'off':
  *         freq = amplitude = 0.0
  *     elif frequency == 'low':             # <<<<<<<<<<<<<<
  *         freq = 0.5
  *     elif frequency == 'high':
  */
-  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_frequency, __pyx_n_s_low, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4933, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_v_frequency, __pyx_n_s_low, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 4988, __pyx_L1_error)
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "psychxr/libovr/_libovr.pyx":4934
+    /* "psychxr/libovr/_libovr.pyx":4989
  *         freq = amplitude = 0.0
  *     elif frequency == 'low':
  *         freq = 0.5             # <<<<<<<<<<<<<<
@@ -31595,7 +32109,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(CY
  */
     __pyx_v_freq = 0.5;
 
-    /* "psychxr/libovr/_libovr.pyx":4933
+    /* "psychxr/libovr/_libovr.pyx":4988
  *     if frequency == 'off':
  *         freq = amplitude = 0.0
  *     elif frequency == 'low':             # <<<<<<<<<<<<<<
@@ -31605,18 +32119,18 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(CY
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4935
+  /* "psychxr/libovr/_libovr.pyx":4990
  *     elif frequency == 'low':
  *         freq = 0.5
  *     elif frequency == 'high':             # <<<<<<<<<<<<<<
  *         freq = 1.0
  *     else:
  */
-  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_frequency, __pyx_n_s_high, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 4935, __pyx_L1_error)
+  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_frequency, __pyx_n_s_high, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 4990, __pyx_L1_error)
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (likely(__pyx_t_2)) {
 
-    /* "psychxr/libovr/_libovr.pyx":4936
+    /* "psychxr/libovr/_libovr.pyx":4991
  *         freq = 0.5
  *     elif frequency == 'high':
  *         freq = 1.0             # <<<<<<<<<<<<<<
@@ -31625,7 +32139,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(CY
  */
     __pyx_v_freq = 1.0;
 
-    /* "psychxr/libovr/_libovr.pyx":4935
+    /* "psychxr/libovr/_libovr.pyx":4990
  *     elif frequency == 'low':
  *         freq = 0.5
  *     elif frequency == 'high':             # <<<<<<<<<<<<<<
@@ -31635,7 +32149,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(CY
     goto __pyx_L3;
   }
 
-  /* "psychxr/libovr/_libovr.pyx":4938
+  /* "psychxr/libovr/_libovr.pyx":4993
  *         freq = 1.0
  *     else:
  *         raise RuntimeError("Invalid frequency specified.")             # <<<<<<<<<<<<<<
@@ -31643,15 +32157,15 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(CY
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_SetControllerVibration(
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__37, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4938, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__37, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4993, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 4938, __pyx_L1_error)
+    __PYX_ERR(0, 4993, __pyx_L1_error)
   }
   __pyx_L3:;
 
-  /* "psychxr/libovr/_libovr.pyx":4940
+  /* "psychxr/libovr/_libovr.pyx":4995
  *         raise RuntimeError("Invalid frequency specified.")
  * 
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_SetControllerVibration(             # <<<<<<<<<<<<<<
@@ -31660,7 +32174,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(CY
  */
   __pyx_v_result = ovr_SetControllerVibration(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, ((ovrControllerType)__pyx_v_controller), __pyx_v_freq, __pyx_v_amplitude);
 
-  /* "psychxr/libovr/_libovr.pyx":4946
+  /* "psychxr/libovr/_libovr.pyx":5001
  *         amplitude)
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -31668,13 +32182,13 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(CY
  * def getSessionStatus():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4946, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int32_t(__pyx_v_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5001, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4893
+  /* "psychxr/libovr/_libovr.pyx":4948
  *     return np.array((triggerLeft, triggerRight), dtype=np.float32)
  * 
  * def setControllerVibration(int controller, str frequency, float amplitude):             # <<<<<<<<<<<<<<
@@ -31693,7 +32207,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_176setControllerVibration(CY
   return __pyx_r;
 }
 
-/* "psychxr/libovr/_libovr.pyx":4948
+/* "psychxr/libovr/_libovr.pyx":5003
  *     return result
  * 
  * def getSessionStatus():             # <<<<<<<<<<<<<<
@@ -31724,19 +32238,19 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_178getSessionStatus(CYTHON_U
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("getSessionStatus", 0);
 
-  /* "psychxr/libovr/_libovr.pyx":4958
+  /* "psychxr/libovr/_libovr.pyx":5013
  *     """
  *     global _ptrSession
  *     cdef LibOVRSessionStatus to_return = LibOVRSessionStatus()             # <<<<<<<<<<<<<<
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetSessionStatus(
  *         _ptrSession, to_return.c_data)
  */
-  __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRSessionStatus)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4958, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRSessionStatus)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5013, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_to_return = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4959
+  /* "psychxr/libovr/_libovr.pyx":5014
  *     global _ptrSession
  *     cdef LibOVRSessionStatus to_return = LibOVRSessionStatus()
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_GetSessionStatus(             # <<<<<<<<<<<<<<
@@ -31745,7 +32259,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_178getSessionStatus(CYTHON_U
  */
   __pyx_v_result = ovr_GetSessionStatus(__pyx_v_7psychxr_6libovr_7_libovr__ptrSession, __pyx_v_to_return->c_data);
 
-  /* "psychxr/libovr/_libovr.pyx":4962
+  /* "psychxr/libovr/_libovr.pyx":5017
  *         _ptrSession, to_return.c_data)
  * 
  *     return to_return             # <<<<<<<<<<<<<<
@@ -31757,7 +32271,7 @@ static PyObject *__pyx_pf_7psychxr_6libovr_7_libovr_178getSessionStatus(CYTHON_U
   __pyx_r = ((PyObject *)__pyx_v_to_return);
   goto __pyx_L0;
 
-  /* "psychxr/libovr/_libovr.pyx":4948
+  /* "psychxr/libovr/_libovr.pyx":5003
  *     return result
  * 
  * def getSessionStatus():             # <<<<<<<<<<<<<<
@@ -47698,6 +48212,16 @@ static PyObject *__pyx_getprop_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_h
   return __pyx_pw_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_8headPose_1__get__(o);
 }
 
+static int __pyx_setprop_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_headPose(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+  if (v) {
+    return __pyx_pw_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_8headPose_3__set__(o, v);
+  }
+  else {
+    PyErr_SetString(PyExc_NotImplementedError, "__del__");
+    return -1;
+  }
+}
+
 static PyObject *__pyx_getprop_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_headStatus(PyObject *o, CYTHON_UNUSED void *x) {
   return __pyx_pw_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_10headStatus_1__get__(o);
 }
@@ -47721,7 +48245,7 @@ static PyMethodDef __pyx_methods_7psychxr_6libovr_7_libovr_LibOVRTrackingState[]
 };
 
 static struct PyGetSetDef __pyx_getsets_7psychxr_6libovr_7_libovr_LibOVRTrackingState[] = {
-  {(char *)"headPose", __pyx_getprop_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_headPose, 0, (char *)0, 0},
+  {(char *)"headPose", __pyx_getprop_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_headPose, __pyx_setprop_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_headPose, (char *)0, 0},
   {(char *)"headStatus", __pyx_getprop_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_headStatus, 0, (char *)0, 0},
   {(char *)"handPoses", __pyx_getprop_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_handPoses, 0, (char *)0, 0},
   {(char *)"handStatus", __pyx_getprop_7psychxr_6libovr_7_libovr_19LibOVRTrackingState_handStatus, 0, (char *)0, 0},
@@ -47755,7 +48279,7 @@ static PyTypeObject __pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackingState = {
   0, /*tp_setattro*/
   0, /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-  "LibOVRTrackingState()\nClass for tracking state information.", /*tp_doc*/
+  "LibOVRTrackingState()\nClass for tracking state information for head and hand poses.\n\n    ", /*tp_doc*/
   __pyx_tp_traverse_7psychxr_6libovr_7_libovr_LibOVRTrackingState, /*tp_traverse*/
   __pyx_tp_clear_7psychxr_6libovr_7_libovr_LibOVRTrackingState, /*tp_clear*/
   0, /*tp_richcompare*/
@@ -47786,6 +48310,7 @@ static PyTypeObject __pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackingState = {
   0, /*tp_finalize*/
   #endif
 };
+static struct __pyx_vtabstruct_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo __pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo;
 
 static PyObject *__pyx_tp_new_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
   struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *p;
@@ -47797,6 +48322,7 @@ static PyObject *__pyx_tp_new_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo(PyType
   }
   if (unlikely(!o)) return 0;
   p = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *)o);
+  p->__pyx_vtab = __pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo;
   p->_pose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)Py_None); Py_INCREF(Py_None);
   p->_leveledPose = ((struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPose *)Py_None); Py_INCREF(Py_None);
   if (unlikely(__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_3__cinit__(o, __pyx_empty_tuple, NULL) < 0)) goto bad;
@@ -47814,6 +48340,14 @@ static void __pyx_tp_dealloc_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo(PyObjec
   }
   #endif
   PyObject_GC_UnTrack(o);
+  {
+    PyObject *etype, *eval, *etb;
+    PyErr_Fetch(&etype, &eval, &etb);
+    ++Py_REFCNT(o);
+    __pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_5__dealloc__(o);
+    --Py_REFCNT(o);
+    PyErr_Restore(etype, eval, etb);
+  }
   Py_CLEAR(p->_pose);
   Py_CLEAR(p->_leveledPose);
   (*Py_TYPE(o)->tp_free)(o);
@@ -47884,8 +48418,8 @@ static PyObject *__pyx_getprop_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_far
 }
 
 static PyMethodDef __pyx_methods_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo[] = {
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_5__reduce_cython__, METH_NOARGS, __pyx_doc_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_4__reduce_cython__},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_7__setstate_cython__, METH_O, __pyx_doc_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_6__setstate_cython__},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_7__reduce_cython__, METH_NOARGS, __pyx_doc_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_6__reduce_cython__},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_9__setstate_cython__, METH_O, __pyx_doc_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_8__setstate_cython__},
   {0, 0, 0, 0}
 };
 
@@ -49690,9 +50224,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(0, 696, __pyx_L1_error)
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 1115, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
-  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 3795, __pyx_L1_error)
-  __pyx_builtin_IndexError = __Pyx_GetBuiltinName(__pyx_n_s_IndexError); if (!__pyx_builtin_IndexError) __PYX_ERR(0, 4268, __pyx_L1_error)
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 4397, __pyx_L1_error)
+  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 3850, __pyx_L1_error)
+  __pyx_builtin_IndexError = __Pyx_GetBuiltinName(__pyx_n_s_IndexError); if (!__pyx_builtin_IndexError) __PYX_ERR(0, 4323, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 4452, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(2, 1038, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(1, 151, __pyx_L1_error)
   __pyx_builtin_Ellipsis = __Pyx_GetBuiltinName(__pyx_n_s_Ellipsis); if (!__pyx_builtin_Ellipsis) __PYX_ERR(1, 400, __pyx_L1_error)
@@ -49903,127 +50437,127 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__23);
   __Pyx_GIVEREF(__pyx_tuple__23);
 
-  /* "psychxr/libovr/_libovr.pyx":2858
+  /* "psychxr/libovr/_libovr.pyx":2913
  *     # check if there is a swap chain in the slot
  *     if _eyeLayer.ColorTexture[swapChain] == NULL:
  *         raise RuntimeError(             # <<<<<<<<<<<<<<
  *             "Cannot get swap chain length, NULL eye buffer texture.")
  * 
  */
-  __pyx_tuple__24 = PyTuple_Pack(1, __pyx_kp_s_Cannot_get_swap_chain_length_NUL); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 2858, __pyx_L1_error)
+  __pyx_tuple__24 = PyTuple_Pack(1, __pyx_kp_s_Cannot_get_swap_chain_length_NUL); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 2913, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__24);
   __Pyx_GIVEREF(__pyx_tuple__24);
 
-  /* "psychxr/libovr/_libovr.pyx":2891
+  /* "psychxr/libovr/_libovr.pyx":2946
  *     # check if there is a swap chain in the slot
  *     if _eyeLayer.ColorTexture[swapChain] == NULL:
  *         raise RuntimeError(             # <<<<<<<<<<<<<<
  *             "Cannot get buffer ID, NULL eye buffer texture.")
  * 
  */
-  __pyx_tuple__25 = PyTuple_Pack(1, __pyx_kp_s_Cannot_get_buffer_ID_NULL_eye_bu); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 2891, __pyx_L1_error)
+  __pyx_tuple__25 = PyTuple_Pack(1, __pyx_kp_s_Cannot_get_buffer_ID_NULL_eye_bu); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 2946, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__25);
   __Pyx_GIVEREF(__pyx_tuple__25);
 
-  /* "psychxr/libovr/_libovr.pyx":3351
+  /* "psychxr/libovr/_libovr.pyx":3406
  *             count * sizeof(libovr_capi.ovrTrackedDeviceType))
  *     if not devices:
  *         raise MemoryError("Failed to allocate array 'devices'.")             # <<<<<<<<<<<<<<
  * 
  *     cdef int i = 0
  */
-  __pyx_tuple__28 = PyTuple_Pack(1, __pyx_kp_s_Failed_to_allocate_array_devices); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 3351, __pyx_L1_error)
+  __pyx_tuple__28 = PyTuple_Pack(1, __pyx_kp_s_Failed_to_allocate_array_devices); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 3406, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__28);
   __Pyx_GIVEREF(__pyx_tuple__28);
 
-  /* "psychxr/libovr/_libovr.pyx":3361
+  /* "psychxr/libovr/_libovr.pyx":3416
  *             count * sizeof(libovr_capi.ovrPoseStatef))
  *     if not devicePoses:
  *         raise MemoryError("Failed to allocate array 'devicePoses'.")             # <<<<<<<<<<<<<<
  * 
  *     # get the device poses
  */
-  __pyx_tuple__29 = PyTuple_Pack(1, __pyx_kp_s_Failed_to_allocate_array_deviceP); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 3361, __pyx_L1_error)
+  __pyx_tuple__29 = PyTuple_Pack(1, __pyx_kp_s_Failed_to_allocate_array_deviceP); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 3416, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__29);
   __Pyx_GIVEREF(__pyx_tuple__29);
 
-  /* "psychxr/libovr/_libovr.pyx":3651
+  /* "psychxr/libovr/_libovr.pyx":3706
  * 
  *     if outRect is None:
  *         to_return = np.zeros((4,), dtype=np.int)             # <<<<<<<<<<<<<<
  *     else:
  *         to_return = outRect
  */
-  __pyx_tuple__30 = PyTuple_Pack(1, __pyx_int_4); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 3651, __pyx_L1_error)
+  __pyx_tuple__30 = PyTuple_Pack(1, __pyx_int_4); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 3706, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__30);
   __Pyx_GIVEREF(__pyx_tuple__30);
-  __pyx_tuple__31 = PyTuple_Pack(1, __pyx_tuple__30); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 3651, __pyx_L1_error)
+  __pyx_tuple__31 = PyTuple_Pack(1, __pyx_tuple__30); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 3706, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__31);
   __Pyx_GIVEREF(__pyx_tuple__31);
 
-  /* "psychxr/libovr/_libovr.pyx":3796
+  /* "psychxr/libovr/_libovr.pyx":3851
  *         perfHudMode = <int>_performance_hud_modes[mode]
  *     except KeyError:
  *         raise KeyError("Invalid performance HUD mode specified.")             # <<<<<<<<<<<<<<
  * 
  *     cdef libovr_capi.ovrBool ret = libovr_capi.ovr_SetInt(
  */
-  __pyx_tuple__32 = PyTuple_Pack(1, __pyx_kp_s_Invalid_performance_HUD_mode_spe); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 3796, __pyx_L1_error)
+  __pyx_tuple__32 = PyTuple_Pack(1, __pyx_kp_s_Invalid_performance_HUD_mode_spe); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 3851, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__32);
   __Pyx_GIVEREF(__pyx_tuple__32);
 
-  /* "psychxr/libovr/_libovr.pyx":4268
+  /* "psychxr/libovr/_libovr.pyx":4323
  * 
  *     if 0 > frameStatIndex >= _frameStats.FrameStatsCount:
  *         raise IndexError("Frame stats index out of range.")             # <<<<<<<<<<<<<<
  * 
  *     cdef LibOVRFrameStat stat = LibOVRFrameStat()
  */
-  __pyx_tuple__33 = PyTuple_Pack(1, __pyx_kp_s_Frame_stats_index_out_of_range); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 4268, __pyx_L1_error)
+  __pyx_tuple__33 = PyTuple_Pack(1, __pyx_kp_s_Frame_stats_index_out_of_range); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 4323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__33);
   __Pyx_GIVEREF(__pyx_tuple__33);
 
-  /* "psychxr/libovr/_libovr.pyx":4397
+  /* "psychxr/libovr/_libovr.pyx":4452
  *         btype = libovr_capi.ovrBoundary_Outer
  *     else:
  *         raise ValueError("Invalid boundary type specified.")             # <<<<<<<<<<<<<<
  * 
  *     cdef libovr_capi.ovrVector3f vec_out
  */
-  __pyx_tuple__34 = PyTuple_Pack(1, __pyx_kp_s_Invalid_boundary_type_specified); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 4397, __pyx_L1_error)
+  __pyx_tuple__34 = PyTuple_Pack(1, __pyx_kp_s_Invalid_boundary_type_specified); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 4452, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__34);
   __Pyx_GIVEREF(__pyx_tuple__34);
 
-  /* "psychxr/libovr/_libovr.pyx":4493
+  /* "psychxr/libovr/_libovr.pyx":4548
  *         idx = 4
  *     else:
  *         raise ValueError("Invalid controller type specified.")             # <<<<<<<<<<<<<<
  * 
  *     # pointer to the current and previous input state
  */
-  __pyx_tuple__35 = PyTuple_Pack(1, __pyx_kp_s_Invalid_controller_type_specifie); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 4493, __pyx_L1_error)
+  __pyx_tuple__35 = PyTuple_Pack(1, __pyx_kp_s_Invalid_controller_type_specifie); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 4548, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__35);
   __Pyx_GIVEREF(__pyx_tuple__35);
 
-  /* "psychxr/libovr/_libovr.pyx":4624
+  /* "psychxr/libovr/_libovr.pyx":4679
  *                       (prvButtons & button) == button
  *     else:
  *         raise ValueError("Invalid trigger mode specified.")             # <<<<<<<<<<<<<<
  * 
  *     return stateResult, t_sec
  */
-  __pyx_tuple__36 = PyTuple_Pack(1, __pyx_kp_s_Invalid_trigger_mode_specified); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 4624, __pyx_L1_error)
+  __pyx_tuple__36 = PyTuple_Pack(1, __pyx_kp_s_Invalid_trigger_mode_specified); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 4679, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__36);
   __Pyx_GIVEREF(__pyx_tuple__36);
 
-  /* "psychxr/libovr/_libovr.pyx":4938
+  /* "psychxr/libovr/_libovr.pyx":4993
  *         freq = 1.0
  *     else:
  *         raise RuntimeError("Invalid frequency specified.")             # <<<<<<<<<<<<<<
  * 
  *     cdef libovr_capi.ovrResult result = libovr_capi.ovr_SetControllerVibration(
  */
-  __pyx_tuple__37 = PyTuple_Pack(1, __pyx_kp_s_Invalid_frequency_specified); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 4938, __pyx_L1_error)
+  __pyx_tuple__37 = PyTuple_Pack(1, __pyx_kp_s_Invalid_frequency_specified); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 4993, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__37);
   __Pyx_GIVEREF(__pyx_tuple__37);
 
@@ -50297,1034 +50831,1034 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__62);
   __pyx_codeobj__63 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__62, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_check_result, 345, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__63)) __PYX_ERR(0, 345, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2283
+  /* "psychxr/libovr/_libovr.pyx":2338
  * 
  * 
  * def success(int result):             # <<<<<<<<<<<<<<
  *     """Check if an API return indicates success."""
  *     return <bint>libovr_capi.OVR_SUCCESS(result)
  */
-  __pyx_tuple__64 = PyTuple_Pack(2, __pyx_n_s_result, __pyx_n_s_result); if (unlikely(!__pyx_tuple__64)) __PYX_ERR(0, 2283, __pyx_L1_error)
+  __pyx_tuple__64 = PyTuple_Pack(2, __pyx_n_s_result, __pyx_n_s_result); if (unlikely(!__pyx_tuple__64)) __PYX_ERR(0, 2338, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__64);
   __Pyx_GIVEREF(__pyx_tuple__64);
-  __pyx_codeobj__65 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__64, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_success, 2283, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__65)) __PYX_ERR(0, 2283, __pyx_L1_error)
+  __pyx_codeobj__65 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__64, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_success, 2338, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__65)) __PYX_ERR(0, 2338, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2287
+  /* "psychxr/libovr/_libovr.pyx":2342
  *     return <bint>libovr_capi.OVR_SUCCESS(result)
  * 
  * def unqualifedSuccess(int result):             # <<<<<<<<<<<<<<
  *     """Check if an API return indicates unqualified success."""
  *     return <bint>libovr_capi.OVR_UNQUALIFIED_SUCCESS(result)
  */
-  __pyx_tuple__66 = PyTuple_Pack(2, __pyx_n_s_result, __pyx_n_s_result); if (unlikely(!__pyx_tuple__66)) __PYX_ERR(0, 2287, __pyx_L1_error)
+  __pyx_tuple__66 = PyTuple_Pack(2, __pyx_n_s_result, __pyx_n_s_result); if (unlikely(!__pyx_tuple__66)) __PYX_ERR(0, 2342, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__66);
   __Pyx_GIVEREF(__pyx_tuple__66);
-  __pyx_codeobj__67 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__66, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_unqualifedSuccess, 2287, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__67)) __PYX_ERR(0, 2287, __pyx_L1_error)
+  __pyx_codeobj__67 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__66, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_unqualifedSuccess, 2342, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__67)) __PYX_ERR(0, 2342, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2291
+  /* "psychxr/libovr/_libovr.pyx":2346
  *     return <bint>libovr_capi.OVR_UNQUALIFIED_SUCCESS(result)
  * 
  * def failure(int result):             # <<<<<<<<<<<<<<
  *     """Check if an API return indicates failure (error)."""
  *     return <bint>libovr_capi.OVR_FAILURE(result)
  */
-  __pyx_tuple__68 = PyTuple_Pack(2, __pyx_n_s_result, __pyx_n_s_result); if (unlikely(!__pyx_tuple__68)) __PYX_ERR(0, 2291, __pyx_L1_error)
+  __pyx_tuple__68 = PyTuple_Pack(2, __pyx_n_s_result, __pyx_n_s_result); if (unlikely(!__pyx_tuple__68)) __PYX_ERR(0, 2346, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__68);
   __Pyx_GIVEREF(__pyx_tuple__68);
-  __pyx_codeobj__69 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__68, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_failure, 2291, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__69)) __PYX_ERR(0, 2291, __pyx_L1_error)
+  __pyx_codeobj__69 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__68, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_failure, 2346, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__69)) __PYX_ERR(0, 2346, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2295
+  /* "psychxr/libovr/_libovr.pyx":2350
  *     return <bint>libovr_capi.OVR_FAILURE(result)
  * 
  * def isOculusServiceRunning(int timeoutMS=100):             # <<<<<<<<<<<<<<
  *     """Check if the Oculus Runtime is loaded and running.
  * 
  */
-  __pyx_tuple__70 = PyTuple_Pack(2, __pyx_n_s_timeoutMS, __pyx_n_s_result); if (unlikely(!__pyx_tuple__70)) __PYX_ERR(0, 2295, __pyx_L1_error)
+  __pyx_tuple__70 = PyTuple_Pack(2, __pyx_n_s_timeoutMS, __pyx_n_s_result); if (unlikely(!__pyx_tuple__70)) __PYX_ERR(0, 2350, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__70);
   __Pyx_GIVEREF(__pyx_tuple__70);
-  __pyx_codeobj__71 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__70, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_isOculusServiceRunning, 2295, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__71)) __PYX_ERR(0, 2295, __pyx_L1_error)
+  __pyx_codeobj__71 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__70, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_isOculusServiceRunning, 2350, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__71)) __PYX_ERR(0, 2350, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2313
+  /* "psychxr/libovr/_libovr.pyx":2368
  *     return <bint>result.IsOculusServiceRunning
  * 
  * def isHmdConnected(int timeout_ms=100):             # <<<<<<<<<<<<<<
  *     """Check if an HMD is connected.
  * 
  */
-  __pyx_tuple__72 = PyTuple_Pack(2, __pyx_n_s_timeout_ms, __pyx_n_s_result); if (unlikely(!__pyx_tuple__72)) __PYX_ERR(0, 2313, __pyx_L1_error)
+  __pyx_tuple__72 = PyTuple_Pack(2, __pyx_n_s_timeout_ms, __pyx_n_s_result); if (unlikely(!__pyx_tuple__72)) __PYX_ERR(0, 2368, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__72);
   __Pyx_GIVEREF(__pyx_tuple__72);
-  __pyx_codeobj__73 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__72, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_isHmdConnected, 2313, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__73)) __PYX_ERR(0, 2313, __pyx_L1_error)
+  __pyx_codeobj__73 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__72, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_isHmdConnected, 2368, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__73)) __PYX_ERR(0, 2368, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2331
+  /* "psychxr/libovr/_libovr.pyx":2386
  *     return <bint>result.IsOculusHMDConnected
  * 
  * def getHmdInfo():             # <<<<<<<<<<<<<<
  *     """Get HMD information.
  * 
  */
-  __pyx_tuple__74 = PyTuple_Pack(1, __pyx_n_s_toReturn); if (unlikely(!__pyx_tuple__74)) __PYX_ERR(0, 2331, __pyx_L1_error)
+  __pyx_tuple__74 = PyTuple_Pack(1, __pyx_n_s_toReturn); if (unlikely(!__pyx_tuple__74)) __PYX_ERR(0, 2386, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__74);
   __Pyx_GIVEREF(__pyx_tuple__74);
-  __pyx_codeobj__75 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__74, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getHmdInfo, 2331, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__75)) __PYX_ERR(0, 2331, __pyx_L1_error)
+  __pyx_codeobj__75 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__74, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getHmdInfo, 2386, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__75)) __PYX_ERR(0, 2386, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2346
+  /* "psychxr/libovr/_libovr.pyx":2401
  *     return toReturn
  * 
  * def getUserHeight():             # <<<<<<<<<<<<<<
  *     """User's calibrated height in meters.
  * 
  */
-  __pyx_tuple__76 = PyTuple_Pack(1, __pyx_n_s_to_return); if (unlikely(!__pyx_tuple__76)) __PYX_ERR(0, 2346, __pyx_L1_error)
+  __pyx_tuple__76 = PyTuple_Pack(1, __pyx_n_s_to_return); if (unlikely(!__pyx_tuple__76)) __PYX_ERR(0, 2401, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__76);
   __Pyx_GIVEREF(__pyx_tuple__76);
-  __pyx_codeobj__77 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__76, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getUserHeight, 2346, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__77)) __PYX_ERR(0, 2346, __pyx_L1_error)
+  __pyx_codeobj__77 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__76, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getUserHeight, 2401, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__77)) __PYX_ERR(0, 2401, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2364
+  /* "psychxr/libovr/_libovr.pyx":2419
  *     return to_return
  * 
  * def getEyeHeight():             # <<<<<<<<<<<<<<
  *     """Calibrated eye height from floor in meters.
  * 
  */
-  __pyx_tuple__78 = PyTuple_Pack(1, __pyx_n_s_to_return); if (unlikely(!__pyx_tuple__78)) __PYX_ERR(0, 2364, __pyx_L1_error)
+  __pyx_tuple__78 = PyTuple_Pack(1, __pyx_n_s_to_return); if (unlikely(!__pyx_tuple__78)) __PYX_ERR(0, 2419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__78);
   __Pyx_GIVEREF(__pyx_tuple__78);
-  __pyx_codeobj__79 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__78, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeHeight, 2364, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__79)) __PYX_ERR(0, 2364, __pyx_L1_error)
+  __pyx_codeobj__79 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__78, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeHeight, 2419, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__79)) __PYX_ERR(0, 2419, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2381
+  /* "psychxr/libovr/_libovr.pyx":2436
  *     return to_return
  * 
  * def getNeckEyeDist():             # <<<<<<<<<<<<<<
  *     """Distance from the neck to eyes in meters.
  * 
  */
-  __pyx_tuple__80 = PyTuple_Pack(2, __pyx_n_s_vals, __pyx_n_s_ret); if (unlikely(!__pyx_tuple__80)) __PYX_ERR(0, 2381, __pyx_L1_error)
+  __pyx_tuple__80 = PyTuple_Pack(2, __pyx_n_s_vals, __pyx_n_s_ret); if (unlikely(!__pyx_tuple__80)) __PYX_ERR(0, 2436, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__80);
   __Pyx_GIVEREF(__pyx_tuple__80);
-  __pyx_codeobj__81 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__80, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getNeckEyeDist, 2381, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__81)) __PYX_ERR(0, 2381, __pyx_L1_error)
+  __pyx_codeobj__81 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__80, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getNeckEyeDist, 2436, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__81)) __PYX_ERR(0, 2436, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2401
+  /* "psychxr/libovr/_libovr.pyx":2456
  *     return <float> vals[0], <float> vals[1]
  * 
  * def getEyeToNoseDist():             # <<<<<<<<<<<<<<
  *     """Distance between the nose and eyes in meters.
  * 
  */
-  __pyx_tuple__82 = PyTuple_Pack(2, __pyx_n_s_vals, __pyx_n_s_ret); if (unlikely(!__pyx_tuple__82)) __PYX_ERR(0, 2401, __pyx_L1_error)
+  __pyx_tuple__82 = PyTuple_Pack(2, __pyx_n_s_vals, __pyx_n_s_ret); if (unlikely(!__pyx_tuple__82)) __PYX_ERR(0, 2456, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__82);
   __Pyx_GIVEREF(__pyx_tuple__82);
-  __pyx_codeobj__83 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__82, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeToNoseDist, 2401, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__83)) __PYX_ERR(0, 2401, __pyx_L1_error)
+  __pyx_codeobj__83 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__82, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeToNoseDist, 2456, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__83)) __PYX_ERR(0, 2456, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2421
+  /* "psychxr/libovr/_libovr.pyx":2476
  *     return <float>vals[0], <float> vals[1]
  * 
  * def initialize(bint focusAware=False, int connectionTimeout=0):             # <<<<<<<<<<<<<<
  *     """Initialize the session.
  * 
  */
-  __pyx_tuple__84 = PyTuple_Pack(4, __pyx_n_s_focusAware, __pyx_n_s_connectionTimeout, __pyx_n_s_flags, __pyx_n_s_result); if (unlikely(!__pyx_tuple__84)) __PYX_ERR(0, 2421, __pyx_L1_error)
+  __pyx_tuple__84 = PyTuple_Pack(4, __pyx_n_s_focusAware, __pyx_n_s_connectionTimeout, __pyx_n_s_flags, __pyx_n_s_result); if (unlikely(!__pyx_tuple__84)) __PYX_ERR(0, 2476, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__84);
   __Pyx_GIVEREF(__pyx_tuple__84);
-  __pyx_codeobj__85 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__84, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_initialize, 2421, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__85)) __PYX_ERR(0, 2421, __pyx_L1_error)
+  __pyx_codeobj__85 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__84, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_initialize, 2476, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__85)) __PYX_ERR(0, 2476, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2465
+  /* "psychxr/libovr/_libovr.pyx":2520
  *     return result  # failed to initalize, return error code
  * 
  * def create():             # <<<<<<<<<<<<<<
  *     """Create a new session. Control is handed over to the application from
  *     Oculus Home.
  */
-  __pyx_tuple__86 = PyTuple_Pack(2, __pyx_n_s_result, __pyx_n_s_i); if (unlikely(!__pyx_tuple__86)) __PYX_ERR(0, 2465, __pyx_L1_error)
+  __pyx_tuple__86 = PyTuple_Pack(2, __pyx_n_s_result, __pyx_n_s_i); if (unlikely(!__pyx_tuple__86)) __PYX_ERR(0, 2520, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__86);
   __Pyx_GIVEREF(__pyx_tuple__86);
-  __pyx_codeobj__87 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__86, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_create, 2465, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__87)) __PYX_ERR(0, 2465, __pyx_L1_error)
+  __pyx_codeobj__87 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__86, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_create, 2520, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__87)) __PYX_ERR(0, 2520, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2507
+  /* "psychxr/libovr/_libovr.pyx":2562
  *     return result
  * 
  * def destroyTextureSwapChain(int swapChain):             # <<<<<<<<<<<<<<
  *     """Destroy a texture swap chain."""
  *     global _ptrSession
  */
-  __pyx_tuple__88 = PyTuple_Pack(2, __pyx_n_s_swapChain, __pyx_n_s_swapChain); if (unlikely(!__pyx_tuple__88)) __PYX_ERR(0, 2507, __pyx_L1_error)
+  __pyx_tuple__88 = PyTuple_Pack(2, __pyx_n_s_swapChain, __pyx_n_s_swapChain); if (unlikely(!__pyx_tuple__88)) __PYX_ERR(0, 2562, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__88);
   __Pyx_GIVEREF(__pyx_tuple__88);
-  __pyx_codeobj__89 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__88, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_destroyTextureSwapChain, 2507, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__89)) __PYX_ERR(0, 2507, __pyx_L1_error)
+  __pyx_codeobj__89 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__88, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_destroyTextureSwapChain, 2562, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__89)) __PYX_ERR(0, 2562, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2514
+  /* "psychxr/libovr/_libovr.pyx":2569
  *     _swapChains[swapChain] = NULL
  * 
  * def destroyMirrorTexture():             # <<<<<<<<<<<<<<
  *     """Destroy the mirror texture."""
  *     global _ptrSession
  */
-  __pyx_codeobj__90 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_destroyMirrorTexture, 2514, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__90)) __PYX_ERR(0, 2514, __pyx_L1_error)
+  __pyx_codeobj__90 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_destroyMirrorTexture, 2569, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__90)) __PYX_ERR(0, 2569, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2521
+  /* "psychxr/libovr/_libovr.pyx":2576
  *         libovr_capi.ovr_DestroyMirrorTexture(_ptrSession, _mirrorTexture)
  * 
  * def destroy():             # <<<<<<<<<<<<<<
  *     """Destroy a session.
  *     """
  */
-  __pyx_codeobj__91 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_destroy, 2521, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__91)) __PYX_ERR(0, 2521, __pyx_L1_error)
+  __pyx_codeobj__91 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_destroy, 2576, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__91)) __PYX_ERR(0, 2576, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2532
+  /* "psychxr/libovr/_libovr.pyx":2587
  *     libovr_capi.ovr_Destroy(_ptrSession)
  * 
  * def shutdown():             # <<<<<<<<<<<<<<
  *     """End the current session.
  * 
  */
-  __pyx_codeobj__92 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_shutdown, 2532, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__92)) __PYX_ERR(0, 2532, __pyx_L1_error)
+  __pyx_codeobj__92 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_shutdown, 2587, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__92)) __PYX_ERR(0, 2587, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2542
+  /* "psychxr/libovr/_libovr.pyx":2597
  *     libovr_capi.ovr_Shutdown()
  * 
  * def getGraphicsLUID():             # <<<<<<<<<<<<<<
  *     """The graphics device LUID."""
  *     global _gfxLuid
  */
-  __pyx_codeobj__93 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getGraphicsLUID, 2542, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__93)) __PYX_ERR(0, 2542, __pyx_L1_error)
+  __pyx_codeobj__93 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getGraphicsLUID, 2597, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__93)) __PYX_ERR(0, 2597, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2547
+  /* "psychxr/libovr/_libovr.pyx":2602
  *     return _gfxLuid.Reserved.decode('utf-8')
  * 
  * def setHighQuality(bint enable):             # <<<<<<<<<<<<<<
  *     """Enable high quality mode.
  *     """
  */
-  __pyx_tuple__94 = PyTuple_Pack(2, __pyx_n_s_enable, __pyx_n_s_enable); if (unlikely(!__pyx_tuple__94)) __PYX_ERR(0, 2547, __pyx_L1_error)
+  __pyx_tuple__94 = PyTuple_Pack(2, __pyx_n_s_enable, __pyx_n_s_enable); if (unlikely(!__pyx_tuple__94)) __PYX_ERR(0, 2602, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__94);
   __Pyx_GIVEREF(__pyx_tuple__94);
-  __pyx_codeobj__95 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__94, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setHighQuality, 2547, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__95)) __PYX_ERR(0, 2547, __pyx_L1_error)
+  __pyx_codeobj__95 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__94, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setHighQuality, 2602, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__95)) __PYX_ERR(0, 2602, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2556
+  /* "psychxr/libovr/_libovr.pyx":2611
  *         _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HighQuality
  * 
  * def setHeadLocked(bint enable):             # <<<<<<<<<<<<<<
  *     """True when head-locked mode is enabled.
  * 
  */
-  __pyx_tuple__96 = PyTuple_Pack(2, __pyx_n_s_enable, __pyx_n_s_enable); if (unlikely(!__pyx_tuple__96)) __PYX_ERR(0, 2556, __pyx_L1_error)
+  __pyx_tuple__96 = PyTuple_Pack(2, __pyx_n_s_enable, __pyx_n_s_enable); if (unlikely(!__pyx_tuple__96)) __PYX_ERR(0, 2611, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__96);
   __Pyx_GIVEREF(__pyx_tuple__96);
-  __pyx_codeobj__97 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__96, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setHeadLocked, 2556, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__97)) __PYX_ERR(0, 2556, __pyx_L1_error)
+  __pyx_codeobj__97 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__96, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setHeadLocked, 2611, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__97)) __PYX_ERR(0, 2611, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2569
+  /* "psychxr/libovr/_libovr.pyx":2624
  *         _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HeadLocked
  * 
  * def getPixelsPerTanAngleAtCenter(int eye):             # <<<<<<<<<<<<<<
  *     """Get pixels per tan angle at te center of the display.
  * 
  */
-  __pyx_tuple__98 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_toReturn); if (unlikely(!__pyx_tuple__98)) __PYX_ERR(0, 2569, __pyx_L1_error)
+  __pyx_tuple__98 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_toReturn); if (unlikely(!__pyx_tuple__98)) __PYX_ERR(0, 2624, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__98);
   __Pyx_GIVEREF(__pyx_tuple__98);
-  __pyx_codeobj__99 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__98, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getPixelsPerTanAngleAtCenter, 2569, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__99)) __PYX_ERR(0, 2569, __pyx_L1_error)
+  __pyx_codeobj__99 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__98, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getPixelsPerTanAngleAtCenter, 2624, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__99)) __PYX_ERR(0, 2624, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2594
+  /* "psychxr/libovr/_libovr.pyx":2649
  *     return toReturn.x, toReturn.y
  * 
  * def getDistortedViewport(int eye):             # <<<<<<<<<<<<<<
  *     """Get the distorted viewport.
  * 
  */
-  __pyx_tuple__100 = PyTuple_Pack(4, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_distVp, __pyx_n_s_toReturn); if (unlikely(!__pyx_tuple__100)) __PYX_ERR(0, 2594, __pyx_L1_error)
+  __pyx_tuple__100 = PyTuple_Pack(4, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_distVp, __pyx_n_s_toReturn); if (unlikely(!__pyx_tuple__100)) __PYX_ERR(0, 2649, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__100);
   __Pyx_GIVEREF(__pyx_tuple__100);
-  __pyx_codeobj__101 = (PyObject*)__Pyx_PyCode_New(1, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__100, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getDistortedViewport, 2594, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__101)) __PYX_ERR(0, 2594, __pyx_L1_error)
+  __pyx_codeobj__101 = (PyObject*)__Pyx_PyCode_New(1, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__100, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getDistortedViewport, 2649, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__101)) __PYX_ERR(0, 2649, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2617
+  /* "psychxr/libovr/_libovr.pyx":2672
  *     return toReturn
  * 
  * def getEyeRenderFov(int eye):             # <<<<<<<<<<<<<<
  *     """Get the field-of-view to use for rendering.
  * 
  */
-  __pyx_tuple__102 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_to_return); if (unlikely(!__pyx_tuple__102)) __PYX_ERR(0, 2617, __pyx_L1_error)
+  __pyx_tuple__102 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_to_return); if (unlikely(!__pyx_tuple__102)) __PYX_ERR(0, 2672, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__102);
   __Pyx_GIVEREF(__pyx_tuple__102);
-  __pyx_codeobj__103 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__102, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeRenderFov, 2617, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__103)) __PYX_ERR(0, 2617, __pyx_L1_error)
+  __pyx_codeobj__103 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__102, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeRenderFov, 2672, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__103)) __PYX_ERR(0, 2672, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2656
+  /* "psychxr/libovr/_libovr.pyx":2711
  *     return to_return
  * 
  * def setEyeRenderFov(int eye, object fov):             # <<<<<<<<<<<<<<
  *     """Set the field-of-view of a given eye. This is used to compute the
  *     projection matrix.
  */
-  __pyx_tuple__104 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_fov, __pyx_n_s_fov_in); if (unlikely(!__pyx_tuple__104)) __PYX_ERR(0, 2656, __pyx_L1_error)
+  __pyx_tuple__104 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_fov, __pyx_n_s_fov_in); if (unlikely(!__pyx_tuple__104)) __PYX_ERR(0, 2711, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__104);
   __Pyx_GIVEREF(__pyx_tuple__104);
-  __pyx_codeobj__105 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__104, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setEyeRenderFov, 2656, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__105)) __PYX_ERR(0, 2656, __pyx_L1_error)
+  __pyx_codeobj__105 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__104, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setEyeRenderFov, 2711, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__105)) __PYX_ERR(0, 2711, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2700
+  /* "psychxr/libovr/_libovr.pyx":2755
  *     _eyeLayer.Fov[eye] = _eyeRenderDesc[eye].Fov
  * 
  * def getEyeAspectRatio(int eye):             # <<<<<<<<<<<<<<
  *     """Get the aspect ratio of an eye.
  * 
  */
-  __pyx_tuple__106 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_fovPort); if (unlikely(!__pyx_tuple__106)) __PYX_ERR(0, 2700, __pyx_L1_error)
+  __pyx_tuple__106 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_fovPort); if (unlikely(!__pyx_tuple__106)) __PYX_ERR(0, 2755, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__106);
   __Pyx_GIVEREF(__pyx_tuple__106);
-  __pyx_codeobj__107 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__106, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeAspectRatio, 2700, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__107)) __PYX_ERR(0, 2700, __pyx_L1_error)
+  __pyx_codeobj__107 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__106, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeAspectRatio, 2755, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__107)) __PYX_ERR(0, 2755, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2721
+  /* "psychxr/libovr/_libovr.pyx":2776
  *            (fovPort.UpTan + fovPort.DownTan)
  * 
  * def getEyeHorizontalFovRadians(int eye):             # <<<<<<<<<<<<<<
  *     """Get the angle of the horizontal field-of-view (FOV) for a given eye.
  * 
  */
-  __pyx_tuple__108 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_fovPort); if (unlikely(!__pyx_tuple__108)) __PYX_ERR(0, 2721, __pyx_L1_error)
+  __pyx_tuple__108 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_fovPort); if (unlikely(!__pyx_tuple__108)) __PYX_ERR(0, 2776, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__108);
   __Pyx_GIVEREF(__pyx_tuple__108);
-  __pyx_codeobj__109 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__108, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeHorizontalFovRadians, 2721, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__109)) __PYX_ERR(0, 2721, __pyx_L1_error)
+  __pyx_codeobj__109 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__108, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeHorizontalFovRadians, 2776, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__109)) __PYX_ERR(0, 2776, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2741
+  /* "psychxr/libovr/_libovr.pyx":2796
  *     return fovPort.GetHorizontalFovRadians()
  * 
  * def getEyeVerticalFovRadians(int eye):             # <<<<<<<<<<<<<<
  *     """Get the angle of the vertical field-of-view (FOV) for a given eye.
  * 
  */
-  __pyx_tuple__110 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_fovPort); if (unlikely(!__pyx_tuple__110)) __PYX_ERR(0, 2741, __pyx_L1_error)
+  __pyx_tuple__110 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_fovPort); if (unlikely(!__pyx_tuple__110)) __PYX_ERR(0, 2796, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__110);
   __Pyx_GIVEREF(__pyx_tuple__110);
-  __pyx_codeobj__111 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__110, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeVerticalFovRadians, 2741, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__111)) __PYX_ERR(0, 2741, __pyx_L1_error)
+  __pyx_codeobj__111 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__110, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeVerticalFovRadians, 2796, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__111)) __PYX_ERR(0, 2796, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2761
+  /* "psychxr/libovr/_libovr.pyx":2816
  *     return fovPort.GetVerticalFovRadians()
  * 
  * def getEyeFocalLength(int eye):             # <<<<<<<<<<<<<<
  *     """Get the focal length of the eye's frustum.
  * 
  */
-  __pyx_tuple__112 = PyTuple_Pack(2, __pyx_n_s_eye, __pyx_n_s_eye); if (unlikely(!__pyx_tuple__112)) __PYX_ERR(0, 2761, __pyx_L1_error)
+  __pyx_tuple__112 = PyTuple_Pack(2, __pyx_n_s_eye, __pyx_n_s_eye); if (unlikely(!__pyx_tuple__112)) __PYX_ERR(0, 2816, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__112);
   __Pyx_GIVEREF(__pyx_tuple__112);
-  __pyx_codeobj__113 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__112, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeFocalLength, 2761, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__113)) __PYX_ERR(0, 2761, __pyx_L1_error)
+  __pyx_codeobj__113 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__112, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeFocalLength, 2816, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__113)) __PYX_ERR(0, 2816, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2778
+  /* "psychxr/libovr/_libovr.pyx":2833
  *     return 1.0 / tan(getEyeHorizontalFovRadians(eye) / 2.0)
  * 
  * def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):             # <<<<<<<<<<<<<<
  *     """Get the recommended buffer (texture) sizes for eye buffers.
  * 
  */
-  __pyx_tuple__114 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_texelsPerPixel, __pyx_n_s_buffSize); if (unlikely(!__pyx_tuple__114)) __PYX_ERR(0, 2778, __pyx_L1_error)
+  __pyx_tuple__114 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_texelsPerPixel, __pyx_n_s_buffSize); if (unlikely(!__pyx_tuple__114)) __PYX_ERR(0, 2833, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__114);
   __Pyx_GIVEREF(__pyx_tuple__114);
-  __pyx_codeobj__115 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__114, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_calcEyeBufferSize, 2778, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__115)) __PYX_ERR(0, 2778, __pyx_L1_error)
+  __pyx_codeobj__115 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__114, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_calcEyeBufferSize, 2833, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__115)) __PYX_ERR(0, 2833, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2834
+  /* "psychxr/libovr/_libovr.pyx":2889
  *     return buffSize.w, buffSize.h
  * 
  * def getTextureSwapChainLengthGL(int swapChain):             # <<<<<<<<<<<<<<
  *     """Get the length of a specified swap chain.
  * 
  */
-  __pyx_tuple__116 = PyTuple_Pack(4, __pyx_n_s_swapChain, __pyx_n_s_swapChain, __pyx_n_s_outLength, __pyx_n_s_result); if (unlikely(!__pyx_tuple__116)) __PYX_ERR(0, 2834, __pyx_L1_error)
+  __pyx_tuple__116 = PyTuple_Pack(4, __pyx_n_s_swapChain, __pyx_n_s_swapChain, __pyx_n_s_outLength, __pyx_n_s_result); if (unlikely(!__pyx_tuple__116)) __PYX_ERR(0, 2889, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__116);
   __Pyx_GIVEREF(__pyx_tuple__116);
-  __pyx_codeobj__117 = (PyObject*)__Pyx_PyCode_New(1, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__116, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTextureSwapChainLengthGL, 2834, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__117)) __PYX_ERR(0, 2834, __pyx_L1_error)
+  __pyx_codeobj__117 = (PyObject*)__Pyx_PyCode_New(1, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__116, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTextureSwapChainLengthGL, 2889, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__117)) __PYX_ERR(0, 2889, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2867
+  /* "psychxr/libovr/_libovr.pyx":2922
  *     return result, outLength
  * 
  * def getTextureSwapChainCurrentIndex(int swapChain):             # <<<<<<<<<<<<<<
  *     """Get the current buffer index within the swap chain.
  * 
  */
-  __pyx_tuple__118 = PyTuple_Pack(4, __pyx_n_s_swapChain, __pyx_n_s_swapChain, __pyx_n_s_current_idx, __pyx_n_s_result); if (unlikely(!__pyx_tuple__118)) __PYX_ERR(0, 2867, __pyx_L1_error)
+  __pyx_tuple__118 = PyTuple_Pack(4, __pyx_n_s_swapChain, __pyx_n_s_swapChain, __pyx_n_s_current_idx, __pyx_n_s_result); if (unlikely(!__pyx_tuple__118)) __PYX_ERR(0, 2922, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__118);
   __Pyx_GIVEREF(__pyx_tuple__118);
-  __pyx_codeobj__119 = (PyObject*)__Pyx_PyCode_New(1, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__118, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTextureSwapChainCurrentIndex, 2867, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__119)) __PYX_ERR(0, 2867, __pyx_L1_error)
+  __pyx_codeobj__119 = (PyObject*)__Pyx_PyCode_New(1, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__118, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTextureSwapChainCurrentIndex, 2922, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__119)) __PYX_ERR(0, 2922, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2900
+  /* "psychxr/libovr/_libovr.pyx":2955
  *     return result, current_idx
  * 
  * def getTextureSwapChainBufferGL(int swapChain, int index):             # <<<<<<<<<<<<<<
  *     """Get the texture buffer as an OpenGL name at a specific index in the
  *     swap chain for a given swapChain.
  */
-  __pyx_tuple__120 = PyTuple_Pack(4, __pyx_n_s_swapChain, __pyx_n_s_index, __pyx_n_s_tex_id, __pyx_n_s_result); if (unlikely(!__pyx_tuple__120)) __PYX_ERR(0, 2900, __pyx_L1_error)
+  __pyx_tuple__120 = PyTuple_Pack(4, __pyx_n_s_swapChain, __pyx_n_s_index, __pyx_n_s_tex_id, __pyx_n_s_result); if (unlikely(!__pyx_tuple__120)) __PYX_ERR(0, 2955, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__120);
   __Pyx_GIVEREF(__pyx_tuple__120);
-  __pyx_codeobj__121 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__120, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTextureSwapChainBufferGL, 2900, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__121)) __PYX_ERR(0, 2900, __pyx_L1_error)
+  __pyx_codeobj__121 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__120, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTextureSwapChainBufferGL, 2955, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__121)) __PYX_ERR(0, 2955, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":2946
+  /* "psychxr/libovr/_libovr.pyx":3001
  *     return result, tex_id
  * 
  * def createTextureSwapChainGL(int swapChain, int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB, int levels=1):             # <<<<<<<<<<<<<<
  *     """Create a texture swap chain for eye image buffers.
  * 
  */
-  __pyx_tuple__122 = PyTuple_Pack(7, __pyx_n_s_swapChain, __pyx_n_s_width, __pyx_n_s_height, __pyx_n_s_textureFormat, __pyx_n_s_levels, __pyx_n_s_swapConfig, __pyx_n_s_result); if (unlikely(!__pyx_tuple__122)) __PYX_ERR(0, 2946, __pyx_L1_error)
+  __pyx_tuple__122 = PyTuple_Pack(7, __pyx_n_s_swapChain, __pyx_n_s_width, __pyx_n_s_height, __pyx_n_s_textureFormat, __pyx_n_s_levels, __pyx_n_s_swapConfig, __pyx_n_s_result); if (unlikely(!__pyx_tuple__122)) __PYX_ERR(0, 3001, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__122);
   __Pyx_GIVEREF(__pyx_tuple__122);
-  __pyx_codeobj__123 = (PyObject*)__Pyx_PyCode_New(5, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__122, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_createTextureSwapChainGL, 2946, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__123)) __PYX_ERR(0, 2946, __pyx_L1_error)
+  __pyx_codeobj__123 = (PyObject*)__Pyx_PyCode_New(5, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__122, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_createTextureSwapChainGL, 3001, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__123)) __PYX_ERR(0, 3001, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3019
+  /* "psychxr/libovr/_libovr.pyx":3074
  *     return result
  * 
  * def setEyeColorTextureSwapChain(int eye, int swapChain):             # <<<<<<<<<<<<<<
  *     """Set the color texture swap chain for a given eye.
  * 
  */
-  __pyx_tuple__124 = PyTuple_Pack(2, __pyx_n_s_eye, __pyx_n_s_swapChain); if (unlikely(!__pyx_tuple__124)) __PYX_ERR(0, 3019, __pyx_L1_error)
+  __pyx_tuple__124 = PyTuple_Pack(2, __pyx_n_s_eye, __pyx_n_s_swapChain); if (unlikely(!__pyx_tuple__124)) __PYX_ERR(0, 3074, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__124);
   __Pyx_GIVEREF(__pyx_tuple__124);
-  __pyx_codeobj__125 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__124, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setEyeColorTextureSwapChain, 3019, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__125)) __PYX_ERR(0, 3019, __pyx_L1_error)
+  __pyx_codeobj__125 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__124, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setEyeColorTextureSwapChain, 3074, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__125)) __PYX_ERR(0, 3074, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3065
+  /* "psychxr/libovr/_libovr.pyx":3120
  *     _eyeLayer.ColorTexture[eye] = _swapChains[swapChain]
  * 
  * def createMirrorTexture(int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB):             # <<<<<<<<<<<<<<
  *     """Create a mirror texture.
  * 
  */
-  __pyx_tuple__126 = PyTuple_Pack(5, __pyx_n_s_width, __pyx_n_s_height, __pyx_n_s_textureFormat, __pyx_n_s_mirrorDesc, __pyx_n_s_result); if (unlikely(!__pyx_tuple__126)) __PYX_ERR(0, 3065, __pyx_L1_error)
+  __pyx_tuple__126 = PyTuple_Pack(5, __pyx_n_s_width, __pyx_n_s_height, __pyx_n_s_textureFormat, __pyx_n_s_mirrorDesc, __pyx_n_s_result); if (unlikely(!__pyx_tuple__126)) __PYX_ERR(0, 3120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__126);
   __Pyx_GIVEREF(__pyx_tuple__126);
-  __pyx_codeobj__127 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__126, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_createMirrorTexture, 3065, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__127)) __PYX_ERR(0, 3065, __pyx_L1_error)
+  __pyx_codeobj__127 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__126, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_createMirrorTexture, 3120, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__127)) __PYX_ERR(0, 3120, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3128
+  /* "psychxr/libovr/_libovr.pyx":3183
  *     return <int>result
  * 
  * def getMirrorTexture():             # <<<<<<<<<<<<<<
  *     """Mirror texture ID.
  * 
  */
-  __pyx_tuple__128 = PyTuple_Pack(2, __pyx_n_s_mirror_id, __pyx_n_s_result); if (unlikely(!__pyx_tuple__128)) __PYX_ERR(0, 3128, __pyx_L1_error)
+  __pyx_tuple__128 = PyTuple_Pack(2, __pyx_n_s_mirror_id, __pyx_n_s_result); if (unlikely(!__pyx_tuple__128)) __PYX_ERR(0, 3183, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__128);
   __Pyx_GIVEREF(__pyx_tuple__128);
-  __pyx_codeobj__129 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__128, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getMirrorTexture, 3128, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__129)) __PYX_ERR(0, 3128, __pyx_L1_error)
+  __pyx_codeobj__129 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__128, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getMirrorTexture, 3183, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__129)) __PYX_ERR(0, 3183, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3170
+  /* "psychxr/libovr/_libovr.pyx":3225
  * 
  * 
  * def getTrackingState(double absTime, bint latencyMarker=True):             # <<<<<<<<<<<<<<
  *     """Get the current poses of the head and hands.
  * 
  */
-  __pyx_tuple__130 = PyTuple_Pack(4, __pyx_n_s_absTime, __pyx_n_s_latencyMarker, __pyx_n_s_use_marker, __pyx_n_s_toReturn); if (unlikely(!__pyx_tuple__130)) __PYX_ERR(0, 3170, __pyx_L1_error)
+  __pyx_tuple__130 = PyTuple_Pack(4, __pyx_n_s_absTime, __pyx_n_s_latencyMarker, __pyx_n_s_use_marker, __pyx_n_s_toReturn); if (unlikely(!__pyx_tuple__130)) __PYX_ERR(0, 3225, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__130);
   __Pyx_GIVEREF(__pyx_tuple__130);
-  __pyx_codeobj__131 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__130, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTrackingState, 3170, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__131)) __PYX_ERR(0, 3170, __pyx_L1_error)
+  __pyx_codeobj__131 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__130, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTrackingState, 3225, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__131)) __PYX_ERR(0, 3225, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3273
+  /* "psychxr/libovr/_libovr.pyx":3328
  * #     return result, devicePose
  * 
  * def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):             # <<<<<<<<<<<<<<
  *     """Get tracked device poses.
  * 
  */
-  __pyx_tuple__132 = PyTuple_Pack(10, __pyx_n_s_deviceTypes, __pyx_n_s_absTime, __pyx_n_s_latencyMarker, __pyx_n_s_count, __pyx_n_s_devices, __pyx_n_s_i, __pyx_n_s_devicePoses, __pyx_n_s_result, __pyx_n_s_outPoses, __pyx_n_s_thisPose); if (unlikely(!__pyx_tuple__132)) __PYX_ERR(0, 3273, __pyx_L1_error)
+  __pyx_tuple__132 = PyTuple_Pack(10, __pyx_n_s_deviceTypes, __pyx_n_s_absTime, __pyx_n_s_latencyMarker, __pyx_n_s_count, __pyx_n_s_devices, __pyx_n_s_i, __pyx_n_s_devicePoses, __pyx_n_s_result, __pyx_n_s_outPoses, __pyx_n_s_thisPose); if (unlikely(!__pyx_tuple__132)) __PYX_ERR(0, 3328, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__132);
   __Pyx_GIVEREF(__pyx_tuple__132);
-  __pyx_codeobj__133 = (PyObject*)__Pyx_PyCode_New(3, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__132, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getDevicePoses, 3273, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__133)) __PYX_ERR(0, 3273, __pyx_L1_error)
+  __pyx_codeobj__133 = (PyObject*)__Pyx_PyCode_New(3, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__132, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getDevicePoses, 3328, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__133)) __PYX_ERR(0, 3328, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3385
+  /* "psychxr/libovr/_libovr.pyx":3440
  *     return result, outPoses
  * 
  * def calcEyePoses(LibOVRPose headPose):             # <<<<<<<<<<<<<<
  *     """Calculate eye poses using a given pose state.
  * 
  */
-  __pyx_tuple__134 = PyTuple_Pack(8, __pyx_n_s_headPose, __pyx_n_s_hmdToEyePoses, __pyx_n_s_pos, __pyx_n_s_ori, __pyx_n_s_up, __pyx_n_s_forward, __pyx_n_s_rm, __pyx_n_s_eye); if (unlikely(!__pyx_tuple__134)) __PYX_ERR(0, 3385, __pyx_L1_error)
+  __pyx_tuple__134 = PyTuple_Pack(8, __pyx_n_s_headPose, __pyx_n_s_hmdToEyePoses, __pyx_n_s_pos, __pyx_n_s_ori, __pyx_n_s_up, __pyx_n_s_forward, __pyx_n_s_rm, __pyx_n_s_eye); if (unlikely(!__pyx_tuple__134)) __PYX_ERR(0, 3440, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__134);
   __Pyx_GIVEREF(__pyx_tuple__134);
-  __pyx_codeobj__135 = (PyObject*)__Pyx_PyCode_New(1, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__134, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_calcEyePoses, 3385, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__135)) __PYX_ERR(0, 3385, __pyx_L1_error)
+  __pyx_codeobj__135 = (PyObject*)__Pyx_PyCode_New(1, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__134, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_calcEyePoses, 3440, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__135)) __PYX_ERR(0, 3440, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3465
+  /* "psychxr/libovr/_libovr.pyx":3520
  *             _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
  * 
  * def getHmdToEyePose(int eye):             # <<<<<<<<<<<<<<
  *     """HMD to eye poses.
  * 
  */
-  __pyx_tuple__136 = PyTuple_Pack(2, __pyx_n_s_eye, __pyx_n_s_eye); if (unlikely(!__pyx_tuple__136)) __PYX_ERR(0, 3465, __pyx_L1_error)
+  __pyx_tuple__136 = PyTuple_Pack(2, __pyx_n_s_eye, __pyx_n_s_eye); if (unlikely(!__pyx_tuple__136)) __PYX_ERR(0, 3520, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__136);
   __Pyx_GIVEREF(__pyx_tuple__136);
-  __pyx_codeobj__137 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__136, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getHmdToEyePose, 3465, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__137)) __PYX_ERR(0, 3465, __pyx_L1_error)
+  __pyx_codeobj__137 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__136, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getHmdToEyePose, 3520, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__137)) __PYX_ERR(0, 3520, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3496
+  /* "psychxr/libovr/_libovr.pyx":3551
  *     return LibOVRPose.fromPtr(&_eyeRenderDesc[eye].HmdToEyePose)
  * 
  * def setHmdToEyePose(int eye, LibOVRPose eyePose):             # <<<<<<<<<<<<<<
  *     """Set the HMD eye poses.
  * 
  */
-  __pyx_tuple__138 = PyTuple_Pack(2, __pyx_n_s_eye, __pyx_n_s_eyePose); if (unlikely(!__pyx_tuple__138)) __PYX_ERR(0, 3496, __pyx_L1_error)
+  __pyx_tuple__138 = PyTuple_Pack(2, __pyx_n_s_eye, __pyx_n_s_eyePose); if (unlikely(!__pyx_tuple__138)) __PYX_ERR(0, 3551, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__138);
   __Pyx_GIVEREF(__pyx_tuple__138);
-  __pyx_codeobj__139 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__138, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setHmdToEyePose, 3496, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__139)) __PYX_ERR(0, 3496, __pyx_L1_error)
+  __pyx_codeobj__139 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__138, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setHmdToEyePose, 3551, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__139)) __PYX_ERR(0, 3551, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3508
+  /* "psychxr/libovr/_libovr.pyx":3563
  *     _eyeRenderDesc[0].HmdToEyePose = eyePose.c_data[0]
  * 
  * def getEyeRenderPose(int eye):             # <<<<<<<<<<<<<<
  *     """Get eye render poses.
  * 
  */
-  __pyx_tuple__140 = PyTuple_Pack(2, __pyx_n_s_eye, __pyx_n_s_eye); if (unlikely(!__pyx_tuple__140)) __PYX_ERR(0, 3508, __pyx_L1_error)
+  __pyx_tuple__140 = PyTuple_Pack(2, __pyx_n_s_eye, __pyx_n_s_eye); if (unlikely(!__pyx_tuple__140)) __PYX_ERR(0, 3563, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__140);
   __Pyx_GIVEREF(__pyx_tuple__140);
-  __pyx_codeobj__141 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__140, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeRenderPose, 3508, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__141)) __PYX_ERR(0, 3508, __pyx_L1_error)
+  __pyx_codeobj__141 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__140, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeRenderPose, 3563, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__141)) __PYX_ERR(0, 3563, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3536
+  /* "psychxr/libovr/_libovr.pyx":3591
  *     return LibOVRPose.fromPtr(&_eyeLayer.RenderPose[eye])
  * 
  * def setEyeRenderPose(int eye, LibOVRPose value):             # <<<<<<<<<<<<<<
  *     """Set eye render poses.
  * 
  */
-  __pyx_tuple__142 = PyTuple_Pack(7, __pyx_n_s_eye, __pyx_n_s_value, __pyx_n_s_pos, __pyx_n_s_ori, __pyx_n_s_up, __pyx_n_s_forward, __pyx_n_s_rm); if (unlikely(!__pyx_tuple__142)) __PYX_ERR(0, 3536, __pyx_L1_error)
+  __pyx_tuple__142 = PyTuple_Pack(7, __pyx_n_s_eye, __pyx_n_s_value, __pyx_n_s_pos, __pyx_n_s_ori, __pyx_n_s_up, __pyx_n_s_forward, __pyx_n_s_rm); if (unlikely(!__pyx_tuple__142)) __PYX_ERR(0, 3591, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__142);
   __Pyx_GIVEREF(__pyx_tuple__142);
-  __pyx_codeobj__143 = (PyObject*)__Pyx_PyCode_New(2, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__142, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setEyeRenderPose, 3536, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__143)) __PYX_ERR(0, 3536, __pyx_L1_error)
+  __pyx_codeobj__143 = (PyObject*)__Pyx_PyCode_New(2, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__142, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setEyeRenderPose, 3591, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__143)) __PYX_ERR(0, 3591, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3572
+  /* "psychxr/libovr/_libovr.pyx":3627
  *         _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
  * 
  * def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, object outMatrix=None):             # <<<<<<<<<<<<<<
  *     """Compute the projection matrix.
  * 
  */
-  __pyx_tuple__144 = PyTuple_Pack(9, __pyx_n_s_eye, __pyx_n_s_nearClip, __pyx_n_s_farClip, __pyx_n_s_outMatrix, __pyx_n_s_to_return, __pyx_n_s_mv, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_N); if (unlikely(!__pyx_tuple__144)) __PYX_ERR(0, 3572, __pyx_L1_error)
+  __pyx_tuple__144 = PyTuple_Pack(9, __pyx_n_s_eye, __pyx_n_s_nearClip, __pyx_n_s_farClip, __pyx_n_s_outMatrix, __pyx_n_s_to_return, __pyx_n_s_mv, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_N); if (unlikely(!__pyx_tuple__144)) __PYX_ERR(0, 3627, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__144);
   __Pyx_GIVEREF(__pyx_tuple__144);
-  __pyx_codeobj__145 = (PyObject*)__Pyx_PyCode_New(4, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__144, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeProjectionMatrix, 3572, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__145)) __PYX_ERR(0, 3572, __pyx_L1_error)
+  __pyx_codeobj__145 = (PyObject*)__Pyx_PyCode_New(4, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__144, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeProjectionMatrix, 3627, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__145)) __PYX_ERR(0, 3627, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3627
+  /* "psychxr/libovr/_libovr.pyx":3682
  *         return to_return
  * 
  * def getEyeRenderViewport(int eye, object outRect=None):             # <<<<<<<<<<<<<<
  *     """Get the eye render viewport.
  * 
  */
-  __pyx_tuple__146 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_outRect, __pyx_n_s_to_return); if (unlikely(!__pyx_tuple__146)) __PYX_ERR(0, 3627, __pyx_L1_error)
+  __pyx_tuple__146 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_outRect, __pyx_n_s_to_return); if (unlikely(!__pyx_tuple__146)) __PYX_ERR(0, 3682, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__146);
   __Pyx_GIVEREF(__pyx_tuple__146);
-  __pyx_codeobj__147 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__146, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeRenderViewport, 3627, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__147)) __PYX_ERR(0, 3627, __pyx_L1_error)
+  __pyx_codeobj__147 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__146, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeRenderViewport, 3682, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__147)) __PYX_ERR(0, 3682, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3663
+  /* "psychxr/libovr/_libovr.pyx":3718
  *         return to_return
  * 
  * def setEyeRenderViewport(int eye, object values):             # <<<<<<<<<<<<<<
  *     """Set the eye render viewport.
  * 
  */
-  __pyx_tuple__148 = PyTuple_Pack(2, __pyx_n_s_eye, __pyx_n_s_values); if (unlikely(!__pyx_tuple__148)) __PYX_ERR(0, 3663, __pyx_L1_error)
+  __pyx_tuple__148 = PyTuple_Pack(2, __pyx_n_s_eye, __pyx_n_s_values); if (unlikely(!__pyx_tuple__148)) __PYX_ERR(0, 3718, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__148);
   __Pyx_GIVEREF(__pyx_tuple__148);
-  __pyx_codeobj__149 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__148, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setEyeRenderViewport, 3663, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__149)) __PYX_ERR(0, 3663, __pyx_L1_error)
+  __pyx_codeobj__149 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__148, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setEyeRenderViewport, 3718, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__149)) __PYX_ERR(0, 3718, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3701
+  /* "psychxr/libovr/_libovr.pyx":3756
  *     _eyeLayer.Viewport[eye].Size.h = <int>values[3]
  * 
  * def getEyeViewMatrix(int eye, object outMatrix=None):             # <<<<<<<<<<<<<<
  *     """Compute a view matrix for a specified eye.
  * 
  */
-  __pyx_tuple__150 = PyTuple_Pack(6, __pyx_n_s_eye, __pyx_n_s_outMatrix, __pyx_n_s_to_return, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_N); if (unlikely(!__pyx_tuple__150)) __PYX_ERR(0, 3701, __pyx_L1_error)
+  __pyx_tuple__150 = PyTuple_Pack(6, __pyx_n_s_eye, __pyx_n_s_outMatrix, __pyx_n_s_to_return, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_N); if (unlikely(!__pyx_tuple__150)) __PYX_ERR(0, 3756, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__150);
   __Pyx_GIVEREF(__pyx_tuple__150);
-  __pyx_codeobj__151 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__150, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeViewMatrix, 3701, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__151)) __PYX_ERR(0, 3701, __pyx_L1_error)
+  __pyx_codeobj__151 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__150, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getEyeViewMatrix, 3756, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__151)) __PYX_ERR(0, 3756, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3739
+  /* "psychxr/libovr/_libovr.pyx":3794
  *         return to_return
  * 
  * def getPredictedDisplayTime(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
  *     """Get the predicted time a frame will be displayed.
  * 
  */
-  __pyx_tuple__152 = PyTuple_Pack(2, __pyx_n_s_frameIndex, __pyx_n_s_t_sec); if (unlikely(!__pyx_tuple__152)) __PYX_ERR(0, 3739, __pyx_L1_error)
+  __pyx_tuple__152 = PyTuple_Pack(2, __pyx_n_s_frameIndex, __pyx_n_s_t_sec); if (unlikely(!__pyx_tuple__152)) __PYX_ERR(0, 3794, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__152);
   __Pyx_GIVEREF(__pyx_tuple__152);
-  __pyx_codeobj__153 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__152, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getPredictedDisplayTime, 3739, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__153)) __PYX_ERR(0, 3739, __pyx_L1_error)
+  __pyx_codeobj__153 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__152, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getPredictedDisplayTime, 3794, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__153)) __PYX_ERR(0, 3794, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3760
+  /* "psychxr/libovr/_libovr.pyx":3815
  *     return t_sec
  * 
  * def timeInSeconds():             # <<<<<<<<<<<<<<
  *     """Absolute time in seconds.
  * 
  */
-  __pyx_tuple__154 = PyTuple_Pack(1, __pyx_n_s_t_sec); if (unlikely(!__pyx_tuple__154)) __PYX_ERR(0, 3760, __pyx_L1_error)
+  __pyx_tuple__154 = PyTuple_Pack(1, __pyx_n_s_t_sec); if (unlikely(!__pyx_tuple__154)) __PYX_ERR(0, 3815, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__154);
   __Pyx_GIVEREF(__pyx_tuple__154);
-  __pyx_codeobj__155 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__154, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_timeInSeconds, 3760, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__155)) __PYX_ERR(0, 3760, __pyx_L1_error)
+  __pyx_codeobj__155 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__154, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_timeInSeconds, 3815, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__155)) __PYX_ERR(0, 3815, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3773
+  /* "psychxr/libovr/_libovr.pyx":3828
  *     return t_sec
  * 
  * def perfHudMode(str mode):             # <<<<<<<<<<<<<<
  *     """Display a performance information HUD.
  * 
  */
-  __pyx_tuple__156 = PyTuple_Pack(3, __pyx_n_s_mode, __pyx_n_s_perfHudMode, __pyx_n_s_ret); if (unlikely(!__pyx_tuple__156)) __PYX_ERR(0, 3773, __pyx_L1_error)
+  __pyx_tuple__156 = PyTuple_Pack(3, __pyx_n_s_mode, __pyx_n_s_perfHudMode, __pyx_n_s_ret); if (unlikely(!__pyx_tuple__156)) __PYX_ERR(0, 3828, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__156);
   __Pyx_GIVEREF(__pyx_tuple__156);
-  __pyx_codeobj__157 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__156, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_perfHudMode, 3773, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__157)) __PYX_ERR(0, 3773, __pyx_L1_error)
+  __pyx_codeobj__157 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__156, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_perfHudMode, 3828, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__157)) __PYX_ERR(0, 3828, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3801
+  /* "psychxr/libovr/_libovr.pyx":3856
  *         _ptrSession, b"PerfHudMode", perfHudMode)
  * 
  * def hidePerfHud():             # <<<<<<<<<<<<<<
  *     """Hide the performance HUD.
  * 
  */
-  __pyx_tuple__158 = PyTuple_Pack(1, __pyx_n_s_ret); if (unlikely(!__pyx_tuple__158)) __PYX_ERR(0, 3801, __pyx_L1_error)
+  __pyx_tuple__158 = PyTuple_Pack(1, __pyx_n_s_ret); if (unlikely(!__pyx_tuple__158)) __PYX_ERR(0, 3856, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__158);
   __Pyx_GIVEREF(__pyx_tuple__158);
-  __pyx_codeobj__159 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__158, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_hidePerfHud, 3801, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__159)) __PYX_ERR(0, 3801, __pyx_L1_error)
+  __pyx_codeobj__159 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__158, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_hidePerfHud, 3856, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__159)) __PYX_ERR(0, 3856, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3812
+  /* "psychxr/libovr/_libovr.pyx":3867
  *         _ptrSession, b"PerfHudMode", libovr_capi.ovrPerfHud_Off)
  * 
  * def perfHudModes():             # <<<<<<<<<<<<<<
  *     """List of valid performance HUD modes."""
  *     return [*_performance_hud_modes]
  */
-  __pyx_codeobj__160 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_perfHudModes, 3812, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__160)) __PYX_ERR(0, 3812, __pyx_L1_error)
+  __pyx_codeobj__160 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_perfHudModes, 3867, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__160)) __PYX_ERR(0, 3867, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3858
+  /* "psychxr/libovr/_libovr.pyx":3913
  * #     _eyeLayer.Viewport[eye] = viewportRect
  * 
  * def waitToBeginFrame(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
  *     """Wait until a buffer is available and frame rendering can begin. Must
  *     be called before 'beginFrame'.
  */
-  __pyx_tuple__161 = PyTuple_Pack(2, __pyx_n_s_frameIndex, __pyx_n_s_result); if (unlikely(!__pyx_tuple__161)) __PYX_ERR(0, 3858, __pyx_L1_error)
+  __pyx_tuple__161 = PyTuple_Pack(2, __pyx_n_s_frameIndex, __pyx_n_s_result); if (unlikely(!__pyx_tuple__161)) __PYX_ERR(0, 3913, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__161);
   __Pyx_GIVEREF(__pyx_tuple__161);
-  __pyx_codeobj__162 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__161, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_waitToBeginFrame, 3858, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__162)) __PYX_ERR(0, 3858, __pyx_L1_error)
+  __pyx_codeobj__162 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__161, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_waitToBeginFrame, 3913, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__162)) __PYX_ERR(0, 3913, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3882
+  /* "psychxr/libovr/_libovr.pyx":3937
  *     return <int>result
  * 
  * def beginFrame(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
  *     """Begin rendering the frame. Must be called prior to drawing and
  *     'endFrame'.
  */
-  __pyx_tuple__163 = PyTuple_Pack(2, __pyx_n_s_frameIndex, __pyx_n_s_result); if (unlikely(!__pyx_tuple__163)) __PYX_ERR(0, 3882, __pyx_L1_error)
+  __pyx_tuple__163 = PyTuple_Pack(2, __pyx_n_s_frameIndex, __pyx_n_s_result); if (unlikely(!__pyx_tuple__163)) __PYX_ERR(0, 3937, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__163);
   __Pyx_GIVEREF(__pyx_tuple__163);
-  __pyx_codeobj__164 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__163, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_beginFrame, 3882, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__164)) __PYX_ERR(0, 3882, __pyx_L1_error)
+  __pyx_codeobj__164 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__163, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_beginFrame, 3937, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__164)) __PYX_ERR(0, 3937, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3903
+  /* "psychxr/libovr/_libovr.pyx":3958
  *     return <int>result
  * 
  * def commitTextureSwapChain(int eye):             # <<<<<<<<<<<<<<
  *     """Commit changes to a given eye's texture swap chain. When called, the
  *     runtime is notified that the texture is ready for use, and the swap
  */
-  __pyx_tuple__165 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_result); if (unlikely(!__pyx_tuple__165)) __PYX_ERR(0, 3903, __pyx_L1_error)
+  __pyx_tuple__165 = PyTuple_Pack(3, __pyx_n_s_eye, __pyx_n_s_eye, __pyx_n_s_result); if (unlikely(!__pyx_tuple__165)) __PYX_ERR(0, 3958, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__165);
   __Pyx_GIVEREF(__pyx_tuple__165);
-  __pyx_codeobj__166 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__165, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_commitTextureSwapChain, 3903, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__166)) __PYX_ERR(0, 3903, __pyx_L1_error)
+  __pyx_codeobj__166 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__165, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_commitTextureSwapChain, 3958, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__166)) __PYX_ERR(0, 3958, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3936
+  /* "psychxr/libovr/_libovr.pyx":3991
  *     return <int>result
  * 
  * def endFrame(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
  *     """Call when rendering a frame has completed. Buffers which have been
  *     committed are passed to the compositor for distortion.
  */
-  __pyx_tuple__167 = PyTuple_Pack(3, __pyx_n_s_frameIndex, __pyx_n_s_layers, __pyx_n_s_result); if (unlikely(!__pyx_tuple__167)) __PYX_ERR(0, 3936, __pyx_L1_error)
+  __pyx_tuple__167 = PyTuple_Pack(3, __pyx_n_s_frameIndex, __pyx_n_s_layers, __pyx_n_s_result); if (unlikely(!__pyx_tuple__167)) __PYX_ERR(0, 3991, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__167);
   __Pyx_GIVEREF(__pyx_tuple__167);
-  __pyx_codeobj__168 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__167, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_endFrame, 3936, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__168)) __PYX_ERR(0, 3936, __pyx_L1_error)
+  __pyx_codeobj__168 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__167, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_endFrame, 3991, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__168)) __PYX_ERR(0, 3991, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3973
+  /* "psychxr/libovr/_libovr.pyx":4028
  *     return result
  * 
  * def resetFrameStats():             # <<<<<<<<<<<<<<
  *     """Reset frame statistics.
  * 
  */
-  __pyx_tuple__169 = PyTuple_Pack(1, __pyx_n_s_result); if (unlikely(!__pyx_tuple__169)) __PYX_ERR(0, 3973, __pyx_L1_error)
+  __pyx_tuple__169 = PyTuple_Pack(1, __pyx_n_s_result); if (unlikely(!__pyx_tuple__169)) __PYX_ERR(0, 4028, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__169);
   __Pyx_GIVEREF(__pyx_tuple__169);
-  __pyx_codeobj__170 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__169, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_resetFrameStats, 3973, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__170)) __PYX_ERR(0, 3973, __pyx_L1_error)
+  __pyx_codeobj__170 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__169, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_resetFrameStats, 4028, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__170)) __PYX_ERR(0, 4028, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":3987
+  /* "psychxr/libovr/_libovr.pyx":4042
  *     return result
  * 
  * def getTrackingOriginType():             # <<<<<<<<<<<<<<
  *     """Tracking origin type.
  * 
  */
-  __pyx_tuple__171 = PyTuple_Pack(1, __pyx_n_s_origin); if (unlikely(!__pyx_tuple__171)) __PYX_ERR(0, 3987, __pyx_L1_error)
+  __pyx_tuple__171 = PyTuple_Pack(1, __pyx_n_s_origin); if (unlikely(!__pyx_tuple__171)) __PYX_ERR(0, 4042, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__171);
   __Pyx_GIVEREF(__pyx_tuple__171);
-  __pyx_codeobj__172 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__171, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTrackingOriginType, 3987, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__172)) __PYX_ERR(0, 3987, __pyx_L1_error)
+  __pyx_codeobj__172 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__171, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTrackingOriginType, 4042, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__172)) __PYX_ERR(0, 4042, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4004
+  /* "psychxr/libovr/_libovr.pyx":4059
  *         return 'eye'
  * 
  * def setTrackingOriginType(str value):             # <<<<<<<<<<<<<<
  *     cdef libovr_capi.ovrResult result
  *     global _ptrSession
  */
-  __pyx_tuple__173 = PyTuple_Pack(2, __pyx_n_s_value, __pyx_n_s_result); if (unlikely(!__pyx_tuple__173)) __PYX_ERR(0, 4004, __pyx_L1_error)
+  __pyx_tuple__173 = PyTuple_Pack(2, __pyx_n_s_value, __pyx_n_s_result); if (unlikely(!__pyx_tuple__173)) __PYX_ERR(0, 4059, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__173);
   __Pyx_GIVEREF(__pyx_tuple__173);
-  __pyx_codeobj__174 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__173, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setTrackingOriginType, 4004, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__174)) __PYX_ERR(0, 4004, __pyx_L1_error)
+  __pyx_codeobj__174 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__173, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setTrackingOriginType, 4059, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__174)) __PYX_ERR(0, 4059, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4016
+  /* "psychxr/libovr/_libovr.pyx":4071
  *     return result
  * 
  * def recenterTrackingOrigin():             # <<<<<<<<<<<<<<
  *     """Recenter the tracking origin.
  * 
  */
-  __pyx_tuple__175 = PyTuple_Pack(1, __pyx_n_s_result); if (unlikely(!__pyx_tuple__175)) __PYX_ERR(0, 4016, __pyx_L1_error)
+  __pyx_tuple__175 = PyTuple_Pack(1, __pyx_n_s_result); if (unlikely(!__pyx_tuple__175)) __PYX_ERR(0, 4071, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__175);
   __Pyx_GIVEREF(__pyx_tuple__175);
-  __pyx_codeobj__176 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__175, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_recenterTrackingOrigin, 4016, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__176)) __PYX_ERR(0, 4016, __pyx_L1_error)
+  __pyx_codeobj__176 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__175, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_recenterTrackingOrigin, 4071, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__176)) __PYX_ERR(0, 4071, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4030
+  /* "psychxr/libovr/_libovr.pyx":4085
  *     return result
  * 
  * def specifyTrackingOrigin(LibOVRPose newOrigin):             # <<<<<<<<<<<<<<
  *     """Specify a new tracking origin.
  * 
  */
-  __pyx_tuple__177 = PyTuple_Pack(2, __pyx_n_s_newOrigin, __pyx_n_s_result); if (unlikely(!__pyx_tuple__177)) __PYX_ERR(0, 4030, __pyx_L1_error)
+  __pyx_tuple__177 = PyTuple_Pack(2, __pyx_n_s_newOrigin, __pyx_n_s_result); if (unlikely(!__pyx_tuple__177)) __PYX_ERR(0, 4085, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__177);
   __Pyx_GIVEREF(__pyx_tuple__177);
-  __pyx_codeobj__178 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__177, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_specifyTrackingOrigin, 4030, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__178)) __PYX_ERR(0, 4030, __pyx_L1_error)
+  __pyx_codeobj__178 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__177, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_specifyTrackingOrigin, 4085, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__178)) __PYX_ERR(0, 4085, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4046
+  /* "psychxr/libovr/_libovr.pyx":4101
  *     return result
  * 
  * def clearShouldRecenterFlag():             # <<<<<<<<<<<<<<
  *     """Clear the `shouldRecenter` flag.
  * 
  */
-  __pyx_codeobj__179 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_clearShouldRecenterFlag, 4046, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__179)) __PYX_ERR(0, 4046, __pyx_L1_error)
+  __pyx_codeobj__179 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_clearShouldRecenterFlag, 4101, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__179)) __PYX_ERR(0, 4101, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4053
+  /* "psychxr/libovr/_libovr.pyx":4108
  *     libovr_capi.ovr_ClearShouldRecenterFlag(_ptrSession)
  * 
  * def getTrackerCount():             # <<<<<<<<<<<<<<
  *     """Get the number of attached trackers."""
  *     global _ptrSession
  */
-  __pyx_tuple__180 = PyTuple_Pack(1, __pyx_n_s_trackerCount); if (unlikely(!__pyx_tuple__180)) __PYX_ERR(0, 4053, __pyx_L1_error)
+  __pyx_tuple__180 = PyTuple_Pack(1, __pyx_n_s_trackerCount); if (unlikely(!__pyx_tuple__180)) __PYX_ERR(0, 4108, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__180);
   __Pyx_GIVEREF(__pyx_tuple__180);
-  __pyx_codeobj__181 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__180, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTrackerCount, 4053, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__181)) __PYX_ERR(0, 4053, __pyx_L1_error)
+  __pyx_codeobj__181 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__180, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTrackerCount, 4108, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__181)) __PYX_ERR(0, 4108, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4061
+  /* "psychxr/libovr/_libovr.pyx":4116
  *     return <int>trackerCount
  * 
  * def getTrackerInfo(int trackerIndex):             # <<<<<<<<<<<<<<
  *     """Get information about a given tracker.
  * 
  */
-  __pyx_tuple__182 = PyTuple_Pack(3, __pyx_n_s_trackerIndex, __pyx_n_s_trackerIndex, __pyx_n_s_to_return); if (unlikely(!__pyx_tuple__182)) __PYX_ERR(0, 4061, __pyx_L1_error)
+  __pyx_tuple__182 = PyTuple_Pack(3, __pyx_n_s_trackerIndex, __pyx_n_s_trackerIndex, __pyx_n_s_to_return); if (unlikely(!__pyx_tuple__182)) __PYX_ERR(0, 4116, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__182);
   __Pyx_GIVEREF(__pyx_tuple__182);
-  __pyx_codeobj__183 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__182, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTrackerInfo, 4061, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__183)) __PYX_ERR(0, 4061, __pyx_L1_error)
+  __pyx_codeobj__183 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__182, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTrackerInfo, 4116, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__183)) __PYX_ERR(0, 4116, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4086
+  /* "psychxr/libovr/_libovr.pyx":4141
  *     return to_return
  * 
  * def refreshPerformanceStats():             # <<<<<<<<<<<<<<
  *     """Refresh performance statistics.
  * 
  */
-  __pyx_tuple__184 = PyTuple_Pack(5, __pyx_n_s_result, __pyx_n_s_compFrameStats, __pyx_n_s_statIdx, __pyx_n_s_numStats, __pyx_n_s_frameStat); if (unlikely(!__pyx_tuple__184)) __PYX_ERR(0, 4086, __pyx_L1_error)
+  __pyx_tuple__184 = PyTuple_Pack(5, __pyx_n_s_result, __pyx_n_s_compFrameStats, __pyx_n_s_statIdx, __pyx_n_s_numStats, __pyx_n_s_frameStat); if (unlikely(!__pyx_tuple__184)) __PYX_ERR(0, 4141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__184);
   __Pyx_GIVEREF(__pyx_tuple__184);
-  __pyx_codeobj__185 = (PyObject*)__Pyx_PyCode_New(0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__184, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_refreshPerformanceStats, 4086, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__185)) __PYX_ERR(0, 4086, __pyx_L1_error)
+  __pyx_codeobj__185 = (PyObject*)__Pyx_PyCode_New(0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__184, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_refreshPerformanceStats, 4141, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__185)) __PYX_ERR(0, 4141, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4110
+  /* "psychxr/libovr/_libovr.pyx":4165
  *     return result
  * 
  * def updatePerfStats():             # <<<<<<<<<<<<<<
  *     """Update performance stats.
  * 
  */
-  __pyx_tuple__186 = PyTuple_Pack(1, __pyx_n_s_result); if (unlikely(!__pyx_tuple__186)) __PYX_ERR(0, 4110, __pyx_L1_error)
+  __pyx_tuple__186 = PyTuple_Pack(1, __pyx_n_s_result); if (unlikely(!__pyx_tuple__186)) __PYX_ERR(0, 4165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__186);
   __Pyx_GIVEREF(__pyx_tuple__186);
-  __pyx_codeobj__187 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__186, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_updatePerfStats, 4110, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__187)) __PYX_ERR(0, 4110, __pyx_L1_error)
+  __pyx_codeobj__187 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__186, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_updatePerfStats, 4165, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__187)) __PYX_ERR(0, 4165, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4133
+  /* "psychxr/libovr/_libovr.pyx":4188
  *     return result
  * 
  * def getAdaptiveGpuPerformanceScale():             # <<<<<<<<<<<<<<
  *     """Get the adaptive GPU performance scale.
  * 
  */
-  __pyx_codeobj__188 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getAdaptiveGpuPerformanceScale, 4133, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__188)) __PYX_ERR(0, 4133, __pyx_L1_error)
+  __pyx_codeobj__188 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getAdaptiveGpuPerformanceScale, 4188, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__188)) __PYX_ERR(0, 4188, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4144
+  /* "psychxr/libovr/_libovr.pyx":4199
  *     return _frameStats.AdaptiveGpuPerformanceScale
  * 
  * def getFrameStatsCount():             # <<<<<<<<<<<<<<
  *     """Get the number of queued compositor statistics.
  * 
  */
-  __pyx_codeobj__189 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getFrameStatsCount, 4144, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__189)) __PYX_ERR(0, 4144, __pyx_L1_error)
+  __pyx_codeobj__189 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getFrameStatsCount, 4199, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__189)) __PYX_ERR(0, 4199, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4155
+  /* "psychxr/libovr/_libovr.pyx":4210
  *     return _frameStats.FrameStatsCount
  * 
  * def anyFrameStatsDropped():             # <<<<<<<<<<<<<<
  *     """Check if frame stats were dropped.
  * 
  */
-  __pyx_codeobj__190 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_anyFrameStatsDropped, 4155, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__190)) __PYX_ERR(0, 4155, __pyx_L1_error)
+  __pyx_codeobj__190 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_anyFrameStatsDropped, 4210, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__190)) __PYX_ERR(0, 4210, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4169
+  /* "psychxr/libovr/_libovr.pyx":4224
  *     return <bint>_frameStats.AnyFrameStatsDropped
  * 
  * def checkAswIsAvailable():             # <<<<<<<<<<<<<<
  *     """Check if ASW is available.
  * 
  */
-  __pyx_codeobj__191 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_checkAswIsAvailable, 4169, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__191)) __PYX_ERR(0, 4169, __pyx_L1_error)
+  __pyx_codeobj__191 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_checkAswIsAvailable, 4224, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__191)) __PYX_ERR(0, 4224, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4180
+  /* "psychxr/libovr/_libovr.pyx":4235
  *     return <bint>_frameStats.AswIsAvailable
  * 
  * def getVisibleProcessId():             # <<<<<<<<<<<<<<
  *     """Process ID which the performance stats are currently being polled.
  * 
  */
-  __pyx_codeobj__192 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getVisibleProcessId, 4180, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__192)) __PYX_ERR(0, 4180, __pyx_L1_error)
+  __pyx_codeobj__192 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getVisibleProcessId, 4235, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__192)) __PYX_ERR(0, 4235, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4192
+  /* "psychxr/libovr/_libovr.pyx":4247
  *     return <int>_frameStats.VisibleProcessId
  * 
  * def checkAppLastFrameDropped():             # <<<<<<<<<<<<<<
  *     """Check if the application dropped a frame.
  * 
  */
-  __pyx_codeobj__193 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_checkAppLastFrameDropped, 4192, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__193)) __PYX_ERR(0, 4192, __pyx_L1_error)
+  __pyx_codeobj__193 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_checkAppLastFrameDropped, 4247, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__193)) __PYX_ERR(0, 4247, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4211
+  /* "psychxr/libovr/_libovr.pyx":4266
  *     return False
  * 
  * def checkCompLastFrameDropped():             # <<<<<<<<<<<<<<
  *     """Check if the compositor dropped a frame.
  * 
  */
-  __pyx_codeobj__194 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_checkCompLastFrameDropped, 4211, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__194)) __PYX_ERR(0, 4211, __pyx_L1_error)
+  __pyx_codeobj__194 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_checkCompLastFrameDropped, 4266, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__194)) __PYX_ERR(0, 4266, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4245
+  /* "psychxr/libovr/_libovr.pyx":4300
  * #     return toReturn
  * 
  * def getFrameStats(int frameStatIndex=0):             # <<<<<<<<<<<<<<
  *     """Get detailed compositor frame statistics.
  * 
  */
-  __pyx_tuple__195 = PyTuple_Pack(2, __pyx_n_s_frameStatIndex, __pyx_n_s_stat); if (unlikely(!__pyx_tuple__195)) __PYX_ERR(0, 4245, __pyx_L1_error)
+  __pyx_tuple__195 = PyTuple_Pack(2, __pyx_n_s_frameStatIndex, __pyx_n_s_stat); if (unlikely(!__pyx_tuple__195)) __PYX_ERR(0, 4300, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__195);
   __Pyx_GIVEREF(__pyx_tuple__195);
-  __pyx_codeobj__196 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__195, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getFrameStats, 4245, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__196)) __PYX_ERR(0, 4245, __pyx_L1_error)
+  __pyx_codeobj__196 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__195, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getFrameStats, 4300, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__196)) __PYX_ERR(0, 4300, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4275
+  /* "psychxr/libovr/_libovr.pyx":4330
  *     return stat
  * 
  * def getLastErrorInfo():             # <<<<<<<<<<<<<<
  *     """Get the last error code and information string reported by the API.
  * 
  */
-  __pyx_tuple__197 = PyTuple_Pack(3, __pyx_n_s_lastErrorInfo, __pyx_n_s_result, __pyx_n_s_errorString); if (unlikely(!__pyx_tuple__197)) __PYX_ERR(0, 4275, __pyx_L1_error)
+  __pyx_tuple__197 = PyTuple_Pack(3, __pyx_n_s_lastErrorInfo, __pyx_n_s_result, __pyx_n_s_errorString); if (unlikely(!__pyx_tuple__197)) __PYX_ERR(0, 4330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__197);
   __Pyx_GIVEREF(__pyx_tuple__197);
-  __pyx_codeobj__198 = (PyObject*)__Pyx_PyCode_New(0, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__197, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getLastErrorInfo, 4275, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__198)) __PYX_ERR(0, 4275, __pyx_L1_error)
+  __pyx_codeobj__198 = (PyObject*)__Pyx_PyCode_New(0, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__197, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getLastErrorInfo, 4330, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__198)) __PYX_ERR(0, 4330, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4294
+  /* "psychxr/libovr/_libovr.pyx":4349
  *     return <int>result, errorString
  * 
  * def setBoundaryColor(float red, float green, float blue):             # <<<<<<<<<<<<<<
  *     """Set the boundary color.
  * 
  */
-  __pyx_tuple__199 = PyTuple_Pack(5, __pyx_n_s_red, __pyx_n_s_green, __pyx_n_s_blue, __pyx_n_s_color, __pyx_n_s_result); if (unlikely(!__pyx_tuple__199)) __PYX_ERR(0, 4294, __pyx_L1_error)
+  __pyx_tuple__199 = PyTuple_Pack(5, __pyx_n_s_red, __pyx_n_s_green, __pyx_n_s_blue, __pyx_n_s_color, __pyx_n_s_result); if (unlikely(!__pyx_tuple__199)) __PYX_ERR(0, 4349, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__199);
   __Pyx_GIVEREF(__pyx_tuple__199);
-  __pyx_codeobj__200 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__199, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setBoundaryColor, 4294, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__200)) __PYX_ERR(0, 4294, __pyx_L1_error)
+  __pyx_codeobj__200 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__199, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setBoundaryColor, 4349, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__200)) __PYX_ERR(0, 4349, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4326
+  /* "psychxr/libovr/_libovr.pyx":4381
  *     return result
  * 
  * def resetBoundaryColor():             # <<<<<<<<<<<<<<
  *     """Reset the boundary color to system default.
  * 
  */
-  __pyx_tuple__201 = PyTuple_Pack(1, __pyx_n_s_result); if (unlikely(!__pyx_tuple__201)) __PYX_ERR(0, 4326, __pyx_L1_error)
+  __pyx_tuple__201 = PyTuple_Pack(1, __pyx_n_s_result); if (unlikely(!__pyx_tuple__201)) __PYX_ERR(0, 4381, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__201);
   __Pyx_GIVEREF(__pyx_tuple__201);
-  __pyx_codeobj__202 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__201, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_resetBoundaryColor, 4326, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__202)) __PYX_ERR(0, 4326, __pyx_L1_error)
+  __pyx_codeobj__202 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__201, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_resetBoundaryColor, 4381, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__202)) __PYX_ERR(0, 4381, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4336
+  /* "psychxr/libovr/_libovr.pyx":4391
  *     return result
  * 
  * def getBoundaryVisible():             # <<<<<<<<<<<<<<
  *     """Check if the Guardian boundary is visible.
  * 
  */
-  __pyx_tuple__203 = PyTuple_Pack(2, __pyx_n_s_is_visible, __pyx_n_s_result); if (unlikely(!__pyx_tuple__203)) __PYX_ERR(0, 4336, __pyx_L1_error)
+  __pyx_tuple__203 = PyTuple_Pack(2, __pyx_n_s_is_visible, __pyx_n_s_result); if (unlikely(!__pyx_tuple__203)) __PYX_ERR(0, 4391, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__203);
   __Pyx_GIVEREF(__pyx_tuple__203);
-  __pyx_codeobj__204 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__203, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getBoundaryVisible, 4336, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__204)) __PYX_ERR(0, 4336, __pyx_L1_error)
+  __pyx_codeobj__204 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__203, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getBoundaryVisible, 4391, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__204)) __PYX_ERR(0, 4391, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4355
+  /* "psychxr/libovr/_libovr.pyx":4410
  *     return result, is_visible
  * 
  * def showBoundary():             # <<<<<<<<<<<<<<
  *     """Show the boundary.
  * 
  */
-  __pyx_tuple__205 = PyTuple_Pack(1, __pyx_n_s_result); if (unlikely(!__pyx_tuple__205)) __PYX_ERR(0, 4355, __pyx_L1_error)
+  __pyx_tuple__205 = PyTuple_Pack(1, __pyx_n_s_result); if (unlikely(!__pyx_tuple__205)) __PYX_ERR(0, 4410, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__205);
   __Pyx_GIVEREF(__pyx_tuple__205);
-  __pyx_codeobj__206 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__205, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_showBoundary, 4355, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__206)) __PYX_ERR(0, 4355, __pyx_L1_error)
+  __pyx_codeobj__206 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__205, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_showBoundary, 4410, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__206)) __PYX_ERR(0, 4410, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4368
+  /* "psychxr/libovr/_libovr.pyx":4423
  *     return result
  * 
  * def hideBoundary():             # <<<<<<<<<<<<<<
  *     """Hide the boundry."""
  *     global _ptrSession
  */
-  __pyx_tuple__207 = PyTuple_Pack(1, __pyx_n_s_result); if (unlikely(!__pyx_tuple__207)) __PYX_ERR(0, 4368, __pyx_L1_error)
+  __pyx_tuple__207 = PyTuple_Pack(1, __pyx_n_s_result); if (unlikely(!__pyx_tuple__207)) __PYX_ERR(0, 4423, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__207);
   __Pyx_GIVEREF(__pyx_tuple__207);
-  __pyx_codeobj__208 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__207, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_hideBoundary, 4368, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__208)) __PYX_ERR(0, 4368, __pyx_L1_error)
+  __pyx_codeobj__208 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__207, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_hideBoundary, 4423, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__208)) __PYX_ERR(0, 4423, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4376
+  /* "psychxr/libovr/_libovr.pyx":4431
  *     return result
  * 
  * def getBoundaryDimensions(str boundaryType='PlayArea'):             # <<<<<<<<<<<<<<
  *     """Get the dimensions of the boundary.
  * 
  */
-  __pyx_tuple__209 = PyTuple_Pack(5, __pyx_n_s_boundaryType, __pyx_n_s_btype, __pyx_n_s_vec_out, __pyx_n_s_result, __pyx_n_s_to_return); if (unlikely(!__pyx_tuple__209)) __PYX_ERR(0, 4376, __pyx_L1_error)
+  __pyx_tuple__209 = PyTuple_Pack(5, __pyx_n_s_boundaryType, __pyx_n_s_btype, __pyx_n_s_vec_out, __pyx_n_s_result, __pyx_n_s_to_return); if (unlikely(!__pyx_tuple__209)) __PYX_ERR(0, 4431, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__209);
   __Pyx_GIVEREF(__pyx_tuple__209);
-  __pyx_codeobj__210 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__209, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getBoundaryDimensions, 4376, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__210)) __PYX_ERR(0, 4376, __pyx_L1_error)
+  __pyx_codeobj__210 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__209, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getBoundaryDimensions, 4431, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__210)) __PYX_ERR(0, 4431, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4412
+  /* "psychxr/libovr/_libovr.pyx":4467
  * #    pass  # TODO: make this work.
  * 
  * def getConnectedControllerTypes():             # <<<<<<<<<<<<<<
  *     """Get connected controller types.
  * 
  */
-  __pyx_tuple__211 = PyTuple_Pack(2, __pyx_n_s_result, __pyx_n_s_toReturn); if (unlikely(!__pyx_tuple__211)) __PYX_ERR(0, 4412, __pyx_L1_error)
+  __pyx_tuple__211 = PyTuple_Pack(2, __pyx_n_s_result, __pyx_n_s_toReturn); if (unlikely(!__pyx_tuple__211)) __PYX_ERR(0, 4467, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__211);
   __Pyx_GIVEREF(__pyx_tuple__211);
-  __pyx_codeobj__212 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__211, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getConnectedControllerTypes, 4412, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__212)) __PYX_ERR(0, 4412, __pyx_L1_error)
+  __pyx_codeobj__212 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__211, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getConnectedControllerTypes, 4467, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__212)) __PYX_ERR(0, 4467, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4462
+  /* "psychxr/libovr/_libovr.pyx":4517
  *     return toReturn
  * 
  * def updateInputState(int controller):             # <<<<<<<<<<<<<<
  *     """Refresh the input state of a controller.
  * 
  */
-  __pyx_tuple__213 = PyTuple_Pack(6, __pyx_n_s_controller, __pyx_n_s_controller, __pyx_n_s_idx, __pyx_n_s_previousInputState, __pyx_n_s_currentInputState, __pyx_n_s_result); if (unlikely(!__pyx_tuple__213)) __PYX_ERR(0, 4462, __pyx_L1_error)
+  __pyx_tuple__213 = PyTuple_Pack(6, __pyx_n_s_controller, __pyx_n_s_controller, __pyx_n_s_idx, __pyx_n_s_previousInputState, __pyx_n_s_currentInputState, __pyx_n_s_result); if (unlikely(!__pyx_tuple__213)) __PYX_ERR(0, 4517, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__213);
   __Pyx_GIVEREF(__pyx_tuple__213);
-  __pyx_codeobj__214 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__213, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_updateInputState, 4462, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__214)) __PYX_ERR(0, 4462, __pyx_L1_error)
+  __pyx_codeobj__214 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__213, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_updateInputState, 4517, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__214)) __PYX_ERR(0, 4517, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4512
+  /* "psychxr/libovr/_libovr.pyx":4567
  *     return result, currentInputState.TimeInSeconds
  * 
  * def getButton(int controller, int button, str testState='continuous'):             # <<<<<<<<<<<<<<
  *     """Get the state of a specified button for a given controller.
  * 
  */
-  __pyx_tuple__215 = PyTuple_Pack(8, __pyx_n_s_controller, __pyx_n_s_button, __pyx_n_s_testState, __pyx_n_s_idx, __pyx_n_s_t_sec, __pyx_n_s_curButtons, __pyx_n_s_prvButtons, __pyx_n_s_stateResult); if (unlikely(!__pyx_tuple__215)) __PYX_ERR(0, 4512, __pyx_L1_error)
+  __pyx_tuple__215 = PyTuple_Pack(8, __pyx_n_s_controller, __pyx_n_s_button, __pyx_n_s_testState, __pyx_n_s_idx, __pyx_n_s_t_sec, __pyx_n_s_curButtons, __pyx_n_s_prvButtons, __pyx_n_s_stateResult); if (unlikely(!__pyx_tuple__215)) __PYX_ERR(0, 4567, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__215);
   __Pyx_GIVEREF(__pyx_tuple__215);
-  __pyx_codeobj__216 = (PyObject*)__Pyx_PyCode_New(3, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__215, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getButton, 4512, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__216)) __PYX_ERR(0, 4512, __pyx_L1_error)
+  __pyx_codeobj__216 = (PyObject*)__Pyx_PyCode_New(3, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__215, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getButton, 4567, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__216)) __PYX_ERR(0, 4567, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4628
+  /* "psychxr/libovr/_libovr.pyx":4683
  *     return stateResult, t_sec
  * 
  * def getTouch(str controller, object touch, str testState='continuous'):             # <<<<<<<<<<<<<<
  *     """Get touches for a specified device.
  * 
  */
-  __pyx_tuple__217 = PyTuple_Pack(8, __pyx_n_s_controller, __pyx_n_s_touch, __pyx_n_s_testState, __pyx_n_s_idx, __pyx_n_s_t_sec, __pyx_n_s_curTouches, __pyx_n_s_prvTouches, __pyx_n_s_stateResult); if (unlikely(!__pyx_tuple__217)) __PYX_ERR(0, 4628, __pyx_L1_error)
+  __pyx_tuple__217 = PyTuple_Pack(8, __pyx_n_s_controller, __pyx_n_s_touch, __pyx_n_s_testState, __pyx_n_s_idx, __pyx_n_s_t_sec, __pyx_n_s_curTouches, __pyx_n_s_prvTouches, __pyx_n_s_stateResult); if (unlikely(!__pyx_tuple__217)) __PYX_ERR(0, 4683, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__217);
   __Pyx_GIVEREF(__pyx_tuple__217);
-  __pyx_codeobj__218 = (PyObject*)__Pyx_PyCode_New(3, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__217, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTouch, 4628, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__218)) __PYX_ERR(0, 4628, __pyx_L1_error)
+  __pyx_codeobj__218 = (PyObject*)__Pyx_PyCode_New(3, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__217, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getTouch, 4683, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__218)) __PYX_ERR(0, 4683, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4727
+  /* "psychxr/libovr/_libovr.pyx":4782
  *     return stateResult, t_sec
  * 
  * def getThumbstickValues(int controller, bint deadzone=False):             # <<<<<<<<<<<<<<
  *     """Get analog thumbstick values.
  * 
  */
-  __pyx_tuple__219 = PyTuple_Pack(8, __pyx_n_s_controller, __pyx_n_s_deadzone, __pyx_n_s_idx, __pyx_n_s_currentInputState, __pyx_n_s_thumbstick_x0, __pyx_n_s_thumbstick_y0, __pyx_n_s_thumbstick_x1, __pyx_n_s_thumbstick_y1); if (unlikely(!__pyx_tuple__219)) __PYX_ERR(0, 4727, __pyx_L1_error)
+  __pyx_tuple__219 = PyTuple_Pack(8, __pyx_n_s_controller, __pyx_n_s_deadzone, __pyx_n_s_idx, __pyx_n_s_currentInputState, __pyx_n_s_thumbstick_x0, __pyx_n_s_thumbstick_y0, __pyx_n_s_thumbstick_x1, __pyx_n_s_thumbstick_y1); if (unlikely(!__pyx_tuple__219)) __PYX_ERR(0, 4782, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__219);
   __Pyx_GIVEREF(__pyx_tuple__219);
-  __pyx_codeobj__220 = (PyObject*)__Pyx_PyCode_New(2, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__219, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getThumbstickValues, 4727, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__220)) __PYX_ERR(0, 4727, __pyx_L1_error)
+  __pyx_codeobj__220 = (PyObject*)__Pyx_PyCode_New(2, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__219, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getThumbstickValues, 4782, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__220)) __PYX_ERR(0, 4782, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4802
+  /* "psychxr/libovr/_libovr.pyx":4857
  *            np.array((thumbstick_x1, thumbstick_y1), dtype=np.float32)
  * 
  * def getIndexTriggerValues(int controller, bint deadzone=False):             # <<<<<<<<<<<<<<
  *     """Get analog index trigger values.
  * 
  */
-  __pyx_tuple__221 = PyTuple_Pack(6, __pyx_n_s_controller, __pyx_n_s_deadzone, __pyx_n_s_idx, __pyx_n_s_currentInputState, __pyx_n_s_triggerLeft, __pyx_n_s_triggerRight); if (unlikely(!__pyx_tuple__221)) __PYX_ERR(0, 4802, __pyx_L1_error)
+  __pyx_tuple__221 = PyTuple_Pack(6, __pyx_n_s_controller, __pyx_n_s_deadzone, __pyx_n_s_idx, __pyx_n_s_currentInputState, __pyx_n_s_triggerLeft, __pyx_n_s_triggerRight); if (unlikely(!__pyx_tuple__221)) __PYX_ERR(0, 4857, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__221);
   __Pyx_GIVEREF(__pyx_tuple__221);
-  __pyx_codeobj__222 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__221, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getIndexTriggerValues, 4802, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__222)) __PYX_ERR(0, 4802, __pyx_L1_error)
+  __pyx_codeobj__222 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__221, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getIndexTriggerValues, 4857, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__222)) __PYX_ERR(0, 4857, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4859
+  /* "psychxr/libovr/_libovr.pyx":4914
  *     return np.array((triggerLeft, triggerRight), dtype=np.float32)
  * 
  * def getHandTriggerValues(str controller, bint deadzone=False):             # <<<<<<<<<<<<<<
  *     """Get hand trigger values."""
  *     global _inputStates
  */
-  __pyx_tuple__223 = PyTuple_Pack(6, __pyx_n_s_controller, __pyx_n_s_deadzone, __pyx_n_s_idx, __pyx_n_s_currentInputState, __pyx_n_s_triggerLeft, __pyx_n_s_triggerRight); if (unlikely(!__pyx_tuple__223)) __PYX_ERR(0, 4859, __pyx_L1_error)
+  __pyx_tuple__223 = PyTuple_Pack(6, __pyx_n_s_controller, __pyx_n_s_deadzone, __pyx_n_s_idx, __pyx_n_s_currentInputState, __pyx_n_s_triggerLeft, __pyx_n_s_triggerRight); if (unlikely(!__pyx_tuple__223)) __PYX_ERR(0, 4914, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__223);
   __Pyx_GIVEREF(__pyx_tuple__223);
-  __pyx_codeobj__224 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__223, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getHandTriggerValues, 4859, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__224)) __PYX_ERR(0, 4859, __pyx_L1_error)
+  __pyx_codeobj__224 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__223, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getHandTriggerValues, 4914, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__224)) __PYX_ERR(0, 4914, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4893
+  /* "psychxr/libovr/_libovr.pyx":4948
  *     return np.array((triggerLeft, triggerRight), dtype=np.float32)
  * 
  * def setControllerVibration(int controller, str frequency, float amplitude):             # <<<<<<<<<<<<<<
  *     """Vibrate a controller.
  * 
  */
-  __pyx_tuple__225 = PyTuple_Pack(5, __pyx_n_s_controller, __pyx_n_s_frequency, __pyx_n_s_amplitude, __pyx_n_s_freq, __pyx_n_s_result); if (unlikely(!__pyx_tuple__225)) __PYX_ERR(0, 4893, __pyx_L1_error)
+  __pyx_tuple__225 = PyTuple_Pack(5, __pyx_n_s_controller, __pyx_n_s_frequency, __pyx_n_s_amplitude, __pyx_n_s_freq, __pyx_n_s_result); if (unlikely(!__pyx_tuple__225)) __PYX_ERR(0, 4948, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__225);
   __Pyx_GIVEREF(__pyx_tuple__225);
-  __pyx_codeobj__226 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__225, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setControllerVibration, 4893, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__226)) __PYX_ERR(0, 4893, __pyx_L1_error)
+  __pyx_codeobj__226 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__225, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_setControllerVibration, 4948, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__226)) __PYX_ERR(0, 4948, __pyx_L1_error)
 
-  /* "psychxr/libovr/_libovr.pyx":4948
+  /* "psychxr/libovr/_libovr.pyx":5003
  *     return result
  * 
  * def getSessionStatus():             # <<<<<<<<<<<<<<
  *     """Get the current session status.
  * 
  */
-  __pyx_tuple__227 = PyTuple_Pack(2, __pyx_n_s_to_return, __pyx_n_s_result); if (unlikely(!__pyx_tuple__227)) __PYX_ERR(0, 4948, __pyx_L1_error)
+  __pyx_tuple__227 = PyTuple_Pack(2, __pyx_n_s_to_return, __pyx_n_s_result); if (unlikely(!__pyx_tuple__227)) __PYX_ERR(0, 5003, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__227);
   __Pyx_GIVEREF(__pyx_tuple__227);
-  __pyx_codeobj__228 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__227, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getSessionStatus, 4948, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__228)) __PYX_ERR(0, 4948, __pyx_L1_error)
+  __pyx_codeobj__228 = (PyObject*)__Pyx_PyCode_New(0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__227, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_psychxr_libovr__libovr_pyx, __pyx_n_s_getSessionStatus, 5003, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__228)) __PYX_ERR(0, 5003, __pyx_L1_error)
 
   /* "View.MemoryView":286
  *         return self.name
@@ -51530,7 +52064,7 @@ static int __Pyx_modinit_type_init_code(void) {
   __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRPose = &__pyx_type_7psychxr_6libovr_7_libovr_LibOVRPose;
   __pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRPoseState = &__pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRPoseState;
   __pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRPoseState.fromPtr = (struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *(*)(ovrPoseStatef *, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_15LibOVRPoseState_fromPtr *__pyx_optional_args))__pyx_f_7psychxr_6libovr_7_libovr_15LibOVRPoseState_fromPtr;
-  __pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRPoseState.newStruct = (void (*)(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *))__pyx_f_7psychxr_6libovr_7_libovr_15LibOVRPoseState_newStruct;
+  __pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRPoseState._init_data = (void (*)(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRPoseState *))__pyx_f_7psychxr_6libovr_7_libovr_15LibOVRPoseState__init_data;
   if (PyType_Ready(&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRPoseState) < 0) __PYX_ERR(0, 1483, __pyx_L1_error)
   __pyx_type_7psychxr_6libovr_7_libovr_LibOVRPoseState.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_7psychxr_6libovr_7_libovr_LibOVRPoseState.tp_dictoffset && __pyx_type_7psychxr_6libovr_7_libovr_LibOVRPoseState.tp_getattro == PyObject_GenericGetAttr)) {
@@ -51572,14 +52106,17 @@ static int __Pyx_modinit_type_init_code(void) {
   if (PyObject_SetAttr(__pyx_m, __pyx_n_s_LibOVRTrackingState, (PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackingState) < 0) __PYX_ERR(0, 1656, __pyx_L1_error)
   if (__Pyx_setup_reduce((PyObject*)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackingState) < 0) __PYX_ERR(0, 1656, __pyx_L1_error)
   __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRTrackingState = &__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackingState;
-  if (PyType_Ready(&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo) < 0) __PYX_ERR(0, 1784, __pyx_L1_error)
+  __pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo = &__pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo;
+  __pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo.fromPtr = (struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *(*)(ovrTrackerPose *, ovrTrackerDesc *, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_fromPtr *__pyx_optional_args))__pyx_f_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_fromPtr;
+  __pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo.newStruct = (void (*)(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo *))__pyx_f_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo_newStruct;
+  if (PyType_Ready(&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo) < 0) __PYX_ERR(0, 1790, __pyx_L1_error)
   __pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo.tp_dictoffset && __pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo, "__init__"); if (unlikely(!wrapper)) __PYX_ERR(0, 1784, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo, "__init__"); if (unlikely(!wrapper)) __PYX_ERR(0, 1790, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo___init__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo___init__.doc = __pyx_doc_7psychxr_6libovr_7_libovr_17LibOVRTrackerInfo___init__;
@@ -51587,20 +52124,21 @@ static int __Pyx_modinit_type_init_code(void) {
     }
   }
   #endif
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_LibOVRTrackerInfo, (PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo) < 0) __PYX_ERR(0, 1784, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo) < 0) __PYX_ERR(0, 1784, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo.tp_dict, __pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo) < 0) __PYX_ERR(0, 1790, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_LibOVRTrackerInfo, (PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo) < 0) __PYX_ERR(0, 1790, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo) < 0) __PYX_ERR(0, 1790, __pyx_L1_error)
   __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo = &__pyx_type_7psychxr_6libovr_7_libovr_LibOVRTrackerInfo;
   __pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRSessionStatus = &__pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRSessionStatus;
   __pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRSessionStatus.fromPtr = (struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *(*)(ovrSessionStatus *, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_fromPtr *__pyx_optional_args))__pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_fromPtr;
   __pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRSessionStatus.newStruct = (void (*)(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRSessionStatus *))__pyx_f_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus_newStruct;
-  if (PyType_Ready(&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus) < 0) __PYX_ERR(0, 1887, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus) < 0) __PYX_ERR(0, 1942, __pyx_L1_error)
   __pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus.tp_dictoffset && __pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus, "__init__"); if (unlikely(!wrapper)) __PYX_ERR(0, 1887, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus, "__init__"); if (unlikely(!wrapper)) __PYX_ERR(0, 1942, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus___init__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus___init__.doc = __pyx_doc_7psychxr_6libovr_7_libovr_19LibOVRSessionStatus___init__;
@@ -51608,29 +52146,29 @@ static int __Pyx_modinit_type_init_code(void) {
     }
   }
   #endif
-  if (__Pyx_SetVtable(__pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus.tp_dict, __pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRSessionStatus) < 0) __PYX_ERR(0, 1887, __pyx_L1_error)
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_LibOVRSessionStatus, (PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus) < 0) __PYX_ERR(0, 1887, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus) < 0) __PYX_ERR(0, 1887, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus.tp_dict, __pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRSessionStatus) < 0) __PYX_ERR(0, 1942, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_LibOVRSessionStatus, (PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus) < 0) __PYX_ERR(0, 1942, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus) < 0) __PYX_ERR(0, 1942, __pyx_L1_error)
   __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRSessionStatus = &__pyx_type_7psychxr_6libovr_7_libovr_LibOVRSessionStatus;
   __pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRHmdInfo = &__pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRHmdInfo;
   __pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRHmdInfo.fromPtr = (struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRHmdInfo *(*)(ovrHmdDesc *, struct __pyx_opt_args_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_fromPtr *__pyx_optional_args))__pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_fromPtr;
   __pyx_vtable_7psychxr_6libovr_7_libovr_LibOVRHmdInfo.newStruct = (void (*)(struct __pyx_obj_7psychxr_6libovr_7_libovr_LibOVRHmdInfo *))__pyx_f_7psychxr_6libovr_7_libovr_13LibOVRHmdInfo_newStruct;
-  if (PyType_Ready(&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo) < 0) __PYX_ERR(0, 1990, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo) < 0) __PYX_ERR(0, 2045, __pyx_L1_error)
   __pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo.tp_dictoffset && __pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo.tp_dict, __pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRHmdInfo) < 0) __PYX_ERR(0, 1990, __pyx_L1_error)
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_LibOVRHmdInfo, (PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo) < 0) __PYX_ERR(0, 1990, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo) < 0) __PYX_ERR(0, 1990, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo.tp_dict, __pyx_vtabptr_7psychxr_6libovr_7_libovr_LibOVRHmdInfo) < 0) __PYX_ERR(0, 2045, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_LibOVRHmdInfo, (PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo) < 0) __PYX_ERR(0, 2045, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo) < 0) __PYX_ERR(0, 2045, __pyx_L1_error)
   __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRHmdInfo = &__pyx_type_7psychxr_6libovr_7_libovr_LibOVRHmdInfo;
-  if (PyType_Ready(&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRFrameStat) < 0) __PYX_ERR(0, 2216, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRFrameStat) < 0) __PYX_ERR(0, 2271, __pyx_L1_error)
   __pyx_type_7psychxr_6libovr_7_libovr_LibOVRFrameStat.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_7psychxr_6libovr_7_libovr_LibOVRFrameStat.tp_dictoffset && __pyx_type_7psychxr_6libovr_7_libovr_LibOVRFrameStat.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_7psychxr_6libovr_7_libovr_LibOVRFrameStat.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_LibOVRFrameStat, (PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRFrameStat) < 0) __PYX_ERR(0, 2216, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRFrameStat) < 0) __PYX_ERR(0, 2216, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_LibOVRFrameStat, (PyObject *)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRFrameStat) < 0) __PYX_ERR(0, 2271, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_7psychxr_6libovr_7_libovr_LibOVRFrameStat) < 0) __PYX_ERR(0, 2271, __pyx_L1_error)
   __pyx_ptype_7psychxr_6libovr_7_libovr_LibOVRFrameStat = &__pyx_type_7psychxr_6libovr_7_libovr_LibOVRFrameStat;
   __pyx_vtabptr_array = &__pyx_vtable_array;
   __pyx_vtable_array.get_memview = (PyObject *(*)(struct __pyx_array_obj *))__pyx_array_get_memview;
@@ -55181,1082 +55719,1082 @@ if (!__Pyx_RefNanny) {
   __pyx_t_6[1] = 4;
   memcpy(&(__pyx_v_7psychxr_6libovr_7_libovr_MAT4_SHAPE[0]), __pyx_t_6, sizeof(__pyx_v_7psychxr_6libovr_7_libovr_MAT4_SHAPE[0]) * (2));
 
-  /* "psychxr/libovr/_libovr.pyx":2283
+  /* "psychxr/libovr/_libovr.pyx":2338
  * 
  * 
  * def success(int result):             # <<<<<<<<<<<<<<
  *     """Check if an API return indicates success."""
  *     return <bint>libovr_capi.OVR_SUCCESS(result)
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_3success, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2283, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_3success, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2338, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_success, __pyx_t_1) < 0) __PYX_ERR(0, 2283, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_success, __pyx_t_1) < 0) __PYX_ERR(0, 2338, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2287
+  /* "psychxr/libovr/_libovr.pyx":2342
  *     return <bint>libovr_capi.OVR_SUCCESS(result)
  * 
  * def unqualifedSuccess(int result):             # <<<<<<<<<<<<<<
  *     """Check if an API return indicates unqualified success."""
  *     return <bint>libovr_capi.OVR_UNQUALIFIED_SUCCESS(result)
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_5unqualifedSuccess, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2287, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_5unqualifedSuccess, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2342, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_unqualifedSuccess, __pyx_t_1) < 0) __PYX_ERR(0, 2287, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_unqualifedSuccess, __pyx_t_1) < 0) __PYX_ERR(0, 2342, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2291
+  /* "psychxr/libovr/_libovr.pyx":2346
  *     return <bint>libovr_capi.OVR_UNQUALIFIED_SUCCESS(result)
  * 
  * def failure(int result):             # <<<<<<<<<<<<<<
  *     """Check if an API return indicates failure (error)."""
  *     return <bint>libovr_capi.OVR_FAILURE(result)
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_7failure, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2291, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_7failure, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2346, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_failure, __pyx_t_1) < 0) __PYX_ERR(0, 2291, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_failure, __pyx_t_1) < 0) __PYX_ERR(0, 2346, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2295
+  /* "psychxr/libovr/_libovr.pyx":2350
  *     return <bint>libovr_capi.OVR_FAILURE(result)
  * 
  * def isOculusServiceRunning(int timeoutMS=100):             # <<<<<<<<<<<<<<
  *     """Check if the Oculus Runtime is loaded and running.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_9isOculusServiceRunning, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2295, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_9isOculusServiceRunning, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2350, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_isOculusServiceRunning, __pyx_t_1) < 0) __PYX_ERR(0, 2295, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_isOculusServiceRunning, __pyx_t_1) < 0) __PYX_ERR(0, 2350, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2313
+  /* "psychxr/libovr/_libovr.pyx":2368
  *     return <bint>result.IsOculusServiceRunning
  * 
  * def isHmdConnected(int timeout_ms=100):             # <<<<<<<<<<<<<<
  *     """Check if an HMD is connected.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_11isHmdConnected, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2313, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_11isHmdConnected, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2368, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_isHmdConnected, __pyx_t_1) < 0) __PYX_ERR(0, 2313, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_isHmdConnected, __pyx_t_1) < 0) __PYX_ERR(0, 2368, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2331
+  /* "psychxr/libovr/_libovr.pyx":2386
  *     return <bint>result.IsOculusHMDConnected
  * 
  * def getHmdInfo():             # <<<<<<<<<<<<<<
  *     """Get HMD information.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_13getHmdInfo, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2331, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_13getHmdInfo, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2386, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getHmdInfo, __pyx_t_1) < 0) __PYX_ERR(0, 2331, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getHmdInfo, __pyx_t_1) < 0) __PYX_ERR(0, 2386, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2346
+  /* "psychxr/libovr/_libovr.pyx":2401
  *     return toReturn
  * 
  * def getUserHeight():             # <<<<<<<<<<<<<<
  *     """User's calibrated height in meters.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_15getUserHeight, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2346, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_15getUserHeight, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2401, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getUserHeight, __pyx_t_1) < 0) __PYX_ERR(0, 2346, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getUserHeight, __pyx_t_1) < 0) __PYX_ERR(0, 2401, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2364
+  /* "psychxr/libovr/_libovr.pyx":2419
  *     return to_return
  * 
  * def getEyeHeight():             # <<<<<<<<<<<<<<
  *     """Calibrated eye height from floor in meters.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_17getEyeHeight, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2364, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_17getEyeHeight, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeHeight, __pyx_t_1) < 0) __PYX_ERR(0, 2364, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeHeight, __pyx_t_1) < 0) __PYX_ERR(0, 2419, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2381
+  /* "psychxr/libovr/_libovr.pyx":2436
  *     return to_return
  * 
  * def getNeckEyeDist():             # <<<<<<<<<<<<<<
  *     """Distance from the neck to eyes in meters.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_19getNeckEyeDist, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2381, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_19getNeckEyeDist, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2436, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getNeckEyeDist, __pyx_t_1) < 0) __PYX_ERR(0, 2381, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getNeckEyeDist, __pyx_t_1) < 0) __PYX_ERR(0, 2436, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2401
+  /* "psychxr/libovr/_libovr.pyx":2456
  *     return <float> vals[0], <float> vals[1]
  * 
  * def getEyeToNoseDist():             # <<<<<<<<<<<<<<
  *     """Distance between the nose and eyes in meters.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_21getEyeToNoseDist, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2401, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_21getEyeToNoseDist, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2456, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeToNoseDist, __pyx_t_1) < 0) __PYX_ERR(0, 2401, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeToNoseDist, __pyx_t_1) < 0) __PYX_ERR(0, 2456, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2421
+  /* "psychxr/libovr/_libovr.pyx":2476
  *     return <float>vals[0], <float> vals[1]
  * 
  * def initialize(bint focusAware=False, int connectionTimeout=0):             # <<<<<<<<<<<<<<
  *     """Initialize the session.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_23initialize, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2421, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_23initialize, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2476, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_initialize, __pyx_t_1) < 0) __PYX_ERR(0, 2421, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_initialize, __pyx_t_1) < 0) __PYX_ERR(0, 2476, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2465
+  /* "psychxr/libovr/_libovr.pyx":2520
  *     return result  # failed to initalize, return error code
  * 
  * def create():             # <<<<<<<<<<<<<<
  *     """Create a new session. Control is handed over to the application from
  *     Oculus Home.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_25create, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2465, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_25create, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2520, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_create, __pyx_t_1) < 0) __PYX_ERR(0, 2465, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_create, __pyx_t_1) < 0) __PYX_ERR(0, 2520, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2507
+  /* "psychxr/libovr/_libovr.pyx":2562
  *     return result
  * 
  * def destroyTextureSwapChain(int swapChain):             # <<<<<<<<<<<<<<
  *     """Destroy a texture swap chain."""
  *     global _ptrSession
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_27destroyTextureSwapChain, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2507, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_27destroyTextureSwapChain, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2562, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_destroyTextureSwapChain, __pyx_t_1) < 0) __PYX_ERR(0, 2507, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_destroyTextureSwapChain, __pyx_t_1) < 0) __PYX_ERR(0, 2562, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2514
+  /* "psychxr/libovr/_libovr.pyx":2569
  *     _swapChains[swapChain] = NULL
  * 
  * def destroyMirrorTexture():             # <<<<<<<<<<<<<<
  *     """Destroy the mirror texture."""
  *     global _ptrSession
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_29destroyMirrorTexture, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2514, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_29destroyMirrorTexture, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2569, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_destroyMirrorTexture, __pyx_t_1) < 0) __PYX_ERR(0, 2514, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_destroyMirrorTexture, __pyx_t_1) < 0) __PYX_ERR(0, 2569, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2521
+  /* "psychxr/libovr/_libovr.pyx":2576
  *         libovr_capi.ovr_DestroyMirrorTexture(_ptrSession, _mirrorTexture)
  * 
  * def destroy():             # <<<<<<<<<<<<<<
  *     """Destroy a session.
  *     """
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_31destroy, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2521, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_31destroy, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2576, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_destroy, __pyx_t_1) < 0) __PYX_ERR(0, 2521, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_destroy, __pyx_t_1) < 0) __PYX_ERR(0, 2576, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2532
+  /* "psychxr/libovr/_libovr.pyx":2587
  *     libovr_capi.ovr_Destroy(_ptrSession)
  * 
  * def shutdown():             # <<<<<<<<<<<<<<
  *     """End the current session.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_33shutdown, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2532, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_33shutdown, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2587, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_shutdown, __pyx_t_1) < 0) __PYX_ERR(0, 2532, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_shutdown, __pyx_t_1) < 0) __PYX_ERR(0, 2587, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2542
+  /* "psychxr/libovr/_libovr.pyx":2597
  *     libovr_capi.ovr_Shutdown()
  * 
  * def getGraphicsLUID():             # <<<<<<<<<<<<<<
  *     """The graphics device LUID."""
  *     global _gfxLuid
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_35getGraphicsLUID, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2542, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_35getGraphicsLUID, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2597, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getGraphicsLUID, __pyx_t_1) < 0) __PYX_ERR(0, 2542, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getGraphicsLUID, __pyx_t_1) < 0) __PYX_ERR(0, 2597, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2547
+  /* "psychxr/libovr/_libovr.pyx":2602
  *     return _gfxLuid.Reserved.decode('utf-8')
  * 
  * def setHighQuality(bint enable):             # <<<<<<<<<<<<<<
  *     """Enable high quality mode.
  *     """
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_37setHighQuality, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2547, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_37setHighQuality, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2602, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setHighQuality, __pyx_t_1) < 0) __PYX_ERR(0, 2547, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setHighQuality, __pyx_t_1) < 0) __PYX_ERR(0, 2602, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2556
+  /* "psychxr/libovr/_libovr.pyx":2611
  *         _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HighQuality
  * 
  * def setHeadLocked(bint enable):             # <<<<<<<<<<<<<<
  *     """True when head-locked mode is enabled.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_39setHeadLocked, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2556, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_39setHeadLocked, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2611, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setHeadLocked, __pyx_t_1) < 0) __PYX_ERR(0, 2556, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setHeadLocked, __pyx_t_1) < 0) __PYX_ERR(0, 2611, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2569
+  /* "psychxr/libovr/_libovr.pyx":2624
  *         _eyeLayer.Header.Flags &= ~libovr_capi.ovrLayerFlag_HeadLocked
  * 
  * def getPixelsPerTanAngleAtCenter(int eye):             # <<<<<<<<<<<<<<
  *     """Get pixels per tan angle at te center of the display.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_41getPixelsPerTanAngleAtCenter, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2569, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_41getPixelsPerTanAngleAtCenter, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2624, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getPixelsPerTanAngleAtCenter, __pyx_t_1) < 0) __PYX_ERR(0, 2569, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getPixelsPerTanAngleAtCenter, __pyx_t_1) < 0) __PYX_ERR(0, 2624, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2594
+  /* "psychxr/libovr/_libovr.pyx":2649
  *     return toReturn.x, toReturn.y
  * 
  * def getDistortedViewport(int eye):             # <<<<<<<<<<<<<<
  *     """Get the distorted viewport.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_43getDistortedViewport, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2594, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_43getDistortedViewport, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2649, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getDistortedViewport, __pyx_t_1) < 0) __PYX_ERR(0, 2594, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getDistortedViewport, __pyx_t_1) < 0) __PYX_ERR(0, 2649, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2617
+  /* "psychxr/libovr/_libovr.pyx":2672
  *     return toReturn
  * 
  * def getEyeRenderFov(int eye):             # <<<<<<<<<<<<<<
  *     """Get the field-of-view to use for rendering.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_45getEyeRenderFov, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2617, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_45getEyeRenderFov, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2672, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeRenderFov, __pyx_t_1) < 0) __PYX_ERR(0, 2617, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeRenderFov, __pyx_t_1) < 0) __PYX_ERR(0, 2672, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2656
+  /* "psychxr/libovr/_libovr.pyx":2711
  *     return to_return
  * 
  * def setEyeRenderFov(int eye, object fov):             # <<<<<<<<<<<<<<
  *     """Set the field-of-view of a given eye. This is used to compute the
  *     projection matrix.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_47setEyeRenderFov, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2656, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_47setEyeRenderFov, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2711, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setEyeRenderFov, __pyx_t_1) < 0) __PYX_ERR(0, 2656, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setEyeRenderFov, __pyx_t_1) < 0) __PYX_ERR(0, 2711, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2700
+  /* "psychxr/libovr/_libovr.pyx":2755
  *     _eyeLayer.Fov[eye] = _eyeRenderDesc[eye].Fov
  * 
  * def getEyeAspectRatio(int eye):             # <<<<<<<<<<<<<<
  *     """Get the aspect ratio of an eye.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_49getEyeAspectRatio, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2700, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_49getEyeAspectRatio, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2755, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeAspectRatio, __pyx_t_1) < 0) __PYX_ERR(0, 2700, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeAspectRatio, __pyx_t_1) < 0) __PYX_ERR(0, 2755, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2721
+  /* "psychxr/libovr/_libovr.pyx":2776
  *            (fovPort.UpTan + fovPort.DownTan)
  * 
  * def getEyeHorizontalFovRadians(int eye):             # <<<<<<<<<<<<<<
  *     """Get the angle of the horizontal field-of-view (FOV) for a given eye.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_51getEyeHorizontalFovRadians, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2721, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_51getEyeHorizontalFovRadians, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2776, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeHorizontalFovRadians, __pyx_t_1) < 0) __PYX_ERR(0, 2721, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeHorizontalFovRadians, __pyx_t_1) < 0) __PYX_ERR(0, 2776, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2741
+  /* "psychxr/libovr/_libovr.pyx":2796
  *     return fovPort.GetHorizontalFovRadians()
  * 
  * def getEyeVerticalFovRadians(int eye):             # <<<<<<<<<<<<<<
  *     """Get the angle of the vertical field-of-view (FOV) for a given eye.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_53getEyeVerticalFovRadians, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2741, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_53getEyeVerticalFovRadians, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2796, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeVerticalFovRadians, __pyx_t_1) < 0) __PYX_ERR(0, 2741, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeVerticalFovRadians, __pyx_t_1) < 0) __PYX_ERR(0, 2796, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2761
+  /* "psychxr/libovr/_libovr.pyx":2816
  *     return fovPort.GetVerticalFovRadians()
  * 
  * def getEyeFocalLength(int eye):             # <<<<<<<<<<<<<<
  *     """Get the focal length of the eye's frustum.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_55getEyeFocalLength, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2761, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_55getEyeFocalLength, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2816, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeFocalLength, __pyx_t_1) < 0) __PYX_ERR(0, 2761, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeFocalLength, __pyx_t_1) < 0) __PYX_ERR(0, 2816, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2778
+  /* "psychxr/libovr/_libovr.pyx":2833
  *     return 1.0 / tan(getEyeHorizontalFovRadians(eye) / 2.0)
  * 
  * def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):             # <<<<<<<<<<<<<<
  *     """Get the recommended buffer (texture) sizes for eye buffers.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_57calcEyeBufferSize, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2778, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_57calcEyeBufferSize, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2833, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_calcEyeBufferSize, __pyx_t_1) < 0) __PYX_ERR(0, 2778, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_calcEyeBufferSize, __pyx_t_1) < 0) __PYX_ERR(0, 2833, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2834
+  /* "psychxr/libovr/_libovr.pyx":2889
  *     return buffSize.w, buffSize.h
  * 
  * def getTextureSwapChainLengthGL(int swapChain):             # <<<<<<<<<<<<<<
  *     """Get the length of a specified swap chain.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_59getTextureSwapChainLengthGL, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2834, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_59getTextureSwapChainLengthGL, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2889, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTextureSwapChainLengthGL, __pyx_t_1) < 0) __PYX_ERR(0, 2834, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTextureSwapChainLengthGL, __pyx_t_1) < 0) __PYX_ERR(0, 2889, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2867
+  /* "psychxr/libovr/_libovr.pyx":2922
  *     return result, outLength
  * 
  * def getTextureSwapChainCurrentIndex(int swapChain):             # <<<<<<<<<<<<<<
  *     """Get the current buffer index within the swap chain.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_61getTextureSwapChainCurrentIndex, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2867, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_61getTextureSwapChainCurrentIndex, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2922, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTextureSwapChainCurrentIndex, __pyx_t_1) < 0) __PYX_ERR(0, 2867, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTextureSwapChainCurrentIndex, __pyx_t_1) < 0) __PYX_ERR(0, 2922, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2900
+  /* "psychxr/libovr/_libovr.pyx":2955
  *     return result, current_idx
  * 
  * def getTextureSwapChainBufferGL(int swapChain, int index):             # <<<<<<<<<<<<<<
  *     """Get the texture buffer as an OpenGL name at a specific index in the
  *     swap chain for a given swapChain.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_63getTextureSwapChainBufferGL, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2900, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_63getTextureSwapChainBufferGL, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2955, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTextureSwapChainBufferGL, __pyx_t_1) < 0) __PYX_ERR(0, 2900, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTextureSwapChainBufferGL, __pyx_t_1) < 0) __PYX_ERR(0, 2955, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":2946
+  /* "psychxr/libovr/_libovr.pyx":3001
  *     return result, tex_id
  * 
  * def createTextureSwapChainGL(int swapChain, int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB, int levels=1):             # <<<<<<<<<<<<<<
  *     """Create a texture swap chain for eye image buffers.
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_FORMAT_R8G8B8A8_UNORM_SRG); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2946, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_FORMAT_R8G8B8A8_UNORM_SRG); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3001, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 2946, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3001, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_k__26 = __pyx_t_2;
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_65createTextureSwapChainGL, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2946, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_65createTextureSwapChainGL, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3001, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_createTextureSwapChainGL, __pyx_t_1) < 0) __PYX_ERR(0, 2946, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_createTextureSwapChainGL, __pyx_t_1) < 0) __PYX_ERR(0, 3001, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3019
+  /* "psychxr/libovr/_libovr.pyx":3074
  *     return result
  * 
  * def setEyeColorTextureSwapChain(int eye, int swapChain):             # <<<<<<<<<<<<<<
  *     """Set the color texture swap chain for a given eye.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_67setEyeColorTextureSwapChain, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3019, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_67setEyeColorTextureSwapChain, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3074, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setEyeColorTextureSwapChain, __pyx_t_1) < 0) __PYX_ERR(0, 3019, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setEyeColorTextureSwapChain, __pyx_t_1) < 0) __PYX_ERR(0, 3074, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3065
+  /* "psychxr/libovr/_libovr.pyx":3120
  *     _eyeLayer.ColorTexture[eye] = _swapChains[swapChain]
  * 
  * def createMirrorTexture(int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB):             # <<<<<<<<<<<<<<
  *     """Create a mirror texture.
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_FORMAT_R8G8B8A8_UNORM_SRG); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3065, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LIBOVR_FORMAT_R8G8B8A8_UNORM_SRG); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3065, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 3120, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_k__27 = __pyx_t_2;
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_69createMirrorTexture, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3065, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_69createMirrorTexture, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_createMirrorTexture, __pyx_t_1) < 0) __PYX_ERR(0, 3065, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_createMirrorTexture, __pyx_t_1) < 0) __PYX_ERR(0, 3120, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3128
+  /* "psychxr/libovr/_libovr.pyx":3183
  *     return <int>result
  * 
  * def getMirrorTexture():             # <<<<<<<<<<<<<<
  *     """Mirror texture ID.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_71getMirrorTexture, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3128, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_71getMirrorTexture, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3183, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getMirrorTexture, __pyx_t_1) < 0) __PYX_ERR(0, 3128, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getMirrorTexture, __pyx_t_1) < 0) __PYX_ERR(0, 3183, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3170
+  /* "psychxr/libovr/_libovr.pyx":3225
  * 
  * 
  * def getTrackingState(double absTime, bint latencyMarker=True):             # <<<<<<<<<<<<<<
  *     """Get the current poses of the head and hands.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_73getTrackingState, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3170, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_73getTrackingState, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3225, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTrackingState, __pyx_t_1) < 0) __PYX_ERR(0, 3170, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTrackingState, __pyx_t_1) < 0) __PYX_ERR(0, 3225, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3273
+  /* "psychxr/libovr/_libovr.pyx":3328
  * #     return result, devicePose
  * 
  * def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):             # <<<<<<<<<<<<<<
  *     """Get tracked device poses.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_75getDevicePoses, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3273, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_75getDevicePoses, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3328, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getDevicePoses, __pyx_t_1) < 0) __PYX_ERR(0, 3273, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getDevicePoses, __pyx_t_1) < 0) __PYX_ERR(0, 3328, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3385
+  /* "psychxr/libovr/_libovr.pyx":3440
  *     return result, outPoses
  * 
  * def calcEyePoses(LibOVRPose headPose):             # <<<<<<<<<<<<<<
  *     """Calculate eye poses using a given pose state.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_77calcEyePoses, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3385, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_77calcEyePoses, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3440, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_calcEyePoses, __pyx_t_1) < 0) __PYX_ERR(0, 3385, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_calcEyePoses, __pyx_t_1) < 0) __PYX_ERR(0, 3440, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3465
+  /* "psychxr/libovr/_libovr.pyx":3520
  *             _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
  * 
  * def getHmdToEyePose(int eye):             # <<<<<<<<<<<<<<
  *     """HMD to eye poses.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_79getHmdToEyePose, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3465, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_79getHmdToEyePose, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3520, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getHmdToEyePose, __pyx_t_1) < 0) __PYX_ERR(0, 3465, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getHmdToEyePose, __pyx_t_1) < 0) __PYX_ERR(0, 3520, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3496
+  /* "psychxr/libovr/_libovr.pyx":3551
  *     return LibOVRPose.fromPtr(&_eyeRenderDesc[eye].HmdToEyePose)
  * 
  * def setHmdToEyePose(int eye, LibOVRPose eyePose):             # <<<<<<<<<<<<<<
  *     """Set the HMD eye poses.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_81setHmdToEyePose, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3496, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_81setHmdToEyePose, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3551, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setHmdToEyePose, __pyx_t_1) < 0) __PYX_ERR(0, 3496, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setHmdToEyePose, __pyx_t_1) < 0) __PYX_ERR(0, 3551, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3508
+  /* "psychxr/libovr/_libovr.pyx":3563
  *     _eyeRenderDesc[0].HmdToEyePose = eyePose.c_data[0]
  * 
  * def getEyeRenderPose(int eye):             # <<<<<<<<<<<<<<
  *     """Get eye render poses.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_83getEyeRenderPose, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3508, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_83getEyeRenderPose, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3563, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeRenderPose, __pyx_t_1) < 0) __PYX_ERR(0, 3508, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeRenderPose, __pyx_t_1) < 0) __PYX_ERR(0, 3563, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3536
+  /* "psychxr/libovr/_libovr.pyx":3591
  *     return LibOVRPose.fromPtr(&_eyeLayer.RenderPose[eye])
  * 
  * def setEyeRenderPose(int eye, LibOVRPose value):             # <<<<<<<<<<<<<<
  *     """Set eye render poses.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_85setEyeRenderPose, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3536, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_85setEyeRenderPose, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3591, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setEyeRenderPose, __pyx_t_1) < 0) __PYX_ERR(0, 3536, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setEyeRenderPose, __pyx_t_1) < 0) __PYX_ERR(0, 3591, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3572
+  /* "psychxr/libovr/_libovr.pyx":3627
  *         _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
  * 
  * def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, object outMatrix=None):             # <<<<<<<<<<<<<<
  *     """Compute the projection matrix.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_87getEyeProjectionMatrix, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3572, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_87getEyeProjectionMatrix, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3627, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeProjectionMatrix, __pyx_t_1) < 0) __PYX_ERR(0, 3572, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeProjectionMatrix, __pyx_t_1) < 0) __PYX_ERR(0, 3627, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3627
+  /* "psychxr/libovr/_libovr.pyx":3682
  *         return to_return
  * 
  * def getEyeRenderViewport(int eye, object outRect=None):             # <<<<<<<<<<<<<<
  *     """Get the eye render viewport.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_89getEyeRenderViewport, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3627, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_89getEyeRenderViewport, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3682, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeRenderViewport, __pyx_t_1) < 0) __PYX_ERR(0, 3627, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeRenderViewport, __pyx_t_1) < 0) __PYX_ERR(0, 3682, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3663
+  /* "psychxr/libovr/_libovr.pyx":3718
  *         return to_return
  * 
  * def setEyeRenderViewport(int eye, object values):             # <<<<<<<<<<<<<<
  *     """Set the eye render viewport.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_91setEyeRenderViewport, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3663, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_91setEyeRenderViewport, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3718, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setEyeRenderViewport, __pyx_t_1) < 0) __PYX_ERR(0, 3663, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setEyeRenderViewport, __pyx_t_1) < 0) __PYX_ERR(0, 3718, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3701
+  /* "psychxr/libovr/_libovr.pyx":3756
  *     _eyeLayer.Viewport[eye].Size.h = <int>values[3]
  * 
  * def getEyeViewMatrix(int eye, object outMatrix=None):             # <<<<<<<<<<<<<<
  *     """Compute a view matrix for a specified eye.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_93getEyeViewMatrix, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3701, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_93getEyeViewMatrix, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3756, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeViewMatrix, __pyx_t_1) < 0) __PYX_ERR(0, 3701, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getEyeViewMatrix, __pyx_t_1) < 0) __PYX_ERR(0, 3756, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3739
+  /* "psychxr/libovr/_libovr.pyx":3794
  *         return to_return
  * 
  * def getPredictedDisplayTime(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
  *     """Get the predicted time a frame will be displayed.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_95getPredictedDisplayTime, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3739, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_95getPredictedDisplayTime, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3794, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getPredictedDisplayTime, __pyx_t_1) < 0) __PYX_ERR(0, 3739, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getPredictedDisplayTime, __pyx_t_1) < 0) __PYX_ERR(0, 3794, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3760
+  /* "psychxr/libovr/_libovr.pyx":3815
  *     return t_sec
  * 
  * def timeInSeconds():             # <<<<<<<<<<<<<<
  *     """Absolute time in seconds.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_97timeInSeconds, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3760, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_97timeInSeconds, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3815, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_timeInSeconds, __pyx_t_1) < 0) __PYX_ERR(0, 3760, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_timeInSeconds, __pyx_t_1) < 0) __PYX_ERR(0, 3815, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3773
+  /* "psychxr/libovr/_libovr.pyx":3828
  *     return t_sec
  * 
  * def perfHudMode(str mode):             # <<<<<<<<<<<<<<
  *     """Display a performance information HUD.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_99perfHudMode, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3773, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_99perfHudMode, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3828, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_perfHudMode, __pyx_t_1) < 0) __PYX_ERR(0, 3773, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_perfHudMode, __pyx_t_1) < 0) __PYX_ERR(0, 3828, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3801
+  /* "psychxr/libovr/_libovr.pyx":3856
  *         _ptrSession, b"PerfHudMode", perfHudMode)
  * 
  * def hidePerfHud():             # <<<<<<<<<<<<<<
  *     """Hide the performance HUD.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_101hidePerfHud, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3801, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_101hidePerfHud, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3856, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_hidePerfHud, __pyx_t_1) < 0) __PYX_ERR(0, 3801, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_hidePerfHud, __pyx_t_1) < 0) __PYX_ERR(0, 3856, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3812
+  /* "psychxr/libovr/_libovr.pyx":3867
  *         _ptrSession, b"PerfHudMode", libovr_capi.ovrPerfHud_Off)
  * 
  * def perfHudModes():             # <<<<<<<<<<<<<<
  *     """List of valid performance HUD modes."""
  *     return [*_performance_hud_modes]
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_103perfHudModes, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3812, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_103perfHudModes, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3867, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_perfHudModes, __pyx_t_1) < 0) __PYX_ERR(0, 3812, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_perfHudModes, __pyx_t_1) < 0) __PYX_ERR(0, 3867, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3858
+  /* "psychxr/libovr/_libovr.pyx":3913
  * #     _eyeLayer.Viewport[eye] = viewportRect
  * 
  * def waitToBeginFrame(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
  *     """Wait until a buffer is available and frame rendering can begin. Must
  *     be called before 'beginFrame'.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_105waitToBeginFrame, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3858, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_105waitToBeginFrame, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3913, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_waitToBeginFrame, __pyx_t_1) < 0) __PYX_ERR(0, 3858, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_waitToBeginFrame, __pyx_t_1) < 0) __PYX_ERR(0, 3913, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3882
+  /* "psychxr/libovr/_libovr.pyx":3937
  *     return <int>result
  * 
  * def beginFrame(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
  *     """Begin rendering the frame. Must be called prior to drawing and
  *     'endFrame'.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_107beginFrame, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3882, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_107beginFrame, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3937, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_beginFrame, __pyx_t_1) < 0) __PYX_ERR(0, 3882, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_beginFrame, __pyx_t_1) < 0) __PYX_ERR(0, 3937, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3903
+  /* "psychxr/libovr/_libovr.pyx":3958
  *     return <int>result
  * 
  * def commitTextureSwapChain(int eye):             # <<<<<<<<<<<<<<
  *     """Commit changes to a given eye's texture swap chain. When called, the
  *     runtime is notified that the texture is ready for use, and the swap
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_109commitTextureSwapChain, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3903, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_109commitTextureSwapChain, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3958, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_commitTextureSwapChain, __pyx_t_1) < 0) __PYX_ERR(0, 3903, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_commitTextureSwapChain, __pyx_t_1) < 0) __PYX_ERR(0, 3958, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3936
+  /* "psychxr/libovr/_libovr.pyx":3991
  *     return <int>result
  * 
  * def endFrame(unsigned int frameIndex=0):             # <<<<<<<<<<<<<<
  *     """Call when rendering a frame has completed. Buffers which have been
  *     committed are passed to the compositor for distortion.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_111endFrame, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3936, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_111endFrame, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3991, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_endFrame, __pyx_t_1) < 0) __PYX_ERR(0, 3936, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_endFrame, __pyx_t_1) < 0) __PYX_ERR(0, 3991, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3973
+  /* "psychxr/libovr/_libovr.pyx":4028
  *     return result
  * 
  * def resetFrameStats():             # <<<<<<<<<<<<<<
  *     """Reset frame statistics.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_113resetFrameStats, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3973, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_113resetFrameStats, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4028, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_resetFrameStats, __pyx_t_1) < 0) __PYX_ERR(0, 3973, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_resetFrameStats, __pyx_t_1) < 0) __PYX_ERR(0, 4028, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":3987
+  /* "psychxr/libovr/_libovr.pyx":4042
  *     return result
  * 
  * def getTrackingOriginType():             # <<<<<<<<<<<<<<
  *     """Tracking origin type.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_115getTrackingOriginType, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3987, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_115getTrackingOriginType, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4042, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTrackingOriginType, __pyx_t_1) < 0) __PYX_ERR(0, 3987, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTrackingOriginType, __pyx_t_1) < 0) __PYX_ERR(0, 4042, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4004
+  /* "psychxr/libovr/_libovr.pyx":4059
  *         return 'eye'
  * 
  * def setTrackingOriginType(str value):             # <<<<<<<<<<<<<<
  *     cdef libovr_capi.ovrResult result
  *     global _ptrSession
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_117setTrackingOriginType, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4004, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_117setTrackingOriginType, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4059, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setTrackingOriginType, __pyx_t_1) < 0) __PYX_ERR(0, 4004, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setTrackingOriginType, __pyx_t_1) < 0) __PYX_ERR(0, 4059, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4016
+  /* "psychxr/libovr/_libovr.pyx":4071
  *     return result
  * 
  * def recenterTrackingOrigin():             # <<<<<<<<<<<<<<
  *     """Recenter the tracking origin.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_119recenterTrackingOrigin, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4016, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_119recenterTrackingOrigin, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4071, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_recenterTrackingOrigin, __pyx_t_1) < 0) __PYX_ERR(0, 4016, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_recenterTrackingOrigin, __pyx_t_1) < 0) __PYX_ERR(0, 4071, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4030
+  /* "psychxr/libovr/_libovr.pyx":4085
  *     return result
  * 
  * def specifyTrackingOrigin(LibOVRPose newOrigin):             # <<<<<<<<<<<<<<
  *     """Specify a new tracking origin.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_121specifyTrackingOrigin, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4030, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_121specifyTrackingOrigin, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4085, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_specifyTrackingOrigin, __pyx_t_1) < 0) __PYX_ERR(0, 4030, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_specifyTrackingOrigin, __pyx_t_1) < 0) __PYX_ERR(0, 4085, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4046
+  /* "psychxr/libovr/_libovr.pyx":4101
  *     return result
  * 
  * def clearShouldRecenterFlag():             # <<<<<<<<<<<<<<
  *     """Clear the `shouldRecenter` flag.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_123clearShouldRecenterFlag, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4046, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_123clearShouldRecenterFlag, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4101, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_clearShouldRecenterFlag, __pyx_t_1) < 0) __PYX_ERR(0, 4046, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_clearShouldRecenterFlag, __pyx_t_1) < 0) __PYX_ERR(0, 4101, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4053
+  /* "psychxr/libovr/_libovr.pyx":4108
  *     libovr_capi.ovr_ClearShouldRecenterFlag(_ptrSession)
  * 
  * def getTrackerCount():             # <<<<<<<<<<<<<<
  *     """Get the number of attached trackers."""
  *     global _ptrSession
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_125getTrackerCount, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4053, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_125getTrackerCount, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4108, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTrackerCount, __pyx_t_1) < 0) __PYX_ERR(0, 4053, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTrackerCount, __pyx_t_1) < 0) __PYX_ERR(0, 4108, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4061
+  /* "psychxr/libovr/_libovr.pyx":4116
  *     return <int>trackerCount
  * 
  * def getTrackerInfo(int trackerIndex):             # <<<<<<<<<<<<<<
  *     """Get information about a given tracker.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_127getTrackerInfo, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4061, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_127getTrackerInfo, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4116, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTrackerInfo, __pyx_t_1) < 0) __PYX_ERR(0, 4061, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTrackerInfo, __pyx_t_1) < 0) __PYX_ERR(0, 4116, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4086
+  /* "psychxr/libovr/_libovr.pyx":4141
  *     return to_return
  * 
  * def refreshPerformanceStats():             # <<<<<<<<<<<<<<
  *     """Refresh performance statistics.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_129refreshPerformanceStats, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4086, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_129refreshPerformanceStats, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_refreshPerformanceStats, __pyx_t_1) < 0) __PYX_ERR(0, 4086, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_refreshPerformanceStats, __pyx_t_1) < 0) __PYX_ERR(0, 4141, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4110
+  /* "psychxr/libovr/_libovr.pyx":4165
  *     return result
  * 
  * def updatePerfStats():             # <<<<<<<<<<<<<<
  *     """Update performance stats.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_131updatePerfStats, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4110, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_131updatePerfStats, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_updatePerfStats, __pyx_t_1) < 0) __PYX_ERR(0, 4110, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_updatePerfStats, __pyx_t_1) < 0) __PYX_ERR(0, 4165, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4133
+  /* "psychxr/libovr/_libovr.pyx":4188
  *     return result
  * 
  * def getAdaptiveGpuPerformanceScale():             # <<<<<<<<<<<<<<
  *     """Get the adaptive GPU performance scale.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_133getAdaptiveGpuPerformanceScale, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4133, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_133getAdaptiveGpuPerformanceScale, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4188, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getAdaptiveGpuPerformanceScale, __pyx_t_1) < 0) __PYX_ERR(0, 4133, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getAdaptiveGpuPerformanceScale, __pyx_t_1) < 0) __PYX_ERR(0, 4188, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4144
+  /* "psychxr/libovr/_libovr.pyx":4199
  *     return _frameStats.AdaptiveGpuPerformanceScale
  * 
  * def getFrameStatsCount():             # <<<<<<<<<<<<<<
  *     """Get the number of queued compositor statistics.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_135getFrameStatsCount, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4144, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_135getFrameStatsCount, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4199, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getFrameStatsCount, __pyx_t_1) < 0) __PYX_ERR(0, 4144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getFrameStatsCount, __pyx_t_1) < 0) __PYX_ERR(0, 4199, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4155
+  /* "psychxr/libovr/_libovr.pyx":4210
  *     return _frameStats.FrameStatsCount
  * 
  * def anyFrameStatsDropped():             # <<<<<<<<<<<<<<
  *     """Check if frame stats were dropped.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_137anyFrameStatsDropped, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4155, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_137anyFrameStatsDropped, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4210, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_anyFrameStatsDropped, __pyx_t_1) < 0) __PYX_ERR(0, 4155, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_anyFrameStatsDropped, __pyx_t_1) < 0) __PYX_ERR(0, 4210, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4169
+  /* "psychxr/libovr/_libovr.pyx":4224
  *     return <bint>_frameStats.AnyFrameStatsDropped
  * 
  * def checkAswIsAvailable():             # <<<<<<<<<<<<<<
  *     """Check if ASW is available.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_139checkAswIsAvailable, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4169, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_139checkAswIsAvailable, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4224, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_checkAswIsAvailable, __pyx_t_1) < 0) __PYX_ERR(0, 4169, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_checkAswIsAvailable, __pyx_t_1) < 0) __PYX_ERR(0, 4224, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4180
+  /* "psychxr/libovr/_libovr.pyx":4235
  *     return <bint>_frameStats.AswIsAvailable
  * 
  * def getVisibleProcessId():             # <<<<<<<<<<<<<<
  *     """Process ID which the performance stats are currently being polled.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_141getVisibleProcessId, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4180, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_141getVisibleProcessId, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4235, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getVisibleProcessId, __pyx_t_1) < 0) __PYX_ERR(0, 4180, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getVisibleProcessId, __pyx_t_1) < 0) __PYX_ERR(0, 4235, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4192
+  /* "psychxr/libovr/_libovr.pyx":4247
  *     return <int>_frameStats.VisibleProcessId
  * 
  * def checkAppLastFrameDropped():             # <<<<<<<<<<<<<<
  *     """Check if the application dropped a frame.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_143checkAppLastFrameDropped, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4192, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_143checkAppLastFrameDropped, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4247, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_checkAppLastFrameDropped, __pyx_t_1) < 0) __PYX_ERR(0, 4192, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_checkAppLastFrameDropped, __pyx_t_1) < 0) __PYX_ERR(0, 4247, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4211
+  /* "psychxr/libovr/_libovr.pyx":4266
  *     return False
  * 
  * def checkCompLastFrameDropped():             # <<<<<<<<<<<<<<
  *     """Check if the compositor dropped a frame.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_145checkCompLastFrameDropped, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4211, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_145checkCompLastFrameDropped, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4266, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_checkCompLastFrameDropped, __pyx_t_1) < 0) __PYX_ERR(0, 4211, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_checkCompLastFrameDropped, __pyx_t_1) < 0) __PYX_ERR(0, 4266, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4245
+  /* "psychxr/libovr/_libovr.pyx":4300
  * #     return toReturn
  * 
  * def getFrameStats(int frameStatIndex=0):             # <<<<<<<<<<<<<<
  *     """Get detailed compositor frame statistics.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_147getFrameStats, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4245, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_147getFrameStats, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4300, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getFrameStats, __pyx_t_1) < 0) __PYX_ERR(0, 4245, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getFrameStats, __pyx_t_1) < 0) __PYX_ERR(0, 4300, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4275
+  /* "psychxr/libovr/_libovr.pyx":4330
  *     return stat
  * 
  * def getLastErrorInfo():             # <<<<<<<<<<<<<<
  *     """Get the last error code and information string reported by the API.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_149getLastErrorInfo, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4275, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_149getLastErrorInfo, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getLastErrorInfo, __pyx_t_1) < 0) __PYX_ERR(0, 4275, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getLastErrorInfo, __pyx_t_1) < 0) __PYX_ERR(0, 4330, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4294
+  /* "psychxr/libovr/_libovr.pyx":4349
  *     return <int>result, errorString
  * 
  * def setBoundaryColor(float red, float green, float blue):             # <<<<<<<<<<<<<<
  *     """Set the boundary color.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_151setBoundaryColor, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4294, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_151setBoundaryColor, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4349, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setBoundaryColor, __pyx_t_1) < 0) __PYX_ERR(0, 4294, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setBoundaryColor, __pyx_t_1) < 0) __PYX_ERR(0, 4349, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4326
+  /* "psychxr/libovr/_libovr.pyx":4381
  *     return result
  * 
  * def resetBoundaryColor():             # <<<<<<<<<<<<<<
  *     """Reset the boundary color to system default.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_153resetBoundaryColor, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4326, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_153resetBoundaryColor, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4381, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_resetBoundaryColor, __pyx_t_1) < 0) __PYX_ERR(0, 4326, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_resetBoundaryColor, __pyx_t_1) < 0) __PYX_ERR(0, 4381, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4336
+  /* "psychxr/libovr/_libovr.pyx":4391
  *     return result
  * 
  * def getBoundaryVisible():             # <<<<<<<<<<<<<<
  *     """Check if the Guardian boundary is visible.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_155getBoundaryVisible, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4336, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_155getBoundaryVisible, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4391, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getBoundaryVisible, __pyx_t_1) < 0) __PYX_ERR(0, 4336, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getBoundaryVisible, __pyx_t_1) < 0) __PYX_ERR(0, 4391, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4355
+  /* "psychxr/libovr/_libovr.pyx":4410
  *     return result, is_visible
  * 
  * def showBoundary():             # <<<<<<<<<<<<<<
  *     """Show the boundary.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_157showBoundary, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4355, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_157showBoundary, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4410, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_showBoundary, __pyx_t_1) < 0) __PYX_ERR(0, 4355, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_showBoundary, __pyx_t_1) < 0) __PYX_ERR(0, 4410, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4368
+  /* "psychxr/libovr/_libovr.pyx":4423
  *     return result
  * 
  * def hideBoundary():             # <<<<<<<<<<<<<<
  *     """Hide the boundry."""
  *     global _ptrSession
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_159hideBoundary, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4368, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_159hideBoundary, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4423, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_hideBoundary, __pyx_t_1) < 0) __PYX_ERR(0, 4368, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_hideBoundary, __pyx_t_1) < 0) __PYX_ERR(0, 4423, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4376
+  /* "psychxr/libovr/_libovr.pyx":4431
  *     return result
  * 
  * def getBoundaryDimensions(str boundaryType='PlayArea'):             # <<<<<<<<<<<<<<
  *     """Get the dimensions of the boundary.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_161getBoundaryDimensions, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4376, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_161getBoundaryDimensions, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4431, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getBoundaryDimensions, __pyx_t_1) < 0) __PYX_ERR(0, 4376, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getBoundaryDimensions, __pyx_t_1) < 0) __PYX_ERR(0, 4431, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4412
+  /* "psychxr/libovr/_libovr.pyx":4467
  * #    pass  # TODO: make this work.
  * 
  * def getConnectedControllerTypes():             # <<<<<<<<<<<<<<
  *     """Get connected controller types.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_163getConnectedControllerTypes, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4412, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_163getConnectedControllerTypes, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4467, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getConnectedControllerTypes, __pyx_t_1) < 0) __PYX_ERR(0, 4412, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getConnectedControllerTypes, __pyx_t_1) < 0) __PYX_ERR(0, 4467, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4462
+  /* "psychxr/libovr/_libovr.pyx":4517
  *     return toReturn
  * 
  * def updateInputState(int controller):             # <<<<<<<<<<<<<<
  *     """Refresh the input state of a controller.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_165updateInputState, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4462, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_165updateInputState, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4517, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_updateInputState, __pyx_t_1) < 0) __PYX_ERR(0, 4462, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_updateInputState, __pyx_t_1) < 0) __PYX_ERR(0, 4517, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4512
+  /* "psychxr/libovr/_libovr.pyx":4567
  *     return result, currentInputState.TimeInSeconds
  * 
  * def getButton(int controller, int button, str testState='continuous'):             # <<<<<<<<<<<<<<
  *     """Get the state of a specified button for a given controller.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_167getButton, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4512, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_167getButton, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4567, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getButton, __pyx_t_1) < 0) __PYX_ERR(0, 4512, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getButton, __pyx_t_1) < 0) __PYX_ERR(0, 4567, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4628
+  /* "psychxr/libovr/_libovr.pyx":4683
  *     return stateResult, t_sec
  * 
  * def getTouch(str controller, object touch, str testState='continuous'):             # <<<<<<<<<<<<<<
  *     """Get touches for a specified device.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_169getTouch, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4628, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_169getTouch, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4683, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTouch, __pyx_t_1) < 0) __PYX_ERR(0, 4628, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTouch, __pyx_t_1) < 0) __PYX_ERR(0, 4683, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4727
+  /* "psychxr/libovr/_libovr.pyx":4782
  *     return stateResult, t_sec
  * 
  * def getThumbstickValues(int controller, bint deadzone=False):             # <<<<<<<<<<<<<<
  *     """Get analog thumbstick values.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_171getThumbstickValues, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4727, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_171getThumbstickValues, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4782, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getThumbstickValues, __pyx_t_1) < 0) __PYX_ERR(0, 4727, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getThumbstickValues, __pyx_t_1) < 0) __PYX_ERR(0, 4782, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4802
+  /* "psychxr/libovr/_libovr.pyx":4857
  *            np.array((thumbstick_x1, thumbstick_y1), dtype=np.float32)
  * 
  * def getIndexTriggerValues(int controller, bint deadzone=False):             # <<<<<<<<<<<<<<
  *     """Get analog index trigger values.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_173getIndexTriggerValues, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4802, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_173getIndexTriggerValues, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4857, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getIndexTriggerValues, __pyx_t_1) < 0) __PYX_ERR(0, 4802, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getIndexTriggerValues, __pyx_t_1) < 0) __PYX_ERR(0, 4857, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4859
+  /* "psychxr/libovr/_libovr.pyx":4914
  *     return np.array((triggerLeft, triggerRight), dtype=np.float32)
  * 
  * def getHandTriggerValues(str controller, bint deadzone=False):             # <<<<<<<<<<<<<<
  *     """Get hand trigger values."""
  *     global _inputStates
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_175getHandTriggerValues, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4859, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_175getHandTriggerValues, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4914, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getHandTriggerValues, __pyx_t_1) < 0) __PYX_ERR(0, 4859, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getHandTriggerValues, __pyx_t_1) < 0) __PYX_ERR(0, 4914, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4893
+  /* "psychxr/libovr/_libovr.pyx":4948
  *     return np.array((triggerLeft, triggerRight), dtype=np.float32)
  * 
  * def setControllerVibration(int controller, str frequency, float amplitude):             # <<<<<<<<<<<<<<
  *     """Vibrate a controller.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_177setControllerVibration, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4893, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_177setControllerVibration, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4948, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setControllerVibration, __pyx_t_1) < 0) __PYX_ERR(0, 4893, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setControllerVibration, __pyx_t_1) < 0) __PYX_ERR(0, 4948, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "psychxr/libovr/_libovr.pyx":4948
+  /* "psychxr/libovr/_libovr.pyx":5003
  *     return result
  * 
  * def getSessionStatus():             # <<<<<<<<<<<<<<
  *     """Get the current session status.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_179getSessionStatus, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4948, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7psychxr_6libovr_7_libovr_179getSessionStatus, NULL, __pyx_n_s_psychxr_libovr__libovr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5003, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getSessionStatus, __pyx_t_1) < 0) __PYX_ERR(0, 4948, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getSessionStatus, __pyx_t_1) < 0) __PYX_ERR(0, 5003, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "psychxr/libovr/_libovr.pyx":1
