@@ -716,6 +716,7 @@ cdef class LibOVRPose(object):
         self._refobj = False
 
     def __dealloc__(self):
+        # don't do anything crazy like set c_data=NULL without deallocating!
         if self.c_data is not NULL:
             if self.ptr_owner is True:
                 free(self.c_data)
