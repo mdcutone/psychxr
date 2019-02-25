@@ -282,6 +282,7 @@ __all__ = [
 
 from .cimport libovr_capi
 from .cimport libovr_math
+from cpython.ref cimport Py_INCREF, Py_DECREF
 
 from libc.stdint cimport int32_t, uint32_t
 from libc.stdlib cimport malloc, free
@@ -642,6 +643,7 @@ cdef class LibOVRPose(object):
     """
     cdef libovr_capi.ovrPosef* c_data
     cdef bint ptr_owner
+    cdef LibOVRPose _refobj
 
     cdef np.ndarray _pos
     cdef np.ndarray _ori
@@ -673,6 +675,7 @@ cdef class LibOVRPose(object):
 
     def __cinit__(self, *args, **kwargs):
         self.ptr_owner = False
+        self._refobj = None
 
     @staticmethod
     cdef LibOVRPose fromPtr(libovr_capi.ovrPosef* ptr, bint owner=False):
@@ -710,11 +713,16 @@ cdef class LibOVRPose(object):
 
         self._pos = _wrap_ovrVector3f_as_ndarray(&_ptr.Position)
         self._ori = _wrap_ovrQuatf_as_ndarray(&_ptr.Orientation)
+        self._refobj = False
 
     def __dealloc__(self):
-        if self.c_data is not NULL and self.ptr_owner is True:
-            free(self.c_data)
-            self.c_data = NULL
+        if self.c_data is not NULL:
+            if self.ptr_owner is True:
+                free(self.c_data)
+                self.c_data = NULL
+            else:
+                if self._refobj is not None:  # lower ref count of ref'd object
+                    Py_DECREF(self._refobj)
 
     def __mul__(LibOVRPose a, LibOVRPose b):
         """Multiplication operator (*) to combine poses."""
@@ -754,6 +762,31 @@ cdef class LibOVRPose(object):
         """
         return not (<libovr_math.Posef>self.c_data[0]).IsEqual(
             <libovr_math.Posef>other.c_data[0], <float>1e-5)
+
+    def __copy__(self):
+        # shallow copy, return an object which refs c_data
+        cdef LibOVRPose to_return = LibOVRPose.fromPtr(self.c_data, owner=False)
+        to_return._refobj = self
+        Py_INCREF(self)
+
+        return to_return
+
+    def __deepcopy__(self, memo):
+        # create a new object with a copy of the data stored in c_data
+        # allocate new struct
+        cdef libovr_capi.ovrPosef* _ptr = \
+            <libovr_capi.ovrPosef*>malloc(sizeof(libovr_capi.ovrPosef))
+
+        if _ptr is NULL:
+            raise MemoryError
+
+        cdef LibOVRPose to_return = LibOVRPose.fromPtr(_ptr, owner=True)
+
+        # copy over data
+        to_return.c_data[0] = self.c_data[0]
+        memo[id(self)] = to_return
+
+        return to_return
 
     def __str__(self):
         return \
@@ -1791,9 +1824,8 @@ cdef class LibOVRTrackerInfo(object):
     """Class for information about camera-based tracking sensors.
 
     """
-    cdef libovr_capi.ovrTrackerPose* c_ovrTrackerPose
-    cdef libovr_capi.ovrTrackerDesc* c_ovrTrackerDesc
-    cdef bint ptr_owner
+    cdef libovr_capi.ovrTrackerPose c_ovrTrackerPose
+    cdef libovr_capi.ovrTrackerDesc c_ovrTrackerDesc
 
     cdef LibOVRPose _pose
     cdef LibOVRPose _leveledPose
@@ -1807,85 +1839,30 @@ cdef class LibOVRTrackerInfo(object):
         Attributes
         ----------
         trackerIndex : int
-            Tracker index this objects refers to.
+            Tracker index this objects refers to (read-only).
         pose : LibOVRPose
-            The pose of the sensor.
+            The pose of the sensor (read-only).
         leveledPose : LibOVRPose
-            Gravity aligned pose of the sensor.
+            Gravity aligned pose of the sensor (read-only).
         isConnected : bool
-            True if the sensor is connected and available.
+            True if the sensor is connected and available (read-only).
         isPoseTracked : bool
-            True if the sensor has a valid pose.
-        frustum : ndarray
-            Frustum parameters of the sensor as an array.
+            True if the sensor has a valid pose (read-only).
         horizontalFov : float
-            Horizontal FOV of the sensor in radians.
+            Horizontal FOV of the sensor in radians (read-only).
         verticalFov : float
-            Vertical FOV of the sensor in radians
+            Vertical FOV of the sensor in radians (read-only).
         nearZ : float
-            Near clipping plane of the sensor frustum in meters.
+            Near clipping plane of the sensor frustum in meters (read-only).
         farZ : float
-            Far clipping plane of the sensor frustum in meters.
+            Far clipping plane of the sensor frustum in meters (read-only).
 
         """
-
-        self.newStruct()
+        pass
 
     def __cinit__(self):
-        self.ptr_owner = False
-
-    @staticmethod
-    cdef LibOVRTrackerInfo fromPtr(libovr_capi.ovrTrackerPose* ptrPose, libovr_capi.ovrTrackerDesc* ptrDesc, bint owner=False):
-        # bypass __init__ if wrapping a pointer
-        cdef LibOVRTrackerInfo wrapper = LibOVRTrackerInfo.__new__(LibOVRTrackerInfo)
-        wrapper.c_ovrTrackerPose = ptrPose
-        wrapper.c_ovrTrackerDesc = ptrDesc
-        wrapper.ptr_owner = owner
-
-        wrapper._pose = LibOVRPose.fromPtr(
-            &wrapper.c_ovrTrackerPose.Pose)
-        wrapper._leveledPose = LibOVRPose.fromPtr(
-            &wrapper.c_ovrTrackerPose.LeveledPose)
-
-        return wrapper
-
-    cdef void newStruct(self):
-        # todo - sort this stuff out
-        if self.c_ovrTrackerPose is not NULL:
-            return
-
-        if self.c_ovrTrackerDesc is not NULL:
-            return
-
-        cdef libovr_capi.ovrTrackerPose* _ptr_tracker_pose = \
-            <libovr_capi.ovrTrackerPose*>malloc(
-                sizeof(libovr_capi.ovrTrackerPose))
-
-        if _ptr_tracker_pose is NULL:
-            raise MemoryError
-
-        cdef libovr_capi.ovrTrackerDesc* _ptr_tracker_desc = \
-            <libovr_capi.ovrTrackerDesc*>malloc(
-                sizeof(libovr_capi.ovrTrackerDesc))
-
-        if _ptr_tracker_desc is NULL:
-            raise MemoryError
-
-        self.c_ovrTrackerPose = _ptr_tracker_pose
-        self.c_ovrTrackerDesc = _ptr_tracker_desc
-        self.ptr_owner = True
-
         self._pose = LibOVRPose.fromPtr(&self.c_ovrTrackerPose.Pose)
         self._leveledPose = LibOVRPose.fromPtr(&self.c_ovrTrackerPose.LeveledPose)
-
-    def __dealloc__(self):
-        if self.c_ovrTrackerPose is not NULL and self.ptr_owner is True:
-            free(self.c_ovrTrackerPose)
-            self.c_ovrTrackerPose = NULL
-
-        if self.c_ovrTrackerDesc is not NULL and self.ptr_owner is True:
-            free(self.c_ovrTrackerDesc)
-            self.c_ovrTrackerDesc = NULL
 
     @property
     def trackerIndex(self):
@@ -1910,17 +1887,6 @@ cdef class LibOVRTrackerInfo(object):
         return <bint>((libovr_capi.ovrTracker_PoseTracked &
              self.c_ovrTrackerPose.TrackerFlags) ==
                       libovr_capi.ovrTracker_PoseTracked)
-
-    @property
-    def frustum(self):
-        cdef np.ndarray to_return = np.asarray([
-            self.c_ovrTrackerDesc.FrustumHFovInRadians,
-            self.c_ovrTrackerDesc.FrustumVFovInRadians,
-            self.c_ovrTrackerDesc.FrustumNearZInMeters,
-            self.c_ovrTrackerDesc.FrustumFarZInMeters],
-            dtype=np.float32)
-
-        return to_return
 
     @property
     def horizontalFov(self):
@@ -4130,10 +4096,10 @@ def getTrackerInfo(int trackerIndex):
     to_return._trackerIndex = <unsigned int>trackerIndex
 
     # set the descriptor data
-    to_return.c_ovrTrackerDesc[0] = libovr_capi.ovr_GetTrackerDesc(
+    to_return.c_ovrTrackerDesc = libovr_capi.ovr_GetTrackerDesc(
         _ptrSession, <unsigned int>trackerIndex)
     # get the tracker pose
-    to_return.c_ovrTrackerPose[0] = libovr_capi.ovr_GetTrackerPose(
+    to_return.c_ovrTrackerPose = libovr_capi.ovr_GetTrackerPose(
         _ptrSession, <unsigned int>trackerIndex)
 
     return to_return
