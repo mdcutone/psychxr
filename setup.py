@@ -34,15 +34,11 @@ how to build from source.
 
 """
 import os
-import json
 import platform
 from setuptools import setup
 from setuptools.extension import Extension
-from setuptools.command.install import install
-from distutils.command.install_lib import install_lib
 from Cython.Build import cythonize, build_ext
 import numpy
-#from distutils.command.build_ext import build_ext
 
 # compiler related data
 _include_dir_ = [numpy.get_include()]
