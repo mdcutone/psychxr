@@ -611,9 +611,15 @@ LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3 = capi.ovrTrackedDevice_Object3
 # ------------------------------------------------------------------------------
 # Wrapper factory functions
 #
+cdef np.npy_intp[1] VEC2_SHAPE = [2]
 cdef np.npy_intp[1] VEC3_SHAPE = [3]
 cdef np.npy_intp[1] QUAT_SHAPE = [4]
 cdef np.npy_intp[2] MAT4_SHAPE = [4, 4]
+
+cdef np.ndarray _wrap_ovrVector2f_as_ndarray(capi.ovrVector2f* prtVec):
+    """Wrap a ovrVector2f object with a NumPy array."""
+    return np.PyArray_SimpleNewFromData(
+        1, VEC2_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
 
 cdef np.ndarray _wrap_ovrVector3f_as_ndarray(capi.ovrVector3f* prtVec):
     """Wrap a ovrVector3f object with a NumPy array."""
@@ -628,7 +634,7 @@ cdef np.ndarray _wrap_ovrQuatf_as_ndarray(capi.ovrQuatf* prtVec):
 cdef np.ndarray _wrap_ovrMatrix4f_as_ndarray(capi.ovrMatrix4f* prtVec):
     """Wrap a ovrMatrix4f object with a NumPy array."""
     return np.PyArray_SimpleNewFromData(
-        2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
+        2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec.M)
 
 
 # ------------------------------------------------------------------------------
@@ -643,7 +649,7 @@ cdef class LibOVRPose(object):
     """
     cdef capi.ovrPosef* c_data
     cdef bint ptr_owner
-    cdef LibOVRPose _refobj
+    cdef object refobj  # needed if referencing C struct in another class
 
     cdef np.ndarray _pos
     cdef np.ndarray _ori
@@ -675,7 +681,7 @@ cdef class LibOVRPose(object):
 
     def __cinit__(self, *args, **kwargs):
         self.ptr_owner = False
-        self._refobj = None
+        self.refobj = None
 
     @staticmethod
     cdef LibOVRPose fromPtr(capi.ovrPosef* ptr, bint owner=False):
@@ -711,7 +717,7 @@ cdef class LibOVRPose(object):
 
         self._pos = _wrap_ovrVector3f_as_ndarray(&ptr.Position)
         self._ori = _wrap_ovrQuatf_as_ndarray(&ptr.Orientation)
-        self._refobj = False
+        self.refobj = False
 
     def __dealloc__(self):
         # don't do anything crazy like set c_data=NULL without deallocating!
@@ -720,8 +726,8 @@ cdef class LibOVRPose(object):
                 free(self.c_data)
                 self.c_data = NULL
             else:
-                if self._refobj is not None:  # lower ref count of ref'd object
-                    Py_DECREF(self._refobj)
+                if self.refobj is not None:  # lower ref count of ref'd object
+                    Py_DECREF(self.refobj)
 
     def __mul__(LibOVRPose a, LibOVRPose b):
         """Multiplication operator (*) to combine poses."""
@@ -762,7 +768,7 @@ cdef class LibOVRPose(object):
     def __copy__(self):
         # shallow copy, return an object which refs c_data
         cdef LibOVRPose to_return = LibOVRPose.fromPtr(self.c_data, owner=False)
-        to_return._refobj = self
+        to_return.refobj = self
         Py_INCREF(self)
 
         return to_return
@@ -806,73 +812,73 @@ cdef class LibOVRPose(object):
     def pos(self, object value):
         self._pos[:] = value
 
-    # def getPos(self, object outVector=None):
-    #     """Position vector X, Y, Z (`ndarray` of `float`).
-    #
-    #     The returned object is a NumPy array which contains a copy of the data
-    #     stored in an internal structure (ovrPosef). The array is conformal with
-    #     the internal data's type (float32) and size (length 3).
-    #
-    #     Parameters
-    #     ----------
-    #     outVector : ndarray or None
-    #         Option array to write values to. If None, the function will return
-    #         a new array. Must have a float32 data type.
-    #
-    #     Returns
-    #     -------
-    #     ndarray or None
-    #
-    #     Raises
-    #     ------
-    #     ValueError
-    #         Buffer dtype mismatch where float32 was expected.
-    #     IndexError
-    #         Out of bounds on buffer access.
-    #
-    #     Examples
-    #     --------
-    #
-    #     Get the position coordinates::
-    #
-    #         x, y, z = myPose.getPos()  # Python float literals
-    #         # ... or ...
-    #         pos = myPose.getPos()  # NumPy array shape=(3,) and dtype=float32
-    #
-    #     Write the position to an existing array by specifying `outVector`::
-    #
-    #         position = numpy.zeros((3,), dtype=numpy.float32)  # mind the dtype!
-    #         myPose.getPos(position)  # position now contains myPose.pos
-    #
-    #     You can also pass a view/slice to `outVector`::
-    #
-    #         coords = numpy.zeros((100,3,), dtype=numpy.float32)  # big array
-    #         myPose.getPos(coords[42,:])  # row 42
-    #
-    #     Notes
-    #     -----
-    #     Q: Why is there no property setter for `pos`?
-    #     A: It confused people that setting values of the returned array didn't
-    #     update anything.
-    #
-    #     """
-    #     cdef np.ndarray[np.float32_t, ndim=1] toReturn
-    #     if outVector is None:
-    #         toReturn = np.zeros((3,), dtype=np.float32)
-    #     else:
-    #         toReturn = outVector
-    #
-    #     toReturn[0] = self.c_data[0].Position.x
-    #     toReturn[1] = self.c_data[0].Position.y
-    #     toReturn[2] = self.c_data[0].Position.z
-    #
-    #     if outVector is None:
-    #         return toReturn
-    #
-    # def setPos(self, object pos):
-    #     self.c_data[0].Position.x = <float>pos[0]
-    #     self.c_data[0].Position.y = <float>pos[1]
-    #     self.c_data[0].Position.z = <float>pos[2]
+    def getPos(self, object out=None):
+        """Position vector X, Y, Z (`ndarray` of `float`).
+
+        The returned object is a NumPy array which contains a copy of the data
+        stored in an internal structure (ovrPosef). The array is conformal with
+        the internal data's type (float32) and size (length 3).
+
+        Parameters
+        ----------
+        out : ndarray or None
+            Option array to write values to. If None, the function will return
+            a new array. Must have a float32 data type.
+
+        Returns
+        -------
+        ndarray or None
+
+        Raises
+        ------
+        ValueError
+            Buffer dtype mismatch where float32 was expected.
+        IndexError
+            Out of bounds on buffer access.
+
+        Examples
+        --------
+
+        Get the position coordinates::
+
+            x, y, z = myPose.getPos()  # Python float literals
+            # ... or ...
+            pos = myPose.getPos()  # NumPy array shape=(3,) and dtype=float32
+
+        Write the position to an existing array by specifying `outVector`::
+
+            position = numpy.zeros((3,), dtype=numpy.float32)  # mind the dtype!
+            myPose.getPos(position)  # position now contains myPose.pos
+
+        You can also pass a view/slice to `out`::
+
+            coords = numpy.zeros((100,3,), dtype=numpy.float32)  # big array
+            myPose.getPos(coords[42,:])  # row 42
+
+        Notes
+        -----
+        Q: Why is there no property setter for `pos`?
+        A: It confused people that setting values of the returned array didn't
+        update anything.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
+        toReturn[0] = self.c_data[0].Position.x
+        toReturn[1] = self.c_data[0].Position.y
+        toReturn[2] = self.c_data[0].Position.z
+
+        if out is None:
+            return toReturn
+
+    def setPos(self, object pos):
+        self.c_data[0].Position.x = <float>pos[0]
+        self.c_data[0].Position.y = <float>pos[1]
+        self.c_data[0].Position.z = <float>pos[2]
 
     @property
     def ori(self):
@@ -882,56 +888,56 @@ cdef class LibOVRPose(object):
     def ori(self, object value):
         self._ori[:] = value
 
-    # def getOri(self, object outVector=None):
-    #     """Orientation quaternion X, Y, Z, W (`ndarray` of `float`).
-    #
-    #     Components X, Y, Z are imaginary and W is real.
-    #
-    #     The returned object is a NumPy array which references data stored in an
-    #     internal structure (ovrPosef). The array is conformal with the internal
-    #     data's type (float32) and size (length 3).
-    #
-    #     Parameters
-    #     ----------
-    #     outVector : ndarray or None
-    #         Option array to write values to. If None, the function will return
-    #         a new array. Must have a float32 data type.
-    #
-    #     Returns
-    #     -------
-    #     ndarray or None
-    #
-    #     Raises
-    #     ------
-    #     ValueError
-    #         Buffer dtype mismatch where float32 was expected.
-    #     IndexError
-    #         Out of bounds on buffer access.
-    #
-    #     Notes
-    #     -----
-    #         The orientation quaternion should be normalized.
-    #
-    #     """
-    #     cdef np.ndarray[np.float32_t, ndim=1] toReturn
-    #     if outVector is None:
-    #         toReturn = np.zeros((4,), dtype=np.float32)
-    #     else:
-    #         toReturn = outVector
-    #
-    #     toReturn[0] = self.c_data[0].Orientation.x
-    #     toReturn[1] = self.c_data[0].Orientation.y
-    #     toReturn[2] = self.c_data[0].Orientation.z
-    #     toReturn[3] = self.c_data[0].Orientation.w
-    #
-    #     if outVector is None:
-    #         return toReturn
-    #
-    # def setOri(self, object ori):
-    #     self.c_data[0].Orientation.x = <float>ori[0]
-    #     self.c_data[0].Orientation.y = <float>ori[1]
-    #     self.c_data[0].Orientation.z = <float>ori[2]
-    #     self.c_data[0].Orientation.w = <float>ori[3]
+    def getOri(self, object outVector=None):
+        """Orientation quaternion X, Y, Z, W (`ndarray` of `float`).
+
+        Components X, Y, Z are imaginary and W is real.
+
+        The returned object is a NumPy array which references data stored in an
+        internal structure (ovrPosef). The array is conformal with the internal
+        data's type (float32) and size (length 3).
+
+        Parameters
+        ----------
+        outVector : ndarray or None
+            Option array to write values to. If None, the function will return
+            a new array. Must have a float32 data type.
+
+        Returns
+        -------
+        ndarray or None
+
+        Raises
+        ------
+        ValueError
+            Buffer dtype mismatch where float32 was expected.
+        IndexError
+            Out of bounds on buffer access.
+
+        Notes
+        -----
+            The orientation quaternion should be normalized.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if outVector is None:
+            toReturn = np.zeros((4,), dtype=np.float32)
+        else:
+            toReturn = outVector
+
+        toReturn[0] = self.c_data[0].Orientation.x
+        toReturn[1] = self.c_data[0].Orientation.y
+        toReturn[2] = self.c_data[0].Orientation.z
+        toReturn[3] = self.c_data[0].Orientation.w
+
+        if outVector is None:
+            return toReturn
+
+    def setOri(self, object ori):
+        self.c_data[0].Orientation.x = <float>ori[0]
+        self.c_data[0].Orientation.y = <float>ori[1]
+        self.c_data[0].Orientation.z = <float>ori[2]
+        self.c_data[0].Orientation.w = <float>ori[3]
 
     @property
     def posOri(self):
@@ -941,21 +947,6 @@ cdef class LibOVRPose(object):
     def posOri(self, object value):
         self.pos = value[0]
         self.ori = value[1]
-
-    # def getPosOri(self):
-    #     """Get position and orientation."""
-    #     return self.pos, self.ori
-    #
-    # def setPosOri(self, object pos, object ori):
-    #     """Set the position and orientation."""
-    #     self.c_data[0].Position.x = <float>pos[0]
-    #     self.c_data[0].Position.y = <float>pos[1]
-    #     self.c_data[0].Position.z = <float>pos[2]
-    #
-    #     self.c_data[0].Orientation.x = <float>ori[0]
-    #     self.c_data[0].Orientation.y = <float>ori[1]
-    #     self.c_data[0].Orientation.z = <float>ori[2]
-    #     self.c_data[0].Orientation.w = <float>ori[3]
 
     @property
     def at(self):
@@ -1112,7 +1103,7 @@ cdef class LibOVRPose(object):
 
         return to_return
 
-    def getTransformMatrix(self, bint inverse=False):
+    def getMatrix(self, bint inverse=False):
         """Convert this pose into a 4x4 transformation matrix.
 
         Parameters
@@ -1515,6 +1506,7 @@ cdef class LibOVRPoseState(object):
     """
     cdef capi.ovrPoseStatef* c_data
     cdef bint ptr_owner  # owns the data
+    cdef object refobj
 
     # these will hold references until this object is de-allocated
     cdef LibOVRPose _pose
@@ -1545,6 +1537,7 @@ cdef class LibOVRPoseState(object):
 
     def __cinit__(self):
         self.ptr_owner = False
+        self.refobj = None
 
     @staticmethod
     cdef LibOVRPoseState fromPtr(capi.ovrPoseStatef* ptr, bint owner=False):
@@ -1553,6 +1546,7 @@ cdef class LibOVRPoseState(object):
         wrapper.c_data = ptr
         wrapper.ptr_owner = owner
 
+        wrapper._pose = LibOVRPose.fromPtr(&wrapper.c_data.ThePose)
         wrapper._linearVelocity = _wrap_ovrVector3f_as_ndarray(
                 &wrapper.c_data.LinearVelocity)
         wrapper._linearAcceleration = _wrap_ovrVector3f_as_ndarray(
@@ -1588,6 +1582,7 @@ cdef class LibOVRPoseState(object):
         self.ptr_owner = True
 
         # setup property wrappers
+        self._pose = LibOVRPose.fromPtr(&self.c_data.ThePose)
         self._linearVelocity = _wrap_ovrVector3f_as_ndarray(
             &self.c_data.LinearVelocity)
         self._linearAcceleration = _wrap_ovrVector3f_as_ndarray(
@@ -1598,15 +1593,39 @@ cdef class LibOVRPoseState(object):
             &self.c_data.AngularAcceleration)
 
     def __dealloc__(self):
-        if self.c_data is not NULL and self.ptr_owner is True:
-            free(self.c_data)
-            self.c_data = NULL
+        # don't do anything crazy like set c_data=NULL without deallocating!
+        if self.c_data is not NULL:
+            if self.ptr_owner is True:
+                free(self.c_data)
+                self.c_data = NULL
+            else:
+                if self.refobj is not None:  # lower ref count of ref'd object
+                    Py_DECREF(self.refobj)
+
+    def __copy__(self):
+        cdef LibOVRPoseState to_return = LibOVRPoseState.fromPtr(self.c_data)
+        to_return.refobj = self
+        Py_INCREF(self)
+
+        return to_return
+
+    def __deepcopy__(self, memo):
+        cdef capi.ovrPoseStatef* ptr = \
+            <capi.ovrPoseStatef*>malloc(sizeof(capi.ovrPoseStatef))
+
+        if ptr is NULL:
+            raise MemoryError
+
+        cdef LibOVRPoseState to_return = LibOVRPoseState.fromPtr(ptr, True)
+
+        # copy over data
+        to_return.c_data[0] = self.c_data[0]
+        memo[id(self)] = to_return
+
+        return to_return
 
     @property
     def pose(self):
-        if self._pose is None:
-            self._pose = LibOVRPose.fromPtr(&self.c_data.ThePose)
-
         return self._pose
 
     @pose.setter
@@ -1733,9 +1752,8 @@ cdef class LibOVRTrackingState(object):
         if self.c_data is not NULL:  # already allocated, __init__ called twice?
             return
 
-        cdef capi.ovrTrackingState* _ptr = \
-            <capi.ovrTrackingState*>malloc(
-                sizeof(capi.ovrTrackingState))
+        cdef capi.ovrTrackingState* _ptr = <capi.ovrTrackingState*>malloc(
+            sizeof(capi.ovrTrackingState))
 
         if _ptr is NULL:
             raise MemoryError
