@@ -677,7 +677,7 @@ cdef class LibOVRPose(object):
             Up vector of this pose (+Y is up) (read-only).
 
         """
-        self.newStruct(pos, ori)
+        self._new_struct(pos, ori)
 
     def __cinit__(self, *args, **kwargs):
         self.ptr_owner = False
@@ -694,7 +694,7 @@ cdef class LibOVRPose(object):
 
         return wrapper
 
-    cdef void newStruct(self, object pos, object ori):
+    cdef void _new_struct(self, object pos, object ori):
         if self.c_data is not NULL:
             return
 
@@ -1752,13 +1752,13 @@ cdef class LibOVRTrackingState(object):
         if self.c_data is not NULL:  # already allocated, __init__ called twice?
             return
 
-        cdef capi.ovrTrackingState* _ptr = <capi.ovrTrackingState*>malloc(
+        cdef capi.ovrTrackingState* ptr = <capi.ovrTrackingState*>malloc(
             sizeof(capi.ovrTrackingState))
 
-        if _ptr is NULL:
+        if ptr is NULL:
             raise MemoryError
 
-        self.c_data = _ptr
+        self.c_data = ptr
         self.ptr_owner = True
 
         self._headPose = LibOVRPoseState.fromPtr(&self.c_data.HeadPose)
