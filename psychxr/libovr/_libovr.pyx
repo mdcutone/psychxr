@@ -773,7 +773,7 @@ cdef class LibOVRPose(object):
 
         return to_return
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo=None):
         # create a new object with a copy of the data stored in c_data
         # allocate new struct
         cdef capi.ovrPosef* ptr = <capi.ovrPosef*>malloc(sizeof(capi.ovrPosef))
@@ -785,9 +785,23 @@ cdef class LibOVRPose(object):
 
         # copy over data
         to_return.c_data[0] = self.c_data[0]
-        memo[id(self)] = to_return
+        if memo is not None:
+            memo[id(self)] = to_return
 
         return to_return
+
+    def duplicate(self):
+        """Create a deep copy of this object.
+
+        Same as calling `copy.deepcopy` on an instance.
+
+        Returns
+        -------
+        LibOVRPose
+            An independent copy of this object.
+
+        """
+        return self.__deepcopy__()
 
     def __str__(self):
         return \
@@ -1152,20 +1166,21 @@ cdef class LibOVRPose(object):
             Inverted pose.
 
         """
+        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>malloc(sizeof(capi.ovrPosef))
+
+        if ptr is NULL:
+            raise MemoryError
+
         cdef libovr_math.Quatf inv_ori = \
             (<libovr_math.Quatf>self.c_data[0].Orientation).Inverted()
         cdef libovr_math.Vector3f inv_pos = \
             (<libovr_math.Quatf>inv_ori).Rotate(
                 -(<libovr_math.Vector3f>self.c_data[0].Position))
-        cdef LibOVRPose to_return = \
-            LibOVRPose(
-                (self.c_data[0].Position.x,
-                 self.c_data[0].Position.y,
-                 self.c_data[0].Position.z),
-                (self.c_data[0].Orientation.x,
-                 self.c_data[0].Orientation.y,
-                 self.c_data[0].Orientation.z,
-                 self.c_data[0].Orientation.w))
+
+        ptr[0].Orientation = <capi.ovrQuatf>inv_ori
+        ptr[0].Position = <capi.ovrVector3f>inv_pos
+
+        return LibOVRPose.fromPtr(ptr, True)
 
     def rotate(self, object v):
         """Rotate a position vector.
@@ -1456,7 +1471,7 @@ cdef class LibOVRPose(object):
         # one or more roots? if so we are touching the sphere
         return desc >= 0.0
 
-    def interp(self, LibOVRPose toPose, float s, bint fast=False):
+    def interp(self, LibOVRPose end, float s, bint fast=False):
         """Interpolate between poses.
 
         Linear interpolation is used on position (Lerp) while the orientation
@@ -1464,7 +1479,7 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        toPose : LibOVRPose
+        end : LibOVRPose
             End pose.
         s : float
             Interpolation factor between in interval 0.0 and 1.0.
@@ -1478,25 +1493,20 @@ cdef class LibOVRPose(object):
             Interpolated pose at `s`.
 
         """
-        cdef libovr_math.Posef _toPose = <libovr_math.Posef>toPose.c_data[0]
-        cdef libovr_math.Posef interp
+        cdef libovr_math.Posef toPose = <libovr_math.Posef>end.c_data[0]
+        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>malloc(sizeof(capi.ovrPosef))
+
+        if ptr is NULL:
+            raise MemoryError
 
         if not fast:
-            interp = (<libovr_math.Posef>self.c_data[0]).Lerp(_toPose, s)
+            ptr[0] = <capi.ovrPosef>(
+                (<libovr_math.Posef>self.c_data[0]).Lerp(toPose, s))
         else:
-            interp = (<libovr_math.Posef>self.c_data[0]).FastLerp(_toPose, s)
+            ptr[0] = <capi.ovrPosef>(
+                (<libovr_math.Posef>self.c_data[0]).FastLerp(toPose, s))
 
-        cdef LibOVRPose to_return = \
-            LibOVRPose(
-                (interp.Translation.x,
-                 interp.Translation.y,
-                 interp.Translation.z),
-                (interp.Rotation.x,
-                 interp.Rotation.y,
-                 interp.Rotation.z,
-                 interp.Rotation.w))
-
-        return to_return
+        return LibOVRPose.fromPtr(ptr, True)
 
 
 cdef class LibOVRPoseState(object):
@@ -1603,13 +1613,47 @@ cdef class LibOVRPoseState(object):
                     Py_DECREF(self.refobj)
 
     def __copy__(self):
+        """Shallow copy returned by :mod:`copy.copy`.
+
+        New `LibOVRPoseState` instance that references data stored in this
+        object. The reference count of the source instance is increased by 1;
+        decreased when the copy is deallocated.
+
+        Examples
+        --------
+
+        Shallow copy::
+
+            import copy
+            a = LibOVRPoseState()
+            b = copy.copy(a)  # object references data in 'a'
+            a.linearAcceleration = [1.0, 0.0, 0.0]  # sets both a and b
+
+
+        """
         cdef LibOVRPoseState to_return = LibOVRPoseState.fromPtr(self.c_data)
         to_return.refobj = self
         Py_INCREF(self)
 
         return to_return
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo=None):
+        """Deep copy returned by :mod:`copy.deepcopy`.
+
+        New `LibOVRPoseState` instance with a copy of the data in a separate
+        memory location. Does not increase the reference count of the object
+        being copied.
+
+        Examples
+        --------
+
+        Deep copy::
+
+            import copy
+            a = LibOVRPoseState()
+            b = copy.deepcopy(a)  # create independent copy of 'a'
+
+        """
         cdef capi.ovrPoseStatef* ptr = \
             <capi.ovrPoseStatef*>malloc(sizeof(capi.ovrPoseStatef))
 
@@ -1620,9 +1664,24 @@ cdef class LibOVRPoseState(object):
 
         # copy over data
         to_return.c_data[0] = self.c_data[0]
-        memo[id(self)] = to_return
+
+        if memo is not None:
+            memo[id(self)] = to_return
 
         return to_return
+
+    def duplicate(self):
+        """Create a deep copy of this object.
+
+        Same as calling `copy.deepcopy` on an instance.
+
+        Returns
+        -------
+        LibOVRPoseState
+            An independent copy of this object.
+
+        """
+        return self.__deepcopy__()
 
     @property
     def pose(self):
@@ -1684,6 +1743,7 @@ cdef class LibOVRPoseState(object):
         Returns
         -------
         LibOVRPose
+            Pose at 'dt'.
 
         """
         cdef libovr_math.Posef res = \
