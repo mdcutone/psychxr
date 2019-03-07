@@ -4525,23 +4525,15 @@ def getConnectedControllerTypes():
         _ptrSession)
 
     cdef list toReturn = list()
-    if (capi.ovrControllerType_XBox & result) == \
-        capi.ovrControllerType_XBox:
+    if (capi.ovrControllerType_XBox & result) == capi.ovrControllerType_XBox:
         toReturn.append(LIBOVR_CONTROLLER_TYPE_XBOX)
-    if (capi.ovrControllerType_Remote & result) == \
-        capi.ovrControllerType_Remote:
+    if (capi.ovrControllerType_Remote & result) == capi.ovrControllerType_Remote:
         toReturn.append(LIBOVR_CONTROLLER_TYPE_REMOTE)
-    if (capi.ovrControllerType_Touch & result) == \
-        capi.ovrControllerType_Touch:
+    if (capi.ovrControllerType_Touch & result) == capi.ovrControllerType_Touch:
         toReturn.append(LIBOVR_CONTROLLER_TYPE_TOUCH)
-        # if we have the touch controller, don't poll single controllers
-        return toReturn
-
-    if (capi.ovrControllerType_LTouch & result) == \
-        capi.ovrControllerType_LTouch:
+    if (capi.ovrControllerType_LTouch & result) == capi.ovrControllerType_LTouch:
         toReturn.append(LIBOVR_CONTROLLER_TYPE_LTOUCH)
-    if (capi.ovrControllerType_RTouch & result) == \
-        capi.ovrControllerType_RTouch:
+    if (capi.ovrControllerType_RTouch & result) == capi.ovrControllerType_RTouch:
         toReturn.append(LIBOVR_CONTROLLER_TYPE_RTOUCH)
 
     return toReturn
