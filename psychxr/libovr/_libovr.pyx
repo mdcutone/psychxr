@@ -646,6 +646,10 @@ cdef class LibOVRPose(object):
     Poses are represented as a position vector/coordinate and orientation
     quaternion.
 
+    Methods associated with this class perform various transformations on the
+    components of the pose using routines found in OVR_MATH.h, which is part
+    of the Oculus PC SDK.
+
     """
     cdef capi.ovrPosef* c_data
     cdef bint ptr_owner
@@ -1101,6 +1105,10 @@ cdef class LibOVRPose(object):
         ndarray of floats
             Yaw, pitch, and roll of the pose in degrees.
 
+        Notes
+        -----
+        Uses `OVR::Quatf.GetYawPitchRoll` which is part of the Oculus PC SDK.
+
         """
         cdef float yaw, pitch, roll
         cdef libovr_math.Posef inPose = <libovr_math.Posef>self.c_data[0]
@@ -1154,6 +1162,10 @@ cdef class LibOVRPose(object):
     def normalize(self):
         """Normalize this pose.
 
+        Notes
+        -----
+        Uses `OVR::Posef.Normalize` which is part of the Oculus PC SDK.
+
         """
         (<libovr_math.Posef>self.c_data[0]).Normalize()
 
@@ -1164,6 +1176,10 @@ cdef class LibOVRPose(object):
         -------
         `LibOVRPose`
             Inverted pose.
+
+        Notes
+        -----
+        Uses `OVR::Posef.Inverted` which is part of the Oculus PC SDK.
 
         """
         cdef capi.ovrPosef* ptr = <capi.ovrPosef*>malloc(sizeof(capi.ovrPosef))
@@ -1195,6 +1211,10 @@ cdef class LibOVRPose(object):
         ndarray
             Vector rotated by the pose's orientation.
 
+        Notes
+        -----
+        Uses `OVR::Posef.Rotate` which is part of the Oculus PC SDK.
+
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
@@ -1219,6 +1239,10 @@ cdef class LibOVRPose(object):
         -------
         ndarray
             Vector rotated by the pose's inverse orientation.
+
+        Notes
+        -----
+        Uses `OVR::Vector3f.InverseRotate` which is part of the Oculus PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1245,6 +1269,10 @@ cdef class LibOVRPose(object):
         ndarray
             Vector translated by the pose's position.
 
+        Notes
+        -----
+        Uses `OVR::Vector3f.Translate` which is part of the Oculus PC SDK.
+
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
@@ -1269,6 +1297,10 @@ cdef class LibOVRPose(object):
         -------
         ndarray
             Vector transformed by the pose's position and orientation.
+
+        Notes
+        -----
+        Uses `OVR::Vector3f.Transform` which is part of the Oculus PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1296,6 +1328,11 @@ cdef class LibOVRPose(object):
             Vector transformed by the inverse of the pose's position and
             orientation.
 
+        Notes
+        -----
+        Uses `OVR::Vector3f.InverseTransform` which is part of the Oculus PC
+        SDK.
+
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
@@ -1321,6 +1358,10 @@ cdef class LibOVRPose(object):
         ndarray
             Vector transformed by the pose's position and orientation.
 
+        Notes
+        -----
+        Uses `OVR::Vector3f.TransformNormal` which is part of the Oculus PC SDK.
+
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
@@ -1345,6 +1386,11 @@ cdef class LibOVRPose(object):
         -------
         ndarray
             Vector transformed by the pose's position and orientation.
+
+        Notes
+        -----
+        Uses `OVR::Vector3f.InverseTransformNormal` which is part of the Oculus
+        PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1411,12 +1457,12 @@ cdef class LibOVRPose(object):
         """Raycast to a sphere.
 
         Project an invisible ray of finite or infinite length from this pose in
-        rayDir and check if it intersects with the targetPose bounding sphere.
+        `rayDir` and check if it intersects with the targetPose bounding sphere.
 
-        Specifying maxRange as >0.0 casts a ray of finite length in world
+        Specifying `maxRange` as >0.0 casts a ray of finite length in world
         units. The distance between the target and ray origin position are
         checked prior to casting the ray; automatically failing if the ray can
-        never reach the edge of the bounding sphere centered about targetPose.
+        never reach the edge of the bounding sphere centered about `targetPose`.
         This avoids having to do the costly transformations required for
         picking.
 
@@ -1482,7 +1528,7 @@ cdef class LibOVRPose(object):
         end : LibOVRPose
             End pose.
         s : float
-            Interpolation factor between in interval 0.0 and 1.0.
+            Interpolation factor between interval 0.0 and 1.0.
         fast : bool, optional
             If True, use fast interpolation which is quicker but less accurate
             over larger distances.
@@ -1491,6 +1537,11 @@ cdef class LibOVRPose(object):
         -------
         LibOVRPose
             Interpolated pose at `s`.
+
+        Notes
+        -----
+        Uses `OVR::Posef.Lerp` and `OVR::Posef.FastLerp` which is part of the
+        Oculus PC SDK.
 
         """
         cdef libovr_math.Posef toPose = <libovr_math.Posef>end.c_data[0]
