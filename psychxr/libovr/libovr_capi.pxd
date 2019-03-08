@@ -47,6 +47,29 @@ cdef extern from "OVR_Version.h":
     cdef int OVR_MIN_REQUESTABLE_MINOR_VERSION
     cdef int OVR_FEATURE_VERSION
 
+cdef extern from "OVR_CAPI_Keys.h":
+    cdef const char* OVR_KEY_USER
+    cdef const char* OVR_KEY_NAME
+    cdef const char* OVR_KEY_GENDER
+    cdef const char* OVR_DEFAULT_GENDER
+    cdef const char* OVR_KEY_PLAYER_HEIGHT
+    cdef float OVR_DEFAULT_PLAYER_HEIGHT
+    cdef const char* OVR_KEY_EYE_HEIGHT
+    cdef float OVR_DEFAULT_EYE_HEIGHT
+    cdef const char* OVR_KEY_NECK_TO_EYE_DISTANCE
+    cdef float OVR_DEFAULT_NECK_TO_EYE_HORIZONTAL
+    cdef float OVR_DEFAULT_NECK_TO_EYE_VERTICAL
+    cdef const char* OVR_KEY_EYE_TO_NOSE_DISTANCE
+    cdef const char* OVR_PERF_HUD_MODE
+    cdef const char* OVR_LAYER_HUD_MODE
+    cdef const char* OVR_LAYER_HUD_CURRENT_LAYER
+    cdef const char* OVR_LAYER_HUD_SHOW_ALL_LAYERS
+    cdef const char* OVR_DEBUG_HUD_STEREO_MODE
+    cdef const char* OVR_DEBUG_HUD_STEREO_GUIDE_INFO_ENABLE
+    cdef const char* OVR_DEBUG_HUD_STEREO_GUIDE_SIZE
+    cdef const char* OVR_DEBUG_HUD_STEREO_GUIDE_POSITION
+    cdef const char* OVR_DEBUG_HUD_STEREO_GUIDE_YAWPITCHROLL
+    cdef const char* OVR_DEBUG_HUD_STEREO_GUIDE_COLOR
 
 cdef extern from "OVR_ErrorCode.h":
     ctypedef int32_t ovrResult

@@ -285,7 +285,7 @@ from .cimport libovr_math
 from cpython.ref cimport Py_INCREF, Py_DECREF
 
 from libc.stdint cimport int32_t, uint32_t
-from libc.stdlib cimport malloc, free
+from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.math cimport pow, tan
 
 cimport numpy as np
@@ -613,29 +613,34 @@ LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3 = capi.ovrTrackedDevice_Object3
 #
 cdef np.npy_intp[1] VEC2_SHAPE = [2]
 cdef np.npy_intp[1] VEC3_SHAPE = [3]
+cdef np.npy_intp[1] FOVPORT_SHAPE = [4]
 cdef np.npy_intp[1] QUAT_SHAPE = [4]
 cdef np.npy_intp[2] MAT4_SHAPE = [4, 4]
 
 cdef np.ndarray _wrap_ovrVector2f_as_ndarray(capi.ovrVector2f* prtVec):
-    """Wrap a ovrVector2f object with a NumPy array."""
+    """Wrap an ovrVector2f object with a NumPy array."""
     return np.PyArray_SimpleNewFromData(
         1, VEC2_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
 
 cdef np.ndarray _wrap_ovrVector3f_as_ndarray(capi.ovrVector3f* prtVec):
-    """Wrap a ovrVector3f object with a NumPy array."""
+    """Wrap an ovrVector3f object with a NumPy array."""
     return np.PyArray_SimpleNewFromData(
         1, VEC3_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
 
 cdef np.ndarray _wrap_ovrQuatf_as_ndarray(capi.ovrQuatf* prtVec):
-    """Wrap a ovrQuatf object with a NumPy array."""
+    """Wrap an ovrQuatf object with a NumPy array."""
     return np.PyArray_SimpleNewFromData(
         1, QUAT_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
 
 cdef np.ndarray _wrap_ovrMatrix4f_as_ndarray(capi.ovrMatrix4f* prtVec):
-    """Wrap a ovrMatrix4f object with a NumPy array."""
+    """Wrap an ovrMatrix4f object with a NumPy array."""
     return np.PyArray_SimpleNewFromData(
         2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec.M)
 
+cdef np.ndarray _wrap_ovrFovPort_as_ndarray(capi.ovrFovPort* prtVec):
+    """Wrap an ovrFovPort object with a NumPy array."""
+    return np.PyArray_SimpleNewFromData(
+        1, FOVPORT_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
 
 # ------------------------------------------------------------------------------
 # Classes and extension types
@@ -653,7 +658,7 @@ cdef class LibOVRPose(object):
     """
     cdef capi.ovrPosef* c_data
     cdef bint ptr_owner
-    cdef object refobj  # needed if referencing C struct in another class
+    cdef object refobj  # needed if referencing C data in another instance
 
     cdef np.ndarray _pos
     cdef np.ndarray _ori
@@ -702,7 +707,7 @@ cdef class LibOVRPose(object):
         if self.c_data is not NULL:
             return
 
-        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>malloc(sizeof(capi.ovrPosef))
+        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>PyMem_Malloc(sizeof(capi.ovrPosef))
 
         if ptr is NULL:
             raise MemoryError
@@ -727,7 +732,7 @@ cdef class LibOVRPose(object):
         # don't do anything crazy like set c_data=NULL without deallocating!
         if self.c_data is not NULL:
             if self.ptr_owner is True:
-                free(self.c_data)
+                PyMem_Free(self.c_data)
                 self.c_data = NULL
             else:
                 if self.refobj is not None:  # lower ref count of ref'd object
@@ -735,7 +740,7 @@ cdef class LibOVRPose(object):
 
     def __mul__(LibOVRPose a, LibOVRPose b):
         """Multiplication operator (*) to combine poses."""
-        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>malloc(sizeof(capi.ovrPosef))
+        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>PyMem_Malloc(sizeof(capi.ovrPosef))
 
         if ptr is NULL:
             raise MemoryError
@@ -780,7 +785,7 @@ cdef class LibOVRPose(object):
     def __deepcopy__(self, memo=None):
         # create a new object with a copy of the data stored in c_data
         # allocate new struct
-        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>malloc(sizeof(capi.ovrPosef))
+        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>PyMem_Malloc(sizeof(capi.ovrPosef))
 
         if ptr is NULL:
             raise MemoryError
@@ -1182,7 +1187,7 @@ cdef class LibOVRPose(object):
         Uses `OVR::Posef.Inverted` which is part of the Oculus PC SDK.
 
         """
-        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>malloc(sizeof(capi.ovrPosef))
+        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>PyMem_Malloc(sizeof(capi.ovrPosef))
 
         if ptr is NULL:
             raise MemoryError
@@ -1545,7 +1550,7 @@ cdef class LibOVRPose(object):
 
         """
         cdef libovr_math.Posef toPose = <libovr_math.Posef>end.c_data[0]
-        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>malloc(sizeof(capi.ovrPosef))
+        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>PyMem_Malloc(sizeof(capi.ovrPosef))
 
         if ptr is NULL:
             raise MemoryError
@@ -1624,7 +1629,7 @@ cdef class LibOVRPoseState(object):
             return
 
         cdef capi.ovrPoseStatef* _ptr = \
-            <capi.ovrPoseStatef*>malloc(
+            <capi.ovrPoseStatef*>PyMem_Malloc(
                 sizeof(capi.ovrPoseStatef))
 
         if _ptr is NULL:
@@ -1657,7 +1662,7 @@ cdef class LibOVRPoseState(object):
         # don't do anything crazy like set c_data=NULL without deallocating!
         if self.c_data is not NULL:
             if self.ptr_owner is True:
-                free(self.c_data)
+                PyMem_Free(self.c_data)
                 self.c_data = NULL
             else:
                 if self.refobj is not None:  # lower ref count of ref'd object
@@ -1706,7 +1711,7 @@ cdef class LibOVRPoseState(object):
 
         """
         cdef capi.ovrPoseStatef* ptr = \
-            <capi.ovrPoseStatef*>malloc(sizeof(capi.ovrPoseStatef))
+            <capi.ovrPoseStatef*>PyMem_Malloc(sizeof(capi.ovrPoseStatef))
 
         if ptr is NULL:
             raise MemoryError
@@ -1863,7 +1868,7 @@ cdef class LibOVRTrackingState(object):
         if self.c_data is not NULL:  # already allocated, __init__ called twice?
             return
 
-        cdef capi.ovrTrackingState* ptr = <capi.ovrTrackingState*>malloc(
+        cdef capi.ovrTrackingState* ptr = <capi.ovrTrackingState*>PyMem_Malloc(
             sizeof(capi.ovrTrackingState))
 
         if ptr is NULL:
@@ -1879,7 +1884,7 @@ cdef class LibOVRTrackingState(object):
 
     def __dealloc__(self):
         if self.c_data is not NULL and self.ptr_owner is True:
-            free(self.c_data)
+            PyMem_Free(self.c_data)
             self.c_data = NULL
 
     @property
@@ -2071,7 +2076,7 @@ cdef class LibOVRSessionStatus(object):
             return
 
         cdef capi.ovrSessionStatus* _ptr = \
-            <capi.ovrSessionStatus*>malloc(
+            <capi.ovrSessionStatus*>PyMem_Malloc(
                 sizeof(capi.ovrSessionStatus))
 
         if _ptr is NULL:
@@ -2082,7 +2087,7 @@ cdef class LibOVRSessionStatus(object):
 
     def __dealloc__(self):
         if self.c_data is not NULL and self.ptr_owner is True:
-            free(self.c_data)
+            PyMem_Free(self.c_data)
             self.c_data = NULL
 
     @property
@@ -2157,7 +2162,7 @@ cdef class LibOVRHmdInfo(object):
         if self.c_data is not NULL:  # already allocated, __init__ called twice?
             return
 
-        cdef capi.ovrHmdDesc* _ptr = <capi.ovrHmdDesc*>malloc(
+        cdef capi.ovrHmdDesc* _ptr = <capi.ovrHmdDesc*>PyMem_Malloc(
             sizeof(capi.ovrHmdDesc))
 
         if _ptr is NULL:
@@ -2168,7 +2173,7 @@ cdef class LibOVRHmdInfo(object):
 
     def __dealloc__(self):
         if self.c_data is not NULL and self.ptr_owner is True:
-            free(self.c_data)
+            PyMem_Free(self.c_data)
             self.c_data = NULL
 
     @property
@@ -2501,10 +2506,19 @@ def getUserHeight():
     global _ptrSession
     cdef float to_return = capi.ovr_GetFloat(
         _ptrSession,
-        b"PlayerHeight",
+        capi.OVR_KEY_PLAYER_HEIGHT,
         <float> 1.778)
 
     return to_return
+
+def setUserHeight(float height):
+    """set the user height."""
+    global _ptrSession
+
+    cdef capi.ovrBool result = capi.ovr_SetFloat(
+        _ptrSession, capi.OVR_KEY_PLAYER_HEIGHT, height)
+
+    return <bint>result
 
 def getEyeHeight():
     """Calibrated eye height from floor in meters.
@@ -2518,10 +2532,19 @@ def getEyeHeight():
     global _ptrSession
     cdef float to_return = capi.ovr_GetFloat(
         _ptrSession,
-        b"EyeHeight",
-        <float> 1.675)
+        capi.OVR_KEY_EYE_HEIGHT,
+        capi.OVR_DEFAULT_EYE_HEIGHT)
 
     return to_return
+
+def setEyeHeight(float height):
+    """set the eye height."""
+    global _ptrSession
+
+    cdef capi.ovrBool result = capi.ovr_SetFloat(
+        _ptrSession, capi.OVR_KEY_EYE_HEIGHT, height)
+
+    return <bint>result
 
 def getNeckEyeDist():
     """Distance from the neck to eyes in meters.
@@ -2537,7 +2560,7 @@ def getNeckEyeDist():
 
     cdef unsigned int ret = capi.ovr_GetFloatArray(
         _ptrSession,
-        b"NeckEyeDistance",
+        capi.OVR_KEY_NECK_TO_EYE_DISTANCE,
         vals,
         <unsigned int>2)
 
@@ -2557,7 +2580,7 @@ def getEyeToNoseDist():
 
     cdef unsigned int ret = capi.ovr_GetFloatArray(
         _ptrSession,
-        b"EyeToNoseDist",
+        capi.OVR_KEY_EYE_TO_NOSE_DISTANCE,
         vals,
         <unsigned int> 2)
 
@@ -3432,7 +3455,7 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     # allocate arrays to store pose types and poses
     cdef int count = <int>len(deviceTypes)
     cdef capi.ovrTrackedDeviceType* devices = \
-        <capi.ovrTrackedDeviceType*>malloc(
+        <capi.ovrTrackedDeviceType*>PyMem_Malloc(
             count * sizeof(capi.ovrTrackedDeviceType))
     if not devices:
         raise MemoryError("Failed to allocate array 'devices'.")
@@ -3442,7 +3465,7 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
         devices[i] = <capi.ovrTrackedDeviceType>deviceTypes[i]
 
     cdef capi.ovrPoseStatef* devicePoses = \
-        <capi.ovrPoseStatef*>malloc(
+        <capi.ovrPoseStatef*>PyMem_Malloc(
             count * sizeof(capi.ovrPoseStatef))
     if not devicePoses:
         raise MemoryError("Failed to allocate array 'devicePoses'.")
@@ -3464,8 +3487,8 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
         outPoses.append(thisPose)
 
     # free the allocated arrays
-    free(devices)
-    free(devicePoses)
+    PyMem_Free(devices)
+    PyMem_Free(devicePoses)
 
     return result, outPoses
 
