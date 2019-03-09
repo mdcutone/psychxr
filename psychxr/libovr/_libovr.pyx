@@ -1896,51 +1896,54 @@ cdef class LibOVRTrackingState(object):
         self.c_data[0].HeadPose.ThePose = value.c_data[0]
 
     @property
-    def headStatus(self):
-        # """Tracking status for the head.
-        #
-        # Returns
-        # -------
-        # tuple of bool
-        #     Tracking status for orientation and position. True if tracking was
-        #     the time the pose was requested.
-        #
-        # Examples
-        # --------
-        #
-        # Get the tracking status of a pose state::
-        #
-        #     oriTracked, posTracked = poseState.headTrackingStatus
-        #     if oriTracked and posTracked:
-        #         # do something only when fully tracked ...
-        #
-        # """
+    def headPosTracked(self):
+        """Head position tracked (`bool`)."""
         cdef unsigned int* statusBits = &self.c_data.StatusFlags
-        cdef bint oriTracked = \
-            (statusBits[0] & capi.ovrStatus_OrientationTracked) == \
-               capi.ovrStatus_OrientationTracked
         cdef bint posTracked = \
             (statusBits[0] & capi.ovrStatus_PositionTracked) == \
                 capi.ovrStatus_PositionTracked
 
-        return oriTracked, posTracked
+        return posTracked
+
+    @property
+    def headOriTracked(self):
+        """Head orientation tracked (`bool`)."""
+        cdef unsigned int* statusBits = &self.c_data.StatusFlags
+        cdef bint oriTracked = \
+            (statusBits[0] & capi.ovrStatus_OrientationTracked) == \
+               capi.ovrStatus_OrientationTracked
+
+        return oriTracked
 
     @property
     def handPoses(self):
         return [self._leftHandPose, self._rightHandPose]
 
     @property
-    def handStatus(self):
+    def handPosTracked(self):
+        """Hand position tracked (`tuple` of `bool`)."""
         cdef list toReturn = list()
         cdef unsigned int* statusBits = &self.c_data.HandStatusFlags[0]
 
         cdef Py_ssize_t i = 0
         for i in range(<Py_ssize_t>capi.ovrHand_Count):
-            toReturn.append((
-                (statusBits[i] & capi.ovrStatus_OrientationTracked) ==
-                capi.ovrStatus_OrientationTracked,
+            toReturn.append(
                 (statusBits[i] & capi.ovrStatus_PositionTracked) ==
-                capi.ovrStatus_PositionTracked))
+                capi.ovrStatus_PositionTracked)
+
+        return toReturn
+
+    @property
+    def handOriTracked(self):
+        """Hand orientation tracked (`tuple` of `bool`)."""
+        cdef list toReturn = list()
+        cdef unsigned int* statusBits = &self.c_data.HandStatusFlags[0]
+
+        cdef Py_ssize_t i = 0
+        for i in range(<Py_ssize_t>capi.ovrHand_Count):
+            toReturn.append(
+                (statusBits[i] & capi.ovrStatus_OrientationTracked) ==
+                capi.ovrStatus_OrientationTracked)
 
         return toReturn
 
