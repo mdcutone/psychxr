@@ -1198,8 +1198,13 @@ cdef class LibOVRPose(object):
             (<libovr_math.Quatf>inv_ori).Rotate(
                 -(<libovr_math.Vector3f>self.c_data[0].Position))
 
-        ptr[0].Orientation = <capi.ovrQuatf>inv_ori
-        ptr[0].Position = <capi.ovrVector3f>inv_pos
+        ptr[0].Orientation.x = inv_ori.x
+        ptr[0].Orientation.y = inv_ori.y
+        ptr[0].Orientation.z = inv_ori.z
+        ptr[0].Orientation.w = inv_ori.w
+        ptr[0].Position.x = inv_pos.x
+        ptr[0].Position.y = inv_pos.y
+        ptr[0].Position.z = inv_pos.z
 
         return LibOVRPose.fromPtr(ptr, True)
 
@@ -4581,6 +4586,10 @@ def updateInputState(int controller):
 
     # get the controller index in the states array
     cdef int idx
+    cdef capi.ovrInputState* previousInputState
+    cdef capi.ovrInputState* currentInputState
+    cdef capi.ovrResult result
+
     if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
         idx = 0
     elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
@@ -4595,16 +4604,14 @@ def updateInputState(int controller):
         raise ValueError("Invalid controller type specified.")
 
     # pointer to the current and previous input state
-    cdef capi.ovrInputState* previousInputState = \
-        &_prevInputState[idx]
-    cdef capi.ovrInputState* currentInputState = \
-        &_inputStates[idx]
+    previousInputState = &_prevInputState[idx]
+    currentInputState = &_inputStates[idx]
 
     # copy the current input state into the previous before updating
     previousInputState[0] = currentInputState[0]
 
     # get the current input state
-    cdef capi.ovrResult result = capi.ovr_GetInputState(
+    result = capi.ovr_GetInputState(
         _ptrSession,
         <capi.ovrControllerType>controller,
         currentInputState)
