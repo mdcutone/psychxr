@@ -868,7 +868,7 @@ cdef class LibOVRPose(object):
             # ... or ...
             pos = myPose.getPos()  # NumPy array shape=(3,) and dtype=float32
 
-        Write the position to an existing array by specifying `outVector`::
+        Write the position to an existing array by specifying `out`::
 
             position = numpy.zeros((3,), dtype=numpy.float32)  # mind the dtype!
             myPose.getPos(position)  # position now contains myPose.pos
@@ -3419,7 +3419,7 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
 
     absTime : `float`
         Absolute time in seconds poses refer to.
-    latencyMarker: `bool`
+    latencyMarker: `bool`, optional
         Insert a marker for motion-to-photon latency calculation. Set this to
         False if 'getTrackingState' was previously called and a latency marker
         was set there.
@@ -4737,7 +4737,7 @@ def getButton(int controller, int button, str testState='continuous'):
 
     return stateResult, t_sec
 
-def getTouch(str controller, object touch, str testState='continuous'):
+def getTouch(int controller, int touch, str testState='continuous'):
     """Get touches for a specified device.
 
     Touches reveal information about the user's hand pose, for instance,
@@ -4915,8 +4915,8 @@ def getIndexTriggerValues(int controller, bint deadzone=False):
     """Get analog index trigger values.
 
     Get the values indicating the displacement of the controller's analog
-    thumbsticks. Returns two tuples for the up-down and left-right of each
-    stick. Values range from -1 to 1.
+    index triggers. Returns values for the left an right sticks. Values range
+    from -1 to 1.
 
     Parameters
     ----------
@@ -4933,6 +4933,26 @@ def getIndexTriggerValues(int controller, bint deadzone=False):
     -------
     tuple
         Trigger values.
+
+    Examples
+    --------
+
+    Get the index trigger values for touch controllers (with deadzone)::
+
+        leftVal, rightVal = getIndexTriggerValues(LIBOVR_CONTROLLER_TYPE_TOUCH,
+            deadzone=True)
+
+    Cast a ray from the controller when a trigger is pulled::
+
+        _, rightVal = getIndexTriggerValues(LIBOVR_CONTROLLER_TYPE_TOUCH,
+            deadzone=True)
+
+        # handPose of right hand from the last tracking state
+        if rightVal > 0.75:  # 75% thresholds
+            if handPose.raycastSphere(target):  # target is LibOVRPose
+                print('Target hit!')
+            else:
+                print('Missed!')
 
     """
     # convert the string to an index
@@ -4968,8 +4988,47 @@ def getIndexTriggerValues(int controller, bint deadzone=False):
 
     return np.array((triggerLeft, triggerRight), dtype=np.float32)
 
-def getHandTriggerValues(str controller, bint deadzone=False):
-    """Get hand trigger values."""
+def getHandTriggerValues(int controller, bint deadzone=False):
+    """Get analog hand trigger values.
+
+    Get the values indicating the displacement of the controller's analog
+    hand trigger. Returns two values for the left and right sticks. Values range
+    from -1 to 1.
+
+    Parameters
+    ----------
+    controller : int
+        Controller name. Valid values are:
+
+        - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+
+    Returns
+    -------
+    tuple
+        Trigger values.
+
+    Examples
+    --------
+
+    Get the hand trigger values for touch controllers (with deadzone)::
+
+        leftVal, rightVal = getHandTriggerValues(LIBOVR_CONTROLLER_TYPE_TOUCH,
+            deadzone=True)
+
+    Grip an object if near a hand::
+
+        _, rightVal = getHandTriggerValues(LIBOVR_CONTROLLER_TYPE_TOUCH,
+            deadzone=True)
+        # thing and handPose are LibOVRPoses, handPose is from tracking state
+        distanceToHand = abs(handPose.distanceTo(thing.pos))
+        if rightVal > 0.75 and distanceToHand < 0.01:
+            thing.posOri = handPose.posOri
+
+    """
     global _inputStates
 
     # get the controller index in the states array
