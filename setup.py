@@ -67,6 +67,7 @@ if platform.system() == 'Windows':
     _build_libovr_ = os.environ.get('PSYCHXR_BUILD_LIBOVR', '1')
 
     if _build_libovr_ == '1':  # build libovr extensions
+        print("building libovr extension modules ...")
         _sdk_data_['libovr'] = {}
         env_includes = os.environ.get('PSYCHXR_LIBOVR_INCLUDE', None)
         if env_includes is not None:
