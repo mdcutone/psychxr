@@ -1463,6 +1463,8 @@ cdef class LibOVRPose(object):
         cdef float to_return = \
             (<libovr_math.Posef>self.c_data[0]).Translation.Distance(pos_in)
 
+        return to_return
+
     def raycastSphere(self, object targetPose, float radius=0.5, object rayDir=(0., 0., -1.), float maxRange=0.0):
         """Raycast to a sphere.
 
@@ -2611,15 +2613,15 @@ def initialize(bint focusAware=False, int connectionTimeout=0):
         LIBOVR_SUCCESS if completed without errors. In the event of an
         error, possible return values are:
 
-        - :data:`LIBOVR_ERROR_INITIALIZE`: Initialization error.
-        - :data:`LIBOVR_ERROR_LIB_LOAD`:  Failed to load LibOVRRT.
-        - :data:`LIBOVR_ERROR_LIB_VERSION`:  LibOVRRT version incompatible.
-        - :data:`LIBOVR_ERROR_SERVICE_CONNECTION`:  Cannot connect to OVR service.
-        - :data:`LIBOVR_ERROR_SERVICE_VERSION`: OVR service version is incompatible.
-        - :data:`LIBOVR_ERROR_INCOMPATIBLE_OS`: Operating system version is incompatible.
-        - :data:`LIBOVR_ERROR_DISPLAY_INIT`: Unable to initialize the HMD.
-        - :data:`LIBOVR_ERROR_SERVER_START`:  Cannot start a server.
-        - :data:`LIBOVR_ERROR_REINITIALIZATION`: Reinitialized with a different version.
+        * :data:`LIBOVR_ERROR_INITIALIZE`: Initialization error.
+        * :data:`LIBOVR_ERROR_LIB_LOAD`:  Failed to load LibOVRRT.
+        * :data:`LIBOVR_ERROR_LIB_VERSION`:  LibOVRRT version incompatible.
+        * :data:`LIBOVR_ERROR_SERVICE_CONNECTION`:  Cannot connect to OVR service.
+        * :data:`LIBOVR_ERROR_SERVICE_VERSION`: OVR service version is incompatible.
+        * :data:`LIBOVR_ERROR_INCOMPATIBLE_OS`: Operating system version is incompatible.
+        * :data:`LIBOVR_ERROR_DISPLAY_INIT`: Unable to initialize the HMD.
+        * :data:`LIBOVR_ERROR_SERVER_START`:  Cannot start a server.
+        * :data:`LIBOVR_ERROR_REINITIALIZATION`: Reinitialized with a different version.
 
     """
     cdef int32_t flags = capi.ovrInit_RequestVersion
@@ -2954,14 +2956,15 @@ def getEyeFocalLength(int eye):
 def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
     """Get the recommended buffer (texture) sizes for eye buffers.
 
-    Should be called after 'setEyerenderFovs'. Returns buffer resolutions in
+    Should be called after `setEyerenderFovs`. Returns buffer resolutions in
     pixels (w, h). The values can be used when configuring a framebuffer or swap
     chain for rendering.
 
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:LIBOVR_EYE_LEFT or :data:LIBOVR_EYE_RIGHT.
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
     texelsPerPixel : float
         Display pixels per texture pixels at the center of the display. Use a
         value less than 1.0 to improve performance at the cost of resolution.
@@ -3014,12 +3017,12 @@ def getTextureSwapChainLengthGL(int swapChain):
     ----------
     swapChain : int
         Swap chain handle to query. Must be a swap chain initialized by a
-        previous call to 'createTextureSwapChainGL'.
+        previous call to `createTextureSwapChainGL`.
 
     Returns
     -------
     tuple of int
-        Result of the 'ovr_GetTextureSwapChainLength' API call and the
+        Result of the `ovr_GetTextureSwapChainLength` API call and the
         length of that swap chain.
 
     """
@@ -3047,12 +3050,12 @@ def getTextureSwapChainCurrentIndex(int swapChain):
     ----------
     swapChain : int
         Swap chain handle to query. Must be a swap chain initialized by a
-        previous call to 'createTextureSwapChainGL'.
+        previous call to `createTextureSwapChainGL`.
 
     Returns
     -------
     tuple of int
-        Result of the 'ovr_GetTextureSwapChainCurrentIndex' API call and the
+        Result of the `ovr_GetTextureSwapChainCurrentIndex` API call and the
         index of the buffer.
 
     """
@@ -3081,19 +3084,20 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
     ----------
     swapChain : int
         Swap chain handle to query. Must be a swap chain initialized by a
-        previous call to 'createTextureSwapChainGL'.
+        previous call to `createTextureSwapChainGL`.
     index : int
         Index within the swap chain to retrieve its OpenGL texture name.
 
     Returns
     -------
     tuple of ints
-        Result of the 'ovr_GetTextureSwapChainBufferGL' API call and the
+        Result of the `ovr_GetTextureSwapChainBufferGL` API call and the
         OpenGL texture buffer name. A OpenGL buffer name is invalid when 0,
         check the returned API call result for an error condition.
 
     Examples
     --------
+
     Get the OpenGL texture buffer name associated with the swap chain index::
 
         # get the current available index
@@ -3127,21 +3131,26 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
     Parameters
     ----------
     swapChain : int
-        Swap chain handle to initialize, usually 'LIBOVR_SWAP_CHAIN*'.
+        Swap chain handle to initialize, usually `LIBOVR_SWAP_CHAIN*`.
     width : int
         Width of texture in pixels.
     height : int
         Height of texture in pixels.
     textureFormat : int
-        Texture format to use. Valid color texture formats are:
-            - :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
-            - :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
-            - :data:`LIBOVR_FORMAT_R16G16B16A16_FLOAT`
-            - :data:`LIBOVR_FORMAT_R11G11B10_FLOAT`
+        Texture format to use.
+
+        Valid color texture formats are:
+
+            * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
+            * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
+            * :data:`LIBOVR_FORMAT_R16G16B16A16_FLOAT`
+            * :data:`LIBOVR_FORMAT_R11G11B10_FLOAT`
+
         Depth texture formats:
-            - :data:`LIBOVR_FORMAT_D16_UNORM`
-            - :data:`LIBOVR_FORMAT_D24_UNORM_S8_UINT`
-            - :data:`LIBOVR_FORMAT_D32_FLOAT`
+
+            * :data:`LIBOVR_FORMAT_D16_UNORM`
+            * :data:`LIBOVR_FORMAT_D24_UNORM_S8_UINT`
+            * :data:`LIBOVR_FORMAT_D32_FLOAT`
 
     Other Parameters
     ----------------
@@ -3151,7 +3160,7 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
     Returns
     -------
     int
-        The result of the 'ovr_CreateTextureSwapChainGL' API call.
+        The result of the `ovr_CreateTextureSwapChainGL` API call.
 
     Examples
     --------
@@ -3195,7 +3204,7 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
 def setEyeColorTextureSwapChain(int eye, int swapChain):
     """Set the color texture swap chain for a given eye.
 
-    Should be called after a successful 'createTextureSwapChainGL' call but
+    Should be called after a successful `createTextureSwapChainGL` call but
     before any rendering is done.
 
     Parameters
@@ -3253,15 +3262,16 @@ def createMirrorTexture(int width, int height, int textureFormat=LIBOVR_FORMAT_R
         Height of texture in pixels.
     textureFormat : int
         Color texture format to use, valid texture formats are:
-            - :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
-            - :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
-            - :data:`LIBOVR_FORMAT_R16G16B16A16_FLOAT`
-            - :data:`LIBOVR_FORMAT_R11G11B10_FLOAT`
+
+            * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
+            * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
+            * :data:`LIBOVR_FORMAT_R16G16B16A16_FLOAT`
+            * :data:`LIBOVR_FORMAT_R11G11B10_FLOAT`
 
     Returns
     -------
     int
-        Result of API call 'ovr_CreateMirrorTextureGL'.
+        Result of API call `ovr_CreateMirrorTextureGL`.
 
     """
     # additional options
@@ -3307,7 +3317,7 @@ def getMirrorTexture():
     Returns
     -------
     tuple of int
-        Result of API call 'ovr_GetMirrorTextureBufferGL' and the mirror
+        Result of API call `ovr_GetMirrorTextureBufferGL` and the mirror
         texture ID. A mirror texture ID = 0 is invalid.
 
     Examples
@@ -3348,14 +3358,14 @@ def getTrackingState(double absTime, bint latencyMarker=True):
 
     Parameters
     ----------
-    absTime : float
+    absTime : `float`
         Absolute time in seconds which the tracking state refers to.
-    latencyMarker : bool
+    latencyMarker : `bool`
         Insert a latency marker for motion-to-photon calculation.
 
     Returns
     -------
-    tuple of LibOVRPoseState
+    `tuple` of `LibOVRPoseState`
         Pose state for the head, left and right hands.
 
     Examples
@@ -3404,18 +3414,18 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     deviceTypes : `list` or `tuple` of `int`
         List of device types. Valid device types identifiers are:
 
-        - LIBOVR_TRACKED_DEVICE_TYPE_HMD: The head or HMD.
-        - LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH: Left touch controller or hand.
-        - LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH: Right touch controller or hand.
-        - LIBOVR_TRACKED_DEVICE_TYPE_TOUCH: Both touch controllers.
+        * LIBOVR_TRACKED_DEVICE_TYPE_HMD : The head or HMD.
+        * LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH : Left touch controller or hand.
+        * LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH : Right touch controller or hand.
+        * LIBOVR_TRACKED_DEVICE_TYPE_TOUCH : Both touch controllers.
 
         Up to four additional touch controllers can be paired and tracked, they
         are assigned as:
 
-        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0
-        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1
-        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2
-        - LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3
+        * LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0
+        * LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1
+        * LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2
+        * LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3
 
     absTime : `float`
         Absolute time in seconds poses refer to.
@@ -3512,7 +3522,7 @@ def calcEyePoses(LibOVRPose headPose):
 
     Parameters
     ----------
-    headPose : LibOVRPose
+    headPose : `LibOVRPose`
         Head pose.
 
     Examples
@@ -3589,12 +3599,12 @@ def getHmdToEyePose(int eye):
 
     Parameters
     ----------
-    eye : int
+    eye : `int`
         Eye index.
 
     Returns
     -------
-    tuple of LibOVRPose
+    `tuple` of `LibOVRPose`
         Copy of the HMD to eye pose.
 
     Notes
@@ -3616,7 +3626,7 @@ def setHmdToEyePose(int eye, LibOVRPose eyePose):
 
     Parameters
     ----------
-    eye : int
+    eye : `int`
         Eye index.
 
     """
@@ -3633,12 +3643,12 @@ def getEyeRenderPose(int eye):
 
     Parameters
     ----------
-    eye : int
+    eye : `int`
         Eye index.
 
     Returns
     -------
-    tuple of LibOVRPose
+    `tuple` of `LibOVRPose`
         Copies of the HMD to eye poses for the left and right eye.
 
     Notes
@@ -3656,7 +3666,7 @@ def setEyeRenderPose(int eye, LibOVRPose value):
 
     Parameters
     ----------
-    eye : int
+    eye : `int`
         Eye index.
 
     """
@@ -3695,17 +3705,17 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
 
     Parameters
     ----------
-    eye : int
+    eye : `int`
         Eye index.
-    nearClip : float
+    nearClip : `float`
         Near clipping plane in meters.
-    farClip : float
+    farClip : `float`
         Far clipping plane in meters.
-    outMatrix : ndarray or None
+    outMatrix : `ndarray` or `None`
 
     Returns
     -------
-    ndarray of floats
+    `ndarray`
         4x4 projection matrix.
 
     """
@@ -3750,15 +3760,15 @@ def getEyeRenderViewport(int eye, object outRect=None):
 
     Parameters
     ----------
-    eye : int
+    eye : `int`
         The eye index.
-    outRect : ndarray
+    outRect : `ndarray`
         Optional NumPy array to place values. If None, this function will return
         a new array. Must be dtype=int and length 4.
 
     Returns
     -------
-    ndarray of ints or None
+    `ndarray` of `ints` or `None`
         Viewport rectangle [x, y, w, h]. None if 'outRect' was specified.
 
     """
@@ -3786,9 +3796,9 @@ def setEyeRenderViewport(int eye, object values):
 
     Parameters
     ----------
-    eye : int
+    eye : `int`
         The eye index.
-    ndarray, list, or tuple of ints
+    `ndarray`, `list`, or `tuple` of `ints`
         Viewport rectangle [x, y, w, h].
 
     Examples
@@ -3824,9 +3834,9 @@ def getEyeViewMatrix(int eye, object outMatrix=None):
 
     Parameters
     ----------
-    eye : int
+    eye : `int`
         Eye index.
-    outMatrix : ndarray or None
+    outMatrix : `ndarray` or `None`
         Optional array to write to. Must have ndim=2, dtype=np.float32, and
         shape == (4,4).
 
@@ -3859,12 +3869,12 @@ def getPredictedDisplayTime(unsigned int frameIndex=0):
 
     Parameters
     ----------
-    frameIndex : int
+    frameIndex : `int`
         Frame index.
 
     Returns
     -------
-    float
+    `float`
         Absolute frame mid-point time for the given frame index in seconds.
 
     """
@@ -3880,7 +3890,7 @@ def timeInSeconds():
 
     Returns
     -------
-    float
+    `float`
         Time in seconds.
 
     """
@@ -3893,7 +3903,7 @@ def perfHudMode(str mode):
 
     Parameters
     ----------
-    mode : str
+    mode : `str`
         Performance HUD mode to present. Valid mode strings are:
         'PerfSummary', 'LatencyTiming', 'AppRenderTiming',
         'CompRenderTiming', 'AswStats', 'VersionInfo' and 'Off'. Specifying
@@ -3920,7 +3930,7 @@ def hidePerfHud():
     """Hide the performance HUD.
 
     This is a convenience function that is equivalent to calling
-    'perf_hud_mode('Off').
+    `perf_hud_mode('Off')`.
 
     """
     global _ptrSession
@@ -3979,12 +3989,12 @@ def waitToBeginFrame(unsigned int frameIndex=0):
 
     Parameters
     ----------
-    frameIndex : int
+    frameIndex : `int`
         The target frame index.
 
     Returns
     -------
-    int
+    `int`
         Return code of the LibOVR API call 'ovr_WaitToBeginFrame'. Returns
         :data:`LIBOVR_SUCCESS` if completed without errors. May return
         :data:`LIBOVR_ERROR_DISPLAY_LOST` if the device was removed, rendering
@@ -4848,11 +4858,11 @@ def getThumbstickValues(int controller, bint deadzone=False):
     controller : int
         Controller name. Valid values are:
 
-        - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        * :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
     deadzone : bool
         Apply a deadzone if True.
@@ -4864,6 +4874,7 @@ def getThumbstickValues(int controller, bint deadzone=False):
 
     Examples
     --------
+
     Get the thumbstick values with deadzone for the touch controllers::
 
         ovr.updateInputState()  # get most recent input state
@@ -4932,7 +4943,12 @@ def getIndexTriggerValues(int controller, bint deadzone=False):
     Returns
     -------
     tuple
-        Trigger values.
+        Trigger values (left, right).
+
+    See Also
+    --------
+    getThumbstickValues : Get thumbstick displacements.
+    getHandTriggerValues : Get hand trigger values.
 
     Examples
     --------
@@ -4992,24 +5008,29 @@ def getHandTriggerValues(int controller, bint deadzone=False):
     """Get analog hand trigger values.
 
     Get the values indicating the displacement of the controller's analog
-    hand trigger. Returns two values for the left and right sticks. Values range
-    from -1 to 1.
+    hand triggers. Returns two values for the left and right sticks. Values
+    range from -1 to 1.
 
     Parameters
     ----------
     controller : int
         Controller name. Valid values are:
 
-        - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        * :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
     Returns
     -------
     tuple
-        Trigger values.
+        Trigger values (left, right).
+
+    See Also
+    --------
+    getThumbstickValues : Get thumbstick displacements.
+    getIndexTriggerValues : Get index trigger values.
 
     Examples
     --------
@@ -5019,10 +5040,14 @@ def getHandTriggerValues(int controller, bint deadzone=False):
         leftVal, rightVal = getHandTriggerValues(LIBOVR_CONTROLLER_TYPE_TOUCH,
             deadzone=True)
 
-    Grip an object if near a hand::
+    Grip an object if near a hand. Simply set the pose of the object to match
+    that of the hand when gripping within some distance of the object's
+    origin. When the grip is released, the object will assume the last pose
+    before being released. Here is a very basic example of object gripping::
 
         _, rightVal = getHandTriggerValues(LIBOVR_CONTROLLER_TYPE_TOUCH,
             deadzone=True)
+
         # thing and handPose are LibOVRPoses, handPose is from tracking state
         distanceToHand = abs(handPose.distanceTo(thing.pos))
         if rightVal > 0.75 and distanceToHand < 0.01:
@@ -5077,11 +5102,13 @@ def setControllerVibration(int controller, str frequency, float amplitude):
     ----------
     controller : int
         Controller name. Valid values are:
-        - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+
+        * :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        * :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+
     frequency : str
         Vibration frequency. Valid values are: 'off', 'low', or 'high'.
     amplitude : float
