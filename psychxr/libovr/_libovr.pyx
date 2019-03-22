@@ -651,9 +651,9 @@ cdef class LibOVRPose(object):
     Poses are represented as a position vector/coordinate and orientation
     quaternion.
 
-    Methods associated with this class perform various transformations on the
-    components of the pose using routines found in OVR_MATH.h, which is part
-    of the Oculus PC SDK.
+    Methods associated with this class perform various transformations with the
+    components of the pose (position and orientation) using routines found in
+    OVR_MATH.h, which is part of the Oculus PC SDK.
 
     """
     cdef capi.ovrPosef* c_data
@@ -3518,10 +3518,10 @@ def calcEyePoses(LibOVRPose headPose):
 
     Eye poses are derived from the head pose stored in the pose state and
     the HMD to eye poses reported by LibOVR. Calculated eye poses are stored
-    and passed to the compositor when 'endFrame' is called for additional
+    and passed to the compositor when `endFrame` is called for additional
     rendering.
 
-    You can access the computed poses via the 'getEyeRenderPose' function.
+    You can access the computed poses via the `getEyeRenderPose` function.
 
     Parameters
     ----------
@@ -3549,6 +3549,7 @@ def calcEyePoses(LibOVRPose headPose):
 
     Use a custom head pose::
 
+        # note headLocked(True) should be called prior
         headPose = LibOVRPose((0., 1.5, 0.))  # eyes 1.5 meters off the ground
         hmd.calcEyePoses(headPose)  # calculate eye poses
 
@@ -3594,11 +3595,12 @@ def calcEyePoses(LibOVRPose headPose):
             _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
 def getHmdToEyePose(int eye):
-    """HMD to eye poses.
+    """HMD to eye pose.
 
     These are the prototype eye poses specified by LibOVR, defined only
-    after 'start' is called. These poses are transformed by the head pose
-    by 'calcEyePoses' to get 'getEyeRenderPoses'.
+    after `create` is called. These poses are referenced to the HMD origin.
+    Poses are transformed by calling `calcEyePoses`, updating the values
+    returned by `getEyeRenderPose`.
 
     Parameters
     ----------
@@ -3610,6 +3612,10 @@ def getHmdToEyePose(int eye):
     `tuple` of `LibOVRPose`
         Copy of the HMD to eye pose.
 
+    See Also
+    --------
+    setHmdToEyePose : Set the HMD to eye pose.
+
     Notes
     -----
     The horizontal (x-axis) separation of the eye poses are determined by the
@@ -3620,6 +3626,13 @@ def getHmdToEyePose(int eye):
     'getEyeToNoseDist()' by two. Furthermore, the IOD values can be altered,
     prior to calling 'calcEyePoses', to override the values specified by LibOVR.
 
+    Examples
+    --------
+    Get the HMD to eye poses::
+
+        leftPose = getHmdToEyePose(LIBOVR_EYE_LEFT)
+        rightPose = getHmdToEyePose(LIBOVR_EYE_RIGHT)
+
     """
     global _eyeRenderDesc
     return LibOVRPose.fromPtr(&_eyeRenderDesc[eye].HmdToEyePose)
@@ -3627,10 +3640,17 @@ def getHmdToEyePose(int eye):
 def setHmdToEyePose(int eye, LibOVRPose eyePose):
     """Set the HMD eye poses.
 
+    This overwrites the values returned by LibOVR and will be used in successive
+    calls of `calcEyePoses` to compute eye render poses.
+
     Parameters
     ----------
     eye : `int`
         Eye index.
+
+    See Also
+    --------
+    getHmdToEyePose : Get the current HMD to eye pose.
 
     """
     global _eyeRenderDesc
@@ -3654,30 +3674,64 @@ def getEyeRenderPose(int eye):
     `tuple` of `LibOVRPose`
         Copies of the HMD to eye poses for the left and right eye.
 
+    See Also
+    --------
+    setEyeRenderPose : Set an eye's render pose.
+
     Notes
     -----
-    The returned LibOVRPose objects are copies of data stored internally by the
-    session object. Setting renderPoses will recompute their transformation
+    The returned `LibOVRPose` objects are copies of data stored internally by
+    the session object. Setting renderPoses will recompute their transformation
     matrices.
+
+    Examples
+    --------
+
+    Get the eye render poses::
+
+        leftPose = getHmdToEyePose(LIBOVR_EYE_LEFT)
+        rightPose = getHmdToEyePose(LIBOVR_EYE_RIGHT)
+
+    Get the left and right view matrices::
+
+        eyeViewMatrices = []
+        for eye in enumerate(LIBOVR_EYE_COUNT):
+            eyeViewMatrices.append(getHmdToEyePose(eye).asMatrix())
+
+    Same as above, but overwrites existing view matrices::
+
+        # identity 4x4 matrices
+        eyeViewMatrices = [
+            numpy.identity(4, dtype=numpy.float32),
+            numpy.identity(4, dtype=numpy.float32)]
+        for eye in range(LIBOVR_EYE_COUNT):
+            getHmdToEyePose(eye).asMatrix(eyeViewMatrices[eye])
 
     """
     global _eyeLayer
     return LibOVRPose.fromPtr(&_eyeLayer.RenderPose[eye])
 
-def setEyeRenderPose(int eye, LibOVRPose value):
-    """Set eye render poses.
+def setEyeRenderPose(int eye, LibOVRPose eyePose):
+    """Set eye render pose.
+
+    Setting the eye render pose will update the values returned by
+    `getEyeRenderPose`.
 
     Parameters
     ----------
     eye : `int`
         Eye index.
 
+    See Also
+    --------
+    getEyeRenderPose : Get an eye's render pose.
+
     """
     global _eyeLayer
     global _eyeViewMatrix
     global _eyeViewProjectionMatrix
 
-    _eyeLayer.RenderPose[eye] = value.c_data[0]
+    _eyeLayer.RenderPose[eye] = eyePose.c_data[0]
 
     # re-compute the eye transformation matrices from poses
     cdef libovr_math.Vector3f pos
@@ -3710,16 +3764,37 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
     ----------
     eye : `int`
         Eye index.
-    nearClip : `float`
+    nearClip : `float`, optional
         Near clipping plane in meters.
-    farClip : `float`
+    farClip : `float`, optional
         Far clipping plane in meters.
-    outMatrix : `ndarray` or `None`
+    outMatrix : `ndarray` or `None`, optional
+        Alternative matrix to write values to instead of returning a new one.
 
     Returns
     -------
-    `ndarray`
-        4x4 projection matrix.
+    `ndarray` or `None`
+        4x4 projection matrix. `None` if outMatrix was specified.
+
+    Examples
+    --------
+
+    Get the left and right projection matrices as a list::
+
+        eyeProjectionMatrices = []
+        for eye in range(LIBOVR_EYE_COUNT):
+            eyeProjectionMatrices.append(getEyeProjectionMatrix(eye))
+
+    Same as above, but overwrites existing view matrices::
+
+        # identity 4x4 matrices
+        eyeProjectionMatrices = [
+            numpy.identity(4, dtype=numpy.float32),
+            numpy.identity(4, dtype=numpy.float32)]
+
+        # for eye in range(LIBOVR_EYE_COUNT) also works
+        for eye in enumerate(eyeProjectionMatrices):
+            getEyeProjectionMatrix(eye, outMatrix=eyeProjectionMatrices[eye])
 
     """
     global _eyeProjectionMatrix
@@ -3765,7 +3840,7 @@ def getEyeRenderViewport(int eye, object outRect=None):
     ----------
     eye : `int`
         The eye index.
-    outRect : `ndarray`
+    outRect : `ndarray`, optional
         Optional NumPy array to place values. If None, this function will return
         a new array. Must be dtype=int and length 4.
 
@@ -3839,7 +3914,7 @@ def getEyeViewMatrix(int eye, object outMatrix=None):
     ----------
     eye : `int`
         Eye index.
-    outMatrix : `ndarray` or `None`
+    outMatrix : `ndarray` or `None`, optional
         Optional array to write to. Must have ndim=2, dtype=np.float32, and
         shape == (4,4).
 
@@ -4016,7 +4091,7 @@ def beginFrame(unsigned int frameIndex=0):
 
     Parameters
     ----------
-    frameIndex : int
+    frameIndex : `int`
         The target frame index.
 
     Returns
@@ -4038,7 +4113,7 @@ def commitTextureSwapChain(int eye):
 
     Parameters
     ----------
-    eye : int
+    eye : `int`
         Eye buffer index.
 
     Returns
@@ -4070,12 +4145,12 @@ def endFrame(unsigned int frameIndex=0):
 
     Parameters
     ----------
-    frameIndex : int
+    frameIndex : `int`
         The target frame index.
 
     Returns
     -------
-    int
+    `int`
         Error code returned by API call 'ovr_EndFrame'. Check against
         :data:`LIBOVR_SUCCESS`, :data:`LIBOVR_SUCCESS_NOT_VISIBLE`,
         :data:`LIBOVR_SUCCESS_BOUNDARY_INVALID`,
@@ -4107,7 +4182,7 @@ def resetFrameStats():
     Returns
     -------
     int
-        Error code returned by 'ovr_ResetPerfStats'.
+        Error code returned by `ovr_ResetPerfStats`.
 
     """
     global _ptrSession
@@ -4163,7 +4238,7 @@ def specifyTrackingOrigin(LibOVRPose newOrigin):
 
     Parameters
     ----------
-    newOrigin : LibOVRPose
+    newOrigin : `LibOVRPose`
         New origin to use.
 
     """
@@ -4196,7 +4271,7 @@ def getTrackerInfo(int trackerIndex):
     ----------
     trackerIndex : int
         The index of the sensor to query. Valid values are between 0 and
-        'getTrackerCount()'.
+        `getTrackerCount`.
 
     """
     cdef LibOVRTrackerInfo to_return = LibOVRTrackerInfo()
@@ -4388,8 +4463,8 @@ def getFrameStats(int frameStatIndex=0):
 
     Notes
     -----
-    If 'updatePerfStats' was called less than once per frame, more than one
-    frame statistic will be available. Check 'getFrameStatsCount' for the number
+    If `updatePerfStats` was called less than once per frame, more than one
+    frame statistic will be available. Check `getFrameStatsCount` for the number
     of queued stats and use an index >0 to access them.
 
     """
@@ -4589,11 +4664,12 @@ def updateInputState(int controller):
     ----------
     controller : int
         Controller name. Valid values are:
-            - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
-            - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-            - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-            - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-            - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+
+        * :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        * :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
     """
     global _prevInputState
@@ -4653,37 +4729,37 @@ def getButton(int controller, int button, str testState='continuous'):
     controller : int
         Controller name. Valid values are:
 
-        - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        * :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
     button : int
         Button to check. Values can be ORed together to test for multiple button
         presses. If a given controller does not have a particular button, False
         will always be returned. Valid button values are:
 
-        - :data:`LIBOVR_BUTTON_A`
-        - :data:`LIBOVR_BUTTON_B`
-        - :data:`LIBOVR_BUTTON_RTHUMB`
-        - :data:`LIBOVR_BUTTON_RSHOULDER`
-        - :data:`LIBOVR_BUTTON_X`
-        - :data:`LIBOVR_BUTTON_Y`
-        - :data:`LIBOVR_BUTTON_LTHUMB`
-        - :data:`LIBOVR_BUTTON_LSHOULDER`
-        - :data:`LIBOVR_BUTTON_UP`
-        - :data:`LIBOVR_BUTTON_DOWN`
-        - :data:`LIBOVR_BUTTON_LEFT`
-        - :data:`LIBOVR_BUTTON_RIGHT`
-        - :data:`LIBOVR_BUTTON_ENTER`
-        - :data:`LIBOVR_BUTTON_BACK`
-        - :data:`LIBOVR_BUTTON_VOLUP`
-        - :data:`LIBOVR_BUTTON_VOLDOWN`
-        - :data:`LIBOVR_BUTTON_HOME`
-        - :data:`LIBOVR_BUTTON_PRIVATE`
-        - :data:`LIBOVR_BUTTON_RMASK`
-        - :data:`LIBOVR_BUTTON_LMASK`
+        * :data:`LIBOVR_BUTTON_A`
+        * :data:`LIBOVR_BUTTON_B`
+        * :data:`LIBOVR_BUTTON_RTHUMB`
+        * :data:`LIBOVR_BUTTON_RSHOULDER`
+        * :data:`LIBOVR_BUTTON_X`
+        * :data:`LIBOVR_BUTTON_Y`
+        * :data:`LIBOVR_BUTTON_LTHUMB`
+        * :data:`LIBOVR_BUTTON_LSHOULDER`
+        * :data:`LIBOVR_BUTTON_UP`
+        * :data:`LIBOVR_BUTTON_DOWN`
+        * :data:`LIBOVR_BUTTON_LEFT`
+        * :data:`LIBOVR_BUTTON_RIGHT`
+        * :data:`LIBOVR_BUTTON_ENTER`
+        * :data:`LIBOVR_BUTTON_BACK`
+        * :data:`LIBOVR_BUTTON_VOLUP`
+        * :data:`LIBOVR_BUTTON_VOLDOWN`
+        * :data:`LIBOVR_BUTTON_HOME`
+        * :data:`LIBOVR_BUTTON_PRIVATE`
+        * :data:`LIBOVR_BUTTON_RMASK`
+        * :data:`LIBOVR_BUTTON_LMASK`
 
     testState : str
         State to test buttons for. Valid states are 'rising', 'falling',
@@ -4764,36 +4840,36 @@ def getTouch(int controller, int touch, str testState='continuous'):
 
     Parameters
     ----------
-    controller : int
+    controller : `int`
         Controller name. Valid values are:
 
-        - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        * :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
-    button : int
+    button : `int`
         Button to check. Values can be ORed together to test for multiple
         touches. If a given controller does not have a particular button, False
         will always be returned. Valid button values are:
 
-        - :data:`LIBOVR_TOUCH_A`
-        - :data:`LIBOVR_TOUCH_B`
-        - :data:`LIBOVR_TOUCH_RTHUMB`
-        - :data:`LIBOVR_TOUCH_RSHOULDER`
-        - :data:`LIBOVR_TOUCH_X`
-        - :data:`LIBOVR_TOUCH_Y`
-        - :data:`LIBOVR_TOUCH_LTHUMB`
-        - :data:`LIBOVR_TOUCH_LSHOULDER`
-        - :data:`LIBOVR_TOUCH_LINDEXTRIGGER`
-        - :data:`LIBOVR_TOUCH_LINDEXTRIGGER`
-        - :data:`LIBOVR_TOUCH_RINDEXPOINTING`
-        - :data:`LIBOVR_TOUCH_RTHUMBUP`
-        - :data:`LIBOVR_TOUCH_LINDEXPOINTING`
-        - :data:`LIBOVR_TOUCH_LTHUMBUP`
+        * :data:`LIBOVR_TOUCH_A`
+        * :data:`LIBOVR_TOUCH_B`
+        * :data:`LIBOVR_TOUCH_RTHUMB`
+        * :data:`LIBOVR_TOUCH_RSHOULDER`
+        * :data:`LIBOVR_TOUCH_X`
+        * :data:`LIBOVR_TOUCH_Y`
+        * :data:`LIBOVR_TOUCH_LTHUMB`
+        * :data:`LIBOVR_TOUCH_LSHOULDER`
+        * :data:`LIBOVR_TOUCH_LINDEXTRIGGER`
+        * :data:`LIBOVR_TOUCH_LINDEXTRIGGER`
+        * :data:`LIBOVR_TOUCH_RINDEXPOINTING`
+        * :data:`LIBOVR_TOUCH_RTHUMBUP`
+        * :data:`LIBOVR_TOUCH_LINDEXPOINTING`
+        * :data:`LIBOVR_TOUCH_LTHUMBUP`
 
-    testState : str
+    testState : `str`
         State to test touches for. Valid states are 'rising', 'falling',
         'continuous', 'pressed', and 'released'.
 
@@ -4858,7 +4934,7 @@ def getThumbstickValues(int controller, bint deadzone=False):
 
     Parameters
     ----------
-    controller : int
+    controller : `int`
         Controller name. Valid values are:
 
         * :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
@@ -4867,7 +4943,7 @@ def getThumbstickValues(int controller, bint deadzone=False):
         * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
         * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
-    deadzone : bool
+    deadzone : `bool`
         Apply a deadzone if True.
 
     Returns
@@ -4934,18 +5010,18 @@ def getIndexTriggerValues(int controller, bint deadzone=False):
 
     Parameters
     ----------
-    controller : int
+    controller : `int`
         Controller name. Valid values are:
 
-        - :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        - :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        - :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        - :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        - :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        * :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
     Returns
     -------
-    tuple
+    `tuple`
         Trigger values (left, right).
 
     See Also
@@ -5016,7 +5092,7 @@ def getHandTriggerValues(int controller, bint deadzone=False):
 
     Parameters
     ----------
-    controller : int
+    controller : `int`
         Controller name. Valid values are:
 
         * :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
@@ -5121,8 +5197,8 @@ def setControllerVibration(int controller, str frequency, float amplitude):
     Returns
     -------
     int
-        Return value of API call 'ovr_SetControllerVibration'. Can return
-        LIBOVR_SUCCESS_DEVICE_UNAVAILABLE if no device is present.
+        Return value of API call `ovr_SetControllerVibration`. Can return
+        `LIBOVR_SUCCESS_DEVICE_UNAVAILABLE` if no device is present.
 
     """
     global _ptrSession
@@ -5151,7 +5227,7 @@ def getSessionStatus():
 
     Returns
     -------
-    LibOVRSessionStatus
+    `LibOVRSessionStatus`
         Object specifying the current state of the session.
 
     """
