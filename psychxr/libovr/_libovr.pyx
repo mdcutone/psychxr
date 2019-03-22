@@ -1556,6 +1556,9 @@ cdef class LibOVRPose(object):
         Oculus PC SDK.
 
         """
+        if 0.0 > s > 1.0:
+            raise ValueError("Interpolation factor must be between 0.0 and 1.0.")
+
         cdef libovr_math.Posef toPose = <libovr_math.Posef>end.c_data[0]
         cdef capi.ovrPosef* ptr = <capi.ovrPosef*>PyMem_Malloc(sizeof(capi.ovrPosef))
 
