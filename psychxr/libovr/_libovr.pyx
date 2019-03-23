@@ -3129,8 +3129,6 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
 def createTextureSwapChainGL(int swapChain, int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB, int levels=1):
     """Create a texture swap chain for eye image buffers.
 
-    You can create up-to 32 swap chains, referenced by their index.
-
     Parameters
     ----------
     swapChain : int
@@ -3216,7 +3214,7 @@ def setEyeColorTextureSwapChain(int eye, int swapChain):
         Eye index.
     swapChain : int
         Swap chain handle to query. Must be a swap chain initialized by a
-        previous call to 'createTextureSwapChainGL'.
+        previous call to `createTextureSwapChainGL`.
 
     Examples
     --------
@@ -3266,10 +3264,10 @@ def createMirrorTexture(int width, int height, int textureFormat=LIBOVR_FORMAT_R
     textureFormat : int
         Color texture format to use, valid texture formats are:
 
-            * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
-            * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
-            * :data:`LIBOVR_FORMAT_R16G16B16A16_FLOAT`
-            * :data:`LIBOVR_FORMAT_R11G11B10_FLOAT`
+        * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
+        * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
+        * :data:`LIBOVR_FORMAT_R16G16B16A16_FLOAT`
+        * :data:`LIBOVR_FORMAT_R11G11B10_FLOAT`
 
     Returns
     -------
@@ -4485,7 +4483,7 @@ def getLastErrorInfo():
 
     Returns
     -------
-    tuple of int, str
+    `tuple` of `int`, `str`
         Tuple of the API call result and error string.
 
     """
@@ -4660,6 +4658,10 @@ def getConnectedControllerTypes():
 def updateInputState(int controller):
     """Refresh the input state of a controller.
 
+    Subsequent :`getButton`, `getTouch`, `getThumbstickValues`,
+    `getIndexTriggerValues`, and `getHandTriggerValues` calls using the same
+    `controller` value will reflect the new state.
+
     Parameters
     ----------
     controller : int
@@ -4670,6 +4672,12 @@ def updateInputState(int controller):
         * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
         * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
         * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+
+    Returns
+    -------
+    tuple of int, float
+        Result of the `ovr_GetInputState` LibOVR API call and polling time in
+        seconds.
 
     """
     global _prevInputState
