@@ -467,7 +467,7 @@ LIBOVR_TOUCH_RTHUMBREST = capi.ovrTouch_RThumbRest
 LIBOVR_TOUCH_X = capi.ovrTouch_X
 LIBOVR_TOUCH_Y = capi.ovrTouch_Y
 LIBOVR_TOUCH_LTHUMB = capi.ovrTouch_LThumb
-LIBOVR_TOUCH_RTHUMBREST = capi.ovrTouch_LThumbRest
+LIBOVR_TOUCH_LTHUMBREST = capi.ovrTouch_LThumbRest
 LIBOVR_TOUCH_LINDEXTRIGGER = capi.ovrTouch_LIndexTrigger
 LIBOVR_TOUCH_RINDEXPOINTING = capi.ovrTouch_RIndexPointing
 LIBOVR_TOUCH_RTHUMBUP = capi.ovrTouch_RThumbUp
@@ -648,13 +648,6 @@ cdef np.ndarray _wrap_ovrFovPort_as_ndarray(capi.ovrFovPort* prtVec):
 cdef class LibOVRPose(object):
     """Class for LibOVR rigid body pose.
 
-    Poses are represented as a position vector/coordinate and orientation
-    quaternion.
-
-    Methods associated with this class perform various transformations with the
-    components of the pose (position and orientation) using routines found in
-    OVR_MATH.h, which is part of the Oculus PC SDK.
-
     """
     cdef capi.ovrPosef* c_data
     cdef bint ptr_owner
@@ -829,6 +822,7 @@ cdef class LibOVRPose(object):
 
     @property
     def pos(self):
+        """Position vector [X, Y, Z] (`ndarray`)."""
         return self._pos
 
     @pos.setter
@@ -905,6 +899,7 @@ cdef class LibOVRPose(object):
 
     @property
     def ori(self):
+        """Orientation quaternion [X, Y, Z, W] (`ndarray`)."""
         return self._ori
 
     @ori.setter
@@ -964,6 +959,7 @@ cdef class LibOVRPose(object):
 
     @property
     def posOri(self):
+        """Position vector and orientation quaternion."""
         return self.pos, self.ori
 
     @posOri.setter
@@ -973,6 +969,7 @@ cdef class LibOVRPose(object):
 
     @property
     def at(self):
+        """At vector [X, Y, Z] (`ndarray`)."""
         return self.getAt()
 
     def getAt(self, object outVector=None):
@@ -1034,6 +1031,7 @@ cdef class LibOVRPose(object):
 
     @property
     def up(self):
+        """Up vector [X, Y, Z] (`ndarray`)."""
         return self.getUp()
 
     def getUp(self, object outVector=None):
@@ -1552,8 +1550,8 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        Uses `OVR::Posef.Lerp` and `OVR::Posef.FastLerp` which is part of the
-        Oculus PC SDK.
+        * Uses `OVR::Posef.Lerp` and `OVR::Posef.FastLerp` which is part of the
+          Oculus PC SDK.
 
         """
         if 0.0 > s > 1.0:
@@ -2050,24 +2048,42 @@ cdef class LibOVRTrackerInfo(object):
 cdef class LibOVRSessionStatus(object):
     """Class for session status information.
 
+    Attributes
+    ----------
+    isVisible : bool
+        True if the application has focus and visible in the HMD.
+    hmdPresent : bool
+        True if the HMD is present.
+    hmdMounted : bool
+        True if the HMD is on the user's head.
+    displayLost : bool
+        True if the the display was lost.
+    shouldQuit : bool
+        True if the application was signaled to quit.
+    shouldRecenter : bool
+        True if the application was signaled to re-center.
+    hasInputFocus : bool
+        True if the application has input focus.
+    overlayPresent : bool
+        True if the system overlay is present.
+    depthRequested : bool
+        True if the system requires a depth texture. Currently unused by PsychXR.
+
     """
     cdef capi.ovrSessionStatus* c_data
     cdef bint ptr_owner
+    cdef readonly bint isVisible
+    cdef readonly bint hmdPresent
+    cdef readonly bint hmdMounted
+    cdef readonly bint displayLost
+    cdef readonly bint shouldQuit
+    cdef readonly bint shouldRecenter
+    cdef readonly bint hasInputFocus
+    cdef readonly bint overlayPresent
+    cdef readonly bint depthRequested
 
     def __init__(self):
-        """
-        Attributes
-        ----------
-        isVisible : bool
-        hmdPresent : bool
-        hmdMounted : bool
-        displayLost : bool
-        shouldQuit : bool
-        shouldRecenter : bool
-        hasInputFocus : bool
-        overlayPresent : bool
-        depthRequested : bool
-
+        """Constructor for LibOVRSessionStatus.
         """
         self.newStruct()
 
@@ -2081,6 +2097,16 @@ cdef class LibOVRSessionStatus(object):
             LibOVRSessionStatus.__new__(LibOVRSessionStatus)
         wrapper.c_data = ptr
         wrapper.ptr_owner = owner
+
+        wrapper.isVisible = wrapper.c_data.IsVisible == capi.ovrTrue
+        wrapper.hmdPresent = wrapper.c_data.HmdPresent == capi.ovrTrue
+        wrapper.hmdMounted = wrapper.c_data.HmdMounted == capi.ovrTrue
+        wrapper.displayLost = wrapper.c_data.DisplayLost == capi.ovrTrue
+        wrapper.shouldQuit = wrapper.c_data.ShouldQuit == capi.ovrTrue
+        wrapper.shouldRecenter = wrapper.c_data.ShouldRecenter == capi.ovrTrue
+        wrapper.hasInputFocus = wrapper.c_data.HasInputFocus == capi.ovrTrue
+        wrapper.overlayPresent = wrapper.c_data.OverlayPresent == capi.ovrTrue
+        wrapper.depthRequested = wrapper.c_data.DepthRequested == capi.ovrTrue
 
         return wrapper
 
@@ -2098,60 +2124,24 @@ cdef class LibOVRSessionStatus(object):
         self.c_data = _ptr
         self.ptr_owner = True
 
+        self.isVisible = self.c_data.IsVisible == capi.ovrTrue
+        self.hmdPresent = self.c_data.HmdPresent == capi.ovrTrue
+        self.hmdMounted = self.c_data.HmdMounted == capi.ovrTrue
+        self.displayLost = self.c_data.DisplayLost == capi.ovrTrue
+        self.shouldQuit = self.c_data.ShouldQuit == capi.ovrTrue
+        self.shouldRecenter = self.c_data.ShouldRecenter == capi.ovrTrue
+        self.hasInputFocus = self.c_data.HasInputFocus == capi.ovrTrue
+        self.overlayPresent = self.c_data.OverlayPresent == capi.ovrTrue
+        self.depthRequested = self.c_data.DepthRequested == capi.ovrTrue
+
     def __dealloc__(self):
         if self.c_data is not NULL and self.ptr_owner is True:
             PyMem_Free(self.c_data)
             self.c_data = NULL
 
-    @property
-    def isVisible(self):
-        """True if the application has focus and visible in the HMD."""
-        return self.c_data.IsVisible == capi.ovrTrue
-
-    @property
-    def hmdPresent(self):
-        """True if the HMD is present."""
-        return self.c_data.HmdPresent == capi.ovrTrue
-
-    @property
-    def hmdMounted(self):
-        """True if the HMD is on the user's head."""
-        return self.c_data.HmdMounted == capi.ovrTrue
-
-    @property
-    def displayLost(self):
-        """True if the the display was lost."""
-        return self.c_data.DisplayLost == capi.ovrTrue
-
-    @property
-    def shouldQuit(self):
-        """True if the application was signaled to quit."""
-        return self.c_data.ShouldQuit == capi.ovrTrue
-
-    @property
-    def shouldRecenter(self):
-        """True if the application was signaled to re-center."""
-        return self.c_data.ShouldRecenter == capi.ovrTrue
-
-    @property
-    def hasInputFocus(self):
-        """True if the application has input focus."""
-        return self.c_data.HasInputFocus == capi.ovrTrue
-
-    @property
-    def overlayPresent(self):
-        """True if the system overlay is present."""
-        return self.c_data.OverlayPresent == capi.ovrTrue
-
-    @property
-    def depthRequested(self):
-        """True if the system requires a depth texture. Currently unused by
-        PsychXR."""
-        return self.c_data.DepthRequested == capi.ovrTrue
-
 
 cdef class LibOVRHmdInfo(object):
-    """Class for HMD information returned by 'getHmdInfo'."""
+    """Class for HMD information returned by :func:`getHmdInfo`."""
 
     cdef capi.ovrHmdDesc* c_data
     cdef bint ptr_owner
@@ -4891,9 +4881,9 @@ def getTouch(int controller, int touch, str testState='continuous'):
         * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
         * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
-    button : `int`
-        Button to check. Values can be ORed together to test for multiple
-        touches. If a given controller does not have a particular button, False
+    touch : `int`
+        Touch to check. Values can be ORed together to test for multiple
+        touches. If a given controller does not have a particular touch, False
         will always be returned. Valid button values are:
 
         * :data:`LIBOVR_TOUCH_A`
@@ -4906,6 +4896,8 @@ def getTouch(int controller, int touch, str testState='continuous'):
         * :data:`LIBOVR_TOUCH_LSHOULDER`
         * :data:`LIBOVR_TOUCH_LINDEXTRIGGER`
         * :data:`LIBOVR_TOUCH_LINDEXTRIGGER`
+        * :data:`LIBOVR_TOUCH_LTHUMBREST`
+        * :data:`LIBOVR_TOUCH_RTHUMBREST`
         * :data:`LIBOVR_TOUCH_RINDEXPOINTING`
         * :data:`LIBOVR_TOUCH_RTHUMBUP`
         * :data:`LIBOVR_TOUCH_LINDEXPOINTING`
@@ -4922,7 +4914,13 @@ def getTouch(int controller, int touch, str testState='continuous'):
 
     Notes
     -----
-    Not every controller type supports touch.
+
+    * Not every controller type supports touch.
+    * Special 'touches' :data:`LIBOVR_TOUCH_RINDEXPOINTING`,
+      :data:`LIBOVR_TOUCH_RTHUMBUP`, :data:`LIBOVR_TOUCH_RTHUMBREST`,
+      :data:`LIBOVR_TOUCH_LINDEXPOINTING`, :data:`LIBOVR_TOUCH_LINDEXPOINTING`,
+      and :data:`LIBOVR_TOUCH_LINDEXPOINTING`, can be used to recognise hand
+      poses.
 
     """
     global _prevInputState
@@ -5274,9 +5272,14 @@ def getSessionStatus():
 
     """
     global _ptrSession
-    cdef LibOVRSessionStatus to_return = LibOVRSessionStatus()
-    cdef capi.ovrResult result = capi.ovr_GetSessionStatus(
-        _ptrSession, to_return.c_data)
+    cdef capi.ovrSessionStatus* ptr = \
+        <capi.ovrSessionStatus*>PyMem_Malloc(sizeof(capi.ovrSessionStatus))
+
+    if ptr is NULL:
+        raise MemoryError
+
+    cdef capi.ovrResult result = capi.ovr_GetSessionStatus(_ptrSession, ptr)
+    cdef LibOVRSessionStatus to_return = LibOVRSessionStatus.fromPtr(ptr, True)
 
     return to_return
 
