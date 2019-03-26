@@ -207,6 +207,7 @@ __all__ = [
     'setHighQuality',
     'setHeadLocked',
     'getPixelsPerTanAngleAtCenter',
+    'getPixelsPerDegree',
     'getDistortedViewport',
     'getEyeRenderFov',
     'setEyeRenderFov',
@@ -286,7 +287,7 @@ from cpython.ref cimport Py_INCREF, Py_DECREF
 
 from libc.stdint cimport int32_t, uint32_t
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
-from libc.math cimport pow, tan
+from libc.math cimport pow, tan, M_PI
 
 cimport numpy as np
 import numpy as np
@@ -1961,7 +1962,29 @@ cdef class LibOVRTrackingState(object):
 
 
 cdef class LibOVRTrackerInfo(object):
-    """Class for information about camera-based tracking sensors.
+    """Class for information about camera-based tracking sensors. This object is
+    returned by :func:`getTrackerInfo`. All attributes are read-only.
+
+    Attributes
+    ----------
+    trackerIndex : int
+        Tracker index this objects refers to (read-only).
+    pose : LibOVRPose
+        The pose of the sensor (read-only).
+    leveledPose : LibOVRPose
+        Gravity aligned pose of the sensor (read-only).
+    isConnected : bool
+        True if the sensor is connected and available (read-only).
+    isPoseTracked : bool
+        True if the sensor has a valid pose (read-only).
+    horizontalFov : float
+        Horizontal FOV of the sensor in radians (read-only).
+    verticalFov : float
+        Vertical FOV of the sensor in radians (read-only).
+    nearZ : float
+        Near clipping plane of the sensor frustum in meters (read-only).
+    farZ : float
+        Far clipping plane of the sensor frustum in meters (read-only).
 
     """
     cdef capi.ovrTrackerPose c_ovrTrackerPose
@@ -1973,31 +1996,6 @@ cdef class LibOVRTrackerInfo(object):
     cdef unsigned int _trackerIndex
 
     def __init__(self):
-        """This object is returned by 'getTrackerInfo'. All attributes are
-        read-only.
-
-        Attributes
-        ----------
-        trackerIndex : int
-            Tracker index this objects refers to (read-only).
-        pose : LibOVRPose
-            The pose of the sensor (read-only).
-        leveledPose : LibOVRPose
-            Gravity aligned pose of the sensor (read-only).
-        isConnected : bool
-            True if the sensor is connected and available (read-only).
-        isPoseTracked : bool
-            True if the sensor has a valid pose (read-only).
-        horizontalFov : float
-            Horizontal FOV of the sensor in radians (read-only).
-        verticalFov : float
-            Vertical FOV of the sensor in radians (read-only).
-        nearZ : float
-            Near clipping plane of the sensor frustum in meters (read-only).
-        farZ : float
-            Far clipping plane of the sensor frustum in meters (read-only).
-
-        """
         pass
 
     def __cinit__(self):
@@ -2761,7 +2759,7 @@ def setHeadLocked(bint enable):
         _eyeLayer.Header.Flags &= ~capi.ovrLayerFlag_HeadLocked
 
 def getPixelsPerTanAngleAtCenter(int eye):
-    """Get pixels per tan angle at te center of the display.
+    """Get pixels per tan angle (=1) at the center of the display.
 
     Values reflect the FOVs set by the last call to :func:`setEyeRenderFov` (or
     else the default FOVs will be used.)
@@ -2784,6 +2782,35 @@ def getPixelsPerTanAngleAtCenter(int eye):
         _eyeRenderDesc[eye].PixelsPerTanAngleAtCenter
 
     return toReturn.x, toReturn.y
+
+def getPixelsPerDegree(int eye):
+    """Get pixels per degree at the center of the display.
+
+    Values reflect the FOVs set by the last call to :func:`setEyeRenderFov` (or
+    else the default FOVs will be used.)
+
+    Parameters
+    ----------
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
+
+    Returns
+    -------
+    tuple of floats
+        Pixels per degree at the center of the screen.
+
+    """
+    global _eyeRenderDesc
+
+    cdef capi.ovrVector2f pixelsPerTanAngle = \
+        _eyeRenderDesc[eye].PixelsPerTanAngleAtCenter
+
+    # tan(angle)=1 -> 45 deg
+    cdef float horzPixelPerDeg = pixelsPerTanAngle.x / 45.0
+    cdef float vertPixelPerDeg = pixelsPerTanAngle.y / 45.0
+
+    return horzPixelPerDeg, vertPixelPerDeg
 
 def getDistortedViewport(int eye):
     """Get the distorted viewport.
