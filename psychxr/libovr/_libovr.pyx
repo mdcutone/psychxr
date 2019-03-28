@@ -689,7 +689,6 @@ cdef class LibOVRPose(object):
 
     def __cinit__(self, *args, **kwargs):
         self.ptr_owner = False
-        self.refobj = None
 
     @staticmethod
     cdef LibOVRPose fromPtr(capi.ovrPosef* ptr, bint owner=False):
@@ -725,7 +724,6 @@ cdef class LibOVRPose(object):
 
         self._pos = _wrap_ovrVector3f_as_ndarray(&ptr.Position)
         self._ori = _wrap_ovrQuatf_as_ndarray(&ptr.Orientation)
-        self.refobj = False
 
     def __dealloc__(self):
         # don't do anything crazy like set c_data=NULL without deallocating!
@@ -1570,7 +1568,6 @@ cdef class LibOVRPoseState(object):
     """
     cdef capi.ovrPoseStatef* c_data
     cdef bint ptr_owner  # owns the data
-    cdef object refobj
 
     # these will hold references until this object is de-allocated
     cdef LibOVRPose _pose
@@ -1601,7 +1598,6 @@ cdef class LibOVRPoseState(object):
 
     def __cinit__(self):
         self.ptr_owner = False
-        self.refobj = None
 
     @staticmethod
     cdef LibOVRPoseState fromPtr(capi.ovrPoseStatef* ptr, bint owner=False):
