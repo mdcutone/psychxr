@@ -658,7 +658,6 @@ cdef class LibOVRPose(object):
     """
     cdef capi.ovrPosef* c_data
     cdef bint ptr_owner
-    cdef object refobj  # needed if referencing C data in another instance
 
     cdef np.ndarray _pos
     cdef np.ndarray _ori
@@ -734,9 +733,6 @@ cdef class LibOVRPose(object):
             if self.ptr_owner is True:
                 PyMem_Free(self.c_data)
                 self.c_data = NULL
-            else:
-                if self.refobj is not None:  # lower ref count of ref'd object
-                    Py_DECREF(self.refobj)
 
     def __mul__(LibOVRPose a, LibOVRPose b):
         """Multiplication operator (*) to combine poses."""
@@ -773,14 +769,6 @@ cdef class LibOVRPose(object):
         """
         return not (<libovr_math.Posef>self.c_data[0]).IsEqual(
             <libovr_math.Posef>other.c_data[0], <float>1e-5)
-
-    def __copy__(self):
-        # shallow copy, return an object which refs c_data
-        cdef LibOVRPose to_return = LibOVRPose.fromPtr(self.c_data, owner=False)
-        to_return.refobj = self
-        Py_INCREF(self)
-
-        return to_return
 
     def __deepcopy__(self, memo=None):
         # create a new object with a copy of the data stored in c_data
@@ -1674,34 +1662,6 @@ cdef class LibOVRPoseState(object):
             if self.ptr_owner is True:
                 PyMem_Free(self.c_data)
                 self.c_data = NULL
-            else:
-                if self.refobj is not None:  # lower ref count of ref'd object
-                    Py_DECREF(self.refobj)
-
-    def __copy__(self):
-        """Shallow copy returned by :mod:`copy.copy`.
-
-        New `LibOVRPoseState` instance that references data stored in this
-        object. The reference count of the source instance is increased by 1;
-        decreased when the copy is deallocated.
-
-        Examples
-        --------
-
-        Shallow copy::
-
-            import copy
-            a = LibOVRPoseState()
-            b = copy.copy(a)  # object references data in 'a'
-            a.linearAcceleration = [1.0, 0.0, 0.0]  # sets both a and b
-
-
-        """
-        cdef LibOVRPoseState to_return = LibOVRPoseState.fromPtr(self.c_data)
-        to_return.refobj = self
-        Py_INCREF(self)
-
-        return to_return
 
     def __deepcopy__(self, memo=None):
         """Deep copy returned by :mod:`copy.deepcopy`.
