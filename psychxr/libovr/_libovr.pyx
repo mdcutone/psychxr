@@ -207,6 +207,7 @@ __all__ = [
     'setHighQuality',
     'setHeadLocked',
     'getPixelsPerTanAngleAtCenter',
+    'getPixelsPerDegree',
     'getDistortedViewport',
     'getEyeRenderFov',
     'setEyeRenderFov',
@@ -467,7 +468,7 @@ LIBOVR_TOUCH_RTHUMBREST = capi.ovrTouch_RThumbRest
 LIBOVR_TOUCH_X = capi.ovrTouch_X
 LIBOVR_TOUCH_Y = capi.ovrTouch_Y
 LIBOVR_TOUCH_LTHUMB = capi.ovrTouch_LThumb
-LIBOVR_TOUCH_RTHUMBREST = capi.ovrTouch_LThumbRest
+LIBOVR_TOUCH_LTHUMBREST = capi.ovrTouch_LThumbRest
 LIBOVR_TOUCH_LINDEXTRIGGER = capi.ovrTouch_LIndexTrigger
 LIBOVR_TOUCH_RINDEXPOINTING = capi.ovrTouch_RIndexPointing
 LIBOVR_TOUCH_RTHUMBUP = capi.ovrTouch_RThumbUp
@@ -648,13 +649,6 @@ cdef np.ndarray _wrap_ovrFovPort_as_ndarray(capi.ovrFovPort* prtVec):
 cdef class LibOVRPose(object):
     """Class for LibOVR rigid body pose.
 
-    Poses are represented as a position vector/coordinate and orientation
-    quaternion.
-
-    Methods associated with this class perform various transformations with the
-    components of the pose (position and orientation) using routines found in
-    OVR_MATH.h, which is part of the Oculus PC SDK.
-
     """
     cdef capi.ovrPosef* c_data
     cdef bint ptr_owner
@@ -815,6 +809,7 @@ cdef class LibOVRPose(object):
 
     @property
     def pos(self):
+        """Position vector [X, Y, Z] (`ndarray`)."""
         return self._pos
 
     @pos.setter
@@ -885,6 +880,7 @@ cdef class LibOVRPose(object):
 
     @property
     def ori(self):
+        """Orientation quaternion [X, Y, Z, W] (`ndarray`)."""
         return self._ori
 
     @ori.setter
@@ -945,6 +941,7 @@ cdef class LibOVRPose(object):
 
     @property
     def posOri(self):
+        """Position vector and orientation quaternion."""
         return self.pos, self.ori
 
     @posOri.setter
@@ -954,6 +951,7 @@ cdef class LibOVRPose(object):
 
     @property
     def at(self):
+        """At vector [X, Y, Z] (`ndarray`)."""
         return self.getAt()
 
     def getAt(self, object outVector=None):
@@ -1015,6 +1013,7 @@ cdef class LibOVRPose(object):
 
     @property
     def up(self):
+        """Up vector [X, Y, Z] (`ndarray`)."""
         return self.getUp()
 
     def getUp(self, object outVector=None):
@@ -1533,8 +1532,8 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        Uses `OVR::Posef.Lerp` and `OVR::Posef.FastLerp` which is part of the
-        Oculus PC SDK.
+        * Uses `OVR::Posef.Lerp` and `OVR::Posef.FastLerp` which is part of the
+          Oculus PC SDK.
 
         """
         if 0.0 > s > 1.0:
@@ -1653,9 +1652,37 @@ cdef class LibOVRPoseState(object):
             if self.ptr_owner is True:
                 PyMem_Free(self.c_data)
                 self.c_data = NULL
+            else:
+                if self.refobj is not None:  # lower ref count of ref'd object
+                    Py_DECREF(self.refobj)
+
+    def __copy__(self):
+        """Shallow copy returned by :mod:`copy.copy`.
+
+        New `LibOVRPoseState` instance that references data stored in this
+        object. The reference count of the source instance is increased by 1;
+        decreased when the copy is deallocated.
+
+        Examples
+        --------
+
+        Shallow copy::
+
+            import copy
+            a = LibOVRPoseState()
+            b = copy.copy(a)  # object references data in 'a'
+            a.linearAcceleration = [1.0, 0.0, 0.0]  # sets both a and b
+
+
+        """
+        cdef LibOVRPoseState to_return = LibOVRPoseState.fromPtr(self.c_data)
+        to_return.refobj = self
+        Py_INCREF(self)
+
+        return to_return
 
     def __deepcopy__(self, memo=None):
-        """Deep copy returned by :mod:`copy.deepcopy`.
+        """Deep copy returned by :py:func:`copy.deepcopy`.
 
         New `LibOVRPoseState` instance with a copy of the data in a separate
         memory location. Does not increase the reference count of the object
@@ -1914,7 +1941,29 @@ cdef class LibOVRTrackingState(object):
 
 
 cdef class LibOVRTrackerInfo(object):
-    """Class for information about camera-based tracking sensors.
+    """Class for information about camera-based tracking sensors. This object is
+    returned by :func:`getTrackerInfo`. All attributes are read-only.
+
+    Attributes
+    ----------
+    trackerIndex : int
+        Tracker index this objects refers to (read-only).
+    pose : LibOVRPose
+        The pose of the sensor (read-only).
+    leveledPose : LibOVRPose
+        Gravity aligned pose of the sensor (read-only).
+    isConnected : bool
+        True if the sensor is connected and available (read-only).
+    isPoseTracked : bool
+        True if the sensor has a valid pose (read-only).
+    horizontalFov : float
+        Horizontal FOV of the sensor in radians (read-only).
+    verticalFov : float
+        Vertical FOV of the sensor in radians (read-only).
+    nearZ : float
+        Near clipping plane of the sensor frustum in meters (read-only).
+    farZ : float
+        Far clipping plane of the sensor frustum in meters (read-only).
 
     """
     cdef capi.ovrTrackerPose c_ovrTrackerPose
@@ -1926,31 +1975,6 @@ cdef class LibOVRTrackerInfo(object):
     cdef unsigned int _trackerIndex
 
     def __init__(self):
-        """This object is returned by 'getTrackerInfo'. All attributes are
-        read-only.
-
-        Attributes
-        ----------
-        trackerIndex : int
-            Tracker index this objects refers to (read-only).
-        pose : LibOVRPose
-            The pose of the sensor (read-only).
-        leveledPose : LibOVRPose
-            Gravity aligned pose of the sensor (read-only).
-        isConnected : bool
-            True if the sensor is connected and available (read-only).
-        isPoseTracked : bool
-            True if the sensor has a valid pose (read-only).
-        horizontalFov : float
-            Horizontal FOV of the sensor in radians (read-only).
-        verticalFov : float
-            Vertical FOV of the sensor in radians (read-only).
-        nearZ : float
-            Near clipping plane of the sensor frustum in meters (read-only).
-        farZ : float
-            Far clipping plane of the sensor frustum in meters (read-only).
-
-        """
         pass
 
     def __cinit__(self):
@@ -2001,24 +2025,42 @@ cdef class LibOVRTrackerInfo(object):
 cdef class LibOVRSessionStatus(object):
     """Class for session status information.
 
+    Attributes
+    ----------
+    isVisible : bool
+        True if the application has focus and visible in the HMD.
+    hmdPresent : bool
+        True if the HMD is present.
+    hmdMounted : bool
+        True if the HMD is on the user's head.
+    displayLost : bool
+        True if the the display was lost.
+    shouldQuit : bool
+        True if the application was signaled to quit.
+    shouldRecenter : bool
+        True if the application was signaled to re-center.
+    hasInputFocus : bool
+        True if the application has input focus.
+    overlayPresent : bool
+        True if the system overlay is present.
+    depthRequested : bool
+        True if the system requires a depth texture. Currently unused by PsychXR.
+
     """
     cdef capi.ovrSessionStatus* c_data
     cdef bint ptr_owner
+    cdef readonly bint isVisible
+    cdef readonly bint hmdPresent
+    cdef readonly bint hmdMounted
+    cdef readonly bint displayLost
+    cdef readonly bint shouldQuit
+    cdef readonly bint shouldRecenter
+    cdef readonly bint hasInputFocus
+    cdef readonly bint overlayPresent
+    cdef readonly bint depthRequested
 
     def __init__(self):
-        """
-        Attributes
-        ----------
-        isVisible : bool
-        hmdPresent : bool
-        hmdMounted : bool
-        displayLost : bool
-        shouldQuit : bool
-        shouldRecenter : bool
-        hasInputFocus : bool
-        overlayPresent : bool
-        depthRequested : bool
-
+        """Constructor for LibOVRSessionStatus.
         """
         self.newStruct()
 
@@ -2032,6 +2074,16 @@ cdef class LibOVRSessionStatus(object):
             LibOVRSessionStatus.__new__(LibOVRSessionStatus)
         wrapper.c_data = ptr
         wrapper.ptr_owner = owner
+
+        wrapper.isVisible = wrapper.c_data.IsVisible == capi.ovrTrue
+        wrapper.hmdPresent = wrapper.c_data.HmdPresent == capi.ovrTrue
+        wrapper.hmdMounted = wrapper.c_data.HmdMounted == capi.ovrTrue
+        wrapper.displayLost = wrapper.c_data.DisplayLost == capi.ovrTrue
+        wrapper.shouldQuit = wrapper.c_data.ShouldQuit == capi.ovrTrue
+        wrapper.shouldRecenter = wrapper.c_data.ShouldRecenter == capi.ovrTrue
+        wrapper.hasInputFocus = wrapper.c_data.HasInputFocus == capi.ovrTrue
+        wrapper.overlayPresent = wrapper.c_data.OverlayPresent == capi.ovrTrue
+        wrapper.depthRequested = wrapper.c_data.DepthRequested == capi.ovrTrue
 
         return wrapper
 
@@ -2049,60 +2101,24 @@ cdef class LibOVRSessionStatus(object):
         self.c_data = _ptr
         self.ptr_owner = True
 
+        self.isVisible = self.c_data.IsVisible == capi.ovrTrue
+        self.hmdPresent = self.c_data.HmdPresent == capi.ovrTrue
+        self.hmdMounted = self.c_data.HmdMounted == capi.ovrTrue
+        self.displayLost = self.c_data.DisplayLost == capi.ovrTrue
+        self.shouldQuit = self.c_data.ShouldQuit == capi.ovrTrue
+        self.shouldRecenter = self.c_data.ShouldRecenter == capi.ovrTrue
+        self.hasInputFocus = self.c_data.HasInputFocus == capi.ovrTrue
+        self.overlayPresent = self.c_data.OverlayPresent == capi.ovrTrue
+        self.depthRequested = self.c_data.DepthRequested == capi.ovrTrue
+
     def __dealloc__(self):
         if self.c_data is not NULL and self.ptr_owner is True:
             PyMem_Free(self.c_data)
             self.c_data = NULL
 
-    @property
-    def isVisible(self):
-        """True if the application has focus and visible in the HMD."""
-        return self.c_data.IsVisible == capi.ovrTrue
-
-    @property
-    def hmdPresent(self):
-        """True if the HMD is present."""
-        return self.c_data.HmdPresent == capi.ovrTrue
-
-    @property
-    def hmdMounted(self):
-        """True if the HMD is on the user's head."""
-        return self.c_data.HmdMounted == capi.ovrTrue
-
-    @property
-    def displayLost(self):
-        """True if the the display was lost."""
-        return self.c_data.DisplayLost == capi.ovrTrue
-
-    @property
-    def shouldQuit(self):
-        """True if the application was signaled to quit."""
-        return self.c_data.ShouldQuit == capi.ovrTrue
-
-    @property
-    def shouldRecenter(self):
-        """True if the application was signaled to re-center."""
-        return self.c_data.ShouldRecenter == capi.ovrTrue
-
-    @property
-    def hasInputFocus(self):
-        """True if the application has input focus."""
-        return self.c_data.HasInputFocus == capi.ovrTrue
-
-    @property
-    def overlayPresent(self):
-        """True if the system overlay is present."""
-        return self.c_data.OverlayPresent == capi.ovrTrue
-
-    @property
-    def depthRequested(self):
-        """True if the system requires a depth texture. Currently unused by
-        PsychXR."""
-        return self.c_data.DepthRequested == capi.ovrTrue
-
 
 cdef class LibOVRHmdInfo(object):
-    """Class for HMD information returned by 'getHmdInfo'."""
+    """Class for HMD information returned by :func:`getHmdInfo`."""
 
     cdef capi.ovrHmdDesc* c_data
     cdef bint ptr_owner
@@ -2395,15 +2411,36 @@ cdef class LibOVRFrameStat(object):
 
 
 def success(int result):
-    """Check if an API return indicates success."""
+    """Check if an API return indicates success.
+
+    Returns
+    -------
+    bool
+        True if API call was an successful (`result` > 0).
+
+    """
     return <bint>capi.OVR_SUCCESS(result)
 
 def unqualifedSuccess(int result):
-    """Check if an API return indicates unqualified success."""
+    """Check if an API return indicates unqualified success.
+
+    Returns
+    -------
+    bool
+        True if API call was an unqualified success (`result` == 0).
+
+    """
     return <bint>capi.OVR_UNQUALIFIED_SUCCESS(result)
 
 def failure(int result):
-    """Check if an API return indicates failure (error)."""
+    """Check if an API return indicates failure (error).
+
+    Returns
+    -------
+    bool
+        True if API call returned an error (`result` < 0).
+
+    """
     return <bint>capi.OVR_FAILURE(result)
 
 def isOculusServiceRunning(int timeoutMS=100):
@@ -2411,12 +2448,13 @@ def isOculusServiceRunning(int timeoutMS=100):
 
     Parameters
     ----------
-    timeout_ms : int
+    timeoutMS : int
         Timeout in milliseconds.
 
     Returns
     -------
     bool
+        True if the Oculus background service is running.
 
     """
     cdef capi.ovrDetectResult result = capi.ovr_Detect(
@@ -2435,6 +2473,7 @@ def isHmdConnected(int timeout_ms=100):
     Returns
     -------
     bool
+        True if a LibOVR compatible HMD is connected.
 
     """
     cdef capi.ovrDetectResult result = capi.ovr_Detect(
@@ -2563,8 +2602,8 @@ def initialize(bint focusAware=False, int connectionTimeout=0):
     Returns
     -------
     int
-        Return code of the LibOVR API call 'ovr_Initialize'. Returns
-        LIBOVR_SUCCESS if completed without errors. In the event of an
+        Return code of the LibOVR API call `ovr_Initialize`. Returns
+        `LIBOVR_SUCCESS` if completed without errors. In the event of an
         error, possible return values are:
 
         * :data:`LIBOVR_ERROR_INITIALIZE`: Initialization error.
@@ -2604,7 +2643,7 @@ def create():
     Returns
     -------
     int
-        Result of the 'ovr_Create' API call. A session was successfully
+        Result of the `ovr_Create` API call. A session was successfully
         created if the result is :data:`LIBOVR_SUCCESS`.
 
     """
@@ -2699,10 +2738,10 @@ def setHeadLocked(bint enable):
         _eyeLayer.Header.Flags &= ~capi.ovrLayerFlag_HeadLocked
 
 def getPixelsPerTanAngleAtCenter(int eye):
-    """Get pixels per tan angle at te center of the display.
+    """Get pixels per tan angle (=1) at the center of the display.
 
-    Values reflect the FOVs set by the last call to 'setEyeRenderFov' (or else
-    the default FOVs will be used.)
+    Values reflect the FOVs set by the last call to :func:`setEyeRenderFov` (or
+    else the default FOVs will be used.)
 
     Parameters
     ----------
@@ -2723,10 +2762,39 @@ def getPixelsPerTanAngleAtCenter(int eye):
 
     return toReturn.x, toReturn.y
 
+def getPixelsPerDegree(int eye):
+    """Get pixels per degree at the center of the display.
+
+    Values reflect the FOVs set by the last call to :func:`setEyeRenderFov` (or
+    else the default FOVs will be used.)
+
+    Parameters
+    ----------
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
+
+    Returns
+    -------
+    tuple of floats
+        Pixels per degree at the center of the screen.
+
+    """
+    global _eyeRenderDesc
+
+    cdef capi.ovrVector2f pixelsPerTanAngle = \
+        _eyeRenderDesc[eye].PixelsPerTanAngleAtCenter
+
+    # tan(angle)=1 -> 45 deg
+    cdef float horzPixelPerDeg = pixelsPerTanAngle.x / 45.0
+    cdef float vertPixelPerDeg = pixelsPerTanAngle.y / 45.0
+
+    return horzPixelPerDeg, vertPixelPerDeg
+
 def getDistortedViewport(int eye):
     """Get the distorted viewport.
 
-    You must call 'setEyeRenderFov' first for values to be valid.
+    You must call :func:`setEyeRenderFov` first for values to be valid.
 
     Parameters
     ----------
@@ -2751,9 +2819,10 @@ def getEyeRenderFov(int eye):
 
     The FOV for a given eye are defined as a tuple of tangent angles (Up,
     Down, Left, Right). By default, this function will return the default
-    FOVs after 'start' is called (see 'defaultEyeFOVs'). You can override
-    these values using 'maxEyeFOVs' and 'symmetricEyeFOVs', or with
-    custom values (see Examples below).
+    FOVs after 'start' is called (see :py:attr:`LibOVRHmdInfo.defaultEyeFov`).
+    You can override these values using :py:attr:`LibOVRHmdInfo.maxEyeFov` and
+    :py:attr:`LibOVRHmdInfo.symmetricEyeFov`, or with custom values (see
+    Examples below).
 
     Parameters
     ----------
@@ -2770,7 +2839,7 @@ def getEyeRenderFov(int eye):
     --------
     Getting the tangent angles::
 
-        leftFov = libovr.getEyeRenderFOV(libovr.LIBOVR_EYE_LEFT)
+        leftFov = getEyeRenderFOV(LIBOVR_EYE_LEFT)
         # left FOV tangent angles, do the same for the right
         upTan, downTan, leftTan, rightTan =  leftFov
 
@@ -2792,7 +2861,8 @@ def setEyeRenderFov(int eye, object fov):
     Parameters
     ----------
     eye : int
-        Eye index. Values are `LIBOVR_EYE_LEFT` and `LIBOVR_EYE_RIGHT`.
+        Eye index. Values are :data:`LIBOVR_EYE_LEFT` and
+        :data:`LIBOVR_EYE_RIGHT`.
     fov : tuple, list or ndarray of floats
         Eye FOV tangent angles [UpTan, DownTan, LeftTan, RightTan].
 
@@ -2801,14 +2871,14 @@ def setEyeRenderFov(int eye, object fov):
 
     Setting eye render FOVs to symmetric (needed for mono rendering)::
 
-        leftFov, rightFov = libovr.getSymmetricEyeFOVs()
-        libovr.setEyeRenderFOV(libovr.LIBOVR_EYE_LEFT, leftFov)
-        libovr.setEyeRenderFOV(libovr.LIBOVR_EYE_RIGHT, rightFov)
+        leftFov, rightFov = getSymmetricEyeFOVs()
+        setEyeRenderFOV(LIBOVR_EYE_LEFT, leftFov)
+        setEyeRenderFOV(LIBOVR_EYE_RIGHT, rightFov)
 
     Using custom values::
 
         # Up, Down, Left, Right tan angles
-        libovr.setEyeRenderFOV(libovr.LIBOVR_EYE_LEFT, [1.0, -1.0, -1.0, 1.0])
+        setEyeRenderFOV(LIBOVR_EYE_LEFT, [1.0, -1.0, -1.0, 1.0])
 
     """
     global _ptrSession
@@ -2841,7 +2911,7 @@ def getEyeAspectRatio(int eye):
     Returns
     -------
     float
-        Aspect ratio of the eye's FOV.
+        Aspect ratio of the eye's FOV (width / height).
 
     """
     cdef libovr_math.FovPort fovPort = \
@@ -2910,7 +2980,7 @@ def getEyeFocalLength(int eye):
 def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
     """Get the recommended buffer (texture) sizes for eye buffers.
 
-    Should be called after `setEyerenderFovs`. Returns buffer resolutions in
+    Should be called after :func:`setEyeRenderFov`. Returns buffer resolutions in
     pixels (w, h). The values can be used when configuring a framebuffer or swap
     chain for rendering.
 
@@ -2935,11 +3005,11 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
     Getting the buffer sizes::
 
         # eye FOVs must be set first!
-        leftFov, rightFov = libovr.getDefaultEyeFOVs()
-        libovr.setEyeRenderFov(libovr.LIBOVR_EYE_LEFT, leftFov)
-        libovr.setEyeRenderFov(libovr.LIBOVR_EYE_RIGHT, rightFov)
+        leftFov, rightFov = getDefaultEyeFOVs()
+        setEyeRenderFov(LIBOVR_EYE_LEFT, leftFov)
+        setEyeRenderFov(LIBOVR_EYE_RIGHT, rightFov)
 
-        leftBufferSize, rightBufferSize = libovr.calcEyeBufferSize()
+        leftBufferSize, rightBufferSize = calcEyeBufferSize()
         leftW leftH = leftBufferSize
         rightW, rightH = rightBufferSize
         # combined size if using a single texture buffer for both eyes
@@ -2971,7 +3041,7 @@ def getTextureSwapChainLengthGL(int swapChain):
     ----------
     swapChain : int
         Swap chain handle to query. Must be a swap chain initialized by a
-        previous call to `createTextureSwapChainGL`.
+        previous call to :func:`createTextureSwapChainGL`.
 
     Returns
     -------
@@ -3004,7 +3074,7 @@ def getTextureSwapChainCurrentIndex(int swapChain):
     ----------
     swapChain : int
         Swap chain handle to query. Must be a swap chain initialized by a
-        previous call to `createTextureSwapChainGL`.
+        previous call to :func:`createTextureSwapChainGL`.
 
     Returns
     -------
@@ -3038,7 +3108,7 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
     ----------
     swapChain : int
         Swap chain handle to query. Must be a swap chain initialized by a
-        previous call to `createTextureSwapChainGL`.
+        previous call to :func:`createTextureSwapChainGL`.
     index : int
         Index within the swap chain to retrieve its OpenGL texture name.
 
@@ -3055,15 +3125,15 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
     Get the OpenGL texture buffer name associated with the swap chain index::
 
         # get the current available index
-        swapChain = libovr.LIBOVR_TEXTURE_SWAP_CHAIN0
+        swapChain = LIBOVR_TEXTURE_SWAP_CHAIN0
         result, currentIdx = hmd.getSwapChainCurrentIndex(swapChain)
 
         # get the OpenGL buffer name
         result, texId = hmd.getTextureSwapChainBufferGL(swapChain, currentIdx)
 
         # bind the texture
-        GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0,
-            GL.GL_TEXTURE_2D, texId, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+            GL_TEXTURE_2D, texId, 0)
 
     """
     cdef unsigned int tex_id = 0  # OpenGL texture handle
@@ -3080,12 +3150,10 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
 def createTextureSwapChainGL(int swapChain, int width, int height, int textureFormat=LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB, int levels=1):
     """Create a texture swap chain for eye image buffers.
 
-    You can create up-to 32 swap chains, referenced by their index.
-
     Parameters
     ----------
     swapChain : int
-        Swap chain handle to initialize, usually `LIBOVR_SWAP_CHAIN*`.
+        Swap chain handle to initialize, usually :data:`LIBOVR_SWAP_CHAIN*`.
     width : int
         Width of texture in pixels.
     height : int
@@ -3121,11 +3189,11 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
 
     Create a texture swap chain::
 
-        result = libovr.createTextureSwapChainGL(libovr.LIBOVR_TEXTURE_SWAP_CHAIN0,
-            texWidth, texHeight, libovr.LIBOVR_FORMAT_R8G8B8A8_UNORM)
+        result = createTextureSwapChainGL(LIBOVR_TEXTURE_SWAP_CHAIN0,
+            texWidth, texHeight, LIBOVR_FORMAT_R8G8B8A8_UNORM)
         # set the swap chain for each eye buffer
-        for eye in range(libovr.LIBOVR_EYE_COUNT):
-            hmd.setEyeColorTextureSwapChain(eye, libovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
+        for eye in range(LIBOVR_EYE_COUNT):
+            hmd.setEyeColorTextureSwapChain(eye, LIBOVR_TEXTURE_SWAP_CHAIN0)
 
     """
     global _swapChains
@@ -3158,8 +3226,8 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
 def setEyeColorTextureSwapChain(int eye, int swapChain):
     """Set the color texture swap chain for a given eye.
 
-    Should be called after a successful `createTextureSwapChainGL` call but
-    before any rendering is done.
+    Should be called after a successful :func:`createTextureSwapChainGL` call
+    but before any rendering is done.
 
     Parameters
     ----------
@@ -3167,33 +3235,33 @@ def setEyeColorTextureSwapChain(int eye, int swapChain):
         Eye index.
     swapChain : int
         Swap chain handle to query. Must be a swap chain initialized by a
-        previous call to 'createTextureSwapChainGL'.
+        previous call to :func:`createTextureSwapChainGL`.
 
     Examples
     --------
 
     Associate the swap chain with both eyes (single buffer for stereo views)::
 
-        libovr.setEyeColorTextureSwapChain(
-            libovr.LIBOVR_EYE_LEFT, libovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
-        libovr.setEyeColorTextureSwapChain(
-            libovr.LIBOVR_EYE_RIGHT, libovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
+        setEyeColorTextureSwapChain(
+            LIBOVR_EYE_LEFT, LIBOVR_TEXTURE_SWAP_CHAIN0)
+        setEyeColorTextureSwapChain(
+            LIBOVR_EYE_RIGHT, LIBOVR_TEXTURE_SWAP_CHAIN0)
 
         # same as above but with a loop
-        for eye in range(libovr.LIBOVR_EYE_COUNT):
-            libovr.setEyeColorTextureSwapChain(eye, libovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
+        for eye in range(LIBOVR_EYE_COUNT):
+            setEyeColorTextureSwapChain(eye, LIBOVR_TEXTURE_SWAP_CHAIN0)
 
     Associate a swap chain with each eye (separate buffer for stereo views)::
 
+        setEyeColorTextureSwapChain(
+            LIBOVR_EYE_LEFT, LIBOVR_TEXTURE_SWAP_CHAIN0)
         libovr.setEyeColorTextureSwapChain(
-            libovr.LIBOVR_EYE_LEFT, libovr.LIBOVR_TEXTURE_SWAP_CHAIN0)
-        libovr.setEyeColorTextureSwapChain(
-            libovr.LIBOVR_EYE_RIGHT, libovr.LIBOVR_TEXTURE_SWAP_CHAIN1)
+            LIBOVR_EYE_RIGHT, LIBOVR_TEXTURE_SWAP_CHAIN1)
 
         # with a loop ...
-        for eye in range(libovr.LIBOVR_EYE_COUNT):
-            libovr.setEyeColorTextureSwapChain(
-                eye, libovr.LIBOVR_TEXTURE_SWAP_CHAIN0 + eye)
+        for eye in range(LIBOVR_EYE_COUNT):
+            setEyeColorTextureSwapChain(
+                eye, LIBOVR_TEXTURE_SWAP_CHAIN0 + eye)
 
     """
     global _swapChains
@@ -3217,10 +3285,10 @@ def createMirrorTexture(int width, int height, int textureFormat=LIBOVR_FORMAT_R
     textureFormat : int
         Color texture format to use, valid texture formats are:
 
-            * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
-            * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
-            * :data:`LIBOVR_FORMAT_R16G16B16A16_FLOAT`
-            * :data:`LIBOVR_FORMAT_R11G11B10_FLOAT`
+        * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
+        * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
+        * :data:`LIBOVR_FORMAT_R16G16B16A16_FLOAT`
+        * :data:`LIBOVR_FORMAT_R11G11B10_FLOAT`
 
     Returns
     -------
@@ -3280,14 +3348,14 @@ def getMirrorTexture():
     Getting the mirror texture for use::
 
         # get the mirror texture
-        result, mirrorTexId = libovr.getMirrorTexture()
-        if libovr.LIBOVR_FAILURE(result):
+        result, mirrorTexId = getMirrorTexture()
+        if LIBOVR_FAILURE(result):
             # raise error ...
         # bind the mirror texture texture to the framebuffer
-        GL.glFramebufferTexture2D(
-            GL.GL_READ_FRAMEBUFFER,
-            GL.GL_COLOR_ATTACHMENT0,
-            GL.GL_TEXTURE_2D, mirrorTexId, 0)
+        glFramebufferTexture2D(
+            GL_READ_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0,
+            GL_TEXTURE_2D, mirrorTexId, 0)
 
     """
     cdef unsigned int mirror_id
@@ -3319,7 +3387,7 @@ def getTrackingState(double absTime, bint latencyMarker=True):
 
     Returns
     -------
-    `tuple` of `LibOVRPoseState`
+    `tuple` of :class:`LibOVRPoseState`
         Pose state for the head, left and right hands.
 
     Examples
@@ -3360,8 +3428,8 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     for 'objects', which are additional Touch controllers that can be paired and
     tracked in the scene.
 
-    It is recommended that `getTrackingState` is used for obtaining the head and
-    hand poses.
+    It is recommended that :func:`getTrackingState` is used for obtaining the
+    head and hand poses.
 
     Parameters
     ----------
@@ -3391,9 +3459,9 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     Returns
     -------
     tuple
-        Return code (`int`) of the 'ovr_GetDevicePoses' API call and list of
+        Return code (`int`) of the `ovr_GetDevicePoses` API call and list of
         tracked device poses (`list` of `LibOVRPoseState`). If a device cannot
-        be tracked, the return code will be `LIBOVR_ERROR_LOST_TRACKING`.
+        be tracked, the return code will be :data:`LIBOVR_ERROR_LOST_TRACKING`.
 
     Warning
     -------
@@ -3405,10 +3473,10 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
 
     Get HMD and touch controller poses::
 
-        deviceTypes = (ovr.LIBOVR_TRACKED_DEVICE_TYPE_HMD,
-                       ovr.LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH,
-                       ovr.LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH)
-        headPose, leftHandPose, rightHandPose = ovr.getDevicePoses(
+        deviceTypes = (LIBOVR_TRACKED_DEVICE_TYPE_HMD,
+                       LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH,
+                       LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH)
+        headPose, leftHandPose, rightHandPose = getDevicePoses(
             deviceTypes, absTime)
 
     """
@@ -3476,7 +3544,7 @@ def calcEyePoses(LibOVRPose headPose):
 
     Parameters
     ----------
-    headPose : `LibOVRPose`
+    headPose : :py:class:`LibOVRPose`
         Head pose.
 
     Examples
@@ -3484,14 +3552,14 @@ def calcEyePoses(LibOVRPose headPose):
 
     Compute the eye poses from tracker data::
 
-        t = hmd.getPredictedDisplayTime()
-        trackedPoses = hmd.getTrackedPoses(t)
+        t = getPredictedDisplayTime()
+        trackedPoses = getTrackedPoses(t)
 
         head = trackedPoses['Head']
 
         # check if tracking
         if head.orientationTracked and head.positionTracked:
-            hmd.calcEyePoses(head.thePose)  # calculate eye poses
+            calcEyePoses(head.thePose)  # calculate eye poses
         else:
             # do something ...
 
@@ -3549,9 +3617,9 @@ def getHmdToEyePose(int eye):
     """HMD to eye pose.
 
     These are the prototype eye poses specified by LibOVR, defined only
-    after `create` is called. These poses are referenced to the HMD origin.
-    Poses are transformed by calling `calcEyePoses`, updating the values
-    returned by `getEyeRenderPose`.
+    after :func:`create` is called. These poses are referenced to the HMD
+    origin. Poses are transformed by calling :func:`calcEyePoses`, updating the
+    values returned by :func:`getEyeRenderPose`.
 
     Parameters
     ----------
@@ -3560,7 +3628,7 @@ def getHmdToEyePose(int eye):
 
     Returns
     -------
-    `tuple` of `LibOVRPose`
+    `tuple` of :py:class:`LibOVRPose`
         Copy of the HMD to eye pose.
 
     See Also
@@ -3574,7 +3642,7 @@ def getHmdToEyePose(int eye):
     correspond to the actual inter-ocular distance (IOD) of the user. You can
     get the IOD used for rendering by adding up the absolute values of the
     x-components of the eye poses, or by multiplying the value of
-    'getEyeToNoseDist()' by two. Furthermore, the IOD values can be altered,
+    :func:`getEyeToNoseDist` by two. Furthermore, the IOD values can be altered,
     prior to calling 'calcEyePoses', to override the values specified by LibOVR.
 
     Examples
@@ -3592,7 +3660,7 @@ def setHmdToEyePose(int eye, LibOVRPose eyePose):
     """Set the HMD eye poses.
 
     This overwrites the values returned by LibOVR and will be used in successive
-    calls of `calcEyePoses` to compute eye render poses.
+    calls of :func:`calcEyePoses` to compute eye render poses.
 
     Parameters
     ----------
@@ -3610,7 +3678,7 @@ def setHmdToEyePose(int eye, LibOVRPose eyePose):
 def getEyeRenderPose(int eye):
     """Get eye render poses.
 
-    Pose are those computed by the last 'calcEyePoses' call. Returned
+    Pose are those computed by the last :func:`calcEyePoses` call. Returned
     objects are copies of the data stored internally by the session
     instance. These poses are used to define the view matrix when rendering
     for each eye.
@@ -3631,9 +3699,9 @@ def getEyeRenderPose(int eye):
 
     Notes
     -----
-    The returned `LibOVRPose` objects are copies of data stored internally by
-    the session object. Setting renderPoses will recompute their transformation
-    matrices.
+    The returned :class:`LibOVRPose` objects are copies of data stored internally
+    by the session object. Setting renderPoses will recompute their
+    transformation matrices.
 
     Examples
     --------
@@ -3666,7 +3734,7 @@ def setEyeRenderPose(int eye, LibOVRPose eyePose):
     """Set eye render pose.
 
     Setting the eye render pose will update the values returned by
-    `getEyeRenderPose`.
+    :func:`getEyeRenderPose`.
 
     Parameters
     ----------
@@ -3709,7 +3777,7 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
     """Compute the projection matrix.
 
     The projection matrix is computed by the runtime using the eye FOV
-    parameters set with '~libovr.LibOVRSession.setEyeRenderFov' calls.
+    parameters set with :py:attr:`libovr.LibOVRSession.setEyeRenderFov` calls.
 
     Parameters
     ----------
@@ -3837,7 +3905,7 @@ def setEyeRenderViewport(int eye, object values):
 
         # Calculate the optimal eye buffer sizes for the FOVs, these will define the
         # dimensions of the render target.
-        leftBufferSize, rightBufferSize = libovr.calcEyeBufferSizes()
+        leftBufferSize, rightBufferSize = calcEyeBufferSizes()
         # Define the viewports, which specifies the region on the render target a
         # eye's image will be drawn to and accessed from. Viewports are rectangles
         # defined like [x, y, w, h]. The x-position of the rightViewport is offset
@@ -3845,8 +3913,8 @@ def setEyeRenderViewport(int eye, object values):
         leftViewport = [0, 0, leftBufferSize[0], leftBufferSize[1]]
         rightViewport = [leftBufferSize[0], 0, rightBufferSize[0], rightBufferSize[1]]
         # set both viewports
-        libovr.setEyeRenderViewport(libovr.LIBOVR_EYE_LEFT, leftViewport)
-        libovr.setEyeRenderViewport(libovr.LIBOVR_EYE_RIGHT, rightViewport)
+        setEyeRenderViewport(LIBOVR_EYE_LEFT, leftViewport)
+        setEyeRenderViewport(LIBOVR_EYE_RIGHT, rightViewport)
 
     """
     global _eyeLayer
@@ -3872,7 +3940,7 @@ def getEyeViewMatrix(int eye, object outMatrix=None):
     Returns
     -------
     ndarray
-        4x4 view matrix (16x1 if flatten=True).
+        4x4 view matrix.
 
     """
     global _eyeViewMatrix
@@ -3967,7 +4035,13 @@ def hidePerfHud():
         _ptrSession, b"PerfHudMode", capi.ovrPerfHud_Off)
 
 def perfHudModes():
-    """List of valid performance HUD modes."""
+    """List of valid performance HUD modes.
+
+    Returns
+    -------
+    list of str
+
+    """
     return [*_performance_hud_modes]
 
 # def getEyeViewport(int eye):
@@ -4014,7 +4088,7 @@ def perfHudModes():
 
 def waitToBeginFrame(unsigned int frameIndex=0):
     """Wait until a buffer is available and frame rendering can begin. Must
-    be called before 'beginFrame'.
+    be called before :func:`beginFrame`.
 
     Parameters
     ----------
@@ -4038,7 +4112,7 @@ def waitToBeginFrame(unsigned int frameIndex=0):
 
 def beginFrame(unsigned int frameIndex=0):
     """Begin rendering the frame. Must be called prior to drawing and
-    'endFrame'.
+    :func:`endFrame`.
 
     Parameters
     ----------
@@ -4070,7 +4144,7 @@ def commitTextureSwapChain(int eye):
     Returns
     -------
     int
-        Error code returned by API call 'ovr_CommitTextureSwapChain'. Will
+        Error code returned by API call `ovr_CommitTextureSwapChain`. Will
         return :data:`LIBOVR_SUCCESS` if successful. Returns error code
         :data:`LIBOVR_ERROR_TEXTURE_SWAP_CHAIN_FULL` if called too many
         times without calling 'endFrame'.
@@ -4102,16 +4176,10 @@ def endFrame(unsigned int frameIndex=0):
     Returns
     -------
     `int`
-        Error code returned by API call 'ovr_EndFrame'. Check against
+        Error code returned by API call `ovr_EndFrame`. Check against
         :data:`LIBOVR_SUCCESS`, :data:`LIBOVR_SUCCESS_NOT_VISIBLE`,
         :data:`LIBOVR_SUCCESS_BOUNDARY_INVALID`,
         :data:`LIBOVR_SUCCESS_DEVICE_UNAVAILABLE`.
-
-    Raises
-    ------
-    RuntimeError
-        Raised if 'debugMode' is True and the API call to 'ovr_EndFrame'
-        returns an error.
 
     """
     global _ptrSession
@@ -4189,7 +4257,7 @@ def specifyTrackingOrigin(LibOVRPose newOrigin):
 
     Parameters
     ----------
-    newOrigin : `LibOVRPose`
+    newOrigin : :class:`LibOVRPose`
         New origin to use.
 
     """
@@ -4436,7 +4504,7 @@ def getLastErrorInfo():
 
     Returns
     -------
-    tuple of int, str
+    `tuple` of `int`, `str`
         Tuple of the API call result and error string.
 
     """
@@ -4583,6 +4651,10 @@ def getConnectedControllerTypes():
         isConnected = (connected & libovr.LIBOVR_CONTROLLER_TYPE_XBOX) == \
             libovr.LIBOVR_CONTROLLER_TYPE_XBOX
 
+    See Also
+    --------
+    updateInputState : Poll a controller's current state.
+
     Notes
     -----
     If both touch controllers are connected, `LIBOVR_CONTROLLER_TYPE_TOUCH` will
@@ -4611,6 +4683,10 @@ def getConnectedControllerTypes():
 def updateInputState(int controller):
     """Refresh the input state of a controller.
 
+    Subsequent :func:`getButton`, :func:`getTouch`, :func:`getThumbstickValues`,
+    :func:`getIndexTriggerValues`, and :func:`getHandTriggerValues` calls using
+    the same `controller` value will reflect the new state.
+
     Parameters
     ----------
     controller : int
@@ -4621,6 +4697,17 @@ def updateInputState(int controller):
         * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
         * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
         * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+
+    Returns
+    -------
+    tuple of int, float
+        Result of the `ovr_GetInputState` LibOVR API call and polling time in
+        seconds.
+
+    See Also
+    --------
+    getConnectedControllerTypes : Get a list of connected controllers.
+    getButton: Get the state of a button on a controller.
 
     """
     global _prevInputState
@@ -4677,7 +4764,7 @@ def getButton(object controller, object button, str testState='continuous'):
 
     Parameters
     ----------
-    controller : int or str
+    controller : int
         Controller name. Valid values are:
 
         * :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
@@ -4730,46 +4817,33 @@ def getButton(object controller, object button, str testState='continuous'):
     --------
     Check if the 'X' button on the touch controllers was pressed::
 
-        isPressed = getButton(LIBOVR_CONTROLLER_TYPE_TOUCH,
-            LIBOVR_BUTTON_X, 'pressed')
+        isPressed = libovr.getButtons(libovr.LIBOVR_CONTROLLER_TYPE_TOUCH,
+            libovr.LIBOVR_BUTTON_X, 'pressed')
 
     Test for multiple buttons ('X' and 'Y') released::
 
-        buttons = LIBOVR_BUTTON_X | LIBOVR_BUTTON_Y
-        controller = LIBOVR_CONTROLLER_TYPE_TOUCH
-        isReleased = getButton(controller, buttons, 'released')
+        buttons = libovr.LIBOVR_BUTTON_X | libovr.LIBOVR_BUTTON_Y
+        controller = libovr.LIBOVR_CONTROLLER_TYPE_TOUCH
+        isReleased = libovr.getButtons(controller, buttons, 'released')
 
     """
     global _prevInputState
     global _inputStates
 
-    # get the index for the specified controller type
+    # get the controller index in the states array
     cdef int idx
-    if isinstance(controller, int):
-        if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
-            idx = 0
-        elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
-            idx = 1
-        elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
-            idx = 2
-        elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
-            idx = 3
-        elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
-            idx = 4
-    elif isinstance(controller, str):
-        idx = _controller_types[controller]
+    if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
+        idx = 0
+    elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
+        idx = 1
+    elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
+        idx = 2
+    elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
+        idx = 3
+    elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
+        idx = 4
     else:
-        raise ValueError("Invalid type for 'controller' specified.")
-
-    # get the value for the buttons
-    cdef unsigned int testButton = 0
-    if isinstance(button, int):
-        testButton = <unsigned int>button
-    elif isinstance(button, str):
-        testButton = _controller_buttons[button]
-    elif isinstance(button, (list, tuple,)):
-        for i in button:
-            testButton |= _controller_buttons[i]
+        raise ValueError("Invalid controller type specified.")
 
     # get the time the controller was polled
     cdef double t_sec = _inputStates[idx].TimeInSeconds
@@ -4781,15 +4855,15 @@ def getButton(object controller, object button, str testState='continuous'):
     # test if the button was pressed
     cdef bint stateResult = False
     if testState == 'continuous':
-        stateResult = (curButtons & testButton) == testButton
+        stateResult = (curButtons & button) == button
     elif testState == 'rising' or testState == 'pressed':
         # rising edge, will trigger once when pressed
-        stateResult = (curButtons & testButton) == testButton and \
-                      (prvButtons & testButton) != testButton
+        stateResult = (curButtons & button) == button and \
+                      (prvButtons & button) != button
     elif testState == 'falling' or testState == 'released':
         # falling edge, will trigger once when released
-        stateResult = (curButtons & testButton) != testButton and \
-                      (prvButtons & testButton) == testButton
+        stateResult = (curButtons & button) != button and \
+                      (prvButtons & button) == button
     else:
         raise ValueError("Invalid trigger mode specified.")
 
@@ -4818,9 +4892,9 @@ def getTouch(int controller, int touch, str testState='continuous'):
         * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
         * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
 
-    button : `int`
-        Button to check. Values can be ORed together to test for multiple
-        touches. If a given controller does not have a particular button, False
+    touch : `int`
+        Touch to check. Values can be ORed together to test for multiple
+        touches. If a given controller does not have a particular touch, False
         will always be returned. Valid button values are:
 
         * :data:`LIBOVR_TOUCH_A`
@@ -4833,6 +4907,8 @@ def getTouch(int controller, int touch, str testState='continuous'):
         * :data:`LIBOVR_TOUCH_LSHOULDER`
         * :data:`LIBOVR_TOUCH_LINDEXTRIGGER`
         * :data:`LIBOVR_TOUCH_LINDEXTRIGGER`
+        * :data:`LIBOVR_TOUCH_LTHUMBREST`
+        * :data:`LIBOVR_TOUCH_RTHUMBREST`
         * :data:`LIBOVR_TOUCH_RINDEXPOINTING`
         * :data:`LIBOVR_TOUCH_RTHUMBUP`
         * :data:`LIBOVR_TOUCH_LINDEXPOINTING`
@@ -4849,7 +4925,13 @@ def getTouch(int controller, int touch, str testState='continuous'):
 
     Notes
     -----
-    Not every controller type supports touch.
+
+    * Not every controller type supports touch.
+    * Special 'touches' :data:`LIBOVR_TOUCH_RINDEXPOINTING`,
+      :data:`LIBOVR_TOUCH_RTHUMBUP`, :data:`LIBOVR_TOUCH_RTHUMBREST`,
+      :data:`LIBOVR_TOUCH_LINDEXPOINTING`, :data:`LIBOVR_TOUCH_LINDEXPOINTING`,
+      and :data:`LIBOVR_TOUCH_LINDEXPOINTING`, can be used to recognise hand
+      poses.
 
     """
     global _prevInputState
@@ -5201,9 +5283,14 @@ def getSessionStatus():
 
     """
     global _ptrSession
-    cdef LibOVRSessionStatus to_return = LibOVRSessionStatus()
-    cdef capi.ovrResult result = capi.ovr_GetSessionStatus(
-        _ptrSession, to_return.c_data)
+    cdef capi.ovrSessionStatus* ptr = \
+        <capi.ovrSessionStatus*>PyMem_Malloc(sizeof(capi.ovrSessionStatus))
+
+    if ptr is NULL:
+        raise MemoryError
+
+    cdef capi.ovrResult result = capi.ovr_GetSessionStatus(_ptrSession, ptr)
+    cdef LibOVRSessionStatus to_return = LibOVRSessionStatus.fromPtr(ptr, True)
 
     return to_return
 
