@@ -864,12 +864,6 @@ cdef class LibOVRPose(object):
             coords = numpy.zeros((100,3,), dtype=numpy.float32)  # big array
             myPose.getPos(coords[42,:])  # row 42
 
-        Notes
-        -----
-        Q: Why is there no property setter for `pos`?
-        A: It confused people that setting values of the returned array didn't
-        update anything.
-
         """
         cdef np.ndarray[np.float32_t, ndim=1] toReturn
         if out is None:
@@ -925,7 +919,8 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-            The orientation quaternion should be normalized.
+
+        * The orientation quaternion should be normalized.
 
         """
         cdef np.ndarray[np.float32_t, ndim=1] toReturn
@@ -973,7 +968,7 @@ cdef class LibOVRPose(object):
         Returns
         -------
         ndarray or None
-            The vector for 'at' if `outVector`=None. Returns None if `outVector`
+            The vector for `at` if `outVector`=None. Returns None if `outVector`
             was specified.
 
         Raises
@@ -985,7 +980,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        It's better to use the 'at' property if you are not supplying an output
+        It's better to use the `at` property if you are not supplying an output
         array. However, `getAt` will have the same effect as the property if
         `outVector`=None.
 
@@ -1034,7 +1029,7 @@ cdef class LibOVRPose(object):
         Returns
         -------
         ndarray or None
-            The vector for 'up' if `outVector`=None. Returns None if `outVector`
+            The vector for `up` if `outVector`=None. Returns None if `outVector`
             was specified.
 
         Raises
@@ -1053,7 +1048,7 @@ cdef class LibOVRPose(object):
         Examples
         --------
 
-        Using the 'up' vector with gluLookAt::
+        Using the `up` vector with gluLookAt::
 
             up = myPose.getUp()  # myPose.up also works
             center = myPose.pos
@@ -4666,7 +4661,7 @@ def updateInputState(int controller):
 
     return result, currentInputState.TimeInSeconds
 
-def getButton(int controller, int button, str testState='continuous'):
+def getButton(object controller, object button, str testState='continuous'):
     """Get the state of a specified button for a given controller.
 
     Buttons to test are specified using their string names. Argument
@@ -4682,7 +4677,7 @@ def getButton(int controller, int button, str testState='continuous'):
 
     Parameters
     ----------
-    controller : int
+    controller : int or str
         Controller name. Valid values are:
 
         * :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
@@ -4726,37 +4721,55 @@ def getButton(int controller, int button, str testState='continuous'):
     tuple of bool and float
         Result of the button press and the time in seconds it was polled.
 
+    Raises
+    ------
+    ValueError
+        When an invalid controller or button identifier is passed.
+
     Examples
     --------
     Check if the 'X' button on the touch controllers was pressed::
 
-        isPressed = libovr.getButtons(libovr.LIBOVR_CONTROLLER_TYPE_TOUCH,
-            libovr.LIBOVR_BUTTON_X, 'pressed')
+        isPressed = getButton(LIBOVR_CONTROLLER_TYPE_TOUCH,
+            LIBOVR_BUTTON_X, 'pressed')
 
     Test for multiple buttons ('X' and 'Y') released::
 
-        buttons = libovr.LIBOVR_BUTTON_X | libovr.LIBOVR_BUTTON_Y
-        controller = libovr.LIBOVR_CONTROLLER_TYPE_TOUCH
-        isReleased = libovr.getButtons(controller, buttons, 'released')
+        buttons = LIBOVR_BUTTON_X | LIBOVR_BUTTON_Y
+        controller = LIBOVR_CONTROLLER_TYPE_TOUCH
+        isReleased = getButton(controller, buttons, 'released')
 
     """
     global _prevInputState
     global _inputStates
 
-    # get the controller index in the states array
+    # get the index for the specified controller type
     cdef int idx
-    if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
-        idx = 0
-    elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
-        idx = 1
-    elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
-        idx = 2
-    elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
-        idx = 3
-    elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
-        idx = 4
+    if isinstance(controller, int):
+        if controller == LIBOVR_CONTROLLER_TYPE_XBOX:
+            idx = 0
+        elif controller == LIBOVR_CONTROLLER_TYPE_REMOTE:
+            idx = 1
+        elif controller == LIBOVR_CONTROLLER_TYPE_TOUCH:
+            idx = 2
+        elif controller == LIBOVR_CONTROLLER_TYPE_LTOUCH:
+            idx = 3
+        elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
+            idx = 4
+    elif isinstance(controller, str):
+        idx = _controller_types[controller]
     else:
-        raise ValueError("Invalid controller type specified.")
+        raise ValueError("Invalid type for 'controller' specified.")
+
+    # get the value for the buttons
+    cdef unsigned int testButton = 0
+    if isinstance(button, int):
+        testButton = <unsigned int>button
+    elif isinstance(button, str):
+        testButton = _controller_buttons[button]
+    elif isinstance(button, (list, tuple,)):
+        for i in button:
+            testButton |= _controller_buttons[i]
 
     # get the time the controller was polled
     cdef double t_sec = _inputStates[idx].TimeInSeconds
@@ -4768,15 +4781,15 @@ def getButton(int controller, int button, str testState='continuous'):
     # test if the button was pressed
     cdef bint stateResult = False
     if testState == 'continuous':
-        stateResult = (curButtons & button) == button
+        stateResult = (curButtons & testButton) == testButton
     elif testState == 'rising' or testState == 'pressed':
         # rising edge, will trigger once when pressed
-        stateResult = (curButtons & button) == button and \
-                      (prvButtons & button) != button
+        stateResult = (curButtons & testButton) == testButton and \
+                      (prvButtons & testButton) != testButton
     elif testState == 'falling' or testState == 'released':
         # falling edge, will trigger once when released
-        stateResult = (curButtons & button) != button and \
-                      (prvButtons & button) == button
+        stateResult = (curButtons & testButton) != testButton and \
+                      (prvButtons & testButton) == testButton
     else:
         raise ValueError("Invalid trigger mode specified.")
 
