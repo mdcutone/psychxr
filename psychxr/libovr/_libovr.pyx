@@ -3718,8 +3718,8 @@ def getEyeRenderPose(int eye):
     Notes
     -----
     The returned :class:`LibOVRPose` objects are copies of data stored internally
-    by the session object. Setting renderPoses will recompute their
-    transformation matrices.
+    by the extension module. Calling :func:`calcEyePoses` will recompute the
+    poses.
 
     Examples
     --------
@@ -3813,6 +3813,11 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
     `ndarray` or `None`
         4x4 projection matrix. `None` if outMatrix was specified.
 
+    Raises
+    ------
+    AssertionError
+        Dimensions, shape, and data type for `outMatrix` is incorrect.
+
     Examples
     --------
 
@@ -3836,16 +3841,19 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
     """
     global _eyeProjectionMatrix
     global _eyeRenderDesc
-    #global _nearClip
-    #global _farClip
 
-    #_nearClip = nearClip
-    #_farClip = farClip
     cdef np.ndarray[np.float32_t, ndim=2] to_return
 
     if outMatrix is None:
         to_return = np.zeros((4, 4), dtype=np.float32)
     else:
+        try:
+            assert outMatrix.ndim == 2 and \
+                   outMatrix.shape == (4,4,) and \
+                   outMatrix.dtype == np.float32
+        except AssertionError:
+            raise AssertionError("'outMatrix' has wrong type or dimensions.")
+
         to_return = outMatrix
 
     _eyeProjectionMatrix[eye] = \
@@ -3921,15 +3929,17 @@ def setEyeRenderViewport(int eye, object values):
 
     Setting the viewports for both eyes on a single swap chain buffer::
 
-        # Calculate the optimal eye buffer sizes for the FOVs, these will define the
-        # dimensions of the render target.
+        # Calculate the optimal eye buffer sizes for the FOVs, these will define
+        # the dimensions of the render target.
         leftBufferSize, rightBufferSize = calcEyeBufferSizes()
+
         # Define the viewports, which specifies the region on the render target a
         # eye's image will be drawn to and accessed from. Viewports are rectangles
         # defined like [x, y, w, h]. The x-position of the rightViewport is offset
         # by the width of the left viewport.
         leftViewport = [0, 0, leftBufferSize[0], leftBufferSize[1]]
         rightViewport = [leftBufferSize[0], 0, rightBufferSize[0], rightBufferSize[1]]
+
         # set both viewports
         setEyeRenderViewport(LIBOVR_EYE_LEFT, leftViewport)
         setEyeRenderViewport(LIBOVR_EYE_RIGHT, rightViewport)
@@ -3945,7 +3955,7 @@ def getEyeViewMatrix(int eye, object outMatrix=None):
     """Compute a view matrix for a specified eye.
 
     View matrices are derived from the eye render poses calculated by the
-    last 'calcEyePoses' call or update to 'renderPoses'.
+    last :func:`calcEyePoses` call or update by :func:`setEyeRenderPose`.
 
     Parameters
     ----------
@@ -4045,7 +4055,7 @@ def hidePerfHud():
     """Hide the performance HUD.
 
     This is a convenience function that is equivalent to calling
-    `perf_hud_mode('Off')`.
+    :func:`perfHudMode` and specifying 'Off'.
 
     """
     global _ptrSession
@@ -4116,7 +4126,7 @@ def waitToBeginFrame(unsigned int frameIndex=0):
     Returns
     -------
     `int`
-        Return code of the LibOVR API call 'ovr_WaitToBeginFrame'. Returns
+        Return code of the LibOVR API call `ovr_WaitToBeginFrame`. Returns
         :data:`LIBOVR_SUCCESS` if completed without errors. May return
         :data:`LIBOVR_ERROR_DISPLAY_LOST` if the device was removed, rendering
         the current session invalid.
@@ -4185,6 +4195,9 @@ def commitTextureSwapChain(int eye):
 def endFrame(unsigned int frameIndex=0):
     """Call when rendering a frame has completed. Buffers which have been
     committed are passed to the compositor for distortion.
+
+    Successful :func:`waitToBeginFrame` and :func:`beginFrame` call must precede
+    calling :func:`endFrame`.
 
     Parameters
     ----------
@@ -4289,6 +4302,8 @@ def recenterTrackingOrigin():
     Recenter the tracking origin if requested by the session status::
 
         sessionStatus = getSessionStatus()
+        if sessionStatus.shouldRecenter:
+            recenterTrackingOrigin()
 
     """
     global _ptrSession
@@ -4314,14 +4329,21 @@ def specifyTrackingOrigin(LibOVRPose newOrigin):
     return result
 
 def clearShouldRecenterFlag():
-    """Clear the `shouldRecenter` flag.
+    """Clear the :py:attr:`LibOVRSessionStatus.shouldRecenter` flag.
 
     """
     global _ptrSession
     capi.ovr_ClearShouldRecenterFlag(_ptrSession)
 
 def getTrackerCount():
-    """Get the number of attached trackers."""
+    """Get the number of attached trackers.
+
+    Returns
+    -------
+    int
+        Number of trackers reported by LibOVR.
+
+    """
     global _ptrSession
     cdef unsigned int trackerCount = capi.ovr_GetTrackerCount(
         _ptrSession)
@@ -4335,7 +4357,7 @@ def getTrackerInfo(int trackerIndex):
     ----------
     trackerIndex : int
         The index of the sensor to query. Valid values are between 0 and
-        `getTrackerCount`.
+        :func:`getTrackerCount` - 1.
 
     """
     cdef LibOVRTrackerInfo to_return = LibOVRTrackerInfo()
@@ -4356,7 +4378,7 @@ def getTrackerInfo(int trackerIndex):
 def refreshPerformanceStats():
     """Refresh performance statistics.
 
-    Should be called after 'endFrame'.
+    Should be called after :func:`endFrame`.
 
     """
     global _ptrSession
@@ -4383,7 +4405,7 @@ def updatePerfStats():
     Returns
     -------
     int
-        Result of the 'ovr_GetPerfStats' LibOVR API call.
+        Result of the `ovr_GetPerfStats` LibOVR API call.
 
     """
     global _ptrSession
@@ -4406,6 +4428,7 @@ def getAdaptiveGpuPerformanceScale():
     Returns
     -------
     float
+        GPU performance scaling factor.
 
     """
     global _frameStats
@@ -4425,7 +4448,8 @@ def getFrameStatsCount():
 def anyFrameStatsDropped():
     """Check if frame stats were dropped.
 
-    This occurs when 'updatePerfStats' is called fewer than once every 5 frames.
+    This occurs when :func:`updatePerfStats` is called fewer than once every 5
+    frames.
 
     Returns
     -------
@@ -4527,9 +4551,9 @@ def getFrameStats(int frameStatIndex=0):
 
     Notes
     -----
-    If `updatePerfStats` was called less than once per frame, more than one
-    frame statistic will be available. Check `getFrameStatsCount` for the number
-    of queued stats and use an index >0 to access them.
+    If :func:`updatePerfStats` was called less than once per frame, more than
+    one frame statistic will be available. Check :func:`getFrameStatsCount` for
+    the number of queued stats and use an index >0 to access them.
 
     """
     global _frameStats
@@ -4576,6 +4600,11 @@ def setBoundaryColor(float red, float green, float blue):
     blue : float
         Blue component of the color from 0.0 to 1.0.
 
+    Returns
+    -------
+    int
+        Result of the LibOVR API call `ovr_SetBoundaryLookAndFeel`.
+
     """
     global _boundryStyle
     global _ptrSession
@@ -4596,6 +4625,11 @@ def setBoundaryColor(float red, float green, float blue):
 def resetBoundaryColor():
     """Reset the boundary color to system default.
 
+    Returns
+    -------
+    int
+        Result of the LibOVR API call `ovr_ResetBoundaryLookAndFeel`.
+
     """
     global _ptrSession
     cdef capi.ovrResult result = capi.ovr_ResetBoundaryLookAndFeel(
@@ -4609,10 +4643,16 @@ def getBoundaryVisible():
     The boundary is drawn by the compositor which overlays the extents of
     the physical space where the user can safely move.
 
+    Returns
+    -------
+    tuple of int, bool
+        Result of the LibOVR API call `ovr_GetBoundaryVisible` and the boundary
+        state.
+
     Notes
     -----
-    Since the boundary has a fade-in effect, the boundary might be reported as
-    visible but difficult to actually see.
+    * Since the boundary has a fade-in effect, the boundary might be reported as
+      visible but difficult to actually see.
 
     """
     global _ptrSession
@@ -4628,6 +4668,11 @@ def showBoundary():
     The boundary is drawn by the compositor which overlays the extents of
     the physical space where the user can safely move.
 
+    Returns
+    -------
+    int
+        Result of LibOVR API call `ovr_RequestBoundaryVisible`.
+
     """
     global _ptrSession
     cdef capi.ovrResult result = capi.ovr_RequestBoundaryVisible(
@@ -4636,7 +4681,14 @@ def showBoundary():
     return result
 
 def hideBoundary():
-    """Hide the boundry."""
+    """Hide the boundry.
+
+    Returns
+    -------
+    int
+        Result of LibOVR API call `ovr_RequestBoundaryVisible`.
+
+    """
     global _ptrSession
     cdef capi.ovrResult result = capi.ovr_RequestBoundaryVisible(
         _ptrSession, capi.ovrFalse)
@@ -4653,8 +4705,9 @@ def getBoundaryDimensions(str boundaryType='PlayArea'):
 
     Returns
     -------
-    ndarray
-        Dimensions of the boundary in meters [x, y, z].
+    tuple of int, ndarray
+        Result of the LibOVR APi call `ovr_GetBoundaryDimensions` and the
+        dimensions of the boundary in meters [x, y, z].
 
     """
     global _ptrSession
@@ -5398,7 +5451,7 @@ def setControllerVibration(int controller, str frequency, float amplitude):
     -------
     int
         Return value of API call `ovr_SetControllerVibration`. Can return
-        `LIBOVR_SUCCESS_DEVICE_UNAVAILABLE` if no device is present.
+        :data:`LIBOVR_SUCCESS_DEVICE_UNAVAILABLE` if no device is present.
 
     """
     global _ptrSession
@@ -5593,8 +5646,3 @@ def getSessionStatus():
 #                 return True
 #
 #     return False
-
-# -------------------------
-# Wrapper factory functions
-# -------------------------
-#
