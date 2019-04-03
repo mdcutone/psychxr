@@ -2828,10 +2828,7 @@ def getEyeRenderFov(int eye):
 
     The FOV for a given eye are defined as a tuple of tangent angles (Up,
     Down, Left, Right). By default, this function will return the default
-    FOVs after 'start' is called (see :py:attr:`LibOVRHmdInfo.defaultEyeFov`).
-    You can override these values using :py:attr:`LibOVRHmdInfo.maxEyeFov` and
-    :py:attr:`LibOVRHmdInfo.symmetricEyeFov`, or with custom values (see
-    Examples below).
+    (recommended) FOVs after :func:`create` is called.
 
     Parameters
     ----------
@@ -2866,6 +2863,12 @@ def getEyeRenderFov(int eye):
 def setEyeRenderFov(int eye, object fov):
     """Set the field-of-view of a given eye. This is used to compute the
     projection matrix.
+
+    By default, this function will return the default FOVs after :func:`create`
+    is called (see :py:attr:`LibOVRHmdInfo.defaultEyeFov`). You can override
+    these values using :py:attr:`LibOVRHmdInfo.maxEyeFov` and
+    :py:attr:`LibOVRHmdInfo.symmetricEyeFov`, or with custom values (see
+    Examples below).
 
     Parameters
     ----------
@@ -3396,8 +3399,8 @@ def getTrackingState(double absTime, bint latencyMarker=True):
 
     Returns
     -------
-    `tuple` of :class:`LibOVRPoseState`
-        Pose state for the head, left and right hands.
+    :class:`LibOVRTrackingState`
+        Tracking state data structure for head and hand poses.
 
     Examples
     --------
@@ -4737,8 +4740,18 @@ def getConnectedControllerTypes():
 
     Returns
     -------
-    list
-        Connected controller types.
+    list of int
+        IDs of connected controller types. Possible values returned are:
+
+        * :data:`LIBOVR_CONTROLLER_TYPE_XBOX` : XBox gamepad.
+        * :data:`LIBOVR_CONTROLLER_TYPE_REMOTE` : Oculus Remote.
+        * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
+        * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
 
     See Also
     --------
@@ -4773,13 +4786,13 @@ def getConnectedControllerTypes():
         toReturn.append(LIBOVR_CONTROLLER_TYPE_LTOUCH)
     if (capi.ovrControllerType_RTouch & result) == capi.ovrControllerType_RTouch:
         toReturn.append(LIBOVR_CONTROLLER_TYPE_RTOUCH)
-    if (capi.ovrControllerType_RTouch & result) == capi.ovrControllerType_Object0:
+    if (capi.ovrControllerType_Object0 & result) == capi.ovrControllerType_Object0:
         toReturn.append(LIBOVR_CONTROLLER_TYPE_OBJECT0)
-    if (capi.ovrControllerType_RTouch & result) == capi.ovrControllerType_Object1:
+    if (capi.ovrControllerType_Object1 & result) == capi.ovrControllerType_Object1:
         toReturn.append(LIBOVR_CONTROLLER_TYPE_OBJECT1)
-    if (capi.ovrControllerType_RTouch & result) == capi.ovrControllerType_Object2:
+    if (capi.ovrControllerType_Object2 & result) == capi.ovrControllerType_Object2:
         toReturn.append(LIBOVR_CONTROLLER_TYPE_OBJECT2)
-    if (capi.ovrControllerType_RTouch & result) == capi.ovrControllerType_Object3:
+    if (capi.ovrControllerType_Object3 & result) == capi.ovrControllerType_Object3:
         toReturn.append(LIBOVR_CONTROLLER_TYPE_OBJECT3)
 
     return toReturn
@@ -4815,7 +4828,7 @@ def updateInputState(int controller):
     See Also
     --------
     getConnectedControllerTypes : Get a list of connected controllers.
-    getButton: Get the state of a button on a controller.
+    getButton: Get button states.
     getTouch: Get touches.
 
     """
@@ -5086,6 +5099,16 @@ def getTouch(int controller, int touch, str testState='continuous'):
       :data:`LIBOVR_TOUCH_LINDEXPOINTING`, :data:`LIBOVR_TOUCH_LINDEXPOINTING`,
       and :data:`LIBOVR_TOUCH_LINDEXPOINTING`, can be used to recognise hand
       pose/gestures.
+
+    Examples
+    --------
+
+    Check if the user is making a pointing gesture with their right index
+    finger::
+
+        isPointing = getTouch(
+            controller=LIBOVR_CONTROLLER_TYPE_LTOUCH,
+            touch=LIBOVR_TOUCH_LINDEXPOINTING)
 
     """
     global _prevInputState
