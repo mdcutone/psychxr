@@ -668,15 +668,10 @@ cdef class LibOVRPose(object):
         Attributes
         ----------
         pos : ndarray
-            Position vector [X, Y, Z].
         ori : ndarray
-            Orientation quaternion [X, Y, Z, W].
         posOri : tuple of ndarray
-            Combined position and orientation.
         at : ndarray
-            Forward vector of this pose (-Z is forward) (read-only).
         up : ndarray
-            Up vector of this pose (+Y is up) (read-only).
 
         """
         self._new_struct(pos, ori)
@@ -951,7 +946,7 @@ cdef class LibOVRPose(object):
 
     @property
     def at(self):
-        """At vector [X, Y, Z] (`ndarray`)."""
+        """Forward vector of this pose (-Z is forward) (read-only)."""
         return self.getAt()
 
     def getAt(self, object outVector=None):
@@ -1013,7 +1008,7 @@ cdef class LibOVRPose(object):
 
     @property
     def up(self):
-        """Up vector [X, Y, Z] (`ndarray`)."""
+        """Up vector of this pose (+Y is up) (read-only)."""
         return self.getUp()
 
     def getUp(self, object outVector=None):
