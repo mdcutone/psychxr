@@ -4744,7 +4744,7 @@ def updateInputState(int controller):
     return result, currentInputState.TimeInSeconds
 
 def getButton(int controller, int button, str testState='continuous'):
-    """Get the state of a specified button for a given controller.
+    """Get a button state.
 
     The `controller` to test is specified by its ID, defined as constants
     starting with :data:`LIBOVR_CONTROLLER_TYPE_*`. Buttons to test are
@@ -4759,7 +4759,9 @@ def getButton(int controller, int button, str testState='continuous'):
     immediate state of the button. Using 'rising' (or 'pressed') will
     return True once when the button transitions to being pressed between
     subsequent :func:`updateInputState` calls, whereas 'falling' (and
-    'released') will return True once the button is released.
+    'released') will return True once the button is released. If
+    :func:`updateInputState` was called only once, 'rising' and 'falling' will
+    return False.
 
     Parameters
     ----------
@@ -4810,20 +4812,25 @@ def getButton(int controller, int button, str testState='continuous'):
     Raises
     ------
     ValueError
-        When an invalid controller or button identifier is passed.
+        When an invalid controller, button, or state identifier is passed.
+
+    See Also
+    --------
+    getTouch
+        Get touches.
 
     Examples
     --------
     Check if the 'X' button on the touch controllers was pressed::
 
-        isPressed = libovr.getButtons(libovr.LIBOVR_CONTROLLER_TYPE_TOUCH,
-            libovr.LIBOVR_BUTTON_X, 'pressed')
+        isPressed = getButtons(LIBOVR_CONTROLLER_TYPE_TOUCH,
+            LIBOVR_BUTTON_X, 'pressed')
 
-    Test for multiple buttons ('X' and 'Y') released::
+    Test for multiple buttons (e.g. 'X' and 'Y') being released::
 
-        buttons = libovr.LIBOVR_BUTTON_X | libovr.LIBOVR_BUTTON_Y
-        controller = libovr.LIBOVR_CONTROLLER_TYPE_TOUCH
-        isReleased = libovr.getButtons(controller, buttons, 'released')
+        buttons = LIBOVR_BUTTON_X | LIBOVR_BUTTON_Y
+        controller = LIBOVR_CONTROLLER_TYPE_TOUCH
+        isReleased = getButtons(controller, buttons, 'released')
 
     """
     global _prevInputState
@@ -4869,16 +4876,22 @@ def getButton(int controller, int button, str testState='continuous'):
     return stateResult, t_sec
 
 def getTouch(int controller, int touch, str testState='continuous'):
-    """Get touches for a specified device.
+    """Get a touch state.
 
-    Touches reveal information about the user's hand pose, for instance,
-    whether a pointing or pinching gesture is being made. Oculus Touch
-    controllers are required for this functionality.
+    The `controller` to test is specified by its ID, defined as constants
+    starting with :data:`LIBOVR_CONTROLLER_TYPE_*`. Touches to test are
+    specified using their ID, defined as constants starting with
+    :data:`LIBOVR_TOUCH_*`. Touch IDs can be ORed together for testing multiple
+    touch states. The returned value represents the touch state during the last
+    :func:`updateInputState` call for the specified `controller`.
 
-    Touch points to test are specified using their string names. Argument
-    'touch_names' accepts a single string or a list. If a list is specified,
-    the returned value will reflect whether all touches were triggered at
-    the time the controller was polled last.
+    An optional trigger mode may be specified which defines the button's
+    activation criteria. By default, `testState`='continuous' will return the
+    immediate state of the button. Using 'rising' (or 'pressed') will
+    return True once when something is touched between subsequent
+    :func:`updateInputState` calls, whereas 'falling' (and 'released') will
+    return True once the touch is discontinued. If :func:`updateInputState` was
+    called only once, 'rising' and 'falling' will return False.
 
     Parameters
     ----------
@@ -4921,6 +4934,11 @@ def getTouch(int controller, int touch, str testState='continuous'):
     -------
     tuple of bool and float
         Result of the touches and the time in seconds it was polled.
+
+    See Also
+    --------
+    getButton
+        Get a button state.
 
     Notes
     -----
