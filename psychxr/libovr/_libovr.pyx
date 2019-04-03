@@ -136,6 +136,10 @@ __all__ = [
     'LIBOVR_CONTROLLER_TYPE_TOUCH',
     'LIBOVR_CONTROLLER_TYPE_LTOUCH',
     'LIBOVR_CONTROLLER_TYPE_RTOUCH',
+    'LIBOVR_CONTROLLER_TYPE_OBJECT0',
+    'LIBOVR_CONTROLLER_TYPE_OBJECT1',
+    'LIBOVR_CONTROLLER_TYPE_OBJECT2',
+    'LIBOVR_CONTROLLER_TYPE_OBJECT3',
     'LIBOVR_BUTTON_A',
     'LIBOVR_BUTTON_B',
     'LIBOVR_BUTTON_RTHUMB',
@@ -180,6 +184,8 @@ __all__ = [
     'LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1',
     'LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2',
     'LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3',
+    'LIBOVR_TRACKING_ORIGIN_EYE_LEVEL',
+    'LIBOVR_TRACKING_ORIGIN_FLOOR_LEVEL',
     'LibOVRPose',
     'LibOVRPoseState',
     'LibOVRTrackerInfo',
@@ -328,8 +334,8 @@ cdef list compFrameStats
 cdef capi.ovrErrorInfo _errorInfo  # store our last error here
 
 # controller states
-cdef capi.ovrInputState[5] _inputStates
-cdef capi.ovrInputState[5] _prevInputState
+cdef capi.ovrInputState[9] _inputStates
+cdef capi.ovrInputState[9] _prevInputState
 
 # debug mode
 cdef bint _debugMode
@@ -489,11 +495,16 @@ cdef dict _controller_types = {
 # ---------
 #
 # controller types
+LIBOVR_CONTROLLER_TYPE_NONE = capi.ovrControllerType_None
 LIBOVR_CONTROLLER_TYPE_XBOX = capi.ovrControllerType_XBox
 LIBOVR_CONTROLLER_TYPE_REMOTE = capi.ovrControllerType_Remote
 LIBOVR_CONTROLLER_TYPE_TOUCH = capi.ovrControllerType_Touch
 LIBOVR_CONTROLLER_TYPE_LTOUCH = capi.ovrControllerType_LTouch
 LIBOVR_CONTROLLER_TYPE_RTOUCH = capi.ovrControllerType_RTouch
+LIBOVR_CONTROLLER_TYPE_OBJECT0 = capi.ovrControllerType_Object0
+LIBOVR_CONTROLLER_TYPE_OBJECT1 = capi.ovrControllerType_Object1
+LIBOVR_CONTROLLER_TYPE_OBJECT2 = capi.ovrControllerType_Object2
+LIBOVR_CONTROLLER_TYPE_OBJECT3 = capi.ovrControllerType_Object3
 
 # return success codes, values other than 'LIBOVR_SUCCESS' are conditional
 LIBOVR_SUCCESS = capi.ovrSuccess
@@ -608,6 +619,9 @@ LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1 = capi.ovrTrackedDevice_Object1
 LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2 = capi.ovrTrackedDevice_Object2
 LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3 = capi.ovrTrackedDevice_Object3
 
+# tracking origin types
+LIBOVR_TRACKING_ORIGIN_EYE_LEVEL = capi.ovrTrackingOrigin_EyeLevel
+LIBOVR_TRACKING_ORIGIN_FLOOR_LEVEL = capi.ovrTrackingOrigin_FloorLevel
 
 # ------------------------------------------------------------------------------
 # Wrapper factory functions
@@ -3419,7 +3433,7 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     """Get tracked device poses.
 
     Each pose in the returned array matches the device type at each index
-    specified in 'deviceTypes'. You need to call this function to get the poses
+    specified in `deviceTypes`. You need to call this function to get the poses
     for 'objects', which are additional Touch controllers that can be paired and
     tracked in the scene.
 
@@ -3448,8 +3462,8 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
         Absolute time in seconds poses refer to.
     latencyMarker: `bool`, optional
         Insert a marker for motion-to-photon latency calculation. Set this to
-        False if 'getTrackingState' was previously called and a latency marker
-        was set there.
+        False if :func:`getTrackingState` was previously called and a latency
+        marker was set there.
 
     Returns
     -------
@@ -3461,7 +3475,7 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     Warning
     -------
     If multiple devices were specified with `deviceTypes`, the return code will
-    be `LIBOVR_ERROR_LOST_TRACKING` if ANY of the devices lost tracking.
+    be :data:`LIBOVR_ERROR_LOST_TRACKING` if ANY of the devices lost tracking.
 
     Examples
     --------
@@ -3532,10 +3546,10 @@ def calcEyePoses(LibOVRPose headPose):
 
     Eye poses are derived from the head pose stored in the pose state and
     the HMD to eye poses reported by LibOVR. Calculated eye poses are stored
-    and passed to the compositor when `endFrame` is called for additional
+    and passed to the compositor when :func:`endFrame` is called for additional
     rendering.
 
-    You can access the computed poses via the `getEyeRenderPose` function.
+    You can access the computed poses via the :func:`getEyeRenderPose` function.
 
     Parameters
     ----------
@@ -3666,6 +3680,15 @@ def setHmdToEyePose(int eye, LibOVRPose eyePose):
     --------
     getHmdToEyePose : Get the current HMD to eye pose.
 
+    Examples
+    --------
+    Set both HMD to eye poses::
+
+        eyePoses = [LibOVRPose((-0.035, 0.0, 0.0)), LibOVRPose((0.035, 0.0, 0.0))]
+        for eye in enumerate(eyePoses):
+            setHmdToEyePose(eye, eyePoses[eye])
+
+
     """
     global _eyeRenderDesc
     _eyeRenderDesc[0].HmdToEyePose = eyePose.c_data[0]
@@ -3675,7 +3698,7 @@ def getEyeRenderPose(int eye):
 
     Pose are those computed by the last :func:`calcEyePoses` call. Returned
     objects are copies of the data stored internally by the session
-    instance. These poses are used to define the view matrix when rendering
+    instance. These poses are used to derive the view matrix when rendering
     for each eye.
 
     Parameters
@@ -4205,31 +4228,50 @@ def resetFrameStats():
     return result
 
 def getTrackingOriginType():
-    """Tracking origin type.
+    """Get the current tracking origin type.
 
     The tracking origin type specifies where the origin is placed when computing
     the pose of tracked objects (i.e. the head and touch controllers.) Valid
-    values are 'floor' and 'eye'.
+    values are :data:`LIBOVR_TRACKING_ORIGIN_EYE_LEVEL` and
+    :data:`LIBOVR_TRACKING_ORIGIN_FLOOR_LEVEL`.
+
+    See Also
+    --------
+    setTrackingOriginType : Set the tracking origin type.
 
     """
     global _ptrSession
-    cdef capi.ovrTrackingOrigin origin = \
+    cdef capi.ovrTrackingOrigin originType = \
         capi.ovr_GetTrackingOriginType(_ptrSession)
 
-    if origin == capi.ovrTrackingOrigin_FloorLevel:
-        return 'floor'
-    elif origin == capi.ovrTrackingOrigin_EyeLevel:
-        return 'eye'
+    if originType == capi.ovrTrackingOrigin_FloorLevel:
+        return LIBOVR_TRACKING_ORIGIN_FLOOR_LEVEL
+    elif originType == capi.ovrTrackingOrigin_EyeLevel:
+        return LIBOVR_TRACKING_ORIGIN_EYE_LEVEL
 
 def setTrackingOriginType(str value):
+    """Set the tracking origin type.
+
+    Specify the tracking origin to use when computing eye poses. Subsequent
+    calls of :func:`calcEyePoses` will use the set tracking origin.
+
+    See Also
+    --------
+    getTrackingOriginType : Get the current tracking origin type.
+
+    """
     cdef capi.ovrResult result
     global _ptrSession
-    if value == 'floor':
+    if value == LIBOVR_TRACKING_ORIGIN_FLOOR_LEVEL:
         result = capi.ovr_SetTrackingOriginType(
             _ptrSession, capi.ovrTrackingOrigin_FloorLevel)
-    elif value == 'eye':
+    elif value == LIBOVR_TRACKING_ORIGIN_EYE_LEVEL:
         result = capi.ovr_SetTrackingOriginType(
             _ptrSession, capi.ovrTrackingOrigin_EyeLevel)
+    else:
+        raise ValueError("Invalid tracking origin type specified "
+                         "must be 'LIBOVR_TRACKING_ORIGIN_FLOOR_LEVEL' or "
+                         "'LIBOVR_TRACKING_ORIGIN_EYE_LEVEL'.")
 
     return result
 
@@ -4238,7 +4280,15 @@ def recenterTrackingOrigin():
 
     Returns
     -------
-    None
+    int
+        The result of the LibOVR API call `ovr_RecenterTrackingOrigin`.
+
+    Examples
+    --------
+
+    Recenter the tracking origin if requested by the session status::
+
+        sessionStatus = getSessionStatus()
 
     """
     global _ptrSession
@@ -4637,24 +4687,22 @@ def getConnectedControllerTypes():
     list
         Connected controller types.
 
-    Examples
-    --------
-
-    Check if the Xbox gamepad is connected::
-
-        connected = libovr.getConnectedControllerTypes()
-        isConnected = (connected & libovr.LIBOVR_CONTROLLER_TYPE_XBOX) == \
-            libovr.LIBOVR_CONTROLLER_TYPE_XBOX
-
     See Also
     --------
     updateInputState : Poll a controller's current state.
 
-    Notes
-    -----
-    If both touch controllers are connected, `LIBOVR_CONTROLLER_TYPE_TOUCH` will
-    be returned instead of `LIBOVR_CONTROLLER_TYPE_LTOUCH` and
-    `LIBOVR_CONTROLLER_TYPE_RTOUCH`.
+    Examples
+    --------
+
+    Check if the left touch controller is paired::
+
+        controllers = getConnectedControllerTypes()
+        hasLeftTouch = LIBOVR_CONTROLLER_TYPE_LTOUCH in controllers
+
+    Update all connected controller states::
+
+        for controller in getConnectedControllerTypes():
+            result, time = updateInputState(controller)
 
     """
     global _ptrSession
@@ -4672,6 +4720,14 @@ def getConnectedControllerTypes():
         toReturn.append(LIBOVR_CONTROLLER_TYPE_LTOUCH)
     if (capi.ovrControllerType_RTouch & result) == capi.ovrControllerType_RTouch:
         toReturn.append(LIBOVR_CONTROLLER_TYPE_RTOUCH)
+    if (capi.ovrControllerType_RTouch & result) == capi.ovrControllerType_Object0:
+        toReturn.append(LIBOVR_CONTROLLER_TYPE_OBJECT0)
+    if (capi.ovrControllerType_RTouch & result) == capi.ovrControllerType_Object1:
+        toReturn.append(LIBOVR_CONTROLLER_TYPE_OBJECT1)
+    if (capi.ovrControllerType_RTouch & result) == capi.ovrControllerType_Object2:
+        toReturn.append(LIBOVR_CONTROLLER_TYPE_OBJECT2)
+    if (capi.ovrControllerType_RTouch & result) == capi.ovrControllerType_Object3:
+        toReturn.append(LIBOVR_CONTROLLER_TYPE_OBJECT3)
 
     return toReturn
 
@@ -4692,6 +4748,10 @@ def updateInputState(int controller):
         * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
         * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
         * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
 
     Returns
     -------
@@ -4703,6 +4763,7 @@ def updateInputState(int controller):
     --------
     getConnectedControllerTypes : Get a list of connected controllers.
     getButton: Get the state of a button on a controller.
+    getTouch: Get touches.
 
     """
     global _prevInputState
@@ -4725,6 +4786,14 @@ def updateInputState(int controller):
         idx = 3
     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
         idx = 4
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT0:
+        idx = 5
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT1:
+        idx = 6
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT2:
+        idx = 7
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT3:
+        idx = 8
     else:
         raise ValueError("Invalid controller type specified.")
 
@@ -4773,6 +4842,10 @@ def getButton(int controller, int button, str testState='continuous'):
         * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
         * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
         * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
 
     button : int
         Button to check. Values can be ORed together to test for multiple button
@@ -4816,8 +4889,7 @@ def getButton(int controller, int button, str testState='continuous'):
 
     See Also
     --------
-    getTouch
-        Get touches.
+    getTouch : Get touches.
 
     Examples
     --------
@@ -4848,6 +4920,14 @@ def getButton(int controller, int button, str testState='continuous'):
         idx = 3
     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
         idx = 4
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT0:
+        idx = 5
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT1:
+        idx = 6
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT2:
+        idx = 7
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT3:
+        idx = 8
     else:
         raise ValueError("Invalid controller type specified.")
 
@@ -4903,6 +4983,10 @@ def getTouch(int controller, int touch, str testState='continuous'):
         * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
         * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
         * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
 
     touch : `int`
         Touch to check. Values can be ORed together to test for multiple
@@ -4937,18 +5021,18 @@ def getTouch(int controller, int touch, str testState='continuous'):
 
     See Also
     --------
-    getButton
-        Get a button state.
+    getButton : Get a button state.
 
     Notes
     -----
 
-    * Not every controller type supports touch.
+    * Not every controller type supports touch. Unsupported controllers will
+      always return False.
     * Special 'touches' :data:`LIBOVR_TOUCH_RINDEXPOINTING`,
       :data:`LIBOVR_TOUCH_RTHUMBUP`, :data:`LIBOVR_TOUCH_RTHUMBREST`,
       :data:`LIBOVR_TOUCH_LINDEXPOINTING`, :data:`LIBOVR_TOUCH_LINDEXPOINTING`,
       and :data:`LIBOVR_TOUCH_LINDEXPOINTING`, can be used to recognise hand
-      poses.
+      pose/gestures.
 
     """
     global _prevInputState
@@ -4966,6 +5050,14 @@ def getTouch(int controller, int touch, str testState='continuous'):
         idx = 3
     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
         idx = 4
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT0:
+        idx = 5
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT1:
+        idx = 6
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT2:
+        idx = 7
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT3:
+        idx = 8
     else:
         raise ValueError("Invalid controller type specified.")
 
@@ -5010,6 +5102,10 @@ def getThumbstickValues(int controller, bint deadzone=False):
         * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
         * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
         * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
 
     deadzone : `bool`
         Apply a deadzone if True.
@@ -5044,6 +5140,14 @@ def getThumbstickValues(int controller, bint deadzone=False):
         idx = 3
     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
         idx = 4
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT0:
+        idx = 5
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT1:
+        idx = 6
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT2:
+        idx = 7
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT3:
+        idx = 8
     else:
         raise ValueError("Invalid controller type specified.")
 
@@ -5086,6 +5190,10 @@ def getIndexTriggerValues(int controller, bint deadzone=False):
         * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
         * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
         * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
 
     Returns
     -------
@@ -5133,6 +5241,14 @@ def getIndexTriggerValues(int controller, bint deadzone=False):
         idx = 3
     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
         idx = 4
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT0:
+        idx = 5
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT1:
+        idx = 6
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT2:
+        idx = 7
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT3:
+        idx = 8
     else:
         raise ValueError("Invalid controller type specified.")
 
@@ -5168,6 +5284,10 @@ def getHandTriggerValues(int controller, bint deadzone=False):
         * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
         * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
         * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
 
     Returns
     -------
@@ -5215,6 +5335,14 @@ def getHandTriggerValues(int controller, bint deadzone=False):
         idx = 3
     elif controller == LIBOVR_CONTROLLER_TYPE_RTOUCH:
         idx = 4
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT0:
+        idx = 5
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT1:
+        idx = 6
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT2:
+        idx = 7
+    elif controller == LIBOVR_CONTROLLER_TYPE_OBJECT3:
+        idx = 8
     else:
         raise ValueError("Invalid controller type specified.")
 
@@ -5255,6 +5383,10 @@ def setControllerVibration(int controller, str frequency, float amplitude):
         * :data:`LIBOVR_CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
         * :data:`LIBOVR_CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
         * :data:`LIBOVR_CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
+        * :data:`LIBOVR_CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
 
     frequency : str
         Vibration frequency. Valid values are: 'off', 'low', or 'high'.
@@ -5295,8 +5427,9 @@ def getSessionStatus():
 
     Returns
     -------
-    `LibOVRSessionStatus`
-        Object specifying the current state of the session.
+    tuple of int and `LibOVRSessionStatus`
+        Result of the `ovr_GetSessionStatus` API call and an object specifying
+        the current state of the session.
 
     """
     global _ptrSession
@@ -5309,7 +5442,7 @@ def getSessionStatus():
     cdef capi.ovrResult result = capi.ovr_GetSessionStatus(_ptrSession, ptr)
     cdef LibOVRSessionStatus to_return = LibOVRSessionStatus.fromPtr(ptr, True)
 
-    return to_return
+    return result, to_return
 
 # def testPointsInEyeFrustums(object points, object out=None):
 #     """Test if points are within each eye's frustum.
