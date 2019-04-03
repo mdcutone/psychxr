@@ -4743,19 +4743,23 @@ def updateInputState(int controller):
 
     return result, currentInputState.TimeInSeconds
 
-def getButton(object controller, object button, str testState='continuous'):
+def getButton(int controller, int button, str testState='continuous'):
     """Get the state of a specified button for a given controller.
 
-    Buttons to test are specified using their string names. Argument
-    'buttonNames' accepts a single string or a list. If a list is specified,
-    the returned value will reflect whether all buttons were triggered at
-    the time the controller was polled last.
+    The `controller` to test is specified by its ID, defined as constants
+    starting with :data:`LIBOVR_CONTROLLER_TYPE_*`. Buttons to test are
+    specified using their ID, defined as constants starting with
+    :data:`LIBOVR_BUTTON_*`. Button IDs can be ORed together for testing
+    multiple button states. The returned value represents the button state
+    during the last :func:`updateInputState` call for the specified
+    `controller`.
 
     An optional trigger mode may be specified which defines the button's
-    activation criteria. By default, testState='continuous' will return the
-    immediate state of the button. Using 'rising' (and 'pressed') will
-    return True once when the button transitions to being pressed, whereas
-    'falling' (and 'released') will return True once the button is released.
+    activation criteria. By default, `testState`='continuous' will return the
+    immediate state of the button. Using 'rising' (or 'pressed') will
+    return True once when the button transitions to being pressed between
+    subsequent :func:`updateInputState` calls, whereas 'falling' (and
+    'released') will return True once the button is released.
 
     Parameters
     ----------
