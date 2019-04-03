@@ -3565,13 +3565,11 @@ def calcEyePoses(LibOVRPose headPose):
     Compute the eye poses from tracker data::
 
         t = getPredictedDisplayTime()
-        trackedPoses = getTrackedPoses(t)
-
-        head = trackedPoses['Head']
+        trackingState = getTrackingState(t)
 
         # check if tracking
         if head.orientationTracked and head.positionTracked:
-            calcEyePoses(head.thePose)  # calculate eye poses
+            calcEyePoses(trackingState.headPose.thePose)  # calculate eye poses
         else:
             # do something ...
 
