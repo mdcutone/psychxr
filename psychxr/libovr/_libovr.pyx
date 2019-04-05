@@ -3014,10 +3014,14 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
 
     Examples
     --------
-    Getting the buffer sizes::
+
+    Getting the buffer size for the swap chain::
+
+        # get HMD info
+        hmdInfo = getHmdInfo()
 
         # eye FOVs must be set first!
-        leftFov, rightFov = getDefaultEyeFOVs()
+        leftFov, rightFov = hmdInfo.defaultEyeFov
         setEyeRenderFov(LIBOVR_EYE_LEFT, leftFov)
         setEyeRenderFov(LIBOVR_EYE_RIGHT, rightFov)
 
@@ -3025,8 +3029,10 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
         leftW leftH = leftBufferSize
         rightW, rightH = rightBufferSize
         # combined size if using a single texture buffer for both eyes
-        w, h = leftW + rightW, max(leftH, rightH)
-        # make the texture ...
+        bufferW, bufferH = leftW + rightW, max(leftH, rightH)
+
+        # create a swap chain
+        createTextureSwapChainGL(LIBOVR_TEXTURE_SWAP_CHAIN0, bufferW, bufferH)
 
     Notes
     -----
