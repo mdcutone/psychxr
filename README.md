@@ -15,11 +15,12 @@ PsychXR 0.2 is in the works. *These are breaking changes, current applications w
 New features include:
 
 * NumPy arrays for quaternions, matrices, and vectors.
-* Clean-up/removal of unused data and functions in the `ovr` API.
+* Clean-up/removal of unused data and functions.
 * Restucturing of PsychXR modules.
-* LibOVR API version bump.
+* More LibOVR features and version bump.
+* Better documentation and usage examples.
 
-*Updated 12/21/18*
+*Updated 4/4/16*
 
 ## Installing
 
