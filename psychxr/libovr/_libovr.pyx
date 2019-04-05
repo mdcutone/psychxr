@@ -736,7 +736,8 @@ cdef class LibOVRPose(object):
                 self.c_data = NULL
 
     def __mul__(LibOVRPose a, LibOVRPose b):
-        """Multiplication operator (*) to combine poses."""
+        """Multiplication operator (*) to combine poses.
+        """
         cdef capi.ovrPosef* ptr = <capi.ovrPosef*>PyMem_Malloc(sizeof(capi.ovrPosef))
 
         if ptr is NULL:
@@ -748,6 +749,14 @@ cdef class LibOVRPose(object):
         # copy into
         ptr[0] = <capi.ovrPosef>pose_r
         return LibOVRPose.fromPtr(ptr, True)
+
+    def __imul__(self, LibOVRPose other):
+        """Inplace multiplication operator (*=) to combine poses.
+        """
+        cdef libovr_math.Posef result = <libovr_math.Posef>self.c_data[0] * \
+                                        <libovr_math.Posef>other.c_data[0]
+        self.c_data[0] = <capi.ovrPosef>result
+        return self
 
     def __invert__(self):
         """Invert operator (~) to invert a pose."""
@@ -787,6 +796,29 @@ cdef class LibOVRPose(object):
             memo[id(self)] = to_return
 
         return to_return
+
+    def isEqual(self, LibOVRPose pose, float tolerance=1e-5):
+        """Check if poses are close to equal in position and orientation.
+
+        Same as using the equality operator (==) on poses, but you can specify
+        and arbitrary value for `tolerance`.
+
+        Parameters
+        ----------
+        pose : LibOVRPose
+            The other pose.
+        tolerance : float, optional
+            Tolerance for the comparison, default is 1e-5 as defined in
+            OVR_MATH.h.
+
+        Returns
+        -------
+        bool
+            True if pose components are within `tolerance` from this pose.
+
+        """
+        return (<libovr_math.Posef>self.c_data[0]).IsEqual(
+            <libovr_math.Posef>pose.c_data[0], tolerance)
 
     def duplicate(self):
         """Create a deep copy of this object.
@@ -1101,7 +1133,8 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        Uses `OVR::Quatf.GetYawPitchRoll` which is part of the Oculus PC SDK.
+
+        * Uses `OVR::Quatf.GetYawPitchRoll` which is part of the Oculus PC SDK.
 
         """
         cdef float yaw, pitch, roll
@@ -1173,7 +1206,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        Uses `OVR::Posef.Inverted` which is part of the Oculus PC SDK.
+        * Uses `OVR::Posef.Inverted` which is part of the Oculus PC SDK.
 
         """
         cdef capi.ovrPosef* ptr = <capi.ovrPosef*>PyMem_Malloc(sizeof(capi.ovrPosef))
@@ -1212,7 +1245,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        Uses `OVR::Posef.Rotate` which is part of the Oculus PC SDK.
+        * Uses `OVR::Posef.Rotate` which is part of the Oculus PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1241,7 +1274,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        Uses `OVR::Vector3f.InverseRotate` which is part of the Oculus PC SDK.
+        * Uses `OVR::Vector3f.InverseRotate` which is part of the Oculus PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1270,7 +1303,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        Uses `OVR::Vector3f.Translate` which is part of the Oculus PC SDK.
+        * Uses `OVR::Vector3f.Translate` which is part of the Oculus PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1299,7 +1332,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        Uses `OVR::Vector3f.Transform` which is part of the Oculus PC SDK.
+        * Uses `OVR::Vector3f.Transform` which is part of the Oculus PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1329,8 +1362,8 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        Uses `OVR::Vector3f.InverseTransform` which is part of the Oculus PC
-        SDK.
+        * Uses `OVR::Vector3f.InverseTransform` which is part of the Oculus PC
+          SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1359,7 +1392,8 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        Uses `OVR::Vector3f.TransformNormal` which is part of the Oculus PC SDK.
+        * Uses `OVR::Vector3f.TransformNormal` which is part of the Oculus PC
+          SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1388,8 +1422,8 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        Uses `OVR::Vector3f.InverseTransformNormal` which is part of the Oculus
-        PC SDK.
+        * Uses `OVR::Vector3f.InverseTransformNormal` which is part of the Oculus
+          PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1440,6 +1474,29 @@ cdef class LibOVRPose(object):
         -------
         float
             Distance to a point or Pose.
+
+        Examples
+        --------
+
+        Get the distance between poses::
+
+            distance = thisPose.distanceTo(otherPose)
+
+        Get the distance to a point coordinate::
+
+            distance = thisPose.distanceTo([0.0, 0.0, 5.0])
+
+        Do something if the tracked right hand pose is within 0.5 meters of some
+        object::
+
+            # use 'getTrackingState' instead for hand poses, just an example
+            handPose = getDevicePoses(LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH,
+                                      absTime, latencyMarker=False)
+            # object pose
+            objPose = LibOVRPose((0.0, 1.0, -0.5))
+
+            if handPose.distanceTo(objPose) < 0.5:
+                # do something here ...
 
         """
         cdef libovr_math.Vector3f pos_in
@@ -1584,20 +1641,14 @@ cdef class LibOVRPoseState(object):
         Attributes
         ----------
         pose : :obj:`LibOVRPose`
-            Rigid body pose.
         angularVelocity : `ndarray`
-            Angular velocity vector in radians/sec.
         linearVelocity : `ndarray`
-            Linear velocity vector in meters/sec.
         angularAcceleration : `ndarray`
-            Angular acceleration vector in radians/s^2.
         linearAcceleration : `ndarray`
-            Linear acceleration vector in meters/s^2.
         timeInSeconds : `float`
-            Absolute time this data refers to in seconds.
 
         """
-        self._init_data()
+        self._new_struct()
 
     def __cinit__(self):
         self.ptr_owner = False
@@ -1621,7 +1672,7 @@ cdef class LibOVRPoseState(object):
 
         return wrapper
 
-    cdef void _init_data(self):
+    cdef void _new_struct(self):
         if self.c_data is not NULL:  # already allocated, __init__ called twice?
             return
 
@@ -1660,35 +1711,6 @@ cdef class LibOVRPoseState(object):
         if self.c_data is not NULL:
             if self.ptr_owner is True:
                 PyMem_Free(self.c_data)
-                self.c_data = NULL
-            else:
-                if self.refobj is not None:  # lower ref count of ref'd object
-                    Py_DECREF(self.refobj)
-
-    def __copy__(self):
-        """Shallow copy returned by :mod:`copy.copy`.
-
-        New `LibOVRPoseState` instance that references data stored in this
-        object. The reference count of the source instance is increased by 1;
-        decreased when the copy is deallocated.
-
-        Examples
-        --------
-
-        Shallow copy::
-
-            import copy
-            a = LibOVRPoseState()
-            b = copy.copy(a)  # object references data in 'a'
-            a.linearAcceleration = [1.0, 0.0, 0.0]  # sets both a and b
-
-
-        """
-        cdef LibOVRPoseState to_return = LibOVRPoseState.fromPtr(self.c_data)
-        to_return.refobj = self
-        Py_INCREF(self)
-
-        return to_return
 
     def __deepcopy__(self, memo=None):
         """Deep copy returned by :py:func:`copy.deepcopy`.
@@ -1738,6 +1760,7 @@ cdef class LibOVRPoseState(object):
 
     @property
     def pose(self):
+        """Rigid body pose."""
         return self._pose
 
     @pose.setter
@@ -1746,6 +1769,7 @@ cdef class LibOVRPoseState(object):
 
     @property
     def angularVelocity(self):
+        """Angular velocity vector in radians/sec."""
         return self._angularVelocity
 
     @angularVelocity.setter
@@ -1754,6 +1778,7 @@ cdef class LibOVRPoseState(object):
 
     @property
     def linearVelocity(self):
+        """Linear velocity vector in meters/sec."""
         return self._linearVelocity
 
     @linearVelocity.setter
@@ -1762,6 +1787,7 @@ cdef class LibOVRPoseState(object):
 
     @property
     def angularAcceleration(self):
+        """Angular acceleration vector in radians/s^2."""
         return self._angularAcceleration
 
     @angularAcceleration.setter
@@ -1770,6 +1796,7 @@ cdef class LibOVRPoseState(object):
 
     @property
     def linearAcceleration(self):
+        """Linear acceleration vector in meters/s^2."""
         return self._linearAcceleration
 
     @linearAcceleration.setter
@@ -1778,6 +1805,7 @@ cdef class LibOVRPoseState(object):
 
     @property
     def timeInSeconds(self):
+        """Absolute time this data refers to in seconds."""
         return <double>self.c_data[0].TimeInSeconds
 
     @timeInSeconds.setter
@@ -1798,6 +1826,15 @@ cdef class LibOVRPoseState(object):
         LibOVRPose
             Pose at 'dt'.
 
+        Examples
+        --------
+
+        Time integrate a pose for a 1/4 second (note the returned object is a
+        `LibOVRPose`, not a `LibOVRPoseState`)::
+
+            newPose = oldPose.timeIntegrate(0.25)
+            pos, ori = newPose.posOri  # extract components
+
         """
         cdef libovr_math.Posef res = \
             (<libovr_math.Posef>self.c_data[0].ThePose).TimeIntegrate(
@@ -1806,11 +1843,20 @@ cdef class LibOVRPoseState(object):
                 <libovr_math.Vector3f>self.c_data[0].LinearAcceleration,
                 <libovr_math.Vector3f>self.c_data[0].AngularAcceleration,
                 dt)
-        cdef LibOVRPose toReturn = LibOVRPose(
-            (res.Translation.x, res.Translation.y, res.Translation.z),
-            (res.Rotation.x, res.Rotation.y, res.Rotation.z, res.Rotation.w))
 
-        return toReturn
+        cdef capi.ovrPoseStatef* ptr = \
+            <capi.ovrPoseStatef*>PyMem_Malloc(sizeof(capi.ovrPoseStatef))
+
+        if ptr is NULL:
+            raise MemoryError(
+                "Failed to allocate 'ovrPosef' in 'timeIntegrate'.")
+
+        cdef LibOVRPose to_return = LibOVRPose.fromPtr(ptr, True)
+
+        # copy over data
+        to_return.c_data[0] = <capi.ovrPosef>res
+
+        return to_return
 
 
 cdef class LibOVRTrackingState(object):
@@ -1830,16 +1876,11 @@ cdef class LibOVRTrackingState(object):
 
         Attributes
         ----------
-        headPose : LibOVRPoseState
-            Tracked head (HMD) pose.
-        headStatus : tuple of bool
-            Tracking status for the head.
-        handPoses : tuple of LibOVRPoseState
-            Tracked hand (Touch controller) poses.
-        handStatus : tuple
-            Tracking status for the hands.
-        calibratedOrigin : LibOVRPose
-            Calibrated origin.
+        headPose
+        headStatus
+        handPoses
+        handStatus
+        calibratedOrigin
 
         """
         self.newStruct()
@@ -1953,27 +1994,6 @@ cdef class LibOVRTrackerInfo(object):
     """Class for information about camera-based tracking sensors. This object is
     returned by :func:`getTrackerInfo`. All attributes are read-only.
 
-    Attributes
-    ----------
-    trackerIndex : int
-        Tracker index this objects refers to (read-only).
-    pose : LibOVRPose
-        The pose of the sensor (read-only).
-    leveledPose : LibOVRPose
-        Gravity aligned pose of the sensor (read-only).
-    isConnected : bool
-        True if the sensor is connected and available (read-only).
-    isPoseTracked : bool
-        True if the sensor has a valid pose (read-only).
-    horizontalFov : float
-        Horizontal FOV of the sensor in radians (read-only).
-    verticalFov : float
-        Vertical FOV of the sensor in radians (read-only).
-    nearZ : float
-        Near clipping plane of the sensor frustum in meters (read-only).
-    farZ : float
-        Far clipping plane of the sensor frustum in meters (read-only).
-
     """
     cdef capi.ovrTrackerPose c_ovrTrackerPose
     cdef capi.ovrTrackerDesc c_ovrTrackerDesc
@@ -1984,6 +2004,29 @@ cdef class LibOVRTrackerInfo(object):
     cdef unsigned int _trackerIndex
 
     def __init__(self):
+        """
+        Attributes
+        ----------
+        trackerIndex : int
+            Tracker index this objects refers to (read-only).
+        pose : LibOVRPose
+            The pose of the sensor (read-only).
+        leveledPose : LibOVRPose
+            Gravity aligned pose of the sensor (read-only).
+        isConnected : bool
+            True if the sensor is connected and available (read-only).
+        isPoseTracked : bool
+            True if the sensor has a valid pose (read-only).
+        horizontalFov : float
+            Horizontal FOV of the sensor in radians (read-only).
+        verticalFov : float
+            Vertical FOV of the sensor in radians (read-only).
+        nearZ : float
+            Near clipping plane of the sensor frustum in meters (read-only).
+        farZ : float
+            Far clipping plane of the sensor frustum in meters (read-only).
+
+        """
         pass
 
     def __cinit__(self):
@@ -1992,68 +2035,56 @@ cdef class LibOVRTrackerInfo(object):
 
     @property
     def trackerIndex(self):
+        """Tracker index this objects refers to (read-only)."""
         return self._trackerIndex
 
     @property
     def pose(self):
+        """he pose of the sensor (read-only)."""
         return self._pose
 
     @property
     def leveledPose(self):
+        """Gravity aligned pose of the sensor (read-only)."""
         return self._leveledPose
 
     @property
     def isConnected(self):
+        """True if the sensor is connected and available (read-only)."""
         return <bint>((capi.ovrTracker_Connected &
              self.c_ovrTrackerPose.TrackerFlags) ==
                       capi.ovrTracker_Connected)
 
     @property
     def isPoseTracked(self):
+        """True if the sensor has a valid pose (read-only)."""
         return <bint>((capi.ovrTracker_PoseTracked &
              self.c_ovrTrackerPose.TrackerFlags) ==
                       capi.ovrTracker_PoseTracked)
 
     @property
     def horizontalFov(self):
+        """Horizontal FOV of the sensor in radians (read-only)."""
         return self.c_ovrTrackerDesc.FrustumHFovInRadians
 
     @property
     def verticalFov(self):
+        """Vertical FOV of the sensor in radians (read-only)."""
         return self.c_ovrTrackerDesc.FrustumVFovInRadians
 
     @property
     def nearZ(self):
+        """Near clipping plane of the sensor frustum in meters (read-only)."""
         return self.c_ovrTrackerDesc.FrustumNearZInMeters
 
     @property
     def farZ(self):
+        """Far clipping plane of the sensor frustum in meters (read-only)."""
         return self.c_ovrTrackerDesc.FrustumFarZInMeters
 
 
 cdef class LibOVRSessionStatus(object):
     """Class for session status information.
-
-    Attributes
-    ----------
-    isVisible : bool
-        True if the application has focus and visible in the HMD.
-    hmdPresent : bool
-        True if the HMD is present.
-    hmdMounted : bool
-        True if the HMD is on the user's head.
-    displayLost : bool
-        True if the the display was lost.
-    shouldQuit : bool
-        True if the application was signaled to quit.
-    shouldRecenter : bool
-        True if the application was signaled to re-center.
-    hasInputFocus : bool
-        True if the application has input focus.
-    overlayPresent : bool
-        True if the system overlay is present.
-    depthRequested : bool
-        True if the system requires a depth texture. Currently unused by PsychXR.
 
     """
     cdef capi.ovrSessionStatus* c_data
@@ -2069,7 +2100,28 @@ cdef class LibOVRSessionStatus(object):
     cdef readonly bint depthRequested
 
     def __init__(self):
-        """Constructor for LibOVRSessionStatus.
+        """
+        Attributes
+        ----------
+        isVisible : bool
+            True if the application has focus and visible in the HMD.
+        hmdPresent : bool
+            True if the HMD is present.
+        hmdMounted : bool
+            True if the HMD is on the user's head.
+        displayLost : bool
+            True if the the display was lost.
+        shouldQuit : bool
+            True if the application was signaled to quit.
+        shouldRecenter : bool
+            True if the application was signaled to re-center.
+        hasInputFocus : bool
+            True if the application has input focus.
+        overlayPresent : bool
+            True if the system overlay is present.
+        depthRequested : bool
+            True if the system requires a depth texture. Currently unused by PsychXR.
+
         """
         self.newStruct()
 
@@ -3408,7 +3460,7 @@ def getTrackingState(double absTime, bint latencyMarker=True):
 
         t = hmd.getPredictedDisplayTime()
         trackedPoses = hmd.getTrackedPoses(t)
-        head = trackedPoses['Head']
+        head = trackedPoses.headPose
 
         # check if tracking
         if head.orientationTracked and head.positionTracked:
