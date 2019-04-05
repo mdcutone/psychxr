@@ -186,6 +186,14 @@ __all__ = [
     'LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3',
     'LIBOVR_TRACKING_ORIGIN_EYE_LEVEL',
     'LIBOVR_TRACKING_ORIGIN_FLOOR_LEVEL',
+    'LIBOVR_PRODUCT_VERSION',
+    'LIBOVR_MAJOR_VERSION',
+    'LIBOVR_MINOR_VERSION',
+    'LIBOVR_PATCH_VERSION',
+    'LIBOVR_BUILD_NUMBER',
+    'LIBOVR_DLL_COMPATIBLE_VERSION',
+    'LIBOVR_MIN_REQUESTABLE_MINOR_VERSION',
+    'LIBOVR_FEATURE_VERSION',
     'LibOVRPose',
     'LibOVRPoseState',
     'LibOVRTrackerInfo',
@@ -622,6 +630,40 @@ LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3 = capi.ovrTrackedDevice_Object3
 # tracking origin types
 LIBOVR_TRACKING_ORIGIN_EYE_LEVEL = capi.ovrTrackingOrigin_EyeLevel
 LIBOVR_TRACKING_ORIGIN_FLOOR_LEVEL = capi.ovrTrackingOrigin_FloorLevel
+
+# API version information
+LIBOVR_PRODUCT_VERSION = capi.OVR_PRODUCT_VERSION
+LIBOVR_MAJOR_VERSION = capi.OVR_MAJOR_VERSION
+LIBOVR_MINOR_VERSION = capi.OVR_MINOR_VERSION
+LIBOVR_PATCH_VERSION = capi.OVR_PATCH_VERSION
+LIBOVR_BUILD_NUMBER = capi.OVR_BUILD_NUMBER
+LIBOVR_DLL_COMPATIBLE_VERSION = capi.OVR_DLL_COMPATIBLE_VERSION
+LIBOVR_MIN_REQUESTABLE_MINOR_VERSION = capi.OVR_MIN_REQUESTABLE_MINOR_VERSION
+LIBOVR_FEATURE_VERSION = capi.OVR_FEATURE_VERSION
+
+# API keys
+LIBOVR_KEY_USER = capi.OVR_KEY_USER
+LIBOVR_KEY_NAME = capi.OVR_KEY_NAME
+LIBOVR_KEY_GENDER = capi.OVR_KEY_GENDER
+LIBOVR_DEFAULT_GENDER = capi.OVR_DEFAULT_GENDER
+LIBOVR_KEY_PLAYER_HEIGHT = capi.OVR_KEY_PLAYER_HEIGHT
+LIBOVR_DEFAULT_PLAYER_HEIGHT = capi.OVR_DEFAULT_PLAYER_HEIGHT
+LIBOVR_KEY_EYE_HEIGHT = capi.OVR_KEY_EYE_HEIGHT
+LIBOVR_DEFAULT_EYE_HEIGHT = capi.OVR_DEFAULT_EYE_HEIGHT
+LIBOVR_KEY_NECK_TO_EYE_DISTANCE = capi.OVR_KEY_NECK_TO_EYE_DISTANCE
+LIBOVR_DEFAULT_NECK_TO_EYE_HORIZONTAL = capi.OVR_DEFAULT_NECK_TO_EYE_HORIZONTAL
+LIBOVR_DEFAULT_NECK_TO_EYE_VERTICAL = capi.OVR_DEFAULT_NECK_TO_EYE_VERTICAL
+LIBOVR_KEY_EYE_TO_NOSE_DISTANCE = capi.OVR_KEY_EYE_TO_NOSE_DISTANCE
+LIBOVR_PERF_HUD_MODE = capi.OVR_PERF_HUD_MODE
+LIBOVR_LAYER_HUD_MODE = capi.OVR_LAYER_HUD_MODE
+LIBOVR_LAYER_HUD_CURRENT_LAYER = capi.OVR_LAYER_HUD_CURRENT_LAYER
+LIBOVR_LAYER_HUD_SHOW_ALL_LAYERS = capi.OVR_LAYER_HUD_SHOW_ALL_LAYERS
+LIBOVR_DEBUG_HUD_STEREO_MODE = capi.OVR_DEBUG_HUD_STEREO_MODE
+LIBOVR_DEBUG_HUD_STEREO_GUIDE_INFO_ENABLE = capi.OVR_DEBUG_HUD_STEREO_GUIDE_INFO_ENABLE
+LIBOVR_DEBUG_HUD_STEREO_GUIDE_SIZE = capi.OVR_DEBUG_HUD_STEREO_GUIDE_SIZE
+LIBOVR_DEBUG_HUD_STEREO_GUIDE_POSITION = capi.OVR_DEBUG_HUD_STEREO_GUIDE_POSITION
+LIBOVR_DEBUG_HUD_STEREO_GUIDE_YAWPITCHROLL = capi.OVR_DEBUG_HUD_STEREO_GUIDE_YAWPITCHROLL
+LIBOVR_DEBUG_HUD_STEREO_GUIDE_COLOR = capi.OVR_DEBUG_HUD_STEREO_GUIDE_COLOR
 
 # ------------------------------------------------------------------------------
 # Wrapper factory functions
@@ -3067,6 +3109,19 @@ def getTextureSwapChainLengthGL(int swapChain):
         Result of the `ovr_GetTextureSwapChainLength` API call and the
         length of that swap chain.
 
+    See Also
+    --------
+    getTextureSwapChainCurrentIndex : Get the current swap chain index.
+    getTextureSwapChainBufferGL : Get the current OpenGL swap chain buffer.
+
+    Examples
+    --------
+
+    Get the swap chain length for the previously created
+    :data:LIBOVR_TEXTURE_SWAP_CHAIN0::
+
+        result, length = getTextureSwapChainLengthGL(LIBOVR_TEXTURE_SWAP_CHAIN0)
+
     """
     cdef int outLength
     cdef capi.ovrResult result = 0
@@ -3099,6 +3154,11 @@ def getTextureSwapChainCurrentIndex(int swapChain):
     tuple of int
         Result of the `ovr_GetTextureSwapChainCurrentIndex` API call and the
         index of the buffer.
+
+    See Also
+    --------
+    getTextureSwapChainLengthGL : Get the length of a swap chain.
+    getTextureSwapChainBufferGL : Get the current OpenGL swap chain buffer.
 
     """
     cdef int current_idx = 0
@@ -3254,6 +3314,10 @@ def setEyeColorTextureSwapChain(int eye, int swapChain):
     swapChain : int
         Swap chain handle to query. Must be a swap chain initialized by a
         previous call to :func:`createTextureSwapChainGL`.
+
+    See Also
+    --------
+    createTextureSwapChainGL : Create a OpenGL buffer swap chain.
 
     Examples
     --------
@@ -3898,7 +3962,7 @@ def getEyeRenderViewport(int eye, object outRect=None):
 
     Returns
     -------
-    `ndarray` of `ints` or `None`
+    ndarray of int or None
         Viewport rectangle [x, y, w, h]. None if 'outRect' was specified.
 
     """
