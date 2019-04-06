@@ -3290,16 +3290,16 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
     textureFormat : int
         Texture format to use. Valid color texture formats are:
 
-            * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
-            * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
-            * :data:`LIBOVR_FORMAT_R16G16B16A16_FLOAT`
-            * :data:`LIBOVR_FORMAT_R11G11B10_FLOAT`
+        * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
+        * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
+        * :data:`LIBOVR_FORMAT_R16G16B16A16_FLOAT`
+        * :data:`LIBOVR_FORMAT_R11G11B10_FLOAT`
 
         Depth texture formats:
 
-            * :data:`LIBOVR_FORMAT_D16_UNORM`
-            * :data:`LIBOVR_FORMAT_D24_UNORM_S8_UINT`
-            * :data:`LIBOVR_FORMAT_D32_FLOAT`
+        * :data:`LIBOVR_FORMAT_D16_UNORM`
+        * :data:`LIBOVR_FORMAT_D24_UNORM_S8_UINT`
+        * :data:`LIBOVR_FORMAT_D32_FLOAT`
 
     Other Parameters
     ----------------
