@@ -3214,7 +3214,6 @@ def getTextureSwapChainCurrentIndex(int swapChain):
 
     """
     cdef int current_idx = 0
-    cdef capi.ovrResult result = 0
     global _swapChains
     global _eyeLayer
     global _ptrSession
@@ -3225,7 +3224,7 @@ def getTextureSwapChainCurrentIndex(int swapChain):
             "Cannot get buffer ID, NULL eye buffer texture.")
 
     # get the current texture index within the swap chain
-    result = capi.ovr_GetTextureSwapChainCurrentIndex(
+    cdef capi.ovrResult result = capi.ovr_GetTextureSwapChainCurrentIndex(
         _ptrSession, _swapChains[swapChain], &current_idx)
 
     return result, current_idx
