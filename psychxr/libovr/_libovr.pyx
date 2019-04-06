@@ -2932,7 +2932,7 @@ def getEyeRenderFov(int eye):
 
     Returns
     -------
-    ndarray of floats
+    ndarray of float
         Eye FOV tangent angles [UpTan, DownTan, LeftTan, RightTan].
 
     Examples
@@ -3095,7 +3095,7 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
     eye: int
         Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
         :data:`LIBOVR_EYE_RIGHT`.
-    texelsPerPixel : float
+    texelsPerPixel : float, optional
         Display pixels per texture pixels at the center of the display. Use a
         value less than 1.0 to improve performance at the cost of resolution.
         Specifying a larger texture is possible, but not recommended by the
@@ -3138,13 +3138,13 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
     global _ptrSession
     global _eyeRenderDesc
 
-    cdef capi.ovrSizei buffSize = capi.ovr_GetFovTextureSize(
+    cdef capi.ovrSizei bufferSize = capi.ovr_GetFovTextureSize(
         _ptrSession,
         <capi.ovrEyeType>0,
         _eyeRenderDesc[0].Fov,
         <float>texelsPerPixel)
 
-    return buffSize.w, buffSize.h
+    return bufferSize.w, bufferSize.h
 
 def getTextureSwapChainLengthGL(int swapChain):
     """Get the length of a specified swap chain.
@@ -3289,9 +3289,7 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
     height : int
         Height of texture in pixels.
     textureFormat : int
-        Texture format to use.
-
-        Valid color texture formats are:
+        Texture format to use. Valid color texture formats are:
 
             * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM`
             * :data:`LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB`
@@ -3361,8 +3359,9 @@ def setEyeColorTextureSwapChain(int eye, int swapChain):
 
     Parameters
     ----------
-    eye : int
-        Eye index.
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
     swapChain : int
         Swap chain handle to query. Must be a swap chain initialized by a
         previous call to :func:`createTextureSwapChainGL`.
@@ -3376,10 +3375,8 @@ def setEyeColorTextureSwapChain(int eye, int swapChain):
 
     Associate the swap chain with both eyes (single buffer for stereo views)::
 
-        setEyeColorTextureSwapChain(
-            LIBOVR_EYE_LEFT, LIBOVR_TEXTURE_SWAP_CHAIN0)
-        setEyeColorTextureSwapChain(
-            LIBOVR_EYE_RIGHT, LIBOVR_TEXTURE_SWAP_CHAIN0)
+        setEyeColorTextureSwapChain(LIBOVR_EYE_LEFT, LIBOVR_TEXTURE_SWAP_CHAIN0)
+        setEyeColorTextureSwapChain(LIBOVR_EYE_RIGHT, LIBOVR_TEXTURE_SWAP_CHAIN0)
 
         # same as above but with a loop
         for eye in range(LIBOVR_EYE_COUNT):
@@ -3387,15 +3384,12 @@ def setEyeColorTextureSwapChain(int eye, int swapChain):
 
     Associate a swap chain with each eye (separate buffer for stereo views)::
 
-        setEyeColorTextureSwapChain(
-            LIBOVR_EYE_LEFT, LIBOVR_TEXTURE_SWAP_CHAIN0)
-        libovr.setEyeColorTextureSwapChain(
-            LIBOVR_EYE_RIGHT, LIBOVR_TEXTURE_SWAP_CHAIN1)
+        setEyeColorTextureSwapChain(LIBOVR_EYE_LEFT, LIBOVR_TEXTURE_SWAP_CHAIN0)
+        setEyeColorTextureSwapChain(LIBOVR_EYE_RIGHT, LIBOVR_TEXTURE_SWAP_CHAIN1)
 
         # with a loop ...
         for eye in range(LIBOVR_EYE_COUNT):
-            setEyeColorTextureSwapChain(
-                eye, LIBOVR_TEXTURE_SWAP_CHAIN0 + eye)
+            setEyeColorTextureSwapChain(eye, LIBOVR_TEXTURE_SWAP_CHAIN0 + eye)
 
     """
     global _swapChains
@@ -3755,8 +3749,9 @@ def getHmdToEyePose(int eye):
 
     Parameters
     ----------
-    eye : `int`
-        Eye index.
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
 
     Returns
     -------
@@ -3796,8 +3791,9 @@ def setHmdToEyePose(int eye, LibOVRPose eyePose):
 
     Parameters
     ----------
-    eye : `int`
-        Eye index.
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
 
     See Also
     --------
@@ -3826,8 +3822,9 @@ def getEyeRenderPose(int eye):
 
     Parameters
     ----------
-    eye : `int`
-        Eye index.
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
 
     Returns
     -------
@@ -3879,8 +3876,9 @@ def setEyeRenderPose(int eye, LibOVRPose eyePose):
 
     Parameters
     ----------
-    eye : `int`
-        Eye index.
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
 
     See Also
     --------
@@ -3922,8 +3920,9 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
 
     Parameters
     ----------
-    eye : `int`
-        Eye index.
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
     nearClip : `float`, optional
         Near clipping plane in meters.
     farClip : `float`, optional
@@ -4006,8 +4005,9 @@ def getEyeRenderViewport(int eye, object outRect=None):
 
     Parameters
     ----------
-    eye : `int`
-        The eye index.
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
     outRect : `ndarray`, optional
         Optional NumPy array to place values. If None, this function will return
         a new array. Must be dtype=int and length 4.
@@ -4042,8 +4042,9 @@ def setEyeRenderViewport(int eye, object values):
 
     Parameters
     ----------
-    eye : `int`
-        The eye index.
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
     `ndarray`, `list`, or `tuple` of `ints`
         Viewport rectangle [x, y, w, h].
 
@@ -4082,8 +4083,9 @@ def getEyeViewMatrix(int eye, object outMatrix=None):
 
     Parameters
     ----------
-    eye : `int`
-        Eye index.
+    eye: int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
     outMatrix : `ndarray` or `None`, optional
         Optional array to write to. Must have ndim=2, dtype=np.float32, and
         shape == (4,4).
@@ -4238,8 +4240,8 @@ def perfHudModes():
 #     _eyeLayer.Viewport[eye] = viewportRect
 
 def waitToBeginFrame(unsigned int frameIndex=0):
-    """Wait until a buffer is available and frame rendering can begin. Must
-    be called before :func:`beginFrame`.
+    """Wait until a buffer is available so frame rendering can begin. Must be
+    called before :func:`beginFrame`.
 
     Parameters
     ----------
@@ -4248,7 +4250,7 @@ def waitToBeginFrame(unsigned int frameIndex=0):
 
     Returns
     -------
-    `int`
+    int
         Return code of the LibOVR API call `ovr_WaitToBeginFrame`. Returns
         :data:`LIBOVR_SUCCESS` if completed without errors. May return
         :data:`LIBOVR_ERROR_DISPLAY_LOST` if the device was removed, rendering
@@ -4674,9 +4676,9 @@ def getFrameStats(int frameStatIndex=0):
 
     Notes
     -----
-    If :func:`updatePerfStats` was called less than once per frame, more than
-    one frame statistic will be available. Check :func:`getFrameStatsCount` for
-    the number of queued stats and use an index >0 to access them.
+    * If :func:`updatePerfStats` was called less than once per frame, more than
+      one frame statistic will be available. Check :func:`getFrameStatsCount` for
+      the number of queued stats and use an index >0 to access them.
 
     """
     global _frameStats
@@ -5623,7 +5625,7 @@ def getSessionStatus():
 
     Returns
     -------
-    tuple of int and `LibOVRSessionStatus`
+    tuple of int, LibOVRSessionStatus
         Result of the `ovr_GetSessionStatus` API call and an object specifying
         the current state of the session.
 
