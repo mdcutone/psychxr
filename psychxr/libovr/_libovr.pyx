@@ -3769,7 +3769,8 @@ def getHmdToEyePose(int eye):
     get the IOD used for rendering by adding up the absolute values of the
     x-components of the eye poses, or by multiplying the value of
     :func:`getEyeToNoseDist` by two. Furthermore, the IOD values can be altered,
-    prior to calling 'calcEyePoses', to override the values specified by LibOVR.
+    prior to calling :func`calcEyePoses`, to override the values specified by
+    LibOVR.
 
     Examples
     --------
@@ -3836,9 +3837,10 @@ def getEyeRenderPose(int eye):
 
     Notes
     -----
-    The returned :class:`LibOVRPose` objects are copies of data stored internally
-    by the extension module. Calling :func:`calcEyePoses` will recompute the
-    poses.
+
+    * The returned :class:`LibOVRPose` objects are copies of data stored
+      internally by the extension module. Calling :func:`calcEyePoses` will
+      recompute the poses.
 
     Examples
     --------
