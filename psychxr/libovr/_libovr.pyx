@@ -194,6 +194,8 @@ __all__ = [
     'LIBOVR_DLL_COMPATIBLE_VERSION',
     'LIBOVR_MIN_REQUESTABLE_MINOR_VERSION',
     'LIBOVR_FEATURE_VERSION',
+    'LIBOVR_STATUS_ORIENTATION_TRACKED',
+    'LIBOVR_STATUS_POSITION_TRACKED',
     'LibOVRPose',
     'LibOVRPoseState',
     'LibOVRTrackerInfo',
@@ -322,7 +324,7 @@ cdef capi.ovrMirrorTexture _mirrorTexture
 # VR related data persistent across frames
 cdef capi.ovrLayerEyeFov _eyeLayer
 cdef capi.ovrEyeRenderDesc[2] _eyeRenderDesc
-#cdef capi.ovrTrackingState _trackingState
+cdef capi.ovrTrackingState _trackingState
 cdef capi.ovrViewScaleDesc _viewScale
 
 # prepare the render layer
@@ -630,6 +632,10 @@ LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3 = capi.ovrTrackedDevice_Object3
 # tracking origin types
 LIBOVR_TRACKING_ORIGIN_EYE_LEVEL = capi.ovrTrackingOrigin_EyeLevel
 LIBOVR_TRACKING_ORIGIN_FLOOR_LEVEL = capi.ovrTrackingOrigin_FloorLevel
+
+# trackings state status flags
+LIBOVR_STATUS_ORIENTATION_TRACKED = capi.ovrStatus_OrientationTracked
+LIBOVR_STATUS_POSITION_TRACKED = capi.ovrStatus_PositionTracked
 
 # API version information
 LIBOVR_PRODUCT_VERSION = capi.OVR_PRODUCT_VERSION
@@ -3170,7 +3176,7 @@ def getTextureSwapChainLengthGL(int swapChain):
     --------
 
     Get the swap chain length for the previously created
-    :data:LIBOVR_TEXTURE_SWAP_CHAIN0::
+    :data:`LIBOVR_TEXTURE_SWAP_CHAIN0`::
 
         result, length = getTextureSwapChainLengthGL(LIBOVR_TEXTURE_SWAP_CHAIN0)
 
@@ -3467,7 +3473,7 @@ def getMirrorTexture():
     -------
     tuple of int
         Result of API call `ovr_GetMirrorTextureBufferGL` and the mirror
-        texture ID. A mirror texture ID = 0 is invalid.
+        texture ID. A mirror texture ID == 0 is invalid.
 
     Examples
     --------
@@ -3476,8 +3482,9 @@ def getMirrorTexture():
 
         # get the mirror texture
         result, mirrorTexId = getMirrorTexture()
-        if LIBOVR_FAILURE(result):
+        if failure(result):
             # raise error ...
+
         # bind the mirror texture texture to the framebuffer
         glFramebufferTexture2D(
             GL_READ_FRAMEBUFFER,
@@ -3501,7 +3508,6 @@ def getMirrorTexture():
 
     return <int>result, <unsigned int>mirror_id
 
-
 def getTrackingState(double absTime, bint latencyMarker=True):
     """Get the current poses of the head and hands.
 
@@ -3514,8 +3520,13 @@ def getTrackingState(double absTime, bint latencyMarker=True):
 
     Returns
     -------
-    :class:`LibOVRTrackingState`
-        Tracking state data structure for head and hand poses.
+    dict
+        Pose states and status flags for head and hands. Dictionary keys are
+        :data:`LIBOVR_TRACKED_DEVICE_TYPE_HMD`,
+        :data:`LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH`, and
+        :data:`LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH`. The value referenced by each
+        key is a tuple containing a :class:`LibOVRPoseState` and `int` for
+        status flags.
 
     Examples
     --------
@@ -3523,29 +3534,47 @@ def getTrackingState(double absTime, bint latencyMarker=True):
 
         t = hmd.getPredictedDisplayTime()
         trackedPoses = hmd.getTrackedPoses(t)
-        head = trackedPoses.headPose
+        headPoseState, status = trackedPoses[LIBOVR_TRACKED_DEVICE_TYPE_HMD]
+
+        # tracking state flags
+        orientationTracked = status & LIBOVR_STATUS_ORIENTATION_TRACKED
+        positionTracked = status & LIBOVR_STATUS_POSITION_TRACKED
 
         # check if tracking
-        if head.orientationTracked and head.positionTracked:
-            hmd.calcEyePose(head.thePose)  # calculate eye poses
+        if orientationTracked and positionTracked:
+            hmd.calcEyePose(headPoseState.thePose)  # calculate eye poses
 
     """
     global _ptrSession
     global _eyeLayer
-    #global _trackingState
+    global _trackingState
 
     cdef capi.ovrBool use_marker = \
         capi.ovrTrue if latencyMarker else capi.ovrFalse
 
     # tracking state object that is actually returned to Python land
-    cdef LibOVRTrackingState toReturn = LibOVRTrackingState()
-    toReturn.c_data[0] = capi.ovr_GetTrackingState(
-        _ptrSession, absTime, use_marker)
+    _trackingState = capi.ovr_GetTrackingState(_ptrSession, absTime, use_marker)
+
+    cdef LibOVRPoseState headPoseState = \
+        LibOVRTrackingState.fromPtr(&_trackingState.HeadPose)
+    cdef LibOVRPoseState leftHandPoseState = \
+        LibOVRTrackingState.fromPtr(&_trackingState.HandPoses[0])
+    cdef LibOVRPoseState rightHandPoseState = \
+        LibOVRTrackingState.fromPtr(&_trackingState.HandPoses[1])
+
+    cdef dict to_return = {
+        LIBOVR_TRACKED_DEVICE_TYPE_HMD:
+            (headPoseState, _trackingState.StatusFlags),
+        LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH:
+            (leftHandPoseState, _trackingState.HandStatusFlags[0]),
+        LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH:
+            (rightHandPoseState, _trackingState.HandStatusFlags[1])
+    }
 
     # for computing app photon-to-motion latency
     #_eyeLayer.SensorSampleTime = toReturn.c_data[0].HeadPose.TimeInSeconds
 
-    return toReturn
+    return to_return
 
 def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     """Get tracked device poses.
@@ -3746,6 +3775,15 @@ def getHmdToEyePose(int eye):
     origin. Poses are transformed by calling :func:`calcEyePoses`, updating the
     values returned by :func:`getEyeRenderPose`.
 
+    The horizontal (x-axis) separation of the eye poses are determined by the
+    configured lens spacing (slider adjustment). This spacing is supposed to
+    correspond to the actual inter-ocular distance (IOD) of the user. You can
+    get the IOD used for rendering by adding up the absolute values of the
+    x-components of the eye poses, or by multiplying the value of
+    :func:`getEyeToNoseDist` by two. Furthermore, the IOD values can be altered,
+    prior to calling :func`calcEyePoses`, to override the values specified by
+    LibOVR.
+
     Parameters
     ----------
     eye: int
@@ -3760,17 +3798,6 @@ def getHmdToEyePose(int eye):
     See Also
     --------
     setHmdToEyePose : Set the HMD to eye pose.
-
-    Notes
-    -----
-    The horizontal (x-axis) separation of the eye poses are determined by the
-    configured lens spacing (slider adjustment). This spacing is supposed to
-    correspond to the actual inter-ocular distance (IOD) of the user. You can
-    get the IOD used for rendering by adding up the absolute values of the
-    x-components of the eye poses, or by multiplying the value of
-    :func:`getEyeToNoseDist` by two. Furthermore, the IOD values can be altered,
-    prior to calling :func`calcEyePoses`, to override the values specified by
-    LibOVR.
 
     Examples
     --------
@@ -3807,7 +3834,6 @@ def setHmdToEyePose(int eye, LibOVRPose eyePose):
         for eye in enumerate(eyePoses):
             setHmdToEyePose(eye, eyePoses[eye])
 
-
     """
     global _eyeRenderDesc
     _eyeRenderDesc[0].HmdToEyePose = eyePose.c_data[0]
@@ -3834,13 +3860,6 @@ def getEyeRenderPose(int eye):
     See Also
     --------
     setEyeRenderPose : Set an eye's render pose.
-
-    Notes
-    -----
-
-    * The returned :class:`LibOVRPose` objects are copies of data stored
-      internally by the extension module. Calling :func:`calcEyePoses` will
-      recompute the poses.
 
     Examples
     --------
@@ -3910,6 +3929,7 @@ def setEyeRenderPose(int eye, LibOVRPose eyePose):
     forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
     _eyeViewMatrix[eye] = \
         libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+    # VP matrix
     _eyeViewProjectionMatrix[eye] = \
         _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
