@@ -1907,137 +1907,6 @@ cdef class LibOVRPoseState(object):
         return to_return
 
 
-cdef class LibOVRTrackingState(object):
-    """Class for tracking state information for head and hand poses.
-
-    """
-    cdef capi.ovrTrackingState* c_data
-    cdef bint ptr_owner
-
-    cdef LibOVRPoseState _headPose
-    cdef LibOVRPoseState _leftHandPose
-    cdef LibOVRPoseState _rightHandPose
-    cdef LibOVRPose _calibratedOrigin
-
-    def __init__(self):
-        """This object is returned by 'getTrackingState'.
-
-        Attributes
-        ----------
-        headPose
-        headStatus
-        handPoses
-        handStatus
-        calibratedOrigin
-
-        """
-        self.newStruct()
-
-    def __cinit__(self):
-        self.ptr_owner = False
-
-    @staticmethod
-    cdef LibOVRTrackingState fromPtr(capi.ovrTrackingState* ptr, bint owner=False):
-        # bypass __init__ if wrapping a pointer
-        cdef LibOVRTrackingState wrapper = LibOVRTrackingState.__new__(LibOVRTrackingState)
-        wrapper.c_data = ptr
-        wrapper.ptr_owner = owner
-
-        wrapper._headPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HeadPose)
-        wrapper._leftHandPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HandPoses[0])
-        wrapper._rightHandPose = LibOVRPoseState.fromPtr(&wrapper.c_data.HandPoses[1])
-        wrapper._calibratedOrigin = LibOVRPose.fromPtr(&wrapper.c_data.CalibratedOrigin)
-
-        return wrapper
-
-    cdef void newStruct(self):
-        if self.c_data is not NULL:  # already allocated, __init__ called twice?
-            return
-
-        cdef capi.ovrTrackingState* ptr = <capi.ovrTrackingState*>PyMem_Malloc(
-            sizeof(capi.ovrTrackingState))
-
-        if ptr is NULL:
-            raise MemoryError
-
-        self.c_data = ptr
-        self.ptr_owner = True
-
-        self._headPose = LibOVRPoseState.fromPtr(&self.c_data.HeadPose)
-        self._leftHandPose = LibOVRPoseState.fromPtr(&self.c_data.HandPoses[0])
-        self._rightHandPose = LibOVRPoseState.fromPtr(&self.c_data.HandPoses[1])
-        self._calibratedOrigin = LibOVRPose.fromPtr(&self.c_data.CalibratedOrigin)
-
-    def __dealloc__(self):
-        if self.c_data is not NULL and self.ptr_owner is True:
-            PyMem_Free(self.c_data)
-            self.c_data = NULL
-
-    @property
-    def headPose(self):
-        return self._headPose
-
-    @headPose.setter
-    def headPose(self, LibOVRPose value):
-        self.c_data[0].HeadPose.ThePose = value.c_data[0]
-
-    @property
-    def headPosTracked(self):
-        """Head position tracked (`bool`)."""
-        cdef unsigned int* statusBits = &self.c_data.StatusFlags
-        cdef bint posTracked = \
-            (statusBits[0] & capi.ovrStatus_PositionTracked) == \
-                capi.ovrStatus_PositionTracked
-
-        return posTracked
-
-    @property
-    def headOriTracked(self):
-        """Head orientation tracked (`bool`)."""
-        cdef unsigned int* statusBits = &self.c_data.StatusFlags
-        cdef bint oriTracked = \
-            (statusBits[0] & capi.ovrStatus_OrientationTracked) == \
-               capi.ovrStatus_OrientationTracked
-
-        return oriTracked
-
-    @property
-    def handPoses(self):
-        return [self._leftHandPose, self._rightHandPose]
-
-    @property
-    def handPosTracked(self):
-        """Hand position tracked (`tuple` of `bool`)."""
-        cdef list toReturn = list()
-        cdef unsigned int* statusBits = &self.c_data.HandStatusFlags[0]
-
-        cdef Py_ssize_t i = 0
-        for i in range(<Py_ssize_t>capi.ovrHand_Count):
-            toReturn.append(
-                (statusBits[i] & capi.ovrStatus_PositionTracked) ==
-                capi.ovrStatus_PositionTracked)
-
-        return toReturn
-
-    @property
-    def handOriTracked(self):
-        """Hand orientation tracked (`tuple` of `bool`)."""
-        cdef list toReturn = list()
-        cdef unsigned int* statusBits = &self.c_data.HandStatusFlags[0]
-
-        cdef Py_ssize_t i = 0
-        for i in range(<Py_ssize_t>capi.ovrHand_Count):
-            toReturn.append(
-                (statusBits[i] & capi.ovrStatus_OrientationTracked) ==
-                capi.ovrStatus_OrientationTracked)
-
-        return toReturn
-
-    @property
-    def calibratedOrigin(self):
-        return self._calibratedOrigin
-
-
 cdef class LibOVRTrackerInfo(object):
     """Class for information about camera-based tracking sensors. This object is
     returned by :func:`getTrackerInfo`. All attributes are read-only.
@@ -3520,20 +3389,21 @@ def getTrackingState(double absTime, bint latencyMarker=True):
 
     Returns
     -------
-    dict
-        Pose states and status flags for head and hands. Dictionary keys are
+    tuple of dict, :class:`LibOVRPose`
+        Dictionary of tracking states, keys are
         :data:`LIBOVR_TRACKED_DEVICE_TYPE_HMD`,
         :data:`LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH`, and
         :data:`LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH`. The value referenced by each
         key is a tuple containing a :class:`LibOVRPoseState` and `int` for
-        status flags.
+        status flags. The second value is :class:`LibOVRPose` with the
+        calibrated origin used for tracking.
 
     Examples
     --------
     Getting the head pose and calculating eye render poses::
 
         t = hmd.getPredictedDisplayTime()
-        trackedPoses = hmd.getTrackedPoses(t)
+        trackedPoses, calibratedOrigin = hmd.getTrackedPoses(t)
         headPoseState, status = trackedPoses[LIBOVR_TRACKED_DEVICE_TYPE_HMD]
 
         # tracking state flags
