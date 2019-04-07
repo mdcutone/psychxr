@@ -202,7 +202,6 @@ __all__ = [
     'LibOVRSessionStatus',
     'LibOVRHmdInfo',
     'LibOVRFrameStat',
-    'LibOVRTrackingState',
     'success',
     'unqualifedSuccess',
     'failure',
