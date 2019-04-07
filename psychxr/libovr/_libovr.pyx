@@ -3426,13 +3426,15 @@ def getTrackingState(double absTime, bint latencyMarker=True):
     _trackingState = capi.ovr_GetTrackingState(_ptrSession, absTime, use_marker)
 
     cdef LibOVRPoseState headPoseState = \
-        LibOVRTrackingState.fromPtr(&_trackingState.HeadPose)
+        LibOVRPoseState.fromPtr(&_trackingState.HeadPose)
     cdef LibOVRPoseState leftHandPoseState = \
-        LibOVRTrackingState.fromPtr(&_trackingState.HandPoses[0])
+        LibOVRPoseState.fromPtr(&_trackingState.HandPoses[0])
     cdef LibOVRPoseState rightHandPoseState = \
-        LibOVRTrackingState.fromPtr(&_trackingState.HandPoses[1])
+        LibOVRPoseState.fromPtr(&_trackingState.HandPoses[1])
+    cdef LibOVRPose calibratedOrigin = LibOVRPose.fromPtr(
+        &_trackingState.CalibratedOrigin)
 
-    cdef dict to_return = {
+    cdef dict poseStates = {
         LIBOVR_TRACKED_DEVICE_TYPE_HMD:
             (headPoseState, _trackingState.StatusFlags),
         LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH:
@@ -3444,7 +3446,7 @@ def getTrackingState(double absTime, bint latencyMarker=True):
     # for computing app photon-to-motion latency
     #_eyeLayer.SensorSampleTime = toReturn.c_data[0].HeadPose.TimeInSeconds
 
-    return to_return
+    return poseStates, calibratedOrigin
 
 def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     """Get tracked device poses.
