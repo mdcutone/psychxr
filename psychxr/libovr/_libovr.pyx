@@ -3425,6 +3425,7 @@ def getTrackingState(double absTime, bint latencyMarker=True):
     # tracking state object that is actually returned to Python land
     _trackingState = capi.ovr_GetTrackingState(_ptrSession, absTime, use_marker)
 
+    # init objects pointing to tracking state fields
     cdef LibOVRPoseState headPoseState = \
         LibOVRPoseState.fromPtr(&_trackingState.HeadPose)
     cdef LibOVRPoseState leftHandPoseState = \
@@ -3434,6 +3435,7 @@ def getTrackingState(double absTime, bint latencyMarker=True):
     cdef LibOVRPose calibratedOrigin = LibOVRPose.fromPtr(
         &_trackingState.CalibratedOrigin)
 
+    # build dictionary of returned values
     cdef dict poseStates = {
         LIBOVR_TRACKED_DEVICE_TYPE_HMD:
             (headPoseState, _trackingState.StatusFlags),
