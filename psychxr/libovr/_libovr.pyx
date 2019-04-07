@@ -3407,8 +3407,10 @@ def getTrackingState(double absTime, bint latencyMarker=True):
         headPoseState, status = trackedPoses[LIBOVR_TRACKED_DEVICE_TYPE_HMD]
 
         # tracking state flags
-        orientationTracked = status & LIBOVR_STATUS_ORIENTATION_TRACKED
-        positionTracked = status & LIBOVR_STATUS_POSITION_TRACKED
+        orientationTracked = \
+            (status & LIBOVR_STATUS_ORIENTATION_TRACKED) == LIBOVR_STATUS_ORIENTATION_TRACKED
+        positionTracked = \
+            (status & LIBOVR_STATUS_POSITION_TRACKED) == LIBOVR_STATUS_POSITION_TRACKED
 
         # check if tracking
         if orientationTracked and positionTracked:
