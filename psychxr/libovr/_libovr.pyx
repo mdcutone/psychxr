@@ -962,6 +962,14 @@ cdef class LibOVRPose(object):
             return toReturn
 
     def setPos(self, object pos):
+        """Set the position of the pose in a scene.
+
+        Parameters
+        ----------
+        pos : list, tuple of float or ndarray
+            Position vector [X, Y, Z].
+
+        """
         self.c_data[0].Position.x = <float>pos[0]
         self.c_data[0].Position.y = <float>pos[1]
         self.c_data[0].Position.z = <float>pos[2]
@@ -1022,6 +1030,14 @@ cdef class LibOVRPose(object):
             return toReturn
 
     def setOri(self, object ori):
+        """Set the orientation of the pose in a scene.
+
+        Parameters
+        ----------
+        ori : list, tuple of float or ndarray
+            Orientation quaternion [X, Y, Z, W].
+
+        """
         self.c_data[0].Orientation.x = <float>ori[0]
         self.c_data[0].Orientation.y = <float>ori[1]
         self.c_data[0].Orientation.z = <float>ori[2]
@@ -1564,6 +1580,9 @@ cdef class LibOVRPose(object):
         Project an invisible ray of finite or infinite length from this pose in
         `rayDir` and check if it intersects with the targetPose bounding sphere.
 
+        This method allows for very basic interaction between objects
+        represented by poses in a scene, including tracked devices.
+
         Specifying `maxRange` as >0.0 casts a ray of finite length in world
         units. The distance between the target and ray origin position are
         checked prior to casting the ray; automatically failing if the ray can
@@ -1606,7 +1625,6 @@ cdef class LibOVRPose(object):
             isTouching = hmdPose.raycastSphere(targetPose,
                                                radius=targetRadius)
 
-
         Check if someone is touching a target with their finger when making a
         pointing gesture::
 
@@ -1614,7 +1632,7 @@ cdef class LibOVRPose(object):
             targetRadius = 0.025  # 2.5 cm
             fingerLength = 0.1  # 10 cm
 
-            # check if making a pointing gesture
+            # check if making a pointing gesture with their right hand
             isPointing = getTouch(LIBOVR_CONTROLLER_TYPE_RTOUCH,
                 LIBOVR_TOUCH_RINDEXPOINTING)
 
@@ -5549,22 +5567,42 @@ def setControllerVibration(int controller, str frequency, float amplitude):
 def getSessionStatus():
     """Get the current session status.
 
+    Function returns a dictionary with session status flags and values:
+
+        * IsVisible, the application has focus and visible in the HMD.
+        * HmdPresent, the HMD is present.
+        * HmdMounted, the HMD is on the user's head.
+        * DisplayLost, the the display was lost.
+        * ShouldQuit, the application was signaled to quit.
+        * ShouldRecenter, if the application was signaled to re-center.
+        * HasInputFocus, f the application has input focus.
+        * OverlayPresent, if the system overlay is present.
+        * DepthRequested, if the system requires a depth texture.
+
     Returns
     -------
-    tuple of int, LibOVRSessionStatus
-        Result of the `ovr_GetSessionStatus` API call and an object specifying
-        the current state of the session.
+    tuple of int, dict
+        Result of LibOVR API call `ovr_GetSessionStatus` and a dictionary of
+        session status flags and values.
 
     """
     global _ptrSession
-    cdef capi.ovrSessionStatus* ptr = \
-        <capi.ovrSessionStatus*>PyMem_Malloc(sizeof(capi.ovrSessionStatus))
+    global _sessionStatus
 
-    if ptr is NULL:
-        raise MemoryError
+    cdef capi.ovrResult result = capi.ovr_GetSessionStatus(_ptrSession,
+                                                           &_sessionStatus)
 
-    cdef capi.ovrResult result = capi.ovr_GetSessionStatus(_ptrSession, ptr)
-    cdef LibOVRSessionStatus to_return = LibOVRSessionStatus.fromPtr(ptr, True)
+    cdef dict to_return = {
+        "IsVisible" : _sessionStatus.IsVisible,
+        "HmdPresent" : _sessionStatus.HmdPresent,
+        "HmdMounted" : _sessionStatus.HmdMounted,
+        "DisplayLost" : _sessionStatus.DisplayLost,
+        "ShouldQuit" : _sessionStatus.ShouldQuit,
+        "ShouldRecenter" : _sessionStatus.ShouldRecenter,
+        "HasInputFocus" : _sessionStatus.HasInputFocus,
+        "OverlayPresent" : _sessionStatus.OverlayPresent,
+        "DepthRequested" : _sessionStatus.DepthRequested
+    }
 
     return result, to_return
 
