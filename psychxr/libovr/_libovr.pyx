@@ -1583,14 +1583,44 @@ cdef class LibOVRPose(object):
             Vector indicating the direction for the ray (default is -Z).
         maxRange : float, optional
             The maximum range of the ray. Ray testing will fail automatically if
-            the target is out of range. The ray has infinite length if None is
-            specified. Ray is infinite if `maxRange`=0.0.
+            the target is out of range. Ray is infinite if `maxRange`=0.0.
 
         Returns
         -------
         bool
             True if the ray intersects anywhere on the bounding sphere, False in
             every other condition.
+
+        Examples
+        --------
+
+        Basic example to check if the HMD is aligned to some target::
+
+            targetPose = LibOVRPose((0.0, 1.5, -5.0))
+            targetRadius = 0.5  # 2.5 cm
+            isTouching = hmdPose.raycastSphere(targetPose,
+                                               radius=targetRadius)
+
+
+        Check if someone is touching a target with their finger when making a
+        pointing gesture::
+
+            targetPose = LibOVRPose((0.0, 1.5, -0.25))
+            targetRadius = 0.025  # 2.5 cm
+            fingerLength = 0.1  # 10 cm
+
+            # check if making a pointing gesture
+            isPointing = getTouch(LIBOVR_CONTROLLER_TYPE_RTOUCH,
+                LIBOVR_TOUCH_RINDEXPOINTING)
+
+            if isPointing:
+                # do raycasting operation
+                isTouching = handPose.raycastSphere(
+                    targetPose, radius=targetRadius, maxRange=fingerLength)
+                if isTouching:
+                    # do something here, like make the controller vibrate
+                    setControllerVibration(
+                        LIBOVR_CONTROLLER_TYPE_RTOUCH, 'low', 0.5)
 
         """
         cdef libovr_math.Vector3f targetPos = libovr_math.Vector3f(
