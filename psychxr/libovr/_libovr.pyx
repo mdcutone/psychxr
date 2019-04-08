@@ -199,11 +199,10 @@ __all__ = [
     'LibOVRPose',
     'LibOVRPoseState',
     'LibOVRTrackerInfo',
-    'LibOVRSessionStatus',
     'LibOVRHmdInfo',
     'LibOVRFrameStat',
     'success',
-    'unqualifedSuccess',
+    'unqualifiedSuccess',
     'failure',
     'isOculusServiceRunning',
     'isHmdConnected',
@@ -2047,101 +2046,6 @@ cdef class LibOVRTrackerInfo(object):
         return self.c_ovrTrackerDesc.FrustumFarZInMeters
 
 
-cdef class LibOVRSessionStatus(object):
-    """Class for session status information.
-
-    """
-    cdef capi.ovrSessionStatus* c_data
-    cdef bint ptr_owner
-    cdef readonly bint isVisible
-    cdef readonly bint hmdPresent
-    cdef readonly bint hmdMounted
-    cdef readonly bint displayLost
-    cdef readonly bint shouldQuit
-    cdef readonly bint shouldRecenter
-    cdef readonly bint hasInputFocus
-    cdef readonly bint overlayPresent
-    cdef readonly bint depthRequested
-
-    def __init__(self):
-        """
-        Attributes
-        ----------
-        isVisible : bool
-            True if the application has focus and visible in the HMD.
-        hmdPresent : bool
-            True if the HMD is present.
-        hmdMounted : bool
-            True if the HMD is on the user's head.
-        displayLost : bool
-            True if the the display was lost.
-        shouldQuit : bool
-            True if the application was signaled to quit.
-        shouldRecenter : bool
-            True if the application was signaled to re-center.
-        hasInputFocus : bool
-            True if the application has input focus.
-        overlayPresent : bool
-            True if the system overlay is present.
-        depthRequested : bool
-            True if the system requires a depth texture. Currently unused by PsychXR.
-
-        """
-        self.newStruct()
-
-    def __cinit__(self):
-        self.ptr_owner = False
-
-    @staticmethod
-    cdef LibOVRSessionStatus fromPtr(capi.ovrSessionStatus* ptr, bint owner=False):
-        # bypass __init__ if wrapping a pointer
-        cdef LibOVRSessionStatus wrapper = \
-            LibOVRSessionStatus.__new__(LibOVRSessionStatus)
-        wrapper.c_data = ptr
-        wrapper.ptr_owner = owner
-
-        wrapper.isVisible = wrapper.c_data.IsVisible == capi.ovrTrue
-        wrapper.hmdPresent = wrapper.c_data.HmdPresent == capi.ovrTrue
-        wrapper.hmdMounted = wrapper.c_data.HmdMounted == capi.ovrTrue
-        wrapper.displayLost = wrapper.c_data.DisplayLost == capi.ovrTrue
-        wrapper.shouldQuit = wrapper.c_data.ShouldQuit == capi.ovrTrue
-        wrapper.shouldRecenter = wrapper.c_data.ShouldRecenter == capi.ovrTrue
-        wrapper.hasInputFocus = wrapper.c_data.HasInputFocus == capi.ovrTrue
-        wrapper.overlayPresent = wrapper.c_data.OverlayPresent == capi.ovrTrue
-        wrapper.depthRequested = wrapper.c_data.DepthRequested == capi.ovrTrue
-
-        return wrapper
-
-    cdef void newStruct(self):
-        if self.c_data is not NULL:  # already allocated, __init__ called twice?
-            return
-
-        cdef capi.ovrSessionStatus* _ptr = \
-            <capi.ovrSessionStatus*>PyMem_Malloc(
-                sizeof(capi.ovrSessionStatus))
-
-        if _ptr is NULL:
-            raise MemoryError
-
-        self.c_data = _ptr
-        self.ptr_owner = True
-
-        self.isVisible = self.c_data.IsVisible == capi.ovrTrue
-        self.hmdPresent = self.c_data.HmdPresent == capi.ovrTrue
-        self.hmdMounted = self.c_data.HmdMounted == capi.ovrTrue
-        self.displayLost = self.c_data.DisplayLost == capi.ovrTrue
-        self.shouldQuit = self.c_data.ShouldQuit == capi.ovrTrue
-        self.shouldRecenter = self.c_data.ShouldRecenter == capi.ovrTrue
-        self.hasInputFocus = self.c_data.HasInputFocus == capi.ovrTrue
-        self.overlayPresent = self.c_data.OverlayPresent == capi.ovrTrue
-        self.depthRequested = self.c_data.DepthRequested == capi.ovrTrue
-
-    def __dealloc__(self):
-        if self.c_data is not NULL and self.ptr_owner is True:
-            PyMem_Free(self.c_data)
-            self.c_data = NULL
-
-
 cdef class LibOVRHmdInfo(object):
     """Class for HMD information returned by :func:`getHmdInfo`."""
 
@@ -2446,7 +2350,7 @@ def success(int result):
     """
     return <bint>capi.OVR_SUCCESS(result)
 
-def unqualifedSuccess(int result):
+def unqualifiedSuccess(int result):
     """Check if an API return indicates unqualified success.
 
     Returns
