@@ -4448,7 +4448,21 @@ def getFrameStats(int frameStatIndex=0):
     Parameters
     ----------
     frameStatIndex : int (default 0)
-        Frame statistics index to retrieve.
+        Frame statistics index to retrieve. The most recent frame statistic is
+        at index 0. Available stats are:
+
+        * HmdVsyncIndex
+        * AppFrameIndex
+        * AppDroppedFrameCount
+        * AppQueueAheadTime
+        * AppCpuElapsedTime
+        * AppGpuElapsedTime
+        * CompositorFrameIndex
+        * CompositorLatency
+        * CompositorCpuElapsedTime
+        * CompositorGpuElapsedTime
+        * CompositorCpuStartToGpuEndElapsedTime
+        * CompositorGpuEndToVsyncElapsedTime
 
     Returns
     -------
@@ -4459,7 +4473,8 @@ def getFrameStats(int frameStatIndex=0):
     -----
     * If :func:`updatePerfStats` was called less than once per frame, more than
       one frame statistic will be available. Check :func:`getFrameStatsCount` for
-      the number of queued stats and use an index >0 to access them.
+      the number of queued stats and use an index >0 to access them. Stats are
+      dropped if the queue is larger than 5 items.
 
     """
     global _frameStats
