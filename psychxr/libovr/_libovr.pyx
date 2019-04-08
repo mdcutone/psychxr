@@ -2272,73 +2272,6 @@ cdef class LibOVRHmdInfo(object):
         return fov_left_out, fov_right_out
 
 
-cdef class LibOVRFrameStat(object):
-    """Performance stats for a compositor frame.
-
-    """
-    cdef capi.ovrPerfStatsPerCompositorFrame* c_data
-    cdef capi.ovrPerfStatsPerCompositorFrame c_ovrPerfStatsPerCompositorFrame
-
-    def __cinit__(self, *args, **kwargs):
-        self.c_data = &self.c_ovrPerfStatsPerCompositorFrame
-
-    @property
-    def hmdVsyncIndex(self):
-        """Frame index the stats refer to. This increments on the HMD's vertical
-        synchronization signal.
-
-        """
-        return self.c_data[0].HmdVsyncIndex
-
-    @property
-    def appFrameIndex(self):
-        """Increments every time the application submits a frame to the
-        compositor.
-
-        """
-        return self.c_data[0].AppFrameIndex
-
-    @property
-    def appDroppedFrameCount(self):
-        return self.c_data[0].AppDroppedFrameCount
-
-    @property
-    def appQueueAheadTime(self):
-        return self.c_data[0].AppQueueAheadTime
-
-    @property
-    def appCpuElapsedTime(self):
-        return self.c_data[0].AppCpuElapsedTime
-
-    @property
-    def appGpuElapsedTime(self):
-        return self.c_data[0].AppGpuElapsedTime
-
-    @property
-    def compositorFrameIndex(self):
-        return self.c_data[0].CompositorFrameIndex
-
-    @property
-    def compositorLatency(self):
-        return self.c_data[0].CompositorLatency
-
-    @property
-    def compositorCpuElapsedTime(self):
-        return self.c_data[0].CompositorCpuElapsedTime
-
-    @property
-    def compositorGpuElapsedTime(self):
-        return self.c_data[0].CompositorGpuElapsedTime
-
-    @property
-    def compositorCpuStartToGpuEndElapsedTime(self):
-        return self.c_data[0].CompositorCpuStartToGpuEndElapsedTime
-
-    @property
-    def compositorGpuEndToVsyncElapsedTime(self):
-        return self.c_data[0].CompositorGpuEndToVsyncElapsedTime
-
-
 def success(int result):
     """Check if an API return indicates success.
 
@@ -4519,7 +4452,7 @@ def getFrameStats(int frameStatIndex=0):
 
     Returns
     -------
-    LibOVRFrameStat
+    dict
         Frame statistics from the compositor.
 
     Notes
@@ -4534,10 +4467,27 @@ def getFrameStats(int frameStatIndex=0):
     if 0 > frameStatIndex >= _frameStats.FrameStatsCount:
         raise IndexError("Frame stats index out of range.")
 
-    cdef LibOVRFrameStat stat = LibOVRFrameStat()
-    stat.c_data[0] = _frameStats.FrameStats[0]
+    cdef capi.ovrPerfStatsPerCompositorFrame stat = \
+        _frameStats.FrameStats[frameStatIndex]
 
-    return stat
+    cdef dict frameStats = {
+        'HmdVsyncIndex': stat.HmdVsyncIndex,
+        'AppFrameIndex': stat.AppFrameIndex,
+        'AppDroppedFrameCount': stat.AppDroppedFrameCount,
+        'AppQueueAheadTime': stat.AppQueueAheadTime,
+        'AppCpuElapsedTime': stat.AppCpuElapsedTime,
+        'AppGpuElapsedTime': stat.AppGpuElapsedTime,
+        'CompositorFrameIndex': stat.CompositorFrameIndex,
+        'CompositorLatency': stat.CompositorLatency,
+        'CompositorCpuElapsedTime': stat.CompositorCpuElapsedTime,
+        'CompositorGpuElapsedTime': stat.CompositorGpuElapsedTime,
+        'CompositorCpuStartToGpuEndElapsedTime':
+            stat.CompositorCpuStartToGpuEndElapsedTime,
+        'CompositorGpuEndToVsyncElapsedTime':
+            stat.CompositorGpuEndToVsyncElapsedTime
+    }
+
+    return frameStats
 
 def getLastErrorInfo():
     """Get the last error code and information string reported by the API.
