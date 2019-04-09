@@ -5419,16 +5419,33 @@ def getSessionStatus():
         * *hmdMounted*, the HMD is on the user's head.
         * *displayLost*, the the display was lost.
         * *shouldQuit*, the application was signaled to quit.
-        * *shouldRecenter*, if the application was signaled to re-center.
-        * *hasInputFocus*, f the application has input focus.
-        * *overlayPresent*, if the system overlay is present.
-        * *depthRequested*, if the system requires a depth texture.
+        * *shouldRecenter*, the application was signaled to re-center.
+        * *hasInputFocus*, the application has input focus.
+        * *overlayPresent*, the system overlay is present.
+        * *depthRequested*, the system requires a depth texture (not used).
 
     Returns
     -------
     tuple of int, tuple
         Result of LibOVR API call `ovr_GetSessionStatus` and a namedtuple of
         session status flags and values.
+
+    Examples
+    --------
+
+    Check if the display is visible to the user::
+
+        result, sessionStatus = getSessionStatus()
+        if sessionStatus.isVisible:
+            # begin frame rendering ...
+
+    Quit if the user requests to through the Oculus overlay::
+
+        result, sessionStatus = getSessionStatus()
+        if sessionStatus.shouldQuit:
+            # destroy any swap chains ...
+            destroySession()
+            shutdown()
 
     """
     global _ptrSession
