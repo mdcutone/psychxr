@@ -200,7 +200,6 @@ __all__ = [
     'LibOVRPoseState',
     'LibOVRTrackerInfo',
     'LibOVRHmdInfo',
-    'LibOVRFrameStat',
     'success',
     'unqualifiedSuccess',
     'failure',
@@ -265,7 +264,6 @@ __all__ = [
     'clearShouldRecenterFlag',
     'getTrackerCount',
     'getTrackerInfo',
-    'refreshPerformanceStats',
     'updatePerfStats',
     'getAdaptiveGpuPerformanceScale',
     'getFrameStatsCount',
@@ -306,6 +304,8 @@ from libc.math cimport pow, tan
 cimport numpy as np
 import numpy as np
 np.import_array()
+
+import collections
 
 # -----------------
 # Initialize module
@@ -1938,8 +1938,8 @@ cdef class LibOVRPoseState(object):
                 <libovr_math.Vector3f>self.c_data[0].AngularAcceleration,
                 dt)
 
-        cdef capi.ovrPoseStatef* ptr = \
-            <capi.ovrPoseStatef*>PyMem_Malloc(sizeof(capi.ovrPoseStatef))
+        cdef capi.ovrPosef* ptr = \
+            <capi.ovrPosef*>PyMem_Malloc(sizeof(capi.ovrPosef))
 
         if ptr is NULL:
             raise MemoryError(
@@ -2003,7 +2003,7 @@ cdef class LibOVRTrackerInfo(object):
 
     @property
     def pose(self):
-        """he pose of the sensor (read-only)."""
+        """The pose of the sensor (read-only)."""
         return self._pose
 
     @property
@@ -3291,10 +3291,8 @@ def getTrackingState(double absTime, bint latencyMarker=True):
         headPoseState, status = trackedPoses[LIBOVR_TRACKED_DEVICE_TYPE_HMD]
 
         # tracking state flags
-        orientationTracked = \
-            (status & LIBOVR_STATUS_ORIENTATION_TRACKED) == LIBOVR_STATUS_ORIENTATION_TRACKED
-        positionTracked = \
-            (status & LIBOVR_STATUS_POSITION_TRACKED) == LIBOVR_STATUS_POSITION_TRACKED
+        orientationTracked = (status & LIBOVR_STATUS_ORIENTATION_TRACKED) == LIBOVR_STATUS_ORIENTATION_TRACKED
+        positionTracked = (status & LIBOVR_STATUS_POSITION_TRACKED) == LIBOVR_STATUS_POSITION_TRACKED
 
         # check if tracking
         if orientationTracked and positionTracked:
@@ -3352,18 +3350,18 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     deviceTypes : `list` or `tuple` of `int`
         List of device types. Valid device types identifiers are:
 
-        * LIBOVR_TRACKED_DEVICE_TYPE_HMD : The head or HMD.
-        * LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH : Left touch controller or hand.
-        * LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH : Right touch controller or hand.
-        * LIBOVR_TRACKED_DEVICE_TYPE_TOUCH : Both touch controllers.
+        * :data:`LIBOVR_TRACKED_DEVICE_TYPE_HMD` : The head or HMD.
+        * :data:`LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH` : Left touch controller or hand.
+        * :data:`LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH` : Right touch controller or hand.
+        * :data:`LIBOVR_TRACKED_DEVICE_TYPE_TOUCH` : Both touch controllers.
 
         Up to four additional touch controllers can be paired and tracked, they
         are assigned as:
 
-        * LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0
-        * LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1
-        * LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2
-        * LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3
+        * :data:`LIBOVR_TRACKED_DEVICE_TYPE_OBJECT0`
+        * :data:`LIBOVR_TRACKED_DEVICE_TYPE_OBJECT1`
+        * :data:`LIBOVR_TRACKED_DEVICE_TYPE_OBJECT2`
+        * :data:`LIBOVR_TRACKED_DEVICE_TYPE_OBJECT3`
 
     absTime : `float`
         Absolute time in seconds poses refer to.
@@ -4168,11 +4166,23 @@ def getTrackingOriginType():
     elif originType == capi.ovrTrackingOrigin_EyeLevel:
         return LIBOVR_TRACKING_ORIGIN_EYE_LEVEL
 
-def setTrackingOriginType(str value):
+def setTrackingOriginType(int value):
     """Set the tracking origin type.
 
     Specify the tracking origin to use when computing eye poses. Subsequent
     calls of :func:`calcEyePoses` will use the set tracking origin.
+
+    Parameters
+    ----------
+    value : int
+        Tracking origin type, must be either
+        :data:`LIBOVR_TRACKING_ORIGIN_FLOOR_LEVEL` or
+        :data:`LIBOVR_TRACKING_ORIGIN_EYE_LEVEL`.
+
+    Returns
+    -------
+    int
+        Result of the `ovr_SetTrackingOriginType` LibOVR API call.
 
     See Also
     --------
@@ -4280,30 +4290,6 @@ def getTrackerInfo(int trackerIndex):
         _ptrSession, <unsigned int>trackerIndex)
 
     return to_return
-
-def refreshPerformanceStats():
-    """Refresh performance statistics.
-
-    Should be called after :func:`endFrame`.
-
-    """
-    global _ptrSession
-    global _frameStats
-    cdef capi.ovrResult result = capi.ovr_GetPerfStats(
-        _ptrSession,
-        &_frameStats)
-
-    # clear
-    cdef list compFrameStats = list()
-
-    cdef int statIdx = 0
-    cdef int numStats = _frameStats.FrameStatsCount
-    for statIdx in range(numStats):
-        frameStat = LibOVRFrameStat()
-        frameStat.c_data[0] = _frameStats.FrameStats[statIdx]
-        compFrameStats.append(frameStat)
-
-    return result
 
 def updatePerfStats():
     """Update performance stats.
@@ -4825,7 +4811,7 @@ def getButton(int controller, int button, str testState='continuous'):
     `controller`.
 
     An optional trigger mode may be specified which defines the button's
-    activation criteria. By default, `testState`='continuous' will return the
+    activation criteria. By default, `testState` is 'continuous' will return the
     immediate state of the button. Using 'rising' (or 'pressed') will
     return True once when the button transitions to being pressed between
     subsequent :func:`updateInputState` calls, whereas 'falling' (and
@@ -4967,7 +4953,7 @@ def getTouch(int controller, int touch, str testState='continuous'):
     :func:`updateInputState` call for the specified `controller`.
 
     An optional trigger mode may be specified which defines the button's
-    activation criteria. By default, `testState`='continuous' will return the
+    activation criteria. By default, `testState` is 'continuous' will return the
     immediate state of the button. Using 'rising' (or 'pressed') will
     return True once when something is touched between subsequent
     :func:`updateInputState` calls, whereas 'falling' (and 'released') will
@@ -5433,26 +5419,48 @@ def setControllerVibration(int controller, str frequency, float amplitude):
 
     return result
 
+LibOVRSessionStatus = collections.namedtuple(
+    'LibOVRSessionStatus',
+    ['isVisible', 'hmdPresent', 'hmdMounted', 'displayLost', 'shouldQuit',
+     'shouldRecenter', 'hasInputFocus', 'overlayPresent', 'depthRequested'])
+
 def getSessionStatus():
     """Get the current session status.
 
-    Function returns a dictionary with session status flags and values:
+    Function returns a namedtuple with the following names:
 
-        * IsVisible, the application has focus and visible in the HMD.
-        * HmdPresent, the HMD is present.
-        * HmdMounted, the HMD is on the user's head.
-        * DisplayLost, the the display was lost.
-        * ShouldQuit, the application was signaled to quit.
-        * ShouldRecenter, if the application was signaled to re-center.
-        * HasInputFocus, f the application has input focus.
-        * OverlayPresent, if the system overlay is present.
-        * DepthRequested, if the system requires a depth texture.
+        * *isVisible*, the application has focus and visible in the HMD.
+        * *hmdPresent*, the HMD is present.
+        * *hmdMounted*, the HMD is on the user's head.
+        * *displayLost*, the the display was lost.
+        * *shouldQuit*, the application was signaled to quit.
+        * *shouldRecenter*, the application was signaled to re-center.
+        * *hasInputFocus*, the application has input focus.
+        * *overlayPresent*, the system overlay is present.
+        * *depthRequested*, the system requires a depth texture (not used).
 
     Returns
     -------
-    tuple of int, dict
-        Result of LibOVR API call `ovr_GetSessionStatus` and a dictionary of
+    tuple of int, tuple
+        Result of LibOVR API call `ovr_GetSessionStatus` and a namedtuple of
         session status flags and values.
+
+    Examples
+    --------
+
+    Check if the display is visible to the user::
+
+        result, sessionStatus = getSessionStatus()
+        if sessionStatus.isVisible:
+            # begin frame rendering ...
+
+    Quit if the user requests to through the Oculus overlay::
+
+        result, sessionStatus = getSessionStatus()
+        if sessionStatus.shouldQuit:
+            # destroy any swap chains ...
+            destroySession()
+            shutdown()
 
     """
     global _ptrSession
@@ -5461,17 +5469,29 @@ def getSessionStatus():
     cdef capi.ovrResult result = capi.ovr_GetSessionStatus(_ptrSession,
                                                            &_sessionStatus)
 
-    cdef dict to_return = {
-        "IsVisible" : _sessionStatus.IsVisible,
-        "HmdPresent" : _sessionStatus.HmdPresent,
-        "HmdMounted" : _sessionStatus.HmdMounted,
-        "DisplayLost" : _sessionStatus.DisplayLost,
-        "ShouldQuit" : _sessionStatus.ShouldQuit,
-        "ShouldRecenter" : _sessionStatus.ShouldRecenter,
-        "HasInputFocus" : _sessionStatus.HasInputFocus,
-        "OverlayPresent" : _sessionStatus.OverlayPresent,
-        "DepthRequested" : _sessionStatus.DepthRequested
-    }
+    to_return = LibOVRSessionStatus(
+        _sessionStatus.IsVisible == capi.ovrTrue,
+        _sessionStatus.HmdPresent == capi.ovrTrue,
+        _sessionStatus.HmdMounted == capi.ovrTrue,
+        _sessionStatus.DisplayLost == capi.ovrTrue,
+        _sessionStatus.ShouldQuit == capi.ovrTrue,
+        _sessionStatus.ShouldRecenter == capi.ovrTrue,
+        _sessionStatus.HasInputFocus == capi.ovrTrue,
+        _sessionStatus.OverlayPresent == capi.ovrTrue,
+        _sessionStatus.DepthRequested == capi.ovrTrue
+    )
+
+    # cdef dict to_return = {
+    #     "IsVisible" : _sessionStatus.IsVisible,
+    #     "HmdPresent" : _sessionStatus.HmdPresent,
+    #     "HmdMounted" : _sessionStatus.HmdMounted,
+    #     "DisplayLost" : _sessionStatus.DisplayLost,
+    #     "ShouldQuit" : _sessionStatus.ShouldQuit,
+    #     "ShouldRecenter" : _sessionStatus.ShouldRecenter,
+    #     "HasInputFocus" : _sessionStatus.HasInputFocus,
+    #     "OverlayPresent" : _sessionStatus.OverlayPresent,
+    #     "DepthRequested" : _sessionStatus.DepthRequested
+    # }
 
     return result, to_return
 
