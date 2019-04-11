@@ -3970,7 +3970,36 @@ def hidePerfHud():
     """
     global _ptrSession
     cdef capi.ovrBool ret = capi.ovr_SetInt(
-        _ptrSession, b"PerfHudMode", capi.ovrPerfHud_Off)
+        _ptrSession, capi.OVR_PERF_HUD_MODE, capi.ovrPerfHud_Off)
+
+LIBOVR_DEBUG_HUD_STEREO_MODE_OFF = capi.ovrDebugHudStereo_Off
+LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD = capi.ovrDebugHudStereo_Off
+LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD_WITH_CROSSHAIR = capi.ovrDebugHudStereo_QuadWithCrosshair
+LIBOVR_DEBUG_HUD_STEREO_MODE_CROSSHAIR_AT_INFINITY = capi.ovrDebugHudStereo_CrosshairAtInfinity
+
+def debugHudStereoMode(int mode):
+    """Display the stereo debugging HUD.
+
+    Parameters
+    ----------
+    mode : `int`
+        Performance HUD mode to present. Valid modes values are:
+
+        * :data:`LIBOVR_DEBUG_HUD_STEREO_MODE_OFF`: Turn off the HUD.
+        * :data:`LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD`: Render a quad in-world.
+        * :data:`LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD_WITH_CROSSHAIR`: Render a
+          quad with a crosshair.
+        * :data:`LIBOVR_DEBUG_HUD_STEREO_MODE_CROSSHAIR_AT_INFINITY`: Render a
+          crosshair at infinity.
+
+    """
+    global _ptrSession
+
+    if 0 > mode >= capi.ovrDebugHudStereo_Count:
+        raise ValueError("Invalid value for 'mode' specified.")
+
+    cdef capi.ovrBool ret = capi.ovr_SetInt(
+        _ptrSession, capi.OVR_DEBUG_HUD_STEREO_MODE, <int>mode)
 
 # def getEyeViewport(int eye):
 #     """Get the viewport for a given eye.
