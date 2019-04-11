@@ -2298,6 +2298,9 @@ cdef class LibOVRHmdInfo(object):
 
         return fov_left_out, fov_right_out
 
+# ------------------------------------------------------------------------------
+# Functions
+#
 
 def success(int result):
     """Check if an API return indicates success.
@@ -4457,10 +4460,10 @@ def checkCompLastFrameDropped():
 
 LibOVRFramePerfStats = collections.namedtuple('LibOVRFramePerfStats',
     ['hmdVsyncIndex', 'appFrameIndex', 'appDroppedFrameCount',
-     'appQueueAheadTime', 'appCpuElapsedTime', 'appGpuElapsedTime',
-     'compositorFrameIndex', 'compositorLatency', 'compositorLatency',
-     'compositorCpuElapsedTime', 'compositorGpuElapsedTime',
-     'compositorCpuStartToGpuEndElapsedTime',
+     'appMotionToPhotonLatency', 'appQueueAheadTime', 'appCpuElapsedTime',
+     'appGpuElapsedTime', 'compositorFrameIndex', 'compositorLatency',
+     'compositorLatency', 'compositorCpuElapsedTime',
+     'compositorGpuElapsedTime', 'compositorCpuStartToGpuEndElapsedTime',
      'compositorGpuEndToVsyncElapsedTime'])
 
 def getFrameStats(int frameStatIndex=0):
@@ -4470,25 +4473,41 @@ def getFrameStats(int frameStatIndex=0):
     ----------
     frameStatIndex : int (default 0)
         Frame statistics index to retrieve. The most recent frame statistic is
-        at index 0. Available stats are:
-
-        * hmdVsyncIndex
-        * appFrameIndex
-        * appDroppedFrameCount
-        * appQueueAheadTime
-        * appCpuElapsedTime
-        * appGpuElapsedTime
-        * compositorFrameIndex
-        * compositorLatency
-        * compositorCpuElapsedTime
-        * compositorGpuElapsedTime
-        * compositorCpuStartToGpuEndElapsedTime
-        * compositorGpuEndToVsyncElapsedTime
+        at index 0.
 
     Returns
     -------
     namedtuple
-        Frame statistics from the compositor.
+        Frame statistics from the compositor. Available stats are:
+
+        * hmdVsyncIndex - Increments every HMD vertical sync signal.
+        * appFrameIndex - Index increments after each call to :func:`endFrame`.
+        * appDroppedFrameCount - If :func:`endFrame` is not called on-time, this
+          will increment (i.e. missed HMD vertical sync deadline).
+        * appMotionToPhotonLatency - Motion-to-photon latency in seconds
+          computed using the marker set by :func:`getTrackingState`.
+        * appQueueAheadTime - Queue-ahead time in seconds. If >11 ms, the CPU is
+          outpacing the GPU workload by 1 frame.
+        * appCpuElapsedTime - Time in seconds the CPU spent between calls of
+          :func:`endFrame`.
+        * appGpuElapsedTime - Time in seconds the GPU spent between calls of
+          :func:`endFrame`.
+        * compositorFrameIndex - Increments when the compositor completes a
+          distortion pass, happens regardless if :func:`endFrame` was called
+          late.
+        * compositorLatency - Motion-to-photon latency of the compositor, which
+          include the latency of 'timewarp' needed to correct for application
+          latency and dropped application frames.
+        * compositorCpuElapsedTime - Time in seconds the compositor spends on
+          the CPU.
+        * compositorGpuElapsedTime - Time in seconds the compositor spends on
+          the GPU.
+        * compositorCpuStartToGpuEndElapsedTime - Time in seconds between the
+          point the compositor executes and completes distortion/timewarp.
+          Value is -1.0 if GPU time is not available.
+        * compositorGpuEndToVsyncElapsedTime - Time in seconds left between the
+          compositor is complete and the target vertical synchronization on the
+          HMD.
 
     Notes
     -----
@@ -4510,6 +4529,7 @@ def getFrameStats(int frameStatIndex=0):
         stat.HmdVsyncIndex,
         stat.AppFrameIndex,
         stat.AppDroppedFrameCount,
+        stat.AppMotionToPhotonLatency,
         stat.AppQueueAheadTime,
         stat.AppCpuElapsedTime,
         stat.AppGpuElapsedTime,
