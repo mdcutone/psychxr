@@ -4323,6 +4323,8 @@ def getTrackerInfo(int trackerIndex):
 def updatePerfStats():
     """Update performance stats.
 
+    Should be called once per frame.
+
     Returns
     -------
     int
@@ -4469,6 +4471,9 @@ LibOVRFramePerfStats = collections.namedtuple('LibOVRFramePerfStats',
 def getFrameStats(int frameStatIndex=0):
     """Get detailed compositor frame statistics.
 
+    Returned frame statistics reflect the values contemporaneous with the last
+    :func:`updatePerfStats` call.
+
     Parameters
     ----------
     frameStatIndex : int (default 0)
@@ -4478,43 +4483,68 @@ def getFrameStats(int frameStatIndex=0):
     Returns
     -------
     namedtuple
-        Frame statistics from the compositor. Available stats are:
+        Frame statistics from the compositor. Available stats are accessible
+        using the following attributes of the returned `LibOVRFramePerfStats`
+        namedtuple type:
 
-        * hmdVsyncIndex - Increments every HMD vertical sync signal.
-        * appFrameIndex - Index increments after each call to :func:`endFrame`.
-        * appDroppedFrameCount - If :func:`endFrame` is not called on-time, this
-          will increment (i.e. missed HMD vertical sync deadline).
-        * appMotionToPhotonLatency - Motion-to-photon latency in seconds
+        * `hmdVsyncIndex` - Increments every HMD vertical sync signal.
+        * `appFrameIndex` - Index increments after each call to :func:`endFrame`.
+        * `appDroppedFrameCount` - If :func:`endFrame` is not called on-time,
+          this will increment (i.e. missed HMD vertical sync deadline).
+        * `appMotionToPhotonLatency` - Motion-to-photon latency in seconds
           computed using the marker set by :func:`getTrackingState`.
-        * appQueueAheadTime - Queue-ahead time in seconds. If >11 ms, the CPU is
-          outpacing the GPU workload by 1 frame.
-        * appCpuElapsedTime - Time in seconds the CPU spent between calls of
+        * `appQueueAheadTime` - Queue-ahead time in seconds. If >11 ms, the CPU
+          is outpacing the GPU workload by 1 frame.
+        * `appCpuElapsedTime` - Time in seconds the CPU spent between calls of
+          :func:`endFrame`. Form the point when :func:`endFrame` releases
+          control back to the application, to the next time it is called.
+        * `appGpuElapsedTime` - Time in seconds the GPU spent between calls of
           :func:`endFrame`.
-        * appGpuElapsedTime - Time in seconds the GPU spent between calls of
-          :func:`endFrame`.
-        * compositorFrameIndex - Increments when the compositor completes a
+        * `compositorFrameIndex` - Increments when the compositor completes a
           distortion pass, happens regardless if :func:`endFrame` was called
           late.
-        * compositorLatency - Motion-to-photon latency of the compositor, which
+        * `compositorLatency` - Motion-to-photon latency of the compositor, which
           include the latency of 'timewarp' needed to correct for application
           latency and dropped application frames.
-        * compositorCpuElapsedTime - Time in seconds the compositor spends on
+        * `compositorCpuElapsedTime` - Time in seconds the compositor spends on
           the CPU.
-        * compositorGpuElapsedTime - Time in seconds the compositor spends on
+        * `compositorGpuElapsedTime` - Time in seconds the compositor spends on
           the GPU.
-        * compositorCpuStartToGpuEndElapsedTime - Time in seconds between the
+        * `compositorCpuStartToGpuEndElapsedTime` - Time in seconds between the
           point the compositor executes and completes distortion/timewarp.
           Value is -1.0 if GPU time is not available.
-        * compositorGpuEndToVsyncElapsedTime - Time in seconds left between the
+        * `compositorGpuEndToVsyncElapsedTime` - Time in seconds left between the
           compositor is complete and the target vertical synchronization on the
           HMD.
 
+    See Also
+    --------
+    updatePerfStats : Update performance and frame statistics.
+
     Notes
     -----
+
     * If :func:`updatePerfStats` was called less than once per frame, more than
-      one frame statistic will be available. Check :func:`getFrameStatsCount` for
-      the number of queued stats and use an index >0 to access them. Stats are
-      dropped if the queue is larger than 5 items.
+      one frame statistic will be available. Check :func:`getFrameStatsCount`
+      for the number of queued stats and use an index >0 to access them. Stats
+      are dropped if the queue is larger than 5 items.
+
+    Examples
+    --------
+
+    Get the time spent by the application between :func:`endFrame` calls::
+
+        result = updatePerfStats()
+
+        if getFrameStatsCount() > 0:
+            frameStats = getFrameStats(0)  # only the most recent
+            appTime = frameStats.appCpuElapsedTime
+
+    Get all available frame statistics::
+
+        stats = []
+        for i in range(getFrameStatsCount()):
+            stats.append(getFrameStats(i))
 
     """
     global _frameStats
@@ -4543,12 +4573,26 @@ def getFrameStats(int frameStatIndex=0):
 def getLastErrorInfo():
     """Get the last error code and information string reported by the API.
 
-    This function can be used when implementing custom error handlers.
+    This function can be used when implementing custom error handlers. You must
+    call :func:`getLastErrorInfo` every time after any function which makes an
+    LibOVR API call if you wish to catch all errors, since only the last one is
+    returned.
 
     Returns
     -------
     `tuple` of `int`, `str`
-        Tuple of the API call result and error string.
+        Tuple of the API call result and error string. If there was no API
+        error, the function will return tuple (0, '<unknown>').
+
+    Examples
+    --------
+
+    Raise a Python exception if LibOVR reports an error::
+
+        result = create()
+        if failure(result):
+            errorVal, errorMsg = getLastErrorInfo()
+            raise RuntimeError(errorMsg)  # Python generic runtime error!
 
     """
     cdef capi.ovrErrorInfo lastErrorInfo  # store our last error here
