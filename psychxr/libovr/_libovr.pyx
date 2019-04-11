@@ -4508,18 +4508,18 @@ def getFrameStats(int frameStatIndex=0):
         _frameStats.FrameStats[frameStatIndex]
 
     return LibOVRFramePerfStats(
-        stat.hmdVsyncIndex,
-        stat.appFrameIndex,
-        stat.appDroppedFrameCount,
-        stat.appQueueAheadTime,
-        stat.appCpuElapsedTime,
-        stat.appGpuElapsedTime,
-        stat.compositorFrameIndex,
-        stat.compositorLatency,
-        stat.compositorCpuElapsedTime,
-        stat.compositorGpuElapsedTime,
-        stat.compositorCpuStartToGpuEndElapsedTime,
-        stat.compositorGpuEndToVsyncElapsedTime)
+        stat.HmdVsyncIndex,
+        stat.AppFrameIndex,
+        stat.AppDroppedFrameCount,
+        stat.AppQueueAheadTime,
+        stat.AppCpuElapsedTime,
+        stat.AppGpuElapsedTime,
+        stat.CompositorFrameIndex,
+        stat.CompositorLatency,
+        stat.CompositorCpuElapsedTime,
+        stat.CompositorGpuElapsedTime,
+        stat.CompositorCpuStartToGpuEndElapsedTime,
+        stat.CompositorGpuEndToVsyncElapsedTime)
 
 def getLastErrorInfo():
     """Get the last error code and information string reported by the API.
@@ -4611,11 +4611,11 @@ def getBoundaryVisible():
 
     """
     global _ptrSession
-    cdef capi.ovrBool is_visible
+    cdef capi.ovrBool isVisible
     cdef capi.ovrResult result = capi.ovr_GetBoundaryVisible(
-        _ptrSession, &is_visible)
+        _ptrSession, &isVisible)
 
-    return result, is_visible
+    return result, isVisible
 
 def showBoundary():
     """Show the boundary.
