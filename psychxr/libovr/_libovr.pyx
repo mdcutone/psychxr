@@ -3301,7 +3301,7 @@ def getTrackingState(double absTime, bint latencyMarker=True):
     Returns
     -------
     tuple of dict, :class:`LibOVRPose`
-        Dictionary of tracking states, keys are
+        Dictionary of tracking states where keys are
         :data:`LIBOVR_TRACKED_DEVICE_TYPE_HMD`,
         :data:`LIBOVR_TRACKED_DEVICE_TYPE_LTOUCH`, and
         :data:`LIBOVR_TRACKED_DEVICE_TYPE_RTOUCH`. The value referenced by each
@@ -3314,15 +3314,14 @@ def getTrackingState(double absTime, bint latencyMarker=True):
     Getting the head pose and calculating eye render poses::
 
         t = hmd.getPredictedDisplayTime()
-        trackedPoses, calibratedOrigin = hmd.getTrackedPoses(t)
+        trackedPoses, calibratedOrigin = hmd.getTrackingState(t)
         headPoseState, status = trackedPoses[LIBOVR_TRACKED_DEVICE_TYPE_HMD]
 
         # tracking state flags
-        orientationTracked = (status & LIBOVR_STATUS_ORIENTATION_TRACKED) == LIBOVR_STATUS_ORIENTATION_TRACKED
-        positionTracked = (status & LIBOVR_STATUS_POSITION_TRACKED) == LIBOVR_STATUS_POSITION_TRACKED
+        flags = LIBOVR_STATUS_ORIENTATION_TRACKED | LIBOVR_STATUS_ORIENTATION_TRACKED
 
         # check if tracking
-        if orientationTracked and positionTracked:
+        if (flags & status) == flags:
             hmd.calcEyePose(headPoseState.thePose)  # calculate eye poses
 
     """
