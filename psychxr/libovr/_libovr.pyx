@@ -168,6 +168,14 @@ __all__ = [
     'LIBOVR_TEXTURE_SWAP_CHAIN5',
     'LIBOVR_TEXTURE_SWAP_CHAIN6',
     'LIBOVR_TEXTURE_SWAP_CHAIN7',
+    'LIBOVR_TEXTURE_SWAP_CHAIN8',
+    'LIBOVR_TEXTURE_SWAP_CHAIN9',
+    'LIBOVR_TEXTURE_SWAP_CHAIN10',
+    'LIBOVR_TEXTURE_SWAP_CHAIN11',
+    'LIBOVR_TEXTURE_SWAP_CHAIN12',
+    'LIBOVR_TEXTURE_SWAP_CHAIN13',
+    'LIBOVR_TEXTURE_SWAP_CHAIN14',
+    'LIBOVR_TEXTURE_SWAP_CHAIN15',
     'LIBOVR_FORMAT_R8G8B8A8_UNORM',
     'LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB',
     'LIBOVR_FORMAT_R16G16B16A16_FLOAT',
@@ -233,7 +241,6 @@ __all__ = [
     'createMirrorTexture',
     'getMirrorTexture',
     'getTrackingState',
-    #'getDevicePose',
     'getDevicePoses',
     'calcEyePoses',
     'getHmdToEyePose',
@@ -368,74 +375,10 @@ def check_result(result):
 cdef float maxf(float a, float b):
     return a if a >= b else b
 
-# Color texture formats supported by OpenGL, can be used for creating swap
-# chains.
-#
-cdef dict _supported_texture_formats = {
-    "R8G8B8A8_UNORM": capi.OVR_FORMAT_R8G8B8A8_UNORM,
-    "R8G8B8A8_UNORM_SRGB": capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
-    "R16G16B16A16_FLOAT": capi.OVR_FORMAT_R16G16B16A16_FLOAT,
-    "R11G11B10_FLOAT": capi.OVR_FORMAT_R11G11B10_FLOAT
-}
+# ------------------------------------------------------------------------------
+# Constants
 
-# Performance HUD modes
-#
-cdef dict _performance_hud_modes = {
-    "Off" : capi.ovrPerfHud_Off,
-    "PerfSummary": capi.ovrPerfHud_PerfSummary,
-    "AppRenderTiming" : capi.ovrPerfHud_AppRenderTiming,
-    "LatencyTiming" : capi.ovrPerfHud_LatencyTiming,
-    "CompRenderTiming" : capi.ovrPerfHud_CompRenderTiming,
-    "AswStats" : capi.ovrPerfHud_AswStats,
-    "VersionInfo" : capi.ovrPerfHud_VersionInfo
-}
-
-# mirror texture options
-#
-cdef dict _mirror_texture_options = {
-    "Default" : capi.ovrMirrorOption_Default,
-    "PostDistortion" : capi.ovrMirrorOption_PostDistortion,
-    "LeftEyeOnly" : capi.ovrMirrorOption_LeftEyeOnly,
-    "RightEyeOnly" : capi.ovrMirrorOption_RightEyeOnly,
-    "IncludeGuardian" : capi.ovrMirrorOption_IncludeGuardian,
-    "IncludeNotifications" : capi.ovrMirrorOption_IncludeNotifications,
-    "IncludeSystemGui" : capi.ovrMirrorOption_IncludeSystemGui
-}
-
-# controller enums associated with each string identifier
-#
-cdef dict _controller_type_enum = {
-    "Xbox": capi.ovrControllerType_XBox,
-    "Remote": capi.ovrControllerType_Remote,
-    "Touch": capi.ovrControllerType_Touch,
-    "LeftTouch": capi.ovrControllerType_LTouch,
-    "RightTouch": capi.ovrControllerType_RTouch
-}
-
-# Button values
-#
-cdef dict _controller_buttons = {
-    "A": capi.ovrButton_A,
-    "B": capi.ovrButton_B,
-    "RThumb": capi.ovrButton_RThumb,
-    "RShoulder": capi.ovrButton_RShoulder,
-    "X": capi.ovrButton_X,
-    "Y": capi.ovrButton_Y,
-    "LThumb": capi.ovrButton_LThumb,
-    "LShoulder": capi.ovrButton_LShoulder,
-    "Up": capi.ovrButton_Up,
-    "Down": capi.ovrButton_Down,
-    "Left": capi.ovrButton_Left,
-    "Right": capi.ovrButton_Right,
-    "Enter": capi.ovrButton_Enter,
-    "Back": capi.ovrButton_Back,
-    "VolUp": capi.ovrButton_VolUp,
-    "VolDown": capi.ovrButton_VolDown,
-    "Home": capi.ovrButton_Home,
-    "Private": capi.ovrButton_Private,
-    "RMask": capi.ovrButton_RMask,
-    "LMask": capi.ovrButton_LMask}
-
+# button types
 LIBOVR_BUTTON_A = capi.ovrButton_A
 LIBOVR_BUTTON_B = capi.ovrButton_B
 LIBOVR_BUTTON_RTHUMB = capi.ovrButton_RThumb
@@ -457,24 +400,7 @@ LIBOVR_BUTTON_PRIVATE = capi.ovrButton_Private
 LIBOVR_BUTTON_RMASK = capi.ovrButton_RMask
 LIBOVR_BUTTON_LMASK = capi.ovrButton_LMask
 
-# Touch states
-#
-cdef dict _touch_states = {
-    "A": capi.ovrTouch_A,
-    "B": capi.ovrTouch_B,
-    "RThumb": capi.ovrTouch_RThumb,
-    "RThumbRest": capi.ovrTouch_RThumbRest,
-    "RIndexTrigger": capi.ovrTouch_RThumb,
-    "X": capi.ovrTouch_X,
-    "Y": capi.ovrTouch_Y,
-    "LThumb": capi.ovrTouch_LThumb,
-    "LThumbRest": capi.ovrTouch_LThumbRest,
-    "LIndexTrigger": capi.ovrTouch_LIndexTrigger,
-    "RIndexPointing": capi.ovrTouch_RIndexPointing,
-    "RThumbUp": capi.ovrTouch_RThumbUp,
-    "LIndexPointing": capi.ovrTouch_LIndexPointing,
-    "LThumbUp": capi.ovrTouch_LThumbUp}
-
+# touch types
 LIBOVR_TOUCH_A = capi.ovrTouch_A
 LIBOVR_TOUCH_B = capi.ovrTouch_B
 LIBOVR_TOUCH_RTHUMB = capi.ovrTouch_RThumb
@@ -489,19 +415,6 @@ LIBOVR_TOUCH_RTHUMBUP = capi.ovrTouch_RThumbUp
 LIBOVR_TOUCH_LINDEXPOINTING = capi.ovrTouch_LIndexPointing
 LIBOVR_TOUCH_LTHUMBUP = capi.ovrTouch_LThumbUp
 
-# Controller types
-#
-cdef dict _controller_types = {
-    'Xbox' : capi.ovrControllerType_XBox,
-    'Remote' : capi.ovrControllerType_Remote,
-    'Touch' : capi.ovrControllerType_Touch,
-    'LeftTouch' : capi.ovrControllerType_LTouch,
-    'RightTouch' : capi.ovrControllerType_RTouch}
-
-# ---------
-# Constants
-# ---------
-#
 # controller types
 LIBOVR_CONTROLLER_TYPE_NONE = capi.ovrControllerType_None
 LIBOVR_CONTROLLER_TYPE_XBOX = capi.ovrControllerType_XBox
@@ -595,16 +508,6 @@ LIBOVR_HAND_LEFT = capi.ovrHand_Left
 LIBOVR_HAND_RIGHT = capi.ovrHand_Right
 LIBOVR_HAND_COUNT = capi.ovrHand_Count
 
-# swapchain handles, more than enough for now
-LIBOVR_TEXTURE_SWAP_CHAIN0 = 0
-LIBOVR_TEXTURE_SWAP_CHAIN1 = 1
-LIBOVR_TEXTURE_SWAP_CHAIN2 = 2
-LIBOVR_TEXTURE_SWAP_CHAIN3 = 3
-LIBOVR_TEXTURE_SWAP_CHAIN4 = 4
-LIBOVR_TEXTURE_SWAP_CHAIN5 = 5
-LIBOVR_TEXTURE_SWAP_CHAIN6 = 6
-LIBOVR_TEXTURE_SWAP_CHAIN7 = 7
-
 # texture formats, color and depth
 LIBOVR_FORMAT_R8G8B8A8_UNORM = capi.OVR_FORMAT_R8G8B8A8_UNORM
 LIBOVR_FORMAT_R8G8B8A8_UNORM_SRGB = capi.OVR_FORMAT_R8G8B8A8_UNORM_SRGB
@@ -668,6 +571,35 @@ LIBOVR_DEBUG_HUD_STEREO_GUIDE_SIZE = capi.OVR_DEBUG_HUD_STEREO_GUIDE_SIZE
 LIBOVR_DEBUG_HUD_STEREO_GUIDE_POSITION = capi.OVR_DEBUG_HUD_STEREO_GUIDE_POSITION
 LIBOVR_DEBUG_HUD_STEREO_GUIDE_YAWPITCHROLL = capi.OVR_DEBUG_HUD_STEREO_GUIDE_YAWPITCHROLL
 LIBOVR_DEBUG_HUD_STEREO_GUIDE_COLOR = capi.OVR_DEBUG_HUD_STEREO_GUIDE_COLOR
+
+# performance hud modes
+LIBOVR_PERF_HUD_OFF = capi.ovrPerfHud_Off
+LIBOVR_PERF_HUD_PERF_SUMMARY = capi.ovrPerfHud_PerfSummary
+LIBOVR_PERF_HUD_LATENCY_TIMING = capi.ovrPerfHud_LatencyTiming
+LIBOVR_PERF_HUD_APP_RENDER_TIMING = capi.ovrPerfHud_AppRenderTiming
+LIBOVR_PERF_HUD_COMP_RENDER_TIMING = capi.ovrPerfHud_CompRenderTiming
+LIBOVR_PERF_HUD_ASW_STATS = capi.ovrPerfHud_AswStats
+LIBOVR_PERF_HUD_VERSION_INFO = capi.ovrPerfHud_VersionInfo
+LIBOVR_PERF_HUD_COUNT = capi.ovrPerfHud_Count
+
+
+# swapchain handles, more than enough for now
+LIBOVR_TEXTURE_SWAP_CHAIN0 = 0
+LIBOVR_TEXTURE_SWAP_CHAIN1 = 1
+LIBOVR_TEXTURE_SWAP_CHAIN2 = 2
+LIBOVR_TEXTURE_SWAP_CHAIN3 = 3
+LIBOVR_TEXTURE_SWAP_CHAIN4 = 4
+LIBOVR_TEXTURE_SWAP_CHAIN5 = 5
+LIBOVR_TEXTURE_SWAP_CHAIN6 = 6
+LIBOVR_TEXTURE_SWAP_CHAIN7 = 7
+LIBOVR_TEXTURE_SWAP_CHAIN8 = 8
+LIBOVR_TEXTURE_SWAP_CHAIN9 = 9
+LIBOVR_TEXTURE_SWAP_CHAIN10 = 10
+LIBOVR_TEXTURE_SWAP_CHAIN11 = 11
+LIBOVR_TEXTURE_SWAP_CHAIN12 = 12
+LIBOVR_TEXTURE_SWAP_CHAIN13 = 13
+LIBOVR_TEXTURE_SWAP_CHAIN14 = 14
+LIBOVR_TEXTURE_SWAP_CHAIN15 = 15
 
 # ------------------------------------------------------------------------------
 # Wrapper factory functions
@@ -3115,6 +3047,10 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
     global _swapChains
     global _ptrSession
 
+    if _swapChains[swapChain] != NULL:
+        raise ValueError("Swap chain LIBOVR_TEXTURE_SWAP_CHAIN{} already "
+                         "initialized!".format(swapChain))
+
     # configure the texture
     cdef capi.ovrTextureSwapChainDesc swapConfig
     swapConfig.Type = capi.ovrTexture_2D
@@ -3956,30 +3892,38 @@ def timeInSeconds():
 
     return t_sec
 
-def perfHudMode(str mode):
-    """Display a performance information HUD.
+def perfHudMode(int mode):
+    """Display an on-screen performance information HUD.
+
+    The HUD overlays real-time information about the performance of the
+    application, LibOVR runtime, and HMD.
 
     Parameters
     ----------
-    mode : `str`
-        Performance HUD mode to present. Valid mode strings are:
-        'PerfSummary', 'LatencyTiming', 'AppRenderTiming',
-        'CompRenderTiming', 'AswStats', 'VersionInfo' and 'Off'. Specifying
-        'Off' hides the performance HUD.
+    mode : `int`
+        Performance HUD mode to present. Valid modes values are:
+
+        * :data:`LIBOVR_PERF_HUD_OFF`: Turn off the performance HUD.
+        * :data:`LIBOVR_PERF_HUD_PERF_SUMMARY`: General performance summary
+          (headroom, frame rate, photon-to-motion latency, dropped frames, etc.)
+        * :data:`LIBOVR_PERF_HUD_LATENCY_TIMING`: Latency information.
+        * :data:`LIBOVR_PERF_HUD_APP_RENDER_TIMING`: Application render timing
+          info.
+        * :data:`LIBOVR_PERF_HUD_COMP_RENDER_TIMING`: Compositor timing.
+        * :data:`LIBOVR_PERF_HUD_ASW_STATS`: Asynchronous space-warp (ASW) info.
+        * :data:`LIBOVR_PERF_HUD_VERSION_INFO`: LibOVR and HMD version
+          information.
 
     Warning
     -------
-    The performance HUD remains visible until 'Off' is specified, even after
-    the application quits.
+    The performance HUD remains visible until :data:`LIBOVR_PERF_HUD_OFF` is
+    specified, even after the application quits.
 
     """
     global _ptrSession
-    cdef int perfHudMode = 0
 
-    try:
-        perfHudMode = <int>_performance_hud_modes[mode]
-    except KeyError:
-        raise KeyError("Invalid performance HUD mode specified.")
+    if 0 > mode >= capi.ovrPerfHud_Count:
+        raise ValueError("Invalid value for 'mode' specified.")
 
     cdef capi.ovrBool ret = capi.ovr_SetInt(
         _ptrSession, b"PerfHudMode", perfHudMode)
@@ -3988,22 +3932,12 @@ def hidePerfHud():
     """Hide the performance HUD.
 
     This is a convenience function that is equivalent to calling
-    :func:`perfHudMode` and specifying 'Off'.
+    :func:`perfHudMode` and specifying :data:`LIBOVR_PERF_HUD_OFF`.
 
     """
     global _ptrSession
     cdef capi.ovrBool ret = capi.ovr_SetInt(
         _ptrSession, b"PerfHudMode", capi.ovrPerfHud_Off)
-
-def perfHudModes():
-    """List of valid performance HUD modes.
-
-    Returns
-    -------
-    list of str
-
-    """
-    return [*_performance_hud_modes]
 
 # def getEyeViewport(int eye):
 #     """Get the viewport for a given eye.
@@ -5554,7 +5488,7 @@ def getSessionStatus():
         result, sessionStatus = getSessionStatus()
         if sessionStatus.shouldQuit:
             # destroy any swap chains ...
-            destroySession()
+            destroy()
             shutdown()
 
     """
