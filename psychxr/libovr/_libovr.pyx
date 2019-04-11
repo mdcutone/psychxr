@@ -4485,7 +4485,7 @@ def getFrameStats(int frameStatIndex=0):
     namedtuple
         Frame statistics from the compositor. Available stats are accessible
         using the following attributes of the returned `LibOVRFramePerfStats`
-        namedtuple type:
+        namedtuple:
 
         * `hmdVsyncIndex` - Increments every HMD vertical sync signal.
         * `appFrameIndex` - Index increments after each call to :func:`endFrame`.
@@ -4573,9 +4573,10 @@ def getFrameStats(int frameStatIndex=0):
 def getLastErrorInfo():
     """Get the last error code and information string reported by the API.
 
-    This function can be used when implementing custom error handlers. You must
-    call :func:`getLastErrorInfo` every time after any function which makes an
-    LibOVR API call if you wish to catch all errors, since only the last one is
+    This function can be used when implementing custom error handlers for
+    dealing with exceptions raised by LibOVR. You must call
+    :func:`getLastErrorInfo` every time after any function which makes an LibOVR
+    API call if you wish to catch all errors, since only the most recent is
     returned.
 
     Returns
