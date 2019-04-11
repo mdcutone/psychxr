@@ -2556,7 +2556,14 @@ def shutdown():
     capi.ovr_Shutdown()
 
 def getGraphicsLUID():
-    """The graphics device LUID."""
+    """The graphics device LUID.
+
+    Returns
+    -------
+    str
+        Reserved graphics LUID.
+
+    """
     global _gfxLuid
     return _gfxLuid.Reserved.decode('utf-8')
 
@@ -2574,6 +2581,11 @@ def setHeadLocked(bint enable):
 
     This is disabled by default when a session is started. Enable this if you
     are considering to use custom head poses.
+
+    Parameters
+    ----------
+    enable : bool
+        Enable head-locking when rendering to the eye render layer.
 
     """
     global _eyeLayer
@@ -2997,10 +3009,10 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
 
         # get the current available index
         swapChain = LIBOVR_TEXTURE_SWAP_CHAIN0
-        result, currentIdx = hmd.getSwapChainCurrentIndex(swapChain)
+        result, currentIdx = getSwapChainCurrentIndex(swapChain)
 
         # get the OpenGL buffer name
-        result, texId = hmd.getTextureSwapChainBufferGL(swapChain, currentIdx)
+        result, texId = getTextureSwapChainBufferGL(swapChain, currentIdx)
 
         # bind the texture
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -3062,7 +3074,7 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
             texWidth, texHeight, LIBOVR_FORMAT_R8G8B8A8_UNORM)
         # set the swap chain for each eye buffer
         for eye in range(LIBOVR_EYE_COUNT):
-            hmd.setEyeColorTextureSwapChain(eye, LIBOVR_TEXTURE_SWAP_CHAIN0)
+            setEyeColorTextureSwapChain(eye, LIBOVR_TEXTURE_SWAP_CHAIN0)
 
     """
     global _swapChains
