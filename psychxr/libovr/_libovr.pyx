@@ -2506,14 +2506,24 @@ def create():
     return result
 
 def destroyTextureSwapChain(int swapChain):
-    """Destroy a texture swap chain."""
+    """Destroy a texture swap chain.
+
+    Once destroyed, the swap chain's resources will be freed.
+
+    Parameters
+    ----------
+    swapChain : int
+        Swap chain identifier/index.
+
+    """
     global _ptrSession
     global _swapChains
     capi.ovr_DestroyTextureSwapChain(_ptrSession, _swapChains[swapChain])
     _swapChains[swapChain] = NULL
 
 def destroyMirrorTexture():
-    """Destroy the mirror texture."""
+    """Destroy the mirror texture.
+    """
     global _ptrSession
     global _mirrorTexture
     if _mirrorTexture != NULL:
@@ -2521,6 +2531,11 @@ def destroyMirrorTexture():
 
 def destroy():
     """Destroy a session.
+
+    Must be called after every successful :func:`create` call. Calling destroy
+    will invalidate the current session and all resources must be freed and
+    re-created.
+
     """
     global _ptrSession
     global _eyeLayer
@@ -2535,7 +2550,7 @@ def shutdown():
 
     Clean-up routines are executed that destroy all swap chains and mirror
     texture buffers, afterwards control is returned to Oculus Home. This
-    must be called after every successful 'initialize' call.
+    must be called after every successful :func:`initialize` call.
 
     """
     capi.ovr_Shutdown()
