@@ -211,6 +211,10 @@ __all__ = [
     'LIBOVR_PERF_HUD_COMP_RENDER_TIMING',
     'LIBOVR_PERF_HUD_ASW_STATS',
     'LIBOVR_PERF_HUD_VERSION_INFO',
+    'LIBOVR_DEBUG_HUD_STEREO_MODE_OFF',
+    'LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD',
+    'LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD_WITH_CROSSHAIR',
+    'LIBOVR_DEBUG_HUD_STEREO_MODE_CROSSHAIR_AT_INFINITY',
     'LibOVRPose',
     'LibOVRPoseState',
     'LibOVRTrackerInfo',
@@ -329,7 +333,7 @@ cdef capi.ovrSession _ptrSession  # session pointer
 cdef capi.ovrGraphicsLuid _gfxLuid  # LUID
 cdef capi.ovrHmdDesc _hmdDesc  # HMD information descriptor
 cdef capi.ovrBoundaryLookAndFeel _boundryStyle
-cdef capi.ovrTextureSwapChain[8] _swapChains
+cdef capi.ovrTextureSwapChain[16] _swapChains
 cdef capi.ovrMirrorTexture _mirrorTexture
 
 # VR related data persistent across frames
@@ -588,6 +592,11 @@ LIBOVR_PERF_HUD_ASW_STATS = capi.ovrPerfHud_AswStats
 LIBOVR_PERF_HUD_VERSION_INFO = capi.ovrPerfHud_VersionInfo
 LIBOVR_PERF_HUD_COUNT = capi.ovrPerfHud_Count
 
+# stereo debug hud
+LIBOVR_DEBUG_HUD_STEREO_MODE_OFF = capi.ovrDebugHudStereo_Off
+LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD = capi.ovrDebugHudStereo_Quad
+LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD_WITH_CROSSHAIR = capi.ovrDebugHudStereo_QuadWithCrosshair
+LIBOVR_DEBUG_HUD_STEREO_MODE_CROSSHAIR_AT_INFINITY = capi.ovrDebugHudStereo_CrosshairAtInfinity
 
 # swapchain handles, more than enough for now
 LIBOVR_TEXTURE_SWAP_CHAIN0 = 0
@@ -3977,13 +3986,13 @@ LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD = capi.ovrDebugHudStereo_Off
 LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD_WITH_CROSSHAIR = capi.ovrDebugHudStereo_QuadWithCrosshair
 LIBOVR_DEBUG_HUD_STEREO_MODE_CROSSHAIR_AT_INFINITY = capi.ovrDebugHudStereo_CrosshairAtInfinity
 
-def debugHudStereoMode(int mode):
+def stereoDebugHudMode(int mode):
     """Display the stereo debugging HUD.
 
     Parameters
     ----------
     mode : `int`
-        Performance HUD mode to present. Valid modes values are:
+        Stereo debug HUD mode to present. Valid modes values are:
 
         * :data:`LIBOVR_DEBUG_HUD_STEREO_MODE_OFF`: Turn off the HUD.
         * :data:`LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD`: Render a quad in-world.
@@ -4000,48 +4009,6 @@ def debugHudStereoMode(int mode):
 
     cdef capi.ovrBool ret = capi.ovr_SetInt(
         _ptrSession, capi.OVR_DEBUG_HUD_STEREO_MODE, <int>mode)
-
-# def getEyeViewport(int eye):
-#     """Get the viewport for a given eye.
-#
-#     Parameters
-#     ----------
-#     eye : int
-#         Which eye to set the viewport, where left=0 and right=1.
-#
-#     """
-#     global _eyeLayer
-#     cdef capi.ovrRecti viewportRect = \
-#         _eyeLayer.Viewport[eye]
-#     cdef np.ndarray to_return = np.asarray(
-#         [viewportRect.Pos.x,
-#          viewportRect.Pos.y,
-#          viewportRect.Size.w,
-#          viewportRect.Size.h],
-#         dtype=np.float32)
-#
-#     return to_return
-#
-# def setEyeViewport(int eye, object rect):
-#     """Set the viewport for a given eye.
-#
-#     Parameters
-#     ----------
-#     eye : int
-#         Which eye to set the viewport, where left=0 and right=1.
-#     rect : ndarray, list or tuple of float
-#         Rectangle specifying the viewport's position and dimensions on the
-#         eye buffer.
-#
-#     """
-#     global _eyeLayer
-#     cdef capi.ovrRecti viewportRect
-#     viewportRect.Pos.x = <int>rect[0]
-#     viewportRect.Pos.y = <int>rect[1]
-#     viewportRect.Size.w = <int>rect[2]
-#     viewportRect.Size.h = <int>rect[3]
-#
-#     _eyeLayer.Viewport[eye] = viewportRect
 
 def waitToBeginFrame(unsigned int frameIndex=0):
     """Wait until a buffer is available so frame rendering can begin. Must be
