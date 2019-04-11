@@ -4455,6 +4455,15 @@ def checkCompLastFrameDropped():
 #
 #     return toReturn
 
+
+LibOVRFramePerfStats = collections.namedtuple('LibOVRFramePerfStats',
+    ['hmdVsyncIndex', 'appFrameIndex', 'appDroppedFrameCount',
+     'appQueueAheadTime', 'appCpuElapsedTime', 'appGpuElapsedTime',
+     'compositorFrameIndex', 'compositorLatency', 'compositorLatency',
+     'compositorCpuElapsedTime', 'compositorGpuElapsedTime',
+     'compositorCpuStartToGpuEndElapsedTime',
+     'compositorGpuEndToVsyncElapsedTime'])
+
 def getFrameStats(int frameStatIndex=0):
     """Get detailed compositor frame statistics.
 
@@ -4464,22 +4473,22 @@ def getFrameStats(int frameStatIndex=0):
         Frame statistics index to retrieve. The most recent frame statistic is
         at index 0. Available stats are:
 
-        * HmdVsyncIndex
-        * AppFrameIndex
-        * AppDroppedFrameCount
-        * AppQueueAheadTime
-        * AppCpuElapsedTime
-        * AppGpuElapsedTime
-        * CompositorFrameIndex
-        * CompositorLatency
-        * CompositorCpuElapsedTime
-        * CompositorGpuElapsedTime
-        * CompositorCpuStartToGpuEndElapsedTime
-        * CompositorGpuEndToVsyncElapsedTime
+        * hmdVsyncIndex
+        * appFrameIndex
+        * appDroppedFrameCount
+        * appQueueAheadTime
+        * appCpuElapsedTime
+        * appGpuElapsedTime
+        * compositorFrameIndex
+        * compositorLatency
+        * compositorCpuElapsedTime
+        * compositorGpuElapsedTime
+        * compositorCpuStartToGpuEndElapsedTime
+        * compositorGpuEndToVsyncElapsedTime
 
     Returns
     -------
-    dict
+    namedtuple
         Frame statistics from the compositor.
 
     Notes
@@ -4498,24 +4507,19 @@ def getFrameStats(int frameStatIndex=0):
     cdef capi.ovrPerfStatsPerCompositorFrame stat = \
         _frameStats.FrameStats[frameStatIndex]
 
-    cdef dict frameStats = {
-        'HmdVsyncIndex': stat.HmdVsyncIndex,
-        'AppFrameIndex': stat.AppFrameIndex,
-        'AppDroppedFrameCount': stat.AppDroppedFrameCount,
-        'AppQueueAheadTime': stat.AppQueueAheadTime,
-        'AppCpuElapsedTime': stat.AppCpuElapsedTime,
-        'AppGpuElapsedTime': stat.AppGpuElapsedTime,
-        'CompositorFrameIndex': stat.CompositorFrameIndex,
-        'CompositorLatency': stat.CompositorLatency,
-        'CompositorCpuElapsedTime': stat.CompositorCpuElapsedTime,
-        'CompositorGpuElapsedTime': stat.CompositorGpuElapsedTime,
-        'CompositorCpuStartToGpuEndElapsedTime':
-            stat.CompositorCpuStartToGpuEndElapsedTime,
-        'CompositorGpuEndToVsyncElapsedTime':
-            stat.CompositorGpuEndToVsyncElapsedTime
-    }
-
-    return frameStats
+    return LibOVRFramePerfStats(
+        stat.hmdVsyncIndex,
+        stat.appFrameIndex,
+        stat.appDroppedFrameCount,
+        stat.appQueueAheadTime,
+        stat.appCpuElapsedTime,
+        stat.appGpuElapsedTime,
+        stat.compositorFrameIndex,
+        stat.compositorLatency,
+        stat.compositorCpuElapsedTime,
+        stat.compositorGpuElapsedTime,
+        stat.compositorCpuStartToGpuEndElapsedTime,
+        stat.compositorGpuEndToVsyncElapsedTime)
 
 def getLastErrorInfo():
     """Get the last error code and information string reported by the API.
@@ -5521,6 +5525,92 @@ def getSessionStatus():
     # }
 
     return result, to_return
+
+def testBBoxVisible(int eye, object boundingBox):
+    """Test if an object's bounding box falls outside of the current view
+    volume.
+
+    Parameters
+    ----------
+    eye : int
+        Eye index.
+    boundingBox : ndarray
+        Bounding box as an 8x3 array of floats, where each row contains the
+        [X, Y, Z] coordinate of a bounding box vertex.
+
+    Returns
+    -------
+    bool
+        True if the object is not visible.
+
+    """
+    global _eyeViewProjectionMatrix
+
+    cdef float m[16]
+    cdef float planeEq[6][4]
+
+    # compute plane equations, in VR these change constantly so they need to be
+    # recalculated every frame
+
+    cdef int i, j, k
+    k = 0
+    for i in range(4):
+        for j in range(4):
+            m[k] = _eyeViewProjectionMatrix[eye].M[j][i]  # column-wise
+            k += 1
+
+    planeEq[0][0] = m[3] - m[0]
+    planeEq[0][1] = m[7] - m[4]
+    planeEq[0][2] = m[11] - m[8]
+    planeEq[0][3] = m[15] - m[12]
+
+    planeEq[1][0] = m[3] + m[0]
+    planeEq[1][1] = m[7] + m[4]
+    planeEq[1][2] = m[11] + m[8]
+    planeEq[1][3] = m[15] + m[12]
+
+    planeEq[2][0] = m[3] + m[1]
+    planeEq[2][1] = m[7] + m[5]
+    planeEq[2][2] = m[11] + m[9]
+    planeEq[2][3] = m[15] + m[13]
+
+    planeEq[3][0] = m[3] - m[1]
+    planeEq[3][1] = m[7] - m[5]
+    planeEq[3][2] = m[11] - m[9]
+    planeEq[3][3] = m[15] - m[13]
+
+    planeEq[4][0] = m[3] + m[2]
+    planeEq[4][1] = m[7] + m[6]
+    planeEq[4][2] = m[11] + m[10]
+    planeEq[4][3] = m[15] + m[14]
+
+    planeEq[5][0] = m[3] - m[2]
+    planeEq[5][1] = m[7] - m[6]
+    planeEq[5][2] = m[11] - m[10]
+    planeEq[5][3] = m[15] - m[14]
+
+    # get the bounding box
+    cdef float[:,:] bbox = np.asarray(boundingBox, dtype=np.float32)
+
+    # test if the vertices of the bounding box are all outside of the view
+    cdef int culled
+    cdef float distanceFromPlane = 0.0
+
+    for i in range(6):
+        culled = 0
+        for j in range(8):
+            distanceFromPlane = planeEq[i][0] * bbox[j, 0] + \
+                                planeEq[i][1] * bbox[j, 1] + \
+                                planeEq[i][2] * bbox[j, 2] + \
+                                planeEq[i][3]
+
+            if distanceFromPlane < 0.:
+                culled |= 1 << j
+
+        if culled == 0xff:
+            return 1
+
+    return 0
 
 # def testPointsInEyeFrustums(object points, object out=None):
 #     """Test if points are within each eye's frustum.
