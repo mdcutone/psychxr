@@ -896,7 +896,33 @@ cdef class LibOVRPose(object):
 
     @property
     def pos(self):
-        """Position vector [X, Y, Z] (`ndarray`)."""
+        """Position vector [X, Y, Z] (`ndarray`).
+
+        Examples
+        --------
+
+        Set the position of the pose::
+
+            myPose.pos = [0., 0., -1.5]
+
+        Get the x, y, and z coordinates of a pose::
+
+            x, y, z = myPose.pos
+
+        The `ndarray` returned by `pos` directly references the position field
+        data in the pose data structure (`ovrPosef`). Updating values will
+        directly edit the values in the structure. For instance, you can specify
+        a component of a pose's position::
+
+            myPose.pos[2] = -10.0  # z = -10.0
+
+        Assigning `pos` a name will create a reference to that `ndarray` which
+        can edit values in the structure::
+
+            p = myPose.pos
+            p[1] = 1.5  # sets the Y position of 'myPose' to 1.5
+
+        """
         return self._pos
 
     @pos.setter
@@ -975,7 +1001,8 @@ cdef class LibOVRPose(object):
 
     @property
     def ori(self):
-        """Orientation quaternion [X, Y, Z, W] (`ndarray`)."""
+        """Orientation quaternion [X, Y, Z, W] (`ndarray`).
+        """
         return self._ori
 
     @ori.setter
