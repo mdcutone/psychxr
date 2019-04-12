@@ -2629,6 +2629,16 @@ def getGraphicsLUID():
 
 def setHighQuality(bint enable):
     """Enable high quality mode.
+
+    This enables 4x anisotropic sampling by the compositor to reduce the
+    appearance of high-frequency artifacts in the visual periphery due to
+    distortion.
+
+    Parameters
+    ----------
+    enable : bool
+        Enable high-quality mode.
+
     """
     global _eyeLayer
     if enable:
