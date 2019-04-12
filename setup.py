@@ -149,5 +149,3 @@ setup_pars = {
     "cmdclass" : {"build_ext": build_ext}}
 
 setup(**setup_pars)
-
-
