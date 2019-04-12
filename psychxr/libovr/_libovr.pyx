@@ -1155,7 +1155,7 @@ cdef class LibOVRPose(object):
         if outVector is None:
             return toReturn
 
-    def getYawPitchRoll(self, LibOVRPose refPose=None):
+    def getYawPitchRoll(self, LibOVRPose refPose=None, object out=None):
         """Get the yaw, pitch, and roll of the orientation quaternion.
 
         Parameters
@@ -1163,6 +1163,9 @@ cdef class LibOVRPose(object):
         refPose : LibOVRPose, optional
             Reference pose to compute angles relative to. If None is specified,
             computed values are referenced relative to the world axes.
+        out : ndarray
+            Alternative place to write yaw, pitch, and roll values. Must be a
+            `ndarray` of shape (3,) and have a data type of float32.
 
         Returns
         -------
@@ -1179,16 +1182,24 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Posef inPose = <libovr_math.Posef>self.c_data[0]
         cdef libovr_math.Posef invRef
 
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
         if refPose is not None:
             invRef = (<libovr_math.Posef>refPose.c_data[0]).Inverted()
             inPose = invRef * inPose
 
         inPose.Rotation.GetYawPitchRoll(&yaw, &pitch, &roll)
 
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((yaw, pitch, roll), dtype=np.float32)
+        toReturn[0] = yaw
+        toReturn[1] = pitch
+        toReturn[2] = roll
 
-        return to_return
+        if out is None:
+            return toReturn
 
     def getMatrix(self, bint inverse=False):
         """Convert this pose into a 4x4 transformation matrix.
@@ -5537,15 +5548,15 @@ def getSessionStatus():
 
     Function returns a namedtuple with the following names:
 
-        * *isVisible*, the application has focus and visible in the HMD.
-        * *hmdPresent*, the HMD is present.
-        * *hmdMounted*, the HMD is on the user's head.
-        * *displayLost*, the the display was lost.
-        * *shouldQuit*, the application was signaled to quit.
-        * *shouldRecenter*, the application was signaled to re-center.
-        * *hasInputFocus*, the application has input focus.
-        * *overlayPresent*, the system overlay is present.
-        * *depthRequested*, the system requires a depth texture (not used).
+        * *isVisible* - the application has focus and visible in the HMD.
+        * *hmdPresent* - the HMD is present.
+        * *hmdMounted* - the HMD is on the user's head.
+        * *displayLost* - the the display was lost.
+        * *shouldQuit* - the application was signaled to quit.
+        * *shouldRecenter* - the application was signaled to re-center.
+        * *hasInputFocus* - the application has input focus.
+        * *overlayPresent* - the system overlay is present.
+        * *depthRequested* - the system requires a depth texture (not used).
 
     Returns
     -------
