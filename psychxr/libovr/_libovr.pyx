@@ -314,7 +314,6 @@ __all__ = [
 
 from .cimport libovr_capi as capi
 from .cimport libovr_math
-from cpython.ref cimport Py_INCREF, Py_DECREF
 
 from libc.stdint cimport int32_t, uint32_t
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
