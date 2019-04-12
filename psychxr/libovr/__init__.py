@@ -23,4 +23,3 @@ __email__ = "cutonem@yorku.ca"
 # -------
 #
 # load exported data from the _libovr extension module into the namespace
-from ._libovr import *
