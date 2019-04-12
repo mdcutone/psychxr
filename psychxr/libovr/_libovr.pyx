@@ -238,6 +238,7 @@ __all__ = [
     'setHeadLocked',
     'getPixelsPerTanAngleAtCenter',
     'getPixelsPerDegree',
+    'getTanAngleToRenderTargetNDC',
     'getDistortedViewport',
     'getEyeRenderFov',
     'setEyeRenderFov',
@@ -2661,7 +2662,7 @@ def getPixelsPerTanAngleAtCenter(int eye):
 
     Parameters
     ----------
-    eye: int
+    eye : int
         Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
         :data:`LIBOVR_EYE_RIGHT`.
 
@@ -2675,6 +2676,31 @@ def getPixelsPerTanAngleAtCenter(int eye):
 
     cdef capi.ovrVector2f toReturn = \
         _eyeRenderDesc[eye].PixelsPerTanAngleAtCenter
+
+    return toReturn.x, toReturn.y
+
+def getTanAngleToRenderTargetNDC(int eye, object tanAngle):
+    """Convert FOV tan angle to normalized device coordinates (NDC).
+
+    Parameters
+    ----------
+    eye : int
+        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+        :data:`LIBOVR_EYE_RIGHT`.
+    tanAngle : tuple, list of float or ndarray
+        Horizontal and vertical tan angles [X, Y] from display center.
+
+    Returns
+    -------
+    tuple
+        NDC coordinates X, Y ranging between [-1,1] if visible on the display.
+
+    """
+    global _eyeRenderDesc
+
+    cdef libovr_math.FovPort fov =
+    cdef libovr_math.Vector2f toReturn = \
+        (<libovr_math.FovPort>_eyeRenderDesc[eye].Fov).TanAngleToRendertargetNDC(fov)
 
     return toReturn.x, toReturn.y
 
