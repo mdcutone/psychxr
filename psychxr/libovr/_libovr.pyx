@@ -1169,8 +1169,9 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        ndarray of floats
-            Yaw, pitch, and roll of the pose in degrees.
+        ndarray of float or None
+            Yaw, pitch, and roll of the pose in degrees. Returns `None` if `out`
+            was specified.
 
         Notes
         -----
@@ -1201,18 +1202,22 @@ cdef class LibOVRPose(object):
         if out is None:
             return toReturn
 
-    def getMatrix(self, bint inverse=False):
+    def getMatrix(self, bint inverse=False, object out=None):
         """Convert this pose into a 4x4 transformation matrix.
 
         Parameters
         ----------
         inverse : bool, optional
             If True, return the inverse of the matrix.
+        out : ndarray
+            Alternative place to write yaw, pitch, and roll values. Must be a
+            `ndarray` of shape (4, 4,) and have a data type of float32. Values
+            are written assuming row-major order.
 
         Returns
         -------
         ndarray
-            4x4 transformation matrix.
+            4x4 transformation matrix. Returns `None` if `out` was specified.
 
         """
         cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
@@ -1221,11 +1226,14 @@ cdef class LibOVRPose(object):
         if inverse:
             m_pose.InvertHomogeneousTransform()  # faster than Invert() here
 
-        cdef np.ndarray[np.float32_t, ndim=2] to_return = \
-            np.zeros((4, 4), dtype=np.float32)
+        cdef np.ndarray[np.float32_t, ndim=2] toReturn
+        if out is None:
+            toReturn =  np.zeros((4, 4), dtype=np.float32)
+        else:
+            toReturn = out
 
         # fast copy matrix to numpy array
-        cdef float [:, :] mv = to_return
+        cdef float [:, :] mv = toReturn
         cdef Py_ssize_t i, j
         cdef Py_ssize_t N = 4
         i = j = 0
@@ -1233,7 +1241,8 @@ cdef class LibOVRPose(object):
             for j in range(N):
                 mv[i, j] = m_pose.M[i][j]
 
-        return to_return
+        if out is None:
+            return toReturn
 
     def normalize(self):
         """Normalize this pose.
@@ -1547,6 +1556,21 @@ cdef class LibOVRPose(object):
             if handPose.distanceTo(objPose) < 0.5:
                 # do something here ...
 
+        Vary the touch controller's vibration amplitude as a function of
+        distance to some pose. As the hand gets closer to the point, the
+        amplitude of the vibration increases::
+
+            dist = handPose.distanceTo(objPose)
+            vibrationRadius = 0.5
+
+            if dist < vibrationRadius:  # inside vibration radius
+                amplitude = 1.0 - dist / vibrationRadius
+                setControllerVibration(LIBOVR_CONTROLLER_TYPE_RTOUCH,
+                    'low', amplitude)
+            else:
+                # turn off vibration
+                setControllerVibration(LIBOVR_CONTROLLER_TYPE_RTOUCH, 'off')
+
         """
         cdef libovr_math.Vector3f pos_in
 
@@ -1612,7 +1636,7 @@ cdef class LibOVRPose(object):
                                                radius=targetRadius)
 
         Check if someone is touching a target with their finger when making a
-        pointing gesture::
+        pointing gesture while providing haptic feedback::
 
             targetPose = LibOVRPose((0.0, 1.5, -0.25))
             targetRadius = 0.025  # 2.5 cm
@@ -1630,6 +1654,9 @@ cdef class LibOVRPose(object):
                     # do something here, like make the controller vibrate
                     setControllerVibration(
                         LIBOVR_CONTROLLER_TYPE_RTOUCH, 'low', 0.5)
+                else:
+                    # stop vibration if no longer touching
+                    setControllerVibration(LIBOVR_CONTROLLER_TYPE_RTOUCH, 'off')
 
         """
         cdef libovr_math.Vector3f targetPos = libovr_math.Vector3f(
