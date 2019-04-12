@@ -3554,6 +3554,18 @@ def calcEyePoses(LibOVRPose headPose):
     headPose : :py:class:`LibOVRPose`
         Head pose.
 
+    Notes
+    -----
+
+    * :func:`getTrackingState` must still be called every frame, even if you
+      are specifying your own `headPose`.
+
+    * When specifying a head pose defined by any other means than returned by
+      :func:`getTrackingState`. The `headPose` will be incongruent to that
+      computed by the LibOVR runtime, causing the render layer to 'slip' during
+      composting. To prevent this, you must enable head-locking of the render
+      layer by calling :func:`setHeadLocked` if using custom head poses.
+
     Examples
     --------
 
