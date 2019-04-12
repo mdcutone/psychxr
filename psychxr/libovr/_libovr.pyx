@@ -39,9 +39,8 @@ did when you downloaded the SDK to build this module, didn't ya?), if not see
 https://www.oculus.com/legal/terms-of-service/ to access those documents.
 
 """
-# ------------------
+# ------------------------------------------------------------------------------
 # Module information
-#-------------------
 #
 __author__ = "Matthew D. Cutone"
 __credits__ = ["Laurie M. Wilcox"]
@@ -52,9 +51,8 @@ __status__ = "Beta"
 __maintainer__ = "Matthew D. Cutone"
 __email__ = "cutonem@yorku.ca"
 
-# ----------------
+# ------------------------------------------------------------------------------
 # Exported objects
-# ----------------
 #
 __all__ = [
     'LIBOVR_SUCCESS',
@@ -328,9 +326,8 @@ np.import_array()
 
 import collections
 
-# -----------------
+# ------------------------------------------------------------------------------
 # Initialize module
-# -----------------
 #
 cdef capi.ovrInitParams _initParams  # initialization parameters
 cdef capi.ovrSession _ptrSession  # session pointer
@@ -657,6 +654,7 @@ cdef np.ndarray _wrap_ovrFovPort_as_ndarray(capi.ovrFovPort* prtVec):
 # ------------------------------------------------------------------------------
 # Classes and extension types
 #
+
 cdef class LibOVRPose(object):
     """Class for LibOVR rigid body pose.
 
