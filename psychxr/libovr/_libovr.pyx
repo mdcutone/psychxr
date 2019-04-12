@@ -656,7 +656,16 @@ cdef np.ndarray _wrap_ovrFovPort_as_ndarray(capi.ovrFovPort* prtVec):
 #
 
 cdef class LibOVRPose(object):
-    """Class for LibOVR rigid body pose.
+    """Class for representing LibOVR rigid body pose (`ovrPosef`).
+
+    Instances of this class reference a `ovrPosef` C struct for pose data.
+    Fields `Orientation` and `Position` are accessed using `ndarray` proxy
+    objects which share the same memory. Therefore, data accessed and written to
+    those objects will directly change the field values of the referenced
+    `ovrPosef` struct. `Orientation` and `Position` can be accessed using the
+    `ori` and `pos` class attributes, respectively. See
+    :py:class:`~LibOVRPose.ori` and :py:class:`~LibOVRPose.pos` for more
+    details.
 
     """
     cdef capi.ovrPosef* c_data
