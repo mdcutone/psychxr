@@ -3,7 +3,6 @@
 import OpenGL.GL as GL
 import ctypes
 import glfw
-import numpy as np
 from psychxr.libovr import *
 import sys
 
