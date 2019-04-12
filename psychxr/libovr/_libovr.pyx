@@ -269,6 +269,10 @@ __all__ = [
     'timeInSeconds',
     'perfHudMode',
     'hidePerfHud',
+    'stereoDebugHudMode',
+    'setStereoDebugHudGuideInfo',
+    'setStereoDebugHudGuidePosition',
+    'setStereoDebugHudGuideSize',
     'waitToBeginFrame',
     'beginFrame',
     'commitTextureSwapChain',
@@ -640,10 +644,10 @@ cdef np.ndarray _wrap_ovrQuatf_as_ndarray(capi.ovrQuatf* prtVec):
     return np.PyArray_SimpleNewFromData(
         1, QUAT_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
 
-cdef np.ndarray _wrap_ovrMatrix4f_as_ndarray(capi.ovrMatrix4f* prtVec):
-    """Wrap an ovrMatrix4f object with a NumPy array."""
-    return np.PyArray_SimpleNewFromData(
-        2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec.M)
+#cdef np.ndarray _wrap_ovrMatrix4f_as_ndarray(capi.ovrMatrix4f* prtVec):
+#    """Wrap an ovrMatrix4f object with a NumPy array."""
+#    return np.PyArray_SimpleNewFromData(
+#        2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec.M)
 
 cdef np.ndarray _wrap_ovrFovPort_as_ndarray(capi.ovrFovPort* prtVec):
     """Wrap an ovrFovPort object with a NumPy array."""
@@ -3981,11 +3985,6 @@ def hidePerfHud():
     cdef capi.ovrBool ret = capi.ovr_SetInt(
         _ptrSession, capi.OVR_PERF_HUD_MODE, capi.ovrPerfHud_Off)
 
-LIBOVR_DEBUG_HUD_STEREO_MODE_OFF = capi.ovrDebugHudStereo_Off
-LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD = capi.ovrDebugHudStereo_Off
-LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD_WITH_CROSSHAIR = capi.ovrDebugHudStereo_QuadWithCrosshair
-LIBOVR_DEBUG_HUD_STEREO_MODE_CROSSHAIR_AT_INFINITY = capi.ovrDebugHudStereo_CrosshairAtInfinity
-
 def stereoDebugHudMode(int mode):
     """Display the stereo debugging HUD.
 
@@ -4001,6 +4000,12 @@ def stereoDebugHudMode(int mode):
         * :data:`LIBOVR_DEBUG_HUD_STEREO_MODE_CROSSHAIR_AT_INFINITY`: Render a
           crosshair at infinity.
 
+    See Also
+    --------
+    setStereoDebugHudGuideInfo : Enable/disable on-screen debug information.
+    setStereoDebugHudGuideSize : Set the size of the guide.
+    setStereoDebugHudGuidePosition : Set the position of the guide.
+
     """
     global _ptrSession
 
@@ -4009,6 +4014,53 @@ def stereoDebugHudMode(int mode):
 
     cdef capi.ovrBool ret = capi.ovr_SetInt(
         _ptrSession, capi.OVR_DEBUG_HUD_STEREO_MODE, <int>mode)
+
+def setStereoDebugHudGuideInfo(bint enable):
+    """Enable/disable stereo debug HUD on-screen information.
+
+    Parameters
+    ----------
+    enable : bool
+        Display information if True, hide if False.
+
+    """
+    global _ptrSession
+
+    cdef capi.ovrBool val = capi.ovrTrue if enable else capi.ovrFalse
+    cdef capi.ovrBool ret = capi.ovr_SetBool(
+        _ptrSession, capi.OVR_DEBUG_HUD_STEREO_GUIDE_INFO_ENABLE, val)
+
+def setStereoDebugHudGuideSize(object size):
+    """Set the size of the stereo debug HUD guide.
+
+    Parameters
+    ----------
+    size : tuple, list, or ndarray of float
+        Size of the guide [width, height].
+
+    """
+    global _ptrSession
+
+    cdef float[2] guideSize = [<float>size[0], <float>size[1]]
+    cdef capi.ovrBool ret = capi.ovr_SetFloatArray(
+        _ptrSession, capi.OVR_DEBUG_HUD_STEREO_GUIDE_SIZE, &guideSize,
+        <unsigned int>2)
+
+def setStereoDebugHudGuidePosition(object pos):
+    """Set the position of the stereo debug HUD guide.
+
+    Parameters
+    ----------
+    pos : tuple, list, or ndarray of float
+        Position of the guide in the world [x, y, z].
+
+    """
+    global _ptrSession
+
+    cdef float[3] guidePos = [<float>pos[0], <float>pos[1], <float>pos[2]]
+    cdef capi.ovrBool ret = capi.ovr_SetFloatArray(
+        _ptrSession, capi.OVR_DEBUG_HUD_STEREO_GUIDE_POSITION, &guidePos,
+        <unsigned int>3)
 
 def waitToBeginFrame(unsigned int frameIndex=0):
     """Wait until a buffer is available so frame rendering can begin. Must be
