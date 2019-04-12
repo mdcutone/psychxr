@@ -894,6 +894,7 @@ cdef class LibOVRPose(object):
         Returns
         -------
         ndarray or None
+            Position coordinate of this pose.
 
         Raises
         ------
@@ -958,24 +959,25 @@ cdef class LibOVRPose(object):
     def ori(self, object value):
         self._ori[:] = value
 
-    def getOri(self, object outVector=None):
+    def getOri(self, object out=None):
         """Orientation quaternion X, Y, Z, W (`ndarray` of `float`).
 
         Components X, Y, Z are imaginary and W is real.
 
         The returned object is a NumPy array which references data stored in an
         internal structure (ovrPosef). The array is conformal with the internal
-        data's type (float32) and size (length 3).
+        data's type (float32) and size (length 4).
 
         Parameters
         ----------
-        outVector : ndarray or None
+        out : ndarray or None
             Option array to write values to. If None, the function will return
             a new array. Must have a float32 data type.
 
         Returns
         -------
         ndarray or None
+            Orientation quaternion of this pose.
 
         Raises
         ------
@@ -991,17 +993,17 @@ cdef class LibOVRPose(object):
 
         """
         cdef np.ndarray[np.float32_t, ndim=1] toReturn
-        if outVector is None:
+        if out is None:
             toReturn = np.zeros((4,), dtype=np.float32)
         else:
-            toReturn = outVector
+            toReturn = out
 
         toReturn[0] = self.c_data[0].Orientation.x
         toReturn[1] = self.c_data[0].Orientation.y
         toReturn[2] = self.c_data[0].Orientation.z
         toReturn[3] = self.c_data[0].Orientation.w
 
-        if outVector is None:
+        if out is None:
             return toReturn
 
     def setOri(self, object ori):
@@ -1033,20 +1035,20 @@ cdef class LibOVRPose(object):
         """Forward vector of this pose (-Z is forward) (read-only)."""
         return self.getAt()
 
-    def getAt(self, object outVector=None):
+    def getAt(self, object out=None):
         """Get the 'at' vector for this pose.
 
         Parameters
         ----------
-        outVector : ndarray or None
+        out : ndarray or None
             Option array to write values to. If None, the function will return
-            a new array. Must have a float32 data type.
+            a new array. Must have shape (3,) and a float32 data type.
 
         Returns
         -------
         ndarray or None
-            The vector for `at` if `outVector`=None. Returns None if `outVector`
-            was specified.
+            The vector for `at` if `out`=None. Returns None if `out` was
+            specified.
 
         Raises
         ------
@@ -1074,10 +1076,10 @@ cdef class LibOVRPose(object):
 
         """
         cdef np.ndarray[np.float32_t, ndim=1] toReturn
-        if outVector is None:
+        if out is None:
             toReturn = np.zeros((3,), dtype=np.float32)
         else:
-            toReturn = outVector
+            toReturn = out
 
         cdef libovr_math.Vector3f at = \
             (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
@@ -1087,7 +1089,7 @@ cdef class LibOVRPose(object):
         toReturn[1] = at.y
         toReturn[2] = at.z
 
-        if outVector is None:
+        if out is None:
             return toReturn
 
     @property
@@ -1095,12 +1097,12 @@ cdef class LibOVRPose(object):
         """Up vector of this pose (+Y is up) (read-only)."""
         return self.getUp()
 
-    def getUp(self, object outVector=None):
+    def getUp(self, object out=None):
         """Get the 'up' vector for this pose.
 
         Parameters
         ----------
-        outVector : ndarray, optional
+        out : ndarray, optional
             Option array to write values to. If None, the function will return
             a new array. Must have a float32 data type and a length of 3.
 
@@ -1139,10 +1141,10 @@ cdef class LibOVRPose(object):
 
         """
         cdef np.ndarray[np.float32_t, ndim=1] toReturn
-        if outVector is None:
+        if out is None:
             toReturn = np.zeros((3,), dtype=np.float32)
         else:
-            toReturn = outVector
+            toReturn = out
 
         cdef libovr_math.Vector3f up = \
             (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
@@ -1152,7 +1154,7 @@ cdef class LibOVRPose(object):
         toReturn[1] = up.y
         toReturn[2] = up.z
 
-        if outVector is None:
+        if out is None:
             return toReturn
 
     def getYawPitchRoll(self, LibOVRPose refPose=None, object out=None):
@@ -1352,7 +1354,7 @@ cdef class LibOVRPose(object):
         Parameters
         ----------
         v : tuple, list, or ndarray of float
-            Vector to translate (x, y, z).
+            Vector to translate [x, y, z].
 
         Returns
         -------
@@ -1381,7 +1383,7 @@ cdef class LibOVRPose(object):
         Parameters
         ----------
         v : tuple, list, or ndarray of float
-            Vector to transform (x, y, z).
+            Vector to transform [x, y, z].
 
         Returns
         -------
