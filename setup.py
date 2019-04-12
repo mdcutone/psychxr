@@ -103,7 +103,7 @@ ext_modules = []
 if _build_libovr_ == '1':
     cythonize("psychxr/libovr/_libovr.pyx",
               include_path=_sdk_data_['libovr']['include'],
-              compiler_directives = {'embedsignature': True})
+              compiler_directives={'embedsignature': True})
     ext_modules.extend([
         Extension(
             "psychxr.libovr._libovr",
