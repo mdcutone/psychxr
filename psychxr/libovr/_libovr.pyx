@@ -2708,9 +2708,13 @@ def getTanAngleToRenderTargetNDC(int eye, object tanAngle):
     """
     global _eyeRenderDesc
 
-    cdef libovr_math.FovPort fov =
+    cdef libovr_math.Vector2f vecIn
+    vecIn.x = tanAngle[0]
+    vecIn.y = tanAngle[1]
+
     cdef libovr_math.Vector2f toReturn = \
-        (<libovr_math.FovPort>_eyeRenderDesc[eye].Fov).TanAngleToRendertargetNDC(fov)
+        (<libovr_math.FovPort>_eyeRenderDesc[eye].Fov).TanAngleToRendertargetNDC(
+            vecIn)
 
     return toReturn.x, toReturn.y
 
@@ -4136,8 +4140,9 @@ def setStereoDebugHudGuideSize(object size):
     global _ptrSession
 
     cdef float[2] guideSize = [<float>size[0], <float>size[1]]
+    cdef float* guideSizePtr = &guideSize[0]
     cdef capi.ovrBool ret = capi.ovr_SetFloatArray(
-        _ptrSession, capi.OVR_DEBUG_HUD_STEREO_GUIDE_SIZE, &guideSize,
+        _ptrSession, capi.OVR_DEBUG_HUD_STEREO_GUIDE_SIZE, guideSizePtr,
         <unsigned int>2)
 
 def setStereoDebugHudGuidePosition(object pos):
@@ -4152,8 +4157,9 @@ def setStereoDebugHudGuidePosition(object pos):
     global _ptrSession
 
     cdef float[3] guidePos = [<float>pos[0], <float>pos[1], <float>pos[2]]
+    cdef float* guidePosPtr = &guidePos[0]
     cdef capi.ovrBool ret = capi.ovr_SetFloatArray(
-        _ptrSession, capi.OVR_DEBUG_HUD_STEREO_GUIDE_POSITION, &guidePos,
+        _ptrSession, capi.OVR_DEBUG_HUD_STEREO_GUIDE_POSITION, guidePosPtr,
         <unsigned int>3)
 
 def waitToBeginFrame(unsigned int frameIndex=0):
