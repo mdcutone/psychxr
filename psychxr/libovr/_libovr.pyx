@@ -4578,7 +4578,7 @@ def checkCompLastFrameDropped():
 LibOVRFramePerfStats = collections.namedtuple('LibOVRFramePerfStats',
     ['hmdVsyncIndex', 'appFrameIndex', 'appDroppedFrameCount',
      'appMotionToPhotonLatency', 'appQueueAheadTime', 'appCpuElapsedTime',
-     'appGpuElapsedTime', 'compositorFrameIndex', 'compositorLatency',
+     'appGpuElapsedTime', 'compositorFrameIndex',
      'compositorLatency', 'compositorCpuElapsedTime',
      'compositorGpuElapsedTime', 'compositorCpuStartToGpuEndElapsedTime',
      'compositorGpuEndToVsyncElapsedTime'])
@@ -5651,7 +5651,7 @@ def getSessionStatus():
 
     Returns
     -------
-    tuple of int, tuple
+    tuple of int, tuple of bool
         Result of LibOVR API call `ovr_GetSessionStatus` and a namedtuple of
         session status flags and values.
 
