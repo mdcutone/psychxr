@@ -2333,6 +2333,119 @@ def failure(int result):
     """
     return <bint>capi.OVR_FAILURE(result)
 
+def getBool(bytes propertyName, bint defaultVal=False):
+    """Read a LibOVR boolean property.
+
+    Parameters
+    ----------
+    propertyName : bytes
+        Name of the property to get.
+    defaultVal : bool, optional
+        Return value if the property could not be set. The default value is
+        `False`.
+
+    Returns
+    -------
+    bool
+        Value of the property. Returns `defaultVal` if the property does not
+        exist.
+
+    """
+    global _ptrSession
+    cdef capi.ovrBool val = capi.ovrTrue if defaultVal else capi.ovrFalse
+
+    cdef capi.ovrBool to_return = capi.ovr_GetBool(
+        _ptrSession,
+        propertyName,
+        defaultVal
+    )
+
+    return to_return == capi.ovrTrue
+
+def setBool(bytes propertyName, bint value=True):
+    """Write a LibOVR boolean property.
+
+    Parameters
+    ----------
+    propertyName : bytes
+        Name of the property to set.
+    value : bool
+        Value to write.
+
+    Returns
+    -------
+    bool
+        `True` if the property was set successfully, `False` if the property was
+        read-only or does not exist.
+
+    """
+    global _ptrSession
+    cdef capi.ovrBool val = capi.ovrTrue if value else capi.ovrFalse
+
+    cdef capi.ovrBool to_return = capi.ovr_SetBool(
+        _ptrSession,
+        propertyName,
+        val
+    )
+
+    return to_return == capi.ovrTrue
+
+def getInt(bytes propertyName, int defaultVal=0):
+    """Read a LibOVR boolean property.
+
+    Parameters
+    ----------
+    propertyName : bytes
+        Name of the property to get.
+    defaultVal : int, optional
+        Return value if the property could not be set.
+
+    Returns
+    -------
+    bool
+        Value of the property. Returns `defaultVal` if the property does not
+        exist.
+
+    """
+    global _ptrSession
+    cdef capi.ovrBool val = capi.ovrTrue if defaultVal else capi.ovrFalse
+
+    cdef capi.ovrBool to_return = capi.ovr_GetInt(
+        _ptrSession,
+        propertyName,
+        defaultVal
+    )
+
+    return to_return == capi.ovrTrue
+
+def setInt(bytes propertyName, bint value=True):
+    """Write a LibOVR boolean property.
+
+    Parameters
+    ----------
+    propertyName : bytes
+        Name of the property to set.
+    value : int
+        Value to write.
+
+    Returns
+    -------
+    bool
+        `True` if the property was set successfully, `False` if the property was
+        read-only or does not exist.
+
+    """
+    global _ptrSession
+    cdef capi.ovrBool val = capi.ovrTrue if value else capi.ovrFalse
+
+    cdef capi.ovrBool to_return = capi.ovr_SetBool(
+        _ptrSession,
+        propertyName,
+        val
+    )
+
+    return to_return == capi.ovrTrue
+
 def isOculusServiceRunning(int timeoutMS=100):
     """Check if the Oculus Runtime is loaded and running.
 
