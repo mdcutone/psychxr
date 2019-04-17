@@ -2391,7 +2391,7 @@ def setBool(bytes propertyName, bint value=True):
     return to_return == capi.ovrTrue
 
 def getInt(bytes propertyName, int defaultVal=0):
-    """Read a LibOVR boolean property.
+    """Read a LibOVR integer property.
 
     Parameters
     ----------
@@ -2418,8 +2418,8 @@ def getInt(bytes propertyName, int defaultVal=0):
 
     return to_return == capi.ovrTrue
 
-def setInt(bytes propertyName, bint value=True):
-    """Write a LibOVR boolean property.
+def setInt(bytes propertyName, int value=True):
+    """Write a LibOVR integer property.
 
     Parameters
     ----------
@@ -2433,6 +2433,17 @@ def setInt(bytes propertyName, bint value=True):
     bool
         `True` if the property was set successfully, `False` if the property was
         read-only or does not exist.
+
+    Examples
+    --------
+
+    Set the performance HUD mode to show summary information::
+
+        setInt(LIBOVR_PERF_HUD_VERSION_INFO, LIBOVR_PERF_HUD_PERF_SUMMARY)
+
+    Switch off the performance HUD::
+
+        setInt(LIBOVR_PERF_HUD_VERSION_INFO, LIBOVR_PERF_HUD_OFF)
 
     """
     global _ptrSession
