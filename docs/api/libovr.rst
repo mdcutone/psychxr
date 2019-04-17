@@ -65,6 +65,10 @@ Functions
 .. autofunction:: success
 .. autofunction:: unqualifedSuccess
 .. autofunction:: failure
+.. autofunction:: getBool
+.. autofunction:: setBool
+.. autofunction:: getInt
+.. autofunction:: setInt
 .. autofunction:: isOculusServiceRunning
 .. autofunction:: isHmdConnected
 .. autofunction:: getHmdInfo
