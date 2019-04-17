@@ -69,6 +69,12 @@ Functions
 .. autofunction:: setBool
 .. autofunction:: getInt
 .. autofunction:: setInt
+.. autofunction:: getFloat
+.. autofunction:: setFloat
+.. autofunction:: getFloatArray
+.. autofunction:: setFloatArray
+.. autofunction:: getString
+.. autofunction:: setString
 .. autofunction:: isOculusServiceRunning
 .. autofunction:: isHmdConnected
 .. autofunction:: getHmdInfo

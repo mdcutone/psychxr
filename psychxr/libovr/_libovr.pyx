@@ -129,6 +129,19 @@ __all__ = [
     'LIBOVR_HAND_LEFT',
     'LIBOVR_HAND_RIGHT',
     'LIBOVR_HAND_COUNT',
+    'LIBOVR_KEY_USER',
+    'LIBOVR_KEY_NAME',
+    'LIBOVR_KEY_GENDER',
+    'LIBOVR_DEFAULT_GENDER',
+    'LIBOVR_KEY_PLAYER_HEIGHT',
+    'LIBOVR_DEFAULT_PLAYER_HEIGHT',
+    'LIBOVR_KEY_EYE_HEIGHT',
+    'LIBOVR_DEBUG_HUD_STEREO_MODE',
+    'LIBOVR_DEBUG_HUD_STEREO_GUIDE_INFO_ENABLE',
+    'LIBOVR_DEBUG_HUD_STEREO_GUIDE_SIZE',
+    'LIBOVR_DEBUG_HUD_STEREO_GUIDE_POSITION',
+    'LIBOVR_DEBUG_HUD_STEREO_GUIDE_YAWPITCHROLL',
+    'LIBOVR_DEBUG_HUD_STEREO_GUIDE_COLOR',
     'LIBOVR_CONTROLLER_TYPE_XBOX',
     'LIBOVR_CONTROLLER_TYPE_REMOTE',
     'LIBOVR_CONTROLLER_TYPE_TOUCH',
@@ -202,6 +215,7 @@ __all__ = [
     'LIBOVR_FEATURE_VERSION',
     'LIBOVR_STATUS_ORIENTATION_TRACKED',
     'LIBOVR_STATUS_POSITION_TRACKED',
+    'LIBOVR_PERF_HUD_MODE',
     'LIBOVR_PERF_HUD_OFF',
     'LIBOVR_PERF_HUD_PERF_SUMMARY',
     'LIBOVR_PERF_HUD_LATENCY_TIMING',
@@ -224,6 +238,12 @@ __all__ = [
     'getBool',
     'setInt',
     'getInt',
+    'setFloat',
+    'getFloat',
+    'getFloatArray',
+    'setFloatArray',
+    'setString',
+    'getString',
     'isOculusServiceRunning',
     'isHmdConnected',
     'getHmdInfo',
@@ -2406,23 +2426,22 @@ def getInt(bytes propertyName, int defaultVal=0):
 
     Returns
     -------
-    bool
+    int
         Value of the property. Returns `defaultVal` if the property does not
         exist.
 
     """
     global _ptrSession
-    cdef capi.ovrBool val = capi.ovrTrue if defaultVal else capi.ovrFalse
 
-    cdef capi.ovrBool to_return = capi.ovr_GetInt(
+    cdef int to_return = capi.ovr_GetInt(
         _ptrSession,
         propertyName,
         defaultVal
     )
 
-    return to_return == capi.ovrTrue
+    return to_return
 
-def setInt(bytes propertyName, int value=True):
+def setInt(bytes propertyName, int value):
     """Write a LibOVR integer property.
 
     Parameters
@@ -2443,23 +2462,231 @@ def setInt(bytes propertyName, int value=True):
 
     Set the performance HUD mode to show summary information::
 
-        setInt(LIBOVR_PERF_HUD_VERSION_INFO, LIBOVR_PERF_HUD_PERF_SUMMARY)
+        setInt(LIBOVR_PERF_HUD_MODE, LIBOVR_PERF_HUD_PERF_SUMMARY)
 
     Switch off the performance HUD::
 
-        setInt(LIBOVR_PERF_HUD_VERSION_INFO, LIBOVR_PERF_HUD_OFF)
+        setInt(LIBOVR_PERF_HUD_MODE, LIBOVR_PERF_OFF)
 
     """
     global _ptrSession
-    cdef capi.ovrBool val = capi.ovrTrue if value else capi.ovrFalse
 
-    cdef capi.ovrBool to_return = capi.ovr_SetBool(
+    cdef capi.ovrBool to_return = capi.ovr_SetInt(
         _ptrSession,
         propertyName,
-        val
+        value
     )
 
     return to_return == capi.ovrTrue
+
+def getFloat(bytes propertyName, float defaultVal=0.0):
+    """Read a LibOVR floating point number property.
+
+    Parameters
+    ----------
+    propertyName : bytes
+        Name of the property to get.
+    defaultVal : float, optional
+        Return value if the property could not be set. Returns 0.0 if not
+        specified.
+
+    Returns
+    -------
+    float
+        Value of the property. Returns `defaultVal` if the property does not
+        exist.
+
+    """
+    global _ptrSession
+
+    cdef float to_return = capi.ovr_GetFloat(
+        _ptrSession,
+        propertyName,
+        defaultVal
+    )
+
+    return to_return
+
+def setFloat(bytes propertyName, float value):
+    """Write a LibOVR floating point number property.
+
+    Parameters
+    ----------
+    propertyName : bytes
+        Name of the property to set.
+    value : float
+        Value to write.
+
+    Returns
+    -------
+    bool
+        `True` if the property was set successfully, `False` if the property was
+        read-only or does not exist.
+
+    """
+    global _ptrSession
+
+    cdef capi.ovrBool to_return = capi.ovr_SetFloat(
+        _ptrSession,
+        propertyName,
+        value
+    )
+
+    return to_return == capi.ovrTrue
+
+def setFloatArray(bytes propertyName, np.ndarray[np.float32_t, ndim=1] values):
+    """Write a LibOVR floating point number property.
+
+    Parameters
+    ----------
+    propertyName : bytes
+        Name of the property to set.
+    values : ndarray
+        Value to write, must be 1-D and have dtype=float32.
+
+    Returns
+    -------
+    bool
+        `True` if the property was set successfully, `False` if the property was
+        read-only or does not exist.
+
+    Examples
+    --------
+
+    Set the position of the stereo debug guide::
+
+        guidePos = numpy.asarray([0., 0., -10.0], dtype=np.float32)
+        setFloatArray(LIBOVR_DEBUG_HUD_STEREO_GUIDE_POSITION, guidePos)
+
+    """
+    global _ptrSession
+
+    cdef Py_ssize_t valuesCapacity = len(values)
+    cdef capi.ovrBool to_return = capi.ovr_SetFloatArray(
+        _ptrSession,
+        propertyName,
+        &values[0],
+        <unsigned int>valuesCapacity
+    )
+
+    return to_return == capi.ovrTrue
+
+def getFloatArray(bytes propertyName, np.ndarray[np.float32_t, ndim=1] values not None):
+    """Read a LibOVR float array property.
+
+    Parameters
+    ----------
+    propertyName : bytes
+        Name of the property to get.
+    values : ndarray
+        Output array array for values, must be 1-D and have dtype=float32.
+
+    Returns
+    -------
+    int
+        Number of values successfully read from the property.
+
+    Examples
+    --------
+
+    Get the position of the stereo debug guide::
+
+        guidePos = numpy.zeros((3,), dtype=np.float32)  # array to write to
+        result = getFloatArray(LIBOVR_DEBUG_HUD_STEREO_GUIDE_POSITION, guidePos)
+
+        # check if the array we specified was long enough to store the values
+        if result <= len(guidePos):
+            # success
+
+    """
+    global _ptrSession
+
+    cdef Py_ssize_t valuesCapacity = len(values)
+    cdef unsigned int to_return = capi.ovr_GetFloatArray(
+        _ptrSession,
+        propertyName,
+        &values[0],
+        <unsigned int>valuesCapacity
+    )
+
+    return to_return
+
+def setString(bytes propertyName, object value):
+    """Write a LibOVR floating point number property.
+
+    Parameters
+    ----------
+    propertyName : bytes
+        Name of the property to set.
+    value : str or bytes
+        Value to write.
+
+    Returns
+    -------
+    bool
+        `True` if the property was set successfully, `False` if the property was
+        read-only or does not exist.
+
+    """
+    global _ptrSession
+
+    cdef object value_in = None
+    if isinstance(value, str):
+        value_in = value.encode('UTF-8')
+    elif isinstance(value, bytes):
+        value_in = value
+    else:
+        raise TypeError("Default value must be type 'str' or 'bytes'.")
+
+    cdef capi.ovrBool to_return = capi.ovr_SetString(
+        _ptrSession,
+        propertyName,
+        value_in
+    )
+
+    return to_return == capi.ovrTrue
+
+def getString(bytes propertyName, object defaultVal=''):
+    """Read a LibOVR string property.
+
+    Parameters
+    ----------
+    propertyName : bytes
+        Name of the property to get.
+    defaultVal : str, bytes, optional
+        Return value if the property could not be set. Returns 0.0 if not
+        specified.
+
+    Returns
+    -------
+    str
+        Value of the property. Returns `defaultVal` if the property does not
+        exist.
+
+    Notes
+    -----
+
+    * Strings passed to this function are converted to bytes before being passed
+      to `ovr_GetString`.
+
+    """
+    global _ptrSession
+
+    cdef object value_in = None
+    if isinstance(defaultVal, str):
+        value_in = defaultVal.encode('UTF-8')
+    elif isinstance(defaultVal, bytes):
+        value_in = defaultVal
+    else:
+        raise TypeError("Default value must be type 'str' or 'bytes'.")
+
+    cdef const char* to_return = capi.ovr_GetString(
+        _ptrSession,
+        propertyName,
+        value_in
+    )
+
+    return to_return.decode('UTF-8')
 
 def isOculusServiceRunning(int timeoutMS=100):
     """Check if the Oculus Runtime is loaded and running.
