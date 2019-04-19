@@ -120,10 +120,11 @@ def main():
         abs_time = getPredictedDisplayTime(frame_index)
 
         # get the current tracking state
-        tracking_state = getTrackingState(abs_time, True)
+        tracking_state, calibrated_origin = getTrackingState(abs_time, True)
 
         # calculate eye poses, this needs to be called every frame
-        calcEyePoses(tracking_state.headPose.pose)
+        headPose, state = tracking_state[LIBOVR_TRACKED_DEVICE_TYPE_HMD]
+        calcEyePoses(headPose.pose)
 
         # get the view matrix from the HMD after calculating the pose
         view_left = getEyeViewMatrix(LIBOVR_EYE_LEFT)
@@ -158,20 +159,31 @@ def main():
             GL.glViewport(*vp)
             GL.glScissor(*vp)
 
+            # Get view and projection matrices, must be flattened assuming
+            # column-major ('F') order into a 1x16 vector.
+            P = np.ctypeslib.as_ctypes(getEyeProjectionMatrix(eye).flatten('F'))
+            MV = np.ctypeslib.as_ctypes(getEyeViewMatrix(eye).flatten('F'))
+
             GL.glEnable(GL.GL_SCISSOR_TEST)  # enable scissor test
             GL.glEnable(GL.GL_DEPTH_TEST)
 
+            # Set the projection matrix.
             GL.glMatrixMode(GL.GL_PROJECTION)
             GL.glLoadIdentity()
-            GL.glMultMatrixf(np.ctypeslib.as_ctypes(proj_left.flatten('F')))
+            GL.glMultMatrixf(P)
+
+            # Set the view matrix. This contains the translation for the head in
+            # the virtual space computed by the API.
             GL.glMatrixMode(GL.GL_MODELVIEW)
             GL.glLoadIdentity()
-            if HEAD_TRACKING:
-                GL.glMultMatrixf(np.ctypeslib.as_ctypes(view_left.flatten('F')))
+            GL.glMultMatrixf(MV)
 
+            # Clear the background.
             GL.glClearColor(0.5, 0.5, 0.5, 1.0)
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
+            # Draw a white 2x2 meter square positioned 5 meters in front of the
+            # virtual space's origin.
             GL.glColor3f(1.0, 1.0, 1.0)
             GL.glPushMatrix()
             GL.glBegin(GL.GL_QUADS)
@@ -197,7 +209,7 @@ def main():
         frame_index += 1
 
         # update session status
-        #session_status = capi.getSessionStatus()
+        session_status = getSessionStatus()
 
         # blit mirror texture
         GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, mirrorFbo)
@@ -205,12 +217,13 @@ def main():
 
         _, mirrorId = getMirrorTexture()
 
-        # bind the rift's texture to the framebuffer
+        # bind the rift's mirror texture to the framebuffer
         GL.glFramebufferTexture2D(
             GL.GL_READ_FRAMEBUFFER,
             GL.GL_COLOR_ATTACHMENT0,
             GL.GL_TEXTURE_2D, mirrorId, 0)
 
+        # render the mirror texture to the on-screen window's back buffer
         GL.glViewport(0, 0, 800, 600)
         GL.glScissor(0, 0, 800, 600)
         GL.glClearColor(0.0, 0.0, 0.0, 1.0)
@@ -237,9 +250,6 @@ def main():
         # flip the GLFW window and poll events
         glfw.swap_buffers(window)
         glfw.poll_events()
-
-    # switch off the performance summary
-    perfHudMode("Off")
 
     # free resources
     destroyMirrorTexture()

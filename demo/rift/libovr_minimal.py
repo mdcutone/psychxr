@@ -120,10 +120,11 @@ def main():
         abs_time = getPredictedDisplayTime(frame_index)
 
         # get the current tracking state
-        tracking_state = getTrackingState(abs_time, True)
+        tracking_state, calibrated_origin = getTrackingState(abs_time, True)
 
         # calculate eye poses, this needs to be called every frame
-        calcEyePoses(tracking_state.headPose.pose)
+        headPose, state = tracking_state[LIBOVR_TRACKED_DEVICE_TYPE_HMD]
+        calcEyePoses(headPose.pose)
 
         # get the view matrix from the HMD after calculating the pose
         view_left = getEyeViewMatrix(LIBOVR_EYE_LEFT)
@@ -206,9 +207,6 @@ def main():
         # flip the GLFW window and poll events
         glfw.swap_buffers(window)
         glfw.poll_events()
-
-    # switch off the performance summary
-    perfHudMode("Off")
 
     # free resources
     destroyMirrorTexture()

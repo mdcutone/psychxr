@@ -16,7 +16,7 @@ A minimal example to create a VR session using the LibOVR interface::
 
     hmdDesc = getHmdInfo()
 
-    resolution = resolution
+    resolution = hmdDesc.resolution
 
     destroy()
     shutdown()
