@@ -47,7 +47,7 @@ def main():
     # get general information about the HMD
     hmdInfo = getHmdInfo()
 
-    # configure the internal render descriptors for each eye
+    # specify the eye render FOV for each render layer
     for eye, fov in enumerate(hmdInfo.defaultEyeFov):
         setEyeRenderFov(eye, fov)
 
@@ -100,15 +100,11 @@ def main():
     mirrorFbo = GL.GLuint()
     GL.glGenFramebuffers(1, ctypes.byref(mirrorFbo))
 
-    # setup a mirror texture
+    # setup a mirror texture, same size as the window
     createMirrorTexture(800, 600)
 
     # frame index, increment this every frame
     frame_index = 0
-
-    # compute projection matrices
-    proj_left = getEyeProjectionMatrix(LIBOVR_EYE_LEFT)
-    proj_right = getEyeProjectionMatrix(LIBOVR_EYE_RIGHT)
 
     # begin application loop
     while not glfw.window_should_close(window):
@@ -125,10 +121,6 @@ def main():
         # calculate eye poses, this needs to be called every frame
         headPose, state = tracking_state[LIBOVR_TRACKED_DEVICE_TYPE_HMD]
         calcEyePoses(headPose.pose)
-
-        # get the view matrix from the HMD after calculating the pose
-        view_left = getEyeViewMatrix(LIBOVR_EYE_LEFT)
-        view_right = getEyeViewMatrix(LIBOVR_EYE_RIGHT)
 
         # start frame rendering
         beginFrame(frame_index)
@@ -164,6 +156,13 @@ def main():
             P = np.ctypeslib.as_ctypes(getEyeProjectionMatrix(eye).flatten('F'))
             MV = np.ctypeslib.as_ctypes(getEyeViewMatrix(eye).flatten('F'))
 
+            # Note - you don't need to get eye projection matrices each frame,
+            # they are computed only when the eye FOVs are updated. You can
+            # compute the eye projection matrices once before entering your
+            # render loop if you don't plan on changing them during a session.
+            #
+            # However, the view matrices should be computed every frame!
+
             GL.glEnable(GL.GL_SCISSOR_TEST)  # enable scissor test
             GL.glEnable(GL.GL_DEPTH_TEST)
 
@@ -178,7 +177,11 @@ def main():
             GL.glLoadIdentity()
             GL.glMultMatrixf(MV)
 
-            # Clear the background.
+            # Note - We are not using shaders here to keep things simple.
+            # However, you can pass computed transforms to a shader program
+            # if you like.
+
+            # Okay, let's begin drawing stuff. Clear the background first.
             GL.glClearColor(0.5, 0.5, 0.5, 1.0)
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
