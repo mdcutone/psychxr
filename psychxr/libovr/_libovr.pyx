@@ -247,10 +247,6 @@ __all__ = [
     'isOculusServiceRunning',
     'isHmdConnected',
     'getHmdInfo',
-    'getUserHeight',
-    'getEyeHeight',
-    'getNeckEyeDist',
-    'getEyeToNoseDist',
     'initialize',
     'create',
     'destroyTextureSwapChain',
@@ -261,7 +257,6 @@ __all__ = [
     'setHighQuality',
     'setHeadLocked',
     'getPixelsPerTanAngleAtCenter',
-    'getPixelsPerDegree',
     'getTanAngleToRenderTargetNDC',
     'getDistortedViewport',
     'getEyeRenderFov',
@@ -290,12 +285,6 @@ __all__ = [
     'getEyeViewMatrix',
     'getPredictedDisplayTime',
     'timeInSeconds',
-    'perfHudMode',
-    'hidePerfHud',
-    'stereoDebugHudMode',
-    'setStereoDebugHudGuideInfo',
-    'setStereoDebugHudGuidePosition',
-    'setStereoDebugHudGuideSize',
     'waitToBeginFrame',
     'beginFrame',
     'commitTextureSwapChain',
@@ -2741,99 +2730,6 @@ def getHmdInfo():
 
     return toReturn
 
-def getUserHeight():
-    """User's calibrated height in meters.
-
-    Returns
-    -------
-    float
-        Distance from floor to the top of the user's head in meters reported
-        by LibOVR. If not set, the default value is 1.778 meters.
-
-    """
-    global _ptrSession
-    cdef float to_return = capi.ovr_GetFloat(
-        _ptrSession,
-        capi.OVR_KEY_PLAYER_HEIGHT,
-        <float> 1.778)
-
-    return to_return
-
-def setUserHeight(float height):
-    """set the user height."""
-    global _ptrSession
-
-    cdef capi.ovrBool result = capi.ovr_SetFloat(
-        _ptrSession, capi.OVR_KEY_PLAYER_HEIGHT, height)
-
-    return <bint>result
-
-def getEyeHeight():
-    """Calibrated eye height from floor in meters.
-
-    Returns
-    -------
-    float
-        Distance from floor to the user's eye level in meters.
-
-    """
-    global _ptrSession
-    cdef float to_return = capi.ovr_GetFloat(
-        _ptrSession,
-        capi.OVR_KEY_EYE_HEIGHT,
-        capi.OVR_DEFAULT_EYE_HEIGHT)
-
-    return to_return
-
-def setEyeHeight(float height):
-    """set the eye height."""
-    global _ptrSession
-
-    cdef capi.ovrBool result = capi.ovr_SetFloat(
-        _ptrSession, capi.OVR_KEY_EYE_HEIGHT, height)
-
-    return <bint>result
-
-def getNeckEyeDist():
-    """Distance from the neck to eyes in meters.
-
-    Returns
-    -------
-    float
-        Distance in meters.
-
-    """
-    global _ptrSession
-    cdef float vals[2]
-
-    cdef unsigned int ret = capi.ovr_GetFloatArray(
-        _ptrSession,
-        capi.OVR_KEY_NECK_TO_EYE_DISTANCE,
-        vals,
-        <unsigned int>2)
-
-    return <float> vals[0], <float> vals[1]
-
-def getEyeToNoseDist():
-    """Distance between the nose and eyes in meters.
-
-    Returns
-    -------
-    float
-        Distance in meters.
-
-    """
-    global _ptrSession
-    cdef float vals[2]
-
-    cdef unsigned int ret = capi.ovr_GetFloatArray(
-        _ptrSession,
-        capi.OVR_KEY_EYE_TO_NOSE_DISTANCE,
-        vals,
-        <unsigned int> 2)
-
-    return <float>vals[0], <float> vals[1]
-
 def initialize(bint focusAware=False, int connectionTimeout=0):
     """Initialize the session.
 
@@ -3073,34 +2969,34 @@ def getTanAngleToRenderTargetNDC(int eye, object tanAngle):
 
     return toReturn.x, toReturn.y
 
-def getPixelsPerDegree(int eye):
-    """Get pixels per degree at the center of the display.
-
-    Values reflect the FOVs set by the last call to :func:`setEyeRenderFov` (or
-    else the default FOVs will be used.)
-
-    Parameters
-    ----------
-    eye: int
-        Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
-        :data:`LIBOVR_EYE_RIGHT`.
-
-    Returns
-    -------
-    tuple of floats
-        Pixels per degree at the center of the screen.
-
-    """
-    global _eyeRenderDesc
-
-    cdef capi.ovrVector2f pixelsPerTanAngle = \
-        _eyeRenderDesc[eye].PixelsPerTanAngleAtCenter
-
-    # tan(angle)=1 -> 45 deg
-    cdef float horzPixelPerDeg = pixelsPerTanAngle.x / 45.0
-    cdef float vertPixelPerDeg = pixelsPerTanAngle.y / 45.0
-
-    return horzPixelPerDeg, vertPixelPerDeg
+# def getPixelsPerDegree(int eye):
+#     """Get pixels per degree at the center of the display.
+#
+#     Values reflect the FOVs set by the last call to :func:`setEyeRenderFov` (or
+#     else the default FOVs will be used.)
+#
+#     Parameters
+#     ----------
+#     eye: int
+#         Eye index. Use either :data:`LIBOVR_EYE_LEFT` or
+#         :data:`LIBOVR_EYE_RIGHT`.
+#
+#     Returns
+#     -------
+#     tuple of floats
+#         Pixels per degree at the center of the screen.
+#
+#     """
+#     global _eyeRenderDesc
+#
+#     cdef capi.ovrVector2f pixelsPerTanAngle = \
+#         _eyeRenderDesc[eye].PixelsPerTanAngleAtCenter
+#
+#     # tan(angle)=1 -> 45 deg
+#     cdef float horzPixelPerDeg = pixelsPerTanAngle.x / 45.0
+#     cdef float vertPixelPerDeg = pixelsPerTanAngle.y / 45.0
+#
+#     return horzPixelPerDeg, vertPixelPerDeg
 
 def getDistortedViewport(int eye):
     """Get the distorted viewport.
@@ -4390,132 +4286,6 @@ def timeInSeconds():
     cdef double t_sec = capi.ovr_GetTimeInSeconds()
 
     return t_sec
-
-def perfHudMode(int mode):
-    """Display an on-screen performance information HUD.
-
-    The HUD overlays real-time information about the performance of the
-    application, LibOVR runtime, and HMD.
-
-    Parameters
-    ----------
-    mode : `int`
-        Performance HUD mode to present. Valid modes values are:
-
-        * :data:`LIBOVR_PERF_HUD_OFF`: Turn off the performance HUD.
-        * :data:`LIBOVR_PERF_HUD_PERF_SUMMARY`: General performance summary
-          (headroom, frame rate, photon-to-motion latency, dropped frames, etc.)
-        * :data:`LIBOVR_PERF_HUD_LATENCY_TIMING`: Latency information.
-        * :data:`LIBOVR_PERF_HUD_APP_RENDER_TIMING`: Application render timing
-          info.
-        * :data:`LIBOVR_PERF_HUD_COMP_RENDER_TIMING`: Compositor timing.
-        * :data:`LIBOVR_PERF_HUD_ASW_STATS`: Asynchronous space-warp (ASW) info.
-        * :data:`LIBOVR_PERF_HUD_VERSION_INFO`: LibOVR and HMD version
-          information.
-
-    Warning
-    -------
-    The performance HUD remains visible until :data:`LIBOVR_PERF_HUD_OFF` is
-    specified, even after the application quits.
-
-    """
-    global _ptrSession
-
-    if 0 > mode >= capi.ovrPerfHud_Count:
-        raise ValueError("Invalid value for 'mode' specified.")
-
-    cdef capi.ovrBool ret = capi.ovr_SetInt(
-        _ptrSession, b"PerfHudMode", perfHudMode)
-
-def hidePerfHud():
-    """Hide the performance HUD.
-
-    This is a convenience function that is equivalent to calling
-    :func:`perfHudMode` and specifying :data:`LIBOVR_PERF_HUD_OFF`.
-
-    """
-    global _ptrSession
-    cdef capi.ovrBool ret = capi.ovr_SetInt(
-        _ptrSession, capi.OVR_PERF_HUD_MODE, capi.ovrPerfHud_Off)
-
-def stereoDebugHudMode(int mode):
-    """Display the stereo debugging HUD.
-
-    Parameters
-    ----------
-    mode : `int`
-        Stereo debug HUD mode to present. Valid modes values are:
-
-        * :data:`LIBOVR_DEBUG_HUD_STEREO_MODE_OFF`: Turn off the HUD.
-        * :data:`LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD`: Render a quad in-world.
-        * :data:`LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD_WITH_CROSSHAIR`: Render a
-          quad with a crosshair.
-        * :data:`LIBOVR_DEBUG_HUD_STEREO_MODE_CROSSHAIR_AT_INFINITY`: Render a
-          crosshair at infinity.
-
-    See Also
-    --------
-    setStereoDebugHudGuideInfo : Enable/disable on-screen debug information.
-    setStereoDebugHudGuideSize : Set the size of the guide.
-    setStereoDebugHudGuidePosition : Set the position of the guide.
-
-    """
-    global _ptrSession
-
-    if 0 > mode >= capi.ovrDebugHudStereo_Count:
-        raise ValueError("Invalid value for 'mode' specified.")
-
-    cdef capi.ovrBool ret = capi.ovr_SetInt(
-        _ptrSession, capi.OVR_DEBUG_HUD_STEREO_MODE, <int>mode)
-
-def setStereoDebugHudGuideInfo(bint enable):
-    """Enable/disable stereo debug HUD on-screen information.
-
-    Parameters
-    ----------
-    enable : bool
-        Display information if True, hide if False.
-
-    """
-    global _ptrSession
-
-    cdef capi.ovrBool val = capi.ovrTrue if enable else capi.ovrFalse
-    cdef capi.ovrBool ret = capi.ovr_SetBool(
-        _ptrSession, capi.OVR_DEBUG_HUD_STEREO_GUIDE_INFO_ENABLE, val)
-
-def setStereoDebugHudGuideSize(object size):
-    """Set the size of the stereo debug HUD guide.
-
-    Parameters
-    ----------
-    size : tuple, list, or ndarray of float
-        Size of the guide [width, height].
-
-    """
-    global _ptrSession
-
-    cdef float[2] guideSize = [<float>size[0], <float>size[1]]
-    cdef float* guideSizePtr = &guideSize[0]
-    cdef capi.ovrBool ret = capi.ovr_SetFloatArray(
-        _ptrSession, capi.OVR_DEBUG_HUD_STEREO_GUIDE_SIZE, guideSizePtr,
-        <unsigned int>2)
-
-def setStereoDebugHudGuidePosition(object pos):
-    """Set the position of the stereo debug HUD guide.
-
-    Parameters
-    ----------
-    pos : tuple, list, or ndarray of float
-        Position of the guide in the world [x, y, z].
-
-    """
-    global _ptrSession
-
-    cdef float[3] guidePos = [<float>pos[0], <float>pos[1], <float>pos[2]]
-    cdef float* guidePosPtr = &guidePos[0]
-    cdef capi.ovrBool ret = capi.ovr_SetFloatArray(
-        _ptrSession, capi.OVR_DEBUG_HUD_STEREO_GUIDE_POSITION, guidePosPtr,
-        <unsigned int>3)
 
 def waitToBeginFrame(unsigned int frameIndex=0):
     """Wait until a buffer is available so frame rendering can begin. Must be
@@ -6060,91 +5830,91 @@ def getSessionStatus():
 
     return result, to_return
 
-def testBBoxVisible(int eye, object boundingBox):
-    """Test if an object's bounding box falls outside of the current view
-    volume.
-
-    Parameters
-    ----------
-    eye : int
-        Eye index.
-    boundingBox : ndarray
-        Bounding box as an 8x3 array of floats, where each row contains the
-        [X, Y, Z] coordinate of a bounding box vertex.
-
-    Returns
-    -------
-    bool
-        True if the object is not visible.
-
-    """
-    global _eyeViewProjectionMatrix
-
-    cdef float m[16]
-    cdef float planeEq[6][4]
-
-    # compute plane equations, in VR these change constantly so they need to be
-    # recalculated every frame
-
-    cdef int i, j, k
-    k = 0
-    for i in range(4):
-        for j in range(4):
-            m[k] = _eyeViewProjectionMatrix[eye].M[j][i]  # column-wise
-            k += 1
-
-    planeEq[0][0] = m[3] - m[0]
-    planeEq[0][1] = m[7] - m[4]
-    planeEq[0][2] = m[11] - m[8]
-    planeEq[0][3] = m[15] - m[12]
-
-    planeEq[1][0] = m[3] + m[0]
-    planeEq[1][1] = m[7] + m[4]
-    planeEq[1][2] = m[11] + m[8]
-    planeEq[1][3] = m[15] + m[12]
-
-    planeEq[2][0] = m[3] + m[1]
-    planeEq[2][1] = m[7] + m[5]
-    planeEq[2][2] = m[11] + m[9]
-    planeEq[2][3] = m[15] + m[13]
-
-    planeEq[3][0] = m[3] - m[1]
-    planeEq[3][1] = m[7] - m[5]
-    planeEq[3][2] = m[11] - m[9]
-    planeEq[3][3] = m[15] - m[13]
-
-    planeEq[4][0] = m[3] + m[2]
-    planeEq[4][1] = m[7] + m[6]
-    planeEq[4][2] = m[11] + m[10]
-    planeEq[4][3] = m[15] + m[14]
-
-    planeEq[5][0] = m[3] - m[2]
-    planeEq[5][1] = m[7] - m[6]
-    planeEq[5][2] = m[11] - m[10]
-    planeEq[5][3] = m[15] - m[14]
-
-    # get the bounding box
-    cdef float[:,:] bbox = np.asarray(boundingBox, dtype=np.float32)
-
-    # test if the vertices of the bounding box are all outside of the view
-    cdef int culled
-    cdef float distanceFromPlane = 0.0
-
-    for i in range(6):
-        culled = 0
-        for j in range(8):
-            distanceFromPlane = planeEq[i][0] * bbox[j, 0] + \
-                                planeEq[i][1] * bbox[j, 1] + \
-                                planeEq[i][2] * bbox[j, 2] + \
-                                planeEq[i][3]
-
-            if distanceFromPlane < 0.:
-                culled |= 1 << j
-
-        if culled == 0xff:
-            return 1
-
-    return 0
+# def testBBoxVisible(int eye, object boundingBox):
+#     """Test if an object's bounding box falls outside of the current view
+#     volume.
+#
+#     Parameters
+#     ----------
+#     eye : int
+#         Eye index.
+#     boundingBox : ndarray
+#         Bounding box as an 8x3 array of floats, where each row contains the
+#         [X, Y, Z] coordinate of a bounding box vertex.
+#
+#     Returns
+#     -------
+#     bool
+#         True if the object is not visible.
+#
+#     """
+#     global _eyeViewProjectionMatrix
+#
+#     cdef float m[16]
+#     cdef float planeEq[6][4]
+#
+#     # compute plane equations, in VR these change constantly so they need to be
+#     # recalculated every frame
+#
+#     cdef int i, j, k
+#     k = 0
+#     for i in range(4):
+#         for j in range(4):
+#             m[k] = _eyeViewProjectionMatrix[eye].M[j][i]  # column-wise
+#             k += 1
+#
+#     planeEq[0][0] = m[3] - m[0]
+#     planeEq[0][1] = m[7] - m[4]
+#     planeEq[0][2] = m[11] - m[8]
+#     planeEq[0][3] = m[15] - m[12]
+#
+#     planeEq[1][0] = m[3] + m[0]
+#     planeEq[1][1] = m[7] + m[4]
+#     planeEq[1][2] = m[11] + m[8]
+#     planeEq[1][3] = m[15] + m[12]
+#
+#     planeEq[2][0] = m[3] + m[1]
+#     planeEq[2][1] = m[7] + m[5]
+#     planeEq[2][2] = m[11] + m[9]
+#     planeEq[2][3] = m[15] + m[13]
+#
+#     planeEq[3][0] = m[3] - m[1]
+#     planeEq[3][1] = m[7] - m[5]
+#     planeEq[3][2] = m[11] - m[9]
+#     planeEq[3][3] = m[15] - m[13]
+#
+#     planeEq[4][0] = m[3] + m[2]
+#     planeEq[4][1] = m[7] + m[6]
+#     planeEq[4][2] = m[11] + m[10]
+#     planeEq[4][3] = m[15] + m[14]
+#
+#     planeEq[5][0] = m[3] - m[2]
+#     planeEq[5][1] = m[7] - m[6]
+#     planeEq[5][2] = m[11] - m[10]
+#     planeEq[5][3] = m[15] - m[14]
+#
+#     # get the bounding box
+#     cdef float[:,:] bbox = np.asarray(boundingBox, dtype=np.float32)
+#
+#     # test if the vertices of the bounding box are all outside of the view
+#     cdef int culled
+#     cdef float distanceFromPlane = 0.0
+#
+#     for i in range(6):
+#         culled = 0
+#         for j in range(8):
+#             distanceFromPlane = planeEq[i][0] * bbox[j, 0] + \
+#                                 planeEq[i][1] * bbox[j, 1] + \
+#                                 planeEq[i][2] * bbox[j, 2] + \
+#                                 planeEq[i][3]
+#
+#             if distanceFromPlane < 0.:
+#                 culled |= 1 << j
+#
+#         if culled == 0xff:
+#             return 1
+#
+#     return 0
 
 # def testPointsInEyeFrustums(object points, object out=None):
 #     """Test if points are within each eye's frustum.
