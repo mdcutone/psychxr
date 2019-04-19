@@ -232,6 +232,8 @@ __all__ = [
     'LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD',
     'LIBOVR_DEBUG_HUD_STEREO_MODE_QUAD_WITH_CROSSHAIR',
     'LIBOVR_DEBUG_HUD_STEREO_MODE_CROSSHAIR_AT_INFINITY',
+    'LIBOVR_BOUNDARY_PLAY_AREA',
+    'LIBOVR_BOUNDARY_OUTER',
     'LibOVRPose',
     'LibOVRPoseState',
     'LibOVRTrackerInfo',
@@ -638,6 +640,10 @@ LIBOVR_TEXTURE_SWAP_CHAIN12 = 12
 LIBOVR_TEXTURE_SWAP_CHAIN13 = 13
 LIBOVR_TEXTURE_SWAP_CHAIN14 = 14
 LIBOVR_TEXTURE_SWAP_CHAIN15 = 15
+
+# boundary modes
+LIBOVR_BOUNDARY_PLAY_AREA = capi.ovrBoundary_PlayArea
+LIBOVR_BOUNDARY_OUTER = capi.ovrBoundary_Outer
 
 # ------------------------------------------------------------------------------
 # Wrapper factory functions
@@ -3964,7 +3970,9 @@ def setHmdToEyePose(int eye, LibOVRPose eyePose):
     """Set the HMD eye poses.
 
     This overwrites the values returned by LibOVR and will be used in successive
-    calls of :func:`calcEyePoses` to compute eye render poses.
+    calls of :func:`calcEyePoses` to compute eye render poses. Note that the
+    poses store the view space translations, not the relative position in the
+    scene.
 
     Parameters
     ----------
@@ -3980,7 +3988,7 @@ def setHmdToEyePose(int eye, LibOVRPose eyePose):
     --------
     Set both HMD to eye poses::
 
-        eyePoses = [LibOVRPose((-0.035, 0.0, 0.0)), LibOVRPose((0.035, 0.0, 0.0))]
+        eyePoses = [LibOVRPose((0.035, 0.0, 0.0)), LibOVRPose((-0.035, 0.0, 0.0))]
         for eye in enumerate(eyePoses):
             setHmdToEyePose(eye, eyePoses[eye])
 
