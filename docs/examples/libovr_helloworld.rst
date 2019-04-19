@@ -4,20 +4,22 @@ LibOVR Hello World
 
 A minimal example to create a VR session using the LibOVR interface::
 
-    import psychxr.libovr as libovr
+    from psychxr.libovr import *
 
     # create a rift session object
-    if libovr.failure(ovr.initialize()):
+    if failure(initialize()):
         return -1
 
-    if libovr.success(ovr.createSession()):
-        ovr.shutdown()
+    if success(create()):
+        shutdown()
         return -1
 
-    resolution = libovr.getScreenSize()
+    hmdDesc = getHmdInfo()
 
-    libovr.destroySession()
-    libovr.shutdown()
+    resolution = resolution
+
+    destroy()
+    shutdown()
 
 
 Above is similar to the example shown in "Initialization and Sensor Enumeration"

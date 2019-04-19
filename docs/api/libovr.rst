@@ -63,7 +63,7 @@ Functions
 =========
 
 .. autofunction:: success
-.. autofunction:: unqualifedSuccess
+.. autofunction:: unqualifiedSuccess
 .. autofunction:: failure
 .. autofunction:: getBool
 .. autofunction:: setBool
