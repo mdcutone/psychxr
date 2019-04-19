@@ -10,7 +10,7 @@ A minimal example to create a VR session using the LibOVR interface::
     if failure(initialize()):
         return -1
 
-    if success(create()):
+    if failure(create()):
         shutdown()
         return -1
 

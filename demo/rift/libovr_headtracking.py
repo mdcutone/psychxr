@@ -1,4 +1,4 @@
-# PsychXR Oculus Rift head tracking example.
+# PsychXR Oculus Rift head tracking example. This file is public domain.
 #
 import OpenGL.GL as GL
 import ctypes
@@ -7,7 +7,6 @@ import numpy as np
 from psychxr.libovr import *
 import sys
 
-HEAD_TRACKING = True
 
 def main():
     # start GLFW
@@ -210,9 +209,6 @@ def main():
 
         # increment frame index
         frame_index += 1
-
-        # update session status
-        session_status = getSessionStatus()
 
         # blit mirror texture
         GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, mirrorFbo)
