@@ -498,7 +498,7 @@ cdef extern from "OVR_CAPI.h":
     ctypedef enum ovrHapticsBufferSubmitMode:
         ovrHapticsBufferSubmit_Enqueue
 
-    cdef int OVR_HAPTICS_BUFFER_SAMPLES_MAX = 256
+    cdef int OVR_HAPTICS_BUFFER_SAMPLES_MAX
 
     ctypedef struct ovrHapticsBuffer:
         const void* Samples

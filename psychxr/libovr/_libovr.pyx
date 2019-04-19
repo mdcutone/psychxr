@@ -136,6 +136,11 @@ __all__ = [
     'LIBOVR_KEY_PLAYER_HEIGHT',
     'LIBOVR_DEFAULT_PLAYER_HEIGHT',
     'LIBOVR_KEY_EYE_HEIGHT',
+    'LIBOVR_DEFAULT_EYE_HEIGHT',
+    'LIBOVR_KEY_NECK_TO_EYE_DISTANCE',
+    'LIBOVR_DEFAULT_NECK_TO_EYE_HORIZONTAL',
+    'LIBOVR_DEFAULT_NECK_TO_EYE_VERTICAL',
+    'LIBOVR_KEY_EYE_TO_NOSE_DISTANCE',
     'LIBOVR_DEBUG_HUD_STEREO_MODE',
     'LIBOVR_DEBUG_HUD_STEREO_GUIDE_INFO_ENABLE',
     'LIBOVR_DEBUG_HUD_STEREO_GUIDE_SIZE',
@@ -2312,6 +2317,29 @@ cdef class LibOVRHmdInfo(object):
             dtype=np.float32)
 
         return fov_left_out, fov_right_out
+
+
+# cdef class LibOVRHapticsBuffer(object):
+#     """Class for storing haptics buffer data."""
+#     cdef capi.ovrHapticsBuffer c_data
+#
+#     def __init__(self, *args, **kwargs):
+#         pass
+#
+#     def __cinit__(self, np.ndarray[np.float32, ndim=1] samples):
+#
+#         cdef int numSamples = <int>samples.shape[0]
+#         if numSamples > capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX:
+#             raise ValueError(
+#                 "Too many buffer samples, must be <{}.".format(
+#                     capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX))
+#
+#         self.c_data.Samples = <void>&samples[0]
+#         self.c_data.SamplesCount = numSamples
+#
+#     @property
+#     def samplesCount(self):
+#         return self.c_data.SamplesCount
 
 # ------------------------------------------------------------------------------
 # Functions
@@ -4958,13 +4986,14 @@ def hideBoundary():
 
     return result
 
-def getBoundaryDimensions(str boundaryType='PlayArea'):
+def getBoundaryDimensions(int boundaryType):
     """Get the dimensions of the boundary.
 
     Parameters
     ----------
-    boundaryType : str
-        Boundary type, can be 'PlayArea' or 'Outer'.
+    boundaryType : int
+        Boundary type, can be :data:`LIBOVR_BOUNDARY_OUTER` or
+        :data:`LIBOVR_BOUNDARY_PLAY_AREA`.
 
     Returns
     -------
@@ -4975,11 +5004,8 @@ def getBoundaryDimensions(str boundaryType='PlayArea'):
     """
     global _ptrSession
     cdef capi.ovrBoundaryType btype
-    if boundaryType == 'PlayArea':
-        btype = capi.ovrBoundary_PlayArea
-    elif boundaryType == 'Outer':
-        btype = capi.ovrBoundary_Outer
-    else:
+    if not (boundaryType == capi.ovrBoundary_PlayArea or
+            boundaryType == capi.ovrBoundary_Outer):
         raise ValueError("Invalid boundary type specified.")
 
     cdef capi.ovrVector3f vec_out
