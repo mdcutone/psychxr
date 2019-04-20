@@ -5854,18 +5854,6 @@ def getSessionStatus():
         _sessionStatus.DepthRequested == capi.ovrTrue
     )
 
-    # cdef dict to_return = {
-    #     "IsVisible" : _sessionStatus.IsVisible,
-    #     "HmdPresent" : _sessionStatus.HmdPresent,
-    #     "HmdMounted" : _sessionStatus.HmdMounted,
-    #     "DisplayLost" : _sessionStatus.DisplayLost,
-    #     "ShouldQuit" : _sessionStatus.ShouldQuit,
-    #     "ShouldRecenter" : _sessionStatus.ShouldRecenter,
-    #     "HasInputFocus" : _sessionStatus.HasInputFocus,
-    #     "OverlayPresent" : _sessionStatus.OverlayPresent,
-    #     "DepthRequested" : _sessionStatus.DepthRequested
-    # }
-
     return result, to_return
 
 # def testBBoxVisible(int eye, object boundingBox):
