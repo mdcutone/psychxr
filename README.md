@@ -19,8 +19,9 @@ New features include:
 * Restucturing of PsychXR modules.
 * More LibOVR features and version bump.
 * Better documentation and usage examples.
+* Oculus(tm) Rift S support.
 
-*Updated 4/4/16*
+*Updated 5/28/19*
 
 ## Installing
 
