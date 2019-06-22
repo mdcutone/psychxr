@@ -30,6 +30,8 @@ def main():
     # will cause the HMD to lock to the frequency/phase of the display.
     glfw.swap_interval(0)
 
+
+
     # --------------------------------------------------------------------------
     # Configure Rendering
 
@@ -51,24 +53,24 @@ def main():
         setEyeRenderFov(eye, fov)
 
     # get the optimal buffer dimensions for each eye
-    texSizeLeft = calcEyeBufferSize(LIBOVR_EYE_LEFT)
-    texSizeRight = calcEyeBufferSize(LIBOVR_EYE_RIGHT)
+    texSizeLeft = calcEyeBufferSize(EYE_LEFT)
+    texSizeRight = calcEyeBufferSize(EYE_RIGHT)
 
     # We are using a shared texture, so we need to combine dimensions.
     bufferW = texSizeLeft[0] + texSizeRight[0]
     bufferH = max(texSizeLeft[1], texSizeRight[1])
 
     # initialize texture swap chain
-    createTextureSwapChainGL(LIBOVR_TEXTURE_SWAP_CHAIN0, bufferW, bufferH)
+    createTextureSwapChainGL(TEXTURE_SWAP_CHAIN0, bufferW, bufferH)
 
     # set the same swap chain for both eyes since we are using a shared buffer
-    for eye in range(LIBOVR_EYE_COUNT):
-        setEyeColorTextureSwapChain(eye, LIBOVR_TEXTURE_SWAP_CHAIN0)
+    for eye in range(EYE_COUNT):
+        setEyeColorTextureSwapChain(eye, TEXTURE_SWAP_CHAIN0)
 
     # determine the viewports for each eye's image on the buffer
     eye_w = int(bufferW / 2)
     eye_h = bufferH
-
+    setInt(PERF_HUD_MODE, PERF_HUD_PERF_SUMMARY)
     # set the viewports
     viewports = ((0, 0, eye_w, eye_h), (eye_w, 0, eye_w, eye_h))
     for eye, vp in enumerate(viewports):
@@ -118,8 +120,11 @@ def main():
         tracking_state, calibrated_origin = getTrackingState(abs_time, True)
 
         # calculate eye poses, this needs to be called every frame
-        headPose, state = tracking_state[LIBOVR_TRACKED_DEVICE_TYPE_HMD]
+        headPose, state = tracking_state[TRACKED_DEVICE_TYPE_HMD]
         calcEyePoses(headPose.pose)
+
+        eyeLeft = getEyeRenderPose(EYE_LEFT)
+        eyeRight = getEyeRenderPose(EYE_RIGHT)
 
         # start frame rendering
         beginFrame(frame_index)
@@ -131,8 +136,8 @@ def main():
         # in the swap chain  and released when free. Making draw calls to
         # any other texture in the swap chain not returned here will report
         # and error.
-        _, swapIdx = getTextureSwapChainCurrentIndex(LIBOVR_TEXTURE_SWAP_CHAIN0)
-        _, tex_id = getTextureSwapChainBufferGL(LIBOVR_TEXTURE_SWAP_CHAIN0, swapIdx)
+        _, swapIdx = getTextureSwapChainCurrentIndex(TEXTURE_SWAP_CHAIN0)
+        _, tex_id = getTextureSwapChainBufferGL(TEXTURE_SWAP_CHAIN0, swapIdx)
 
         # bind the returned texture ID to the frame buffer's texture slot
         GL.glFramebufferTexture2D(
@@ -140,8 +145,10 @@ def main():
             GL.GL_COLOR_ATTACHMENT0,
             GL.GL_TEXTURE_2D, tex_id, 0)
 
+        _, ss = getSessionStatus()
         # for each eye, do some rendering
-        for eye in range(LIBOVR_EYE_COUNT):
+        for eye in range(EYE_COUNT):
+
             # Set the viewport as what was configured for the render layer. We
             # also need to enable scissor testings with the same rect as the
             # viewport. This constrains rendering operations to one partition of
@@ -149,12 +156,10 @@ def main():
             vp = getEyeRenderViewport(eye)
             GL.glViewport(*vp)
             GL.glScissor(*vp)
-
             # Get view and projection matrices, must be flattened assuming
             # column-major ('F') order into a 1x16 vector.
-            P = np.ctypeslib.as_ctypes(getEyeProjectionMatrix(eye).flatten('F'))
-            MV = np.ctypeslib.as_ctypes(getEyeViewMatrix(eye).flatten('F'))
-
+            P = getEyeProjectionMatrix(eye)
+            MV = getEyeViewMatrix(eye)
             # Note - you don't need to get eye projection matrices each frame,
             # they are computed only when the eye FOVs are updated. You can
             # compute the eye projection matrices once before entering your
@@ -167,21 +172,20 @@ def main():
 
             # Set the projection matrix.
             GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            GL.glMultMatrixf(P)
+            #GL.glLoadIdentity()
+            GL.glLoadTransposeMatrixf(P)
 
             # Set the view matrix. This contains the translation for the head in
             # the virtual space computed by the API.
             GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glLoadIdentity()
-            GL.glMultMatrixf(MV)
-
+            #GL.glLoadIdentity()
+            GL.glLoadTransposeMatrixf(MV)
             # Note - We are not using shaders here to keep things simple.
             # However, you can pass computed transforms to a shader program
             # if you like.
 
             # Okay, let's begin drawing stuff. Clear the background first.
-            GL.glClearColor(0.5, 0.5, 0.5, 1.0)
+            GL.glClearColor(1.0, 0.5, 0.5, 1.0)
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
             # Draw a white 2x2 meter square positioned 5 meters in front of the
@@ -189,17 +193,17 @@ def main():
             GL.glColor3f(1.0, 1.0, 1.0)
             GL.glPushMatrix()
             GL.glBegin(GL.GL_QUADS)
-            GL.glVertex3f(-1.0, -1.0, -5.0)
-            GL.glVertex3f(-1.0, 1.0, -5.0)
-            GL.glVertex3f(1.0, 1.0, -5.0)
-            GL.glVertex3f(1.0, -1.0, -5.0)
+            GL.glVertex3f(-1.0, -1.0, -1.0)
+            GL.glVertex3f(-1.0, 1.0, -1.0)
+            GL.glVertex3f(1.0, 1.0, -1.0)
+            GL.glVertex3f(1.0, -1.0, -1.0)
             GL.glEnd()
             GL.glPopMatrix()
 
         GL.glDisable(GL.GL_DEPTH_TEST)
 
         # commit the texture when were done drawing to it
-        commitTextureSwapChain(LIBOVR_TEXTURE_SWAP_CHAIN0)
+        commitTextureSwapChain(TEXTURE_SWAP_CHAIN0)
 
         # unbind the frame buffer, we're done with it
         GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
@@ -236,9 +240,9 @@ def main():
 
         # if button 'A' is released on the touch controller, recenter the
         # viewer in the scene. If 'B' was pressed, exit the loop.
-        updateInputState(LIBOVR_CONTROLLER_TYPE_TOUCH)
-        A = getButton(LIBOVR_CONTROLLER_TYPE_TOUCH, LIBOVR_BUTTON_A, 'falling')
-        B = getButton(LIBOVR_CONTROLLER_TYPE_TOUCH, LIBOVR_BUTTON_B, 'falling')
+        updateInputState(CONTROLLER_TYPE_TOUCH)
+        A = getButton(CONTROLLER_TYPE_TOUCH, BUTTON_A, 'falling')
+        B = getButton(CONTROLLER_TYPE_TOUCH, BUTTON_B, 'falling')
 
         if A[0]:  # first value is the state, second is the polling time
             recenterTrackingOrigin()
@@ -252,7 +256,7 @@ def main():
 
     # free resources
     destroyMirrorTexture()
-    destroyTextureSwapChain(LIBOVR_TEXTURE_SWAP_CHAIN0)
+    destroyTextureSwapChain(TEXTURE_SWAP_CHAIN0)
     destroy()
 
     # end the rift session cleanly
