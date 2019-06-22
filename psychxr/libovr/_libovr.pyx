@@ -654,25 +654,30 @@ cdef np.npy_intp[1] FOVPORT_SHAPE = [4]
 cdef np.npy_intp[1] QUAT_SHAPE = [4]
 cdef np.npy_intp[2] MAT4_SHAPE = [4, 4]
 
+
 cdef np.ndarray _wrap_ovrVector2f_as_ndarray(capi.ovrVector2f* prtVec):
     """Wrap an ovrVector2f object with a NumPy array."""
     return np.PyArray_SimpleNewFromData(
         1, VEC2_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
+
 
 cdef np.ndarray _wrap_ovrVector3f_as_ndarray(capi.ovrVector3f* prtVec):
     """Wrap an ovrVector3f object with a NumPy array."""
     return np.PyArray_SimpleNewFromData(
         1, VEC3_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
 
+
 cdef np.ndarray _wrap_ovrQuatf_as_ndarray(capi.ovrQuatf* prtVec):
     """Wrap an ovrQuatf object with a NumPy array."""
     return np.PyArray_SimpleNewFromData(
         1, QUAT_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
 
+
 #cdef np.ndarray _wrap_ovrMatrix4f_as_ndarray(capi.ovrMatrix4f* prtVec):
 #    """Wrap an ovrMatrix4f object with a NumPy array."""
 #    return np.PyArray_SimpleNewFromData(
 #        2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec.M)
+
 
 cdef np.ndarray _wrap_ovrFovPort_as_ndarray(capi.ovrFovPort* prtVec):
     """Wrap an ovrFovPort object with a NumPy array."""
@@ -1241,7 +1246,7 @@ cdef class LibOVRPose(object):
         if out is None:
             return toReturn
 
-    def getMatrix(self, bint inverse=False, object out=None):
+    def asMatrix(self, bint inverse=False, object out=None):
         """Convert this pose into a 4x4 transformation matrix.
 
         Parameters
@@ -1306,7 +1311,8 @@ cdef class LibOVRPose(object):
         * Uses `OVR::Posef.Inverted` which is part of the Oculus PC SDK.
 
         """
-        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>PyMem_Malloc(sizeof(capi.ovrPosef))
+        cdef capi.ovrPosef* ptr = <capi.ovrPosef*>PyMem_Malloc(
+            sizeof(capi.ovrPosef))
 
         if ptr is NULL:
             raise MemoryError
@@ -2362,6 +2368,7 @@ def success(int result):
     """
     return <bint>capi.OVR_SUCCESS(result)
 
+
 def unqualifiedSuccess(int result):
     """Check if an API return indicates unqualified success.
 
@@ -2373,6 +2380,7 @@ def unqualifiedSuccess(int result):
     """
     return <bint>capi.OVR_UNQUALIFIED_SUCCESS(result)
 
+
 def failure(int result):
     """Check if an API return indicates failure (error).
 
@@ -2383,6 +2391,7 @@ def failure(int result):
 
     """
     return <bint>capi.OVR_FAILURE(result)
+
 
 def getBool(bytes propertyName, bint defaultVal=False):
     """Read a LibOVR boolean property.
@@ -2413,6 +2422,7 @@ def getBool(bytes propertyName, bint defaultVal=False):
 
     return to_return == capi.ovrTrue
 
+
 def setBool(bytes propertyName, bint value=True):
     """Write a LibOVR boolean property.
 
@@ -2441,6 +2451,7 @@ def setBool(bytes propertyName, bint value=True):
 
     return to_return == capi.ovrTrue
 
+
 def getInt(bytes propertyName, int defaultVal=0):
     """Read a LibOVR integer property.
 
@@ -2467,6 +2478,7 @@ def getInt(bytes propertyName, int defaultVal=0):
     )
 
     return to_return
+
 
 def setInt(bytes propertyName, int value):
     """Write a LibOVR integer property.
@@ -2506,6 +2518,7 @@ def setInt(bytes propertyName, int value):
 
     return to_return == capi.ovrTrue
 
+
 def getFloat(bytes propertyName, float defaultVal=0.0):
     """Read a LibOVR floating point number property.
 
@@ -2529,10 +2542,10 @@ def getFloat(bytes propertyName, float defaultVal=0.0):
     cdef float to_return = capi.ovr_GetFloat(
         _ptrSession,
         propertyName,
-        defaultVal
-    )
+        defaultVal)
 
     return to_return
+
 
 def setFloat(bytes propertyName, float value):
     """Write a LibOVR floating point number property.
@@ -2556,10 +2569,10 @@ def setFloat(bytes propertyName, float value):
     cdef capi.ovrBool to_return = capi.ovr_SetFloat(
         _ptrSession,
         propertyName,
-        value
-    )
+        value)
 
     return to_return == capi.ovrTrue
+
 
 def setFloatArray(bytes propertyName, np.ndarray[np.float32_t, ndim=1] values):
     """Write a LibOVR floating point number property.
@@ -2593,10 +2606,10 @@ def setFloatArray(bytes propertyName, np.ndarray[np.float32_t, ndim=1] values):
         _ptrSession,
         propertyName,
         &values[0],
-        <unsigned int>valuesCapacity
-    )
+        <unsigned int>valuesCapacity)
 
     return to_return == capi.ovrTrue
+
 
 def getFloatArray(bytes propertyName, np.ndarray[np.float32_t, ndim=1] values not None):
     """Read a LibOVR float array property.
@@ -2633,10 +2646,10 @@ def getFloatArray(bytes propertyName, np.ndarray[np.float32_t, ndim=1] values no
         _ptrSession,
         propertyName,
         &values[0],
-        <unsigned int>valuesCapacity
-    )
+        <unsigned int>valuesCapacity)
 
     return to_return
+
 
 def setString(bytes propertyName, object value):
     """Write a LibOVR floating point number property.
@@ -2668,10 +2681,10 @@ def setString(bytes propertyName, object value):
     cdef capi.ovrBool to_return = capi.ovr_SetString(
         _ptrSession,
         propertyName,
-        value_in
-    )
+        value_in)
 
     return to_return == capi.ovrTrue
+
 
 def getString(bytes propertyName, object defaultVal=''):
     """Read a LibOVR string property.
@@ -2710,12 +2723,12 @@ def getString(bytes propertyName, object defaultVal=''):
     cdef const char* to_return = capi.ovr_GetString(
         _ptrSession,
         propertyName,
-        value_in
-    )
+        value_in)
 
     return to_return.decode('UTF-8')
 
-def isOculusServiceRunning(int timeoutMS=100):
+
+def isOculusServiceRunning(int timeoutMs=100):
     """Check if the Oculus Runtime is loaded and running.
 
     Parameters
@@ -2730,16 +2743,17 @@ def isOculusServiceRunning(int timeoutMS=100):
 
     """
     cdef capi.ovrDetectResult result = capi.ovr_Detect(
-        timeoutMS)
+        timeoutMs)
 
     return <bint>result.IsOculusServiceRunning
 
-def isHmdConnected(int timeout_ms=100):
+
+def isHmdConnected(int timeoutMs=100):
     """Check if an HMD is connected.
 
     Parameters
     ----------
-    timeout_ms : int
+    timeoutMs : int
         Timeout in milliseconds.
 
     Returns
@@ -2749,9 +2763,10 @@ def isHmdConnected(int timeout_ms=100):
 
     """
     cdef capi.ovrDetectResult result = capi.ovr_Detect(
-        timeout_ms)
+        timeoutMs)
 
     return <bint>result.IsOculusHMDConnected
+
 
 def getHmdInfo():
     """Get HMD information.
@@ -2767,6 +2782,7 @@ def getHmdInfo():
     toReturn.c_data[0] = _hmdDesc
 
     return toReturn
+
 
 def initialize(bint focusAware=False, int connectionTimeout=0):
     """Initialize the session.
@@ -2812,6 +2828,7 @@ def initialize(bint focusAware=False, int connectionTimeout=0):
 
     return result  # failed to initalize, return error code
 
+
 def create():
     """Create a new session. Control is handed over to the application from
     Oculus Home.
@@ -2854,6 +2871,7 @@ def create():
 
     return result
 
+
 def destroyTextureSwapChain(int swapChain):
     """Destroy a texture swap chain.
 
@@ -2870,6 +2888,7 @@ def destroyTextureSwapChain(int swapChain):
     capi.ovr_DestroyTextureSwapChain(_ptrSession, _swapChains[swapChain])
     _swapChains[swapChain] = NULL
 
+
 def destroyMirrorTexture():
     """Destroy the mirror texture.
     """
@@ -2877,6 +2896,7 @@ def destroyMirrorTexture():
     global _mirrorTexture
     if _mirrorTexture != NULL:
         capi.ovr_DestroyMirrorTexture(_ptrSession, _mirrorTexture)
+
 
 def destroy():
     """Destroy a session.
@@ -2894,6 +2914,7 @@ def destroy():
     # destroy the current session and shutdown
     capi.ovr_Destroy(_ptrSession)
 
+
 def shutdown():
     """End the current session.
 
@@ -2903,6 +2924,7 @@ def shutdown():
 
     """
     capi.ovr_Shutdown()
+
 
 def getGraphicsLUID():
     """The graphics device LUID.
@@ -2915,6 +2937,7 @@ def getGraphicsLUID():
     """
     global _gfxLuid
     return _gfxLuid.Reserved.decode('utf-8')
+
 
 def setHighQuality(bint enable):
     """Enable high quality mode.
@@ -2935,6 +2958,7 @@ def setHighQuality(bint enable):
     else:
         _eyeLayer.Header.Flags &= ~capi.ovrLayerFlag_HighQuality
 
+
 def setHeadLocked(bint enable):
     """True when head-locked mode is enabled.
 
@@ -2952,6 +2976,7 @@ def setHeadLocked(bint enable):
         _eyeLayer.Header.Flags |= capi.ovrLayerFlag_HeadLocked
     else:
         _eyeLayer.Header.Flags &= ~capi.ovrLayerFlag_HeadLocked
+
 
 def getPixelsPerTanAngleAtCenter(int eye):
     """Get pixels per tan angle (=1) at the center of the display.
@@ -2978,6 +3003,7 @@ def getPixelsPerTanAngleAtCenter(int eye):
 
     return toReturn.x, toReturn.y
 
+
 def getTanAngleToRenderTargetNDC(int eye, object tanAngle):
     """Convert FOV tan angle to normalized device coordinates (NDC).
 
@@ -2992,7 +3018,7 @@ def getTanAngleToRenderTargetNDC(int eye, object tanAngle):
     Returns
     -------
     tuple
-        NDC coordinates X, Y ranging between [-1,1] if visible on the display.
+        NDC coordinates X, Y [-1, 1].
 
     """
     global _eyeRenderDesc
@@ -3006,6 +3032,7 @@ def getTanAngleToRenderTargetNDC(int eye, object tanAngle):
             vecIn)
 
     return toReturn.x, toReturn.y
+
 
 # def getPixelsPerDegree(int eye):
 #     """Get pixels per degree at the center of the display.
@@ -3036,6 +3063,7 @@ def getTanAngleToRenderTargetNDC(int eye, object tanAngle):
 #
 #     return horzPixelPerDeg, vertPixelPerDeg
 
+
 def getDistortedViewport(int eye):
     """Get the distorted viewport.
 
@@ -3058,6 +3086,7 @@ def getDistortedViewport(int eye):
         dtype=np.int)
 
     return toReturn
+
 
 def getEyeRenderFov(int eye):
     """Get the field-of-view to use for rendering.
@@ -3095,6 +3124,7 @@ def getEyeRenderFov(int eye):
         dtype=np.float32)
 
     return to_return
+
 
 def setEyeRenderFov(int eye, object fov):
     """Set the field-of-view of a given eye. This is used to compute the
@@ -3147,6 +3177,7 @@ def setEyeRenderFov(int eye, object fov):
     # set in eye layer too
     _eyeLayer.Fov[eye] = _eyeRenderDesc[eye].Fov
 
+
 def getEyeAspectRatio(int eye):
     """Get the aspect ratio of an eye.
 
@@ -3168,6 +3199,7 @@ def getEyeAspectRatio(int eye):
     return (fovPort.LeftTan + fovPort.RightTan) / \
            (fovPort.UpTan + fovPort.DownTan)
 
+
 def getEyeHorizontalFovRadians(int eye):
     """Get the angle of the horizontal field-of-view (FOV) for a given eye.
 
@@ -3187,6 +3219,7 @@ def getEyeHorizontalFovRadians(int eye):
         <libovr_math.FovPort>_eyeRenderDesc[eye].Fov
 
     return fovPort.GetHorizontalFovRadians()
+
 
 def getEyeVerticalFovRadians(int eye):
     """Get the angle of the vertical field-of-view (FOV) for a given eye.
@@ -3208,6 +3241,7 @@ def getEyeVerticalFovRadians(int eye):
 
     return fovPort.GetVerticalFovRadians()
 
+
 def getEyeFocalLength(int eye):
     """Get the focal length of the eye's frustum.
 
@@ -3224,6 +3258,7 @@ def getEyeFocalLength(int eye):
 
     """
     return 1.0 / tan(getEyeHorizontalFovRadians(eye) / 2.0)
+
 
 def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
     """Get the recommended buffer (texture) sizes for eye buffers.
@@ -3288,6 +3323,7 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
 
     return bufferSize.w, bufferSize.h
 
+
 def getTextureSwapChainLengthGL(int swapChain):
     """Get the length of a specified swap chain.
 
@@ -3334,6 +3370,7 @@ def getTextureSwapChainLengthGL(int swapChain):
 
     return result, outLength
 
+
 def getTextureSwapChainCurrentIndex(int swapChain):
     """Get the current buffer index within the swap chain.
 
@@ -3370,6 +3407,7 @@ def getTextureSwapChainCurrentIndex(int swapChain):
         _ptrSession, _swapChains[swapChain], &current_idx)
 
     return result, current_idx
+
 
 def getTextureSwapChainBufferGL(int swapChain, int index):
     """Get the texture buffer as an OpenGL name at a specific index in the
@@ -3417,6 +3455,7 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
         _ptrSession, _swapChains[swapChain], index, &tex_id)
 
     return result, tex_id
+
 
 def createTextureSwapChainGL(int swapChain, int width, int height, int textureFormat=FORMAT_R8G8B8A8_UNORM_SRGB, int levels=1):
     """Create a texture swap chain for eye image buffers.
@@ -3496,6 +3535,7 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
 
     return result
 
+
 def setEyeColorTextureSwapChain(int eye, int swapChain):
     """Set the color texture swap chain for a given eye.
 
@@ -3541,6 +3581,7 @@ def setEyeColorTextureSwapChain(int eye, int swapChain):
     global _eyeLayer
 
     _eyeLayer.ColorTexture[eye] = _swapChains[swapChain]
+
 
 def createMirrorTexture(int width, int height, int textureFormat=FORMAT_R8G8B8A8_UNORM_SRGB):
     """Create a mirror texture.
@@ -3606,6 +3647,7 @@ def createMirrorTexture(int width, int height, int textureFormat=FORMAT_R8G8B8A8
 
     return <int>result
 
+
 def getMirrorTexture():
     """Mirror texture ID.
 
@@ -3647,6 +3689,7 @@ def getMirrorTexture():
             &mirror_id)
 
     return <int>result, <unsigned int>mirror_id
+
 
 def getTrackingState(double absTime, bint latencyMarker=True):
     """Get the current poses of the head and hands.
@@ -3719,6 +3762,7 @@ def getTrackingState(double absTime, bint latencyMarker=True):
     #_eyeLayer.SensorSampleTime = toReturn.c_data[0].HeadPose.TimeInSeconds
 
     return poseStates, calibratedOrigin
+
 
 def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     """Get tracked device poses.
@@ -3832,6 +3876,7 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
 
     return result, outPoses
 
+
 def calcEyePoses(LibOVRPose headPose):
     """Calculate eye poses using a given pose state.
 
@@ -3923,6 +3968,7 @@ def calcEyePoses(LibOVRPose headPose):
         _eyeViewProjectionMatrix[eye] = \
             _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
+
 def getHmdToEyePose(int eye):
     """HMD to eye pose.
 
@@ -3966,6 +4012,7 @@ def getHmdToEyePose(int eye):
     global _eyeRenderDesc
     return LibOVRPose.fromPtr(&_eyeRenderDesc[eye].HmdToEyePose)
 
+
 def setHmdToEyePose(int eye, LibOVRPose eyePose):
     """Set the HMD eye poses.
 
@@ -3995,6 +4042,7 @@ def setHmdToEyePose(int eye, LibOVRPose eyePose):
     """
     global _eyeRenderDesc
     _eyeRenderDesc[0].HmdToEyePose = eyePose.c_data[0]
+
 
 def getEyeRenderPose(int eye):
     """Get eye render poses.
@@ -4046,6 +4094,7 @@ def getEyeRenderPose(int eye):
     global _eyeLayer
     return LibOVRPose.fromPtr(&_eyeLayer.RenderPose[eye])
 
+
 def setEyeRenderPose(int eye, LibOVRPose eyePose):
     """Set eye render pose.
 
@@ -4091,7 +4140,8 @@ def setEyeRenderPose(int eye, LibOVRPose eyePose):
     _eyeViewProjectionMatrix[eye] = \
         _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
-def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, object outMatrix=None):
+
+def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, object out=None):
     """Compute the projection matrix.
 
     The projection matrix is computed by the runtime using the eye FOV
@@ -4106,13 +4156,13 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
         Near clipping plane in meters.
     farClip : `float`, optional
         Far clipping plane in meters.
-    outMatrix : `ndarray` or `None`, optional
+    out : `ndarray` or `None`, optional
         Alternative matrix to write values to instead of returning a new one.
 
     Returns
     -------
-    `ndarray` or `None`
-        4x4 projection matrix. `None` if outMatrix was specified.
+    `ndarray`
+        4x4 projection matrix.
 
     Raises
     ------
@@ -4145,17 +4195,17 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
 
     cdef np.ndarray[np.float32_t, ndim=2] to_return
 
-    if outMatrix is None:
+    if out is None:
         to_return = np.zeros((4, 4), dtype=np.float32)
     else:
         try:
-            assert outMatrix.ndim == 2 and \
-                   outMatrix.shape == (4,4,) and \
-                   outMatrix.dtype == np.float32
+            assert out.ndim == 2 and \
+                   out.shape == (4,4,) and \
+                   out.dtype == np.float32
         except AssertionError:
             raise AssertionError("'outMatrix' has wrong type or dimensions.")
 
-        to_return = outMatrix
+        to_return = out
 
     _eyeProjectionMatrix[eye] = \
         <libovr_math.Matrix4f>capi.ovrMatrix4f_Projection(
@@ -4173,10 +4223,10 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
         for j in range(N):
             mv[i, j] = _eyeProjectionMatrix[eye].M[i][j]
 
-    if outMatrix is None:
-        return to_return
+    return to_return
 
-def getEyeRenderViewport(int eye, object outRect=None):
+
+def getEyeRenderViewport(int eye, object out=None):
     """Get the eye render viewport.
 
     The viewport defines the region on the swap texture a given eye's image is
@@ -4200,18 +4250,18 @@ def getEyeRenderViewport(int eye, object outRect=None):
     global _eyeLayer
     cdef np.ndarray[np.int_t, ndim=1] to_return
 
-    if outRect is None:
+    if out is None:
         to_return = np.zeros((4,), dtype=np.int)
     else:
-        to_return = outRect
+        to_return = out
 
     to_return[0] = _eyeLayer.Viewport[eye].Pos.x
     to_return[1] = _eyeLayer.Viewport[eye].Pos.y
     to_return[2] = _eyeLayer.Viewport[eye].Size.w
     to_return[3] = _eyeLayer.Viewport[eye].Size.h
 
-    if outRect is None:
-        return to_return
+    return to_return
+
 
 def setEyeRenderViewport(int eye, object values):
     """Set the eye render viewport.
@@ -4241,7 +4291,8 @@ def setEyeRenderViewport(int eye, object values):
         # defined like [x, y, w, h]. The x-position of the rightViewport is offset
         # by the width of the left viewport.
         leftViewport = [0, 0, leftBufferSize[0], leftBufferSize[1]]
-        rightViewport = [leftBufferSize[0], 0, rightBufferSize[0], rightBufferSize[1]]
+        rightViewport = [leftBufferSize[0], 0,
+                         rightBufferSize[0], rightBufferSize[1]]
 
         # set both viewports
         setEyeRenderViewport(EYE_LEFT, leftViewport)
@@ -4254,7 +4305,8 @@ def setEyeRenderViewport(int eye, object values):
     _eyeLayer.Viewport[eye].Size.w = <int>values[2]
     _eyeLayer.Viewport[eye].Size.h = <int>values[3]
 
-def getEyeViewMatrix(int eye, object outMatrix=None):
+
+def getEyeViewMatrix(int eye, object out=None):
     """Compute a view matrix for a specified eye.
 
     View matrices are derived from the eye render poses calculated by the
@@ -4265,23 +4317,23 @@ def getEyeViewMatrix(int eye, object outMatrix=None):
     eye: int
         Eye index. Use either :data:`EYE_LEFT` or
         :data:`EYE_RIGHT`.
-    outMatrix : `ndarray` or `None`, optional
+    out : `ndarray` or `None`, optional
         Optional array to write to. Must have ndim=2, dtype=np.float32, and
         shape == (4,4).
 
     Returns
     -------
     ndarray
-        4x4 view matrix.
+        4x4 view matrix. Object `out` will be returned if specified.
 
     """
     global _eyeViewMatrix
     cdef np.ndarray[np.float32_t, ndim=2] to_return
 
-    if outMatrix is None:
+    if out is None:
         to_return = np.zeros((4, 4), dtype=np.float32)
     else:
-        to_return = outMatrix
+        to_return = out
 
     cdef Py_ssize_t i, j, N
     i = j = 0
@@ -4290,8 +4342,8 @@ def getEyeViewMatrix(int eye, object outMatrix=None):
         for j in range(N):
             to_return[i, j] = _eyeViewMatrix[eye].M[i][j]
 
-    if outMatrix is None:
-        return to_return
+    return to_return
+
 
 def getPredictedDisplayTime(unsigned int frameIndex=0):
     """Get the predicted time a frame will be displayed.
@@ -4314,6 +4366,7 @@ def getPredictedDisplayTime(unsigned int frameIndex=0):
 
     return t_sec
 
+
 def timeInSeconds():
     """Absolute time in seconds.
 
@@ -4326,6 +4379,7 @@ def timeInSeconds():
     cdef double t_sec = capi.ovr_GetTimeInSeconds()
 
     return t_sec
+
 
 def waitToBeginFrame(unsigned int frameIndex=0):
     """Wait until a buffer is available so frame rendering can begin. Must be
@@ -4351,6 +4405,7 @@ def waitToBeginFrame(unsigned int frameIndex=0):
 
     return <int>result
 
+
 def beginFrame(unsigned int frameIndex=0):
     """Begin rendering the frame. Must be called prior to drawing and
     :func:`endFrame`.
@@ -4371,6 +4426,7 @@ def beginFrame(unsigned int frameIndex=0):
         capi.ovr_BeginFrame(_ptrSession, frameIndex)
 
     return <int>result
+
 
 def commitTextureSwapChain(int eye):
     """Commit changes to a given eye's texture swap chain. When called, the
@@ -4404,6 +4460,7 @@ def commitTextureSwapChain(int eye):
         _swapChains[eye])
 
     return <int>result
+
 
 def endFrame(unsigned int frameIndex=0):
     """Call when rendering a frame has completed. Buffers which have been
@@ -4439,6 +4496,7 @@ def endFrame(unsigned int frameIndex=0):
 
     return result
 
+
 def resetFrameStats():
     """Reset frame statistics.
 
@@ -4452,6 +4510,7 @@ def resetFrameStats():
     cdef capi.ovrResult result = capi.ovr_ResetPerfStats(_ptrSession)
 
     return result
+
 
 def getTrackingOriginType():
     """Get the current tracking origin type.
@@ -4474,6 +4533,7 @@ def getTrackingOriginType():
         return TRACKING_ORIGIN_FLOOR_LEVEL
     elif originType == capi.ovrTrackingOrigin_EyeLevel:
         return TRACKING_ORIGIN_EYE_LEVEL
+
 
 def setTrackingOriginType(int value):
     """Set the tracking origin type.
@@ -4513,6 +4573,7 @@ def setTrackingOriginType(int value):
 
     return result
 
+
 def recenterTrackingOrigin():
     """Recenter the tracking origin.
 
@@ -4537,6 +4598,7 @@ def recenterTrackingOrigin():
 
     return result
 
+
 def specifyTrackingOrigin(LibOVRPose newOrigin):
     """Specify a new tracking origin.
 
@@ -4553,12 +4615,14 @@ def specifyTrackingOrigin(LibOVRPose newOrigin):
 
     return result
 
+
 def clearShouldRecenterFlag():
     """Clear the :py:attr:`LibOVRSessionStatus.shouldRecenter` flag.
 
     """
     global _ptrSession
     capi.ovr_ClearShouldRecenterFlag(_ptrSession)
+
 
 def getTrackerCount():
     """Get the number of attached trackers.
@@ -4574,6 +4638,7 @@ def getTrackerCount():
         _ptrSession)
 
     return <int>trackerCount
+
 
 def getTrackerInfo(int trackerIndex):
     """Get information about a given tracker.
@@ -4600,6 +4665,7 @@ def getTrackerInfo(int trackerIndex):
 
     return to_return
 
+
 def updatePerfStats():
     """Update performance stats.
 
@@ -4625,6 +4691,7 @@ def updatePerfStats():
 
     return result
 
+
 def getAdaptiveGpuPerformanceScale():
     """Get the adaptive GPU performance scale.
 
@@ -4637,6 +4704,7 @@ def getAdaptiveGpuPerformanceScale():
     global _frameStats
     return _frameStats.AdaptiveGpuPerformanceScale
 
+
 def getFrameStatsCount():
     """Get the number of queued compositor statistics.
 
@@ -4647,6 +4715,7 @@ def getFrameStatsCount():
     """
     global _frameStats
     return _frameStats.FrameStatsCount
+
 
 def anyFrameStatsDropped():
     """Check if frame stats were dropped.
@@ -4663,6 +4732,7 @@ def anyFrameStatsDropped():
     global _frameStats
     return <bint>_frameStats.AnyFrameStatsDropped
 
+
 def checkAswIsAvailable():
     """Check if ASW is available.
 
@@ -4673,6 +4743,7 @@ def checkAswIsAvailable():
     """
     global _frameStats
     return <bint>_frameStats.AswIsAvailable
+
 
 def getVisibleProcessId():
     """Process ID which the performance stats are currently being polled.
@@ -4685,6 +4756,7 @@ def getVisibleProcessId():
     """
     global _frameStats
     return <int>_frameStats.VisibleProcessId
+
 
 def checkAppLastFrameDropped():
     """Check if the application dropped a frame.
@@ -4704,6 +4776,7 @@ def checkAppLastFrameDropped():
                    _lastFrameStats.AppDroppedFrameCount
 
     return False
+
 
 def checkCompLastFrameDropped():
     """Check if the compositor dropped a frame.
@@ -4747,6 +4820,7 @@ LibOVRFramePerfStats = collections.namedtuple('LibOVRFramePerfStats',
      'compositorLatency', 'compositorCpuElapsedTime',
      'compositorGpuElapsedTime', 'compositorCpuStartToGpuEndElapsedTime',
      'compositorGpuEndToVsyncElapsedTime'])
+
 
 def getFrameStats(int frameStatIndex=0):
     """Get detailed compositor frame statistics.
@@ -4850,6 +4924,7 @@ def getFrameStats(int frameStatIndex=0):
         stat.CompositorCpuStartToGpuEndElapsedTime,
         stat.CompositorGpuEndToVsyncElapsedTime)
 
+
 def getLastErrorInfo():
     """Get the last error code and information string reported by the API.
 
@@ -4883,6 +4958,7 @@ def getLastErrorInfo():
     cdef str errorString = lastErrorInfo.ErrorString.decode("utf-8")
 
     return <int>result, errorString
+
 
 def setBoundaryColor(float red, float green, float blue):
     """Set the boundary color.
@@ -4921,6 +4997,7 @@ def setBoundaryColor(float red, float green, float blue):
 
     return result
 
+
 def resetBoundaryColor():
     """Reset the boundary color to system default.
 
@@ -4935,6 +5012,7 @@ def resetBoundaryColor():
         _ptrSession)
 
     return result
+
 
 def getBoundaryVisible():
     """Check if the Guardian boundary is visible.
@@ -4961,6 +5039,7 @@ def getBoundaryVisible():
 
     return result, isVisible
 
+
 def showBoundary():
     """Show the boundary.
 
@@ -4979,6 +5058,7 @@ def showBoundary():
 
     return result
 
+
 def hideBoundary():
     """Hide the boundry.
 
@@ -4993,6 +5073,7 @@ def hideBoundary():
         _ptrSession, capi.ovrFalse)
 
     return result
+
 
 def getBoundaryDimensions(int boundaryType):
     """Get the dimensions of the boundary.
@@ -5028,6 +5109,7 @@ def getBoundaryDimensions(int boundaryType):
 #def getBoundaryPoints(str boundaryType='PlayArea'):
 #    """Get the floor points which define the boundary."""
 #    pass  # TODO: make this work.
+
 
 def getConnectedControllerTypes():
     """Get connected controller types.
@@ -5090,6 +5172,7 @@ def getConnectedControllerTypes():
         toReturn.append(CONTROLLER_TYPE_OBJECT3)
 
     return toReturn
+
 
 def updateInputState(int controller):
     """Refresh the input state of a controller.
@@ -5171,6 +5254,7 @@ def updateInputState(int controller):
         currentInputState)
 
     return result, currentInputState.TimeInSeconds
+
 
 def getButton(int controller, int button, str testState='continuous'):
     """Get a button state.
@@ -5315,6 +5399,7 @@ def getButton(int controller, int button, str testState='continuous'):
 
     return stateResult, t_sec
 
+
 def getTouch(int controller, int touch, str testState='continuous'):
     """Get a touch state.
 
@@ -5455,6 +5540,7 @@ def getTouch(int controller, int touch, str testState='continuous'):
 
     return stateResult, t_sec
 
+
 def getThumbstickValues(int controller, bint deadzone=False):
     """Get analog thumbstick values.
 
@@ -5542,6 +5628,7 @@ def getThumbstickValues(int controller, bint deadzone=False):
 
     return np.array((thumbstick_x0, thumbstick_y0), dtype=np.float32), \
            np.array((thumbstick_x1, thumbstick_y1), dtype=np.float32)
+
 
 def getIndexTriggerValues(int controller, bint deadzone=False):
     """Get analog index trigger values.
@@ -5637,6 +5724,7 @@ def getIndexTriggerValues(int controller, bint deadzone=False):
 
     return np.array((triggerLeft, triggerRight), dtype=np.float32)
 
+
 def getHandTriggerValues(int controller, bint deadzone=False):
     """Get analog hand trigger values.
 
@@ -5731,6 +5819,7 @@ def getHandTriggerValues(int controller, bint deadzone=False):
 
     return np.array((triggerLeft, triggerRight), dtype=np.float32)
 
+
 def setControllerVibration(int controller, str frequency, float amplitude):
     """Vibrate a controller.
 
@@ -5792,10 +5881,12 @@ def setControllerVibration(int controller, str frequency, float amplitude):
 
     return result
 
+
 LibOVRSessionStatus = collections.namedtuple(
     'LibOVRSessionStatus',
     ['isVisible', 'hmdPresent', 'hmdMounted', 'displayLost', 'shouldQuit',
      'shouldRecenter', 'hasInputFocus', 'overlayPresent', 'depthRequested'])
+
 
 def getSessionStatus():
     """Get the current session status.
