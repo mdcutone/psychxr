@@ -234,6 +234,9 @@ __all__ = [
     'DEBUG_HUD_STEREO_MODE_CROSSHAIR_AT_INFINITY',
     'BOUNDARY_PLAY_AREA',
     'BOUNDARY_OUTER',
+    'LAYER_FLAG_HIGH_QUALITY',
+    'LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT',
+    'LAYER_FLAG_HEAD_LOCKED',
     'LibOVRPose',
     'LibOVRPoseState',
     'LibOVRTrackerInfo',
@@ -332,7 +335,9 @@ __all__ = [
     'getIndexTriggerValues',
     'getHandTriggerValues',
     'setControllerVibration',
-    'getSessionStatus'
+    'getSessionStatus',
+    'getLayerEyeFovFlags',
+    'setLayerEyeFovFlags'
     #'anyPointInFrustum'
 ]
 
@@ -644,6 +649,12 @@ TEXTURE_SWAP_CHAIN15 = 15
 # boundary modes
 BOUNDARY_PLAY_AREA = capi.ovrBoundary_PlayArea
 BOUNDARY_OUTER = capi.ovrBoundary_Outer
+
+# layer header flags
+LAYER_FLAG_HIGH_QUALITY = capi.ovrLayerFlag_HighQuality
+LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT = \
+    capi.ovrLayerFlag_TextureOriginAtBottomLeft
+LAYER_FLAG_HEAD_LOCKED = capi.ovrLayerFlag_HeadLocked
 
 # ------------------------------------------------------------------------------
 # Wrapper factory functions
@@ -3322,6 +3333,45 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
         <float>texelsPerPixel)
 
     return bufferSize.w, bufferSize.h
+
+
+def getLayerEyeFovFlags():
+    """Get header flags for the render layer.
+
+    Returns
+    -------
+    unsigned int
+        Flags from `ovrLayerEyeFov.Header.Flags`.
+
+    """
+    global _eyeLayer
+    return <unsigned int>_eyeLayer.Header.Flags
+
+
+def setLayerEyeFovFlags(unsigned int flags):
+    """Set header flags for the render layer.
+
+    Parameters
+    ----------
+    flags : int
+        Flags to set. Flags can be ORed together to apply multiple settings.
+        Valid flags are:
+        * `LAYER_FLAG_HIGH_QUALITY` - Enable high quality mode which tells the
+          compositor to use 4x anisotropic filtering when sampling.
+        * `LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT` - Tell the compositor the
+          texture origin is at the bottom left, required for using OpenGL
+          textures.
+        * `LAYER_FLAG_HEAD_LOCKED` - Enable head locking, which forces the render
+          layer transformations to remain head referenced.
+
+    Notes
+    -----
+    * `LAYER_FLAG_HIGH_QUALITY` and `LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT
+      are enabled by default.
+
+    """
+    global _eyeLayer
+    _eyeLayer.Header.Flags = <capi.ovrLayerFlags>flags
 
 
 def getTextureSwapChainLengthGL(int swapChain):
