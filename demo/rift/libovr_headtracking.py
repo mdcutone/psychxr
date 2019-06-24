@@ -30,8 +30,6 @@ def main():
     # will cause the HMD to lock to the frequency/phase of the display.
     glfw.swap_interval(0)
 
-
-
     # --------------------------------------------------------------------------
     # Configure Rendering
 

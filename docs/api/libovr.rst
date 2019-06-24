@@ -13,15 +13,16 @@ rendering VR scenes.
 Classes
 =======
 
-:class:`~psychxr.libovr.LibOVRPose` - Combined position and orientation data
-----------------------------------------------------------------------------
+:class:`~psychxr.libovr.LibOVRPose` - Rigid body pose
+-----------------------------------------------------
 
-Poses are represented as a position vector/coordinate and orientation
-quaternion.
+Poses of rigid bodies are represented as a position vector/coordinate and
+orientation quaternion.
 
 Methods associated with this class perform various transformations with the
 components of the pose (position and orientation) using routines found in
-`OVR_MATH.h <https://developer.oculus.com/reference/libovr/1.32/o_v_r_math_8h/>`_, which is part of the Oculus PC SDK.
+`OVR_MATH.h <https://developer.oculus.com/reference/libovr/1.32/o_v_r_math_8h/>`_,
+which is part of the Oculus PC SDK.
 
 .. autoclass:: LibOVRPose
     :members:
@@ -29,10 +30,10 @@ components of the pose (position and orientation) using routines found in
     :inherited-members:
 
 :class:`~psychxr.libovr.LibOVRPoseState` - Rigid body pose state
----------------------------------------------------------------
+----------------------------------------------------------------
 
-Position and orientation of a tracked body reported by LibOVR. This includes
-first and second derivatives for angular and linear motion.
+Pose, angular and linear motion derivatives of a tracked rigid body reported by
+LibOVR.
 
 .. autoclass:: LibOVRPoseState
     :members:
@@ -41,6 +42,8 @@ first and second derivatives for angular and linear motion.
 
 :class:`~psychxr.libovr.LibOVRHmdInfo` - HMD information
 --------------------------------------------------------
+
+Class for general HMD information and capabilities.
 
 .. autoclass:: LibOVRHmdInfo
     :members:
@@ -97,6 +100,8 @@ Functions
 .. autofunction:: getEyeVerticalFovRadians
 .. autofunction:: getEyeFocalLength
 .. autofunction:: calcEyeBufferSize
+.. autofunction:: getLayerEyeFovFlags
+.. autofunction:: setLayerEyeFovFlags
 .. autofunction:: getTextureSwapChainLengthGL
 .. autofunction:: getTextureSwapChainCurrentIndex
 .. autofunction:: getTextureSwapChainBufferGL

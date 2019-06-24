@@ -857,7 +857,7 @@ cdef class LibOVRPose(object):
             The other pose.
         tolerance : float, optional
             Tolerance for the comparison, default is 1e-5 as defined in
-            OVR_MATH.h.
+            `OVR_MATH.h`.
 
         Returns
         -------
@@ -2803,15 +2803,15 @@ def initialize(bint focusAware=False, int connectionTimeout=0):
         `SUCCESS` if completed without errors. In the event of an
         error, possible return values are:
 
-        * :data:`ERROR_INITIALIZE`: Initialization error.
-        * :data:`ERROR_LIB_LOAD`:  Failed to load LibOVRRT.
-        * :data:`ERROR_LIB_VERSION`:  LibOVRRT version incompatible.
-        * :data:`ERROR_SERVICE_CONNECTION`:  Cannot connect to OVR service.
-        * :data:`ERROR_SERVICE_VERSION`: OVR service version is incompatible.
-        * :data:`ERROR_INCOMPATIBLE_OS`: Operating system version is incompatible.
-        * :data:`ERROR_DISPLAY_INIT`: Unable to initialize the HMD.
-        * :data:`ERROR_SERVER_START`:  Cannot start a server.
-        * :data:`ERROR_REINITIALIZATION`: Reinitialized with a different version.
+        * ``ERROR_INITIALIZE``: Initialization error.
+        * ``ERROR_LIB_LOAD``:  Failed to load LibOVRRT.
+        * ``ERROR_LIB_VERSION``:  LibOVRRT version incompatible.
+        * ``ERROR_SERVICE_CONNECTION``:  Cannot connect to OVR service.
+        * ``ERROR_SERVICE_VERSION``: OVR service version is incompatible.
+        * ``ERROR_INCOMPATIBLE_OS``: Operating system version is incompatible.
+        * ``ERROR_DISPLAY_INIT``: Unable to initialize the HMD.
+        * ``ERROR_SERVER_START``:  Cannot start a server.
+        * ``ERROR_REINITIALIZATION``: Reinitialized with a different version.
 
     """
     cdef int32_t flags = capi.ovrInit_RequestVersion
@@ -2841,8 +2841,8 @@ def create():
     Returns
     -------
     int
-        Result of the `ovr_Create` API call. A session was successfully
-        created if the result is :data:`SUCCESS`.
+        Result of the ``OVR::ovr_Create`` API call. A session was successfully
+        created if the result is ``SUCCESS``.
 
     """
     global _ptrSession
@@ -2989,8 +2989,7 @@ def getPixelsPerTanAngleAtCenter(int eye):
     Parameters
     ----------
     eye : int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
 
     Returns
     -------
@@ -3012,8 +3011,7 @@ def getTanAngleToRenderTargetNDC(int eye, object tanAngle):
     Parameters
     ----------
     eye : int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
     tanAngle : tuple, list of float or ndarray
         Horizontal and vertical tan angles [X, Y] from display center.
 
@@ -3074,8 +3072,7 @@ def getDistortedViewport(int eye):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
 
     """
     cdef capi.ovrRecti distVp = _eyeRenderDesc[eye].DistortedViewport
@@ -3100,8 +3097,7 @@ def getEyeRenderFov(int eye):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
 
     Returns
     -------
@@ -3141,8 +3137,7 @@ def setEyeRenderFov(int eye, object fov):
     Parameters
     ----------
     eye : int
-        Eye index. Values are :data:`EYE_LEFT` and
-        :data:`EYE_RIGHT`.
+        Eye index. Values are ``EYE_LEFT`` and ``EYE_RIGHT``.
     fov : tuple, list or ndarray of floats
         Eye FOV tangent angles [UpTan, DownTan, LeftTan, RightTan].
 
@@ -3186,8 +3181,7 @@ def getEyeAspectRatio(int eye):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
 
     Returns
     -------
@@ -3208,8 +3202,7 @@ def getEyeHorizontalFovRadians(int eye):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
 
     Returns
     -------
@@ -3229,8 +3222,7 @@ def getEyeVerticalFovRadians(int eye):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
 
     Returns
     -------
@@ -3250,8 +3242,7 @@ def getEyeFocalLength(int eye):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
 
     Returns
     -------
@@ -3272,8 +3263,7 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
     texelsPerPixel : float, optional
         Display pixels per texture pixels at the center of the display. Use a
         value less than 1.0 to improve performance at the cost of resolution.
@@ -3309,9 +3299,9 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
 
     Notes
     -----
-    This function returns the recommended texture resolution for a specified
-    eye. If you are using a single buffer for both eyes, that buffer should be
-    as wide as the combined width of both eye's values.
+    * This function returns the recommended texture resolution for a specified
+      eye. If you are using a single buffer for both eyes, that buffer should be
+      as wide as the combined width of both eye's values.
 
     """
     global _ptrSession
@@ -3332,7 +3322,7 @@ def getLayerEyeFovFlags():
     Returns
     -------
     unsigned int
-        Flags from `ovrLayerEyeFov.Header.Flags`.
+        Flags from ``OVR::ovrLayerEyeFov.Header.Flags``.
 
     """
     global _eyeLayer
@@ -3346,18 +3336,20 @@ def setLayerEyeFovFlags(unsigned int flags):
     ----------
     flags : int
         Flags to set. Flags can be ORed together to apply multiple settings.
-        Valid flags are:
-        * `LAYER_FLAG_HIGH_QUALITY` - Enable high quality mode which tells the
+        Valid values for flags are:
+
+        * ``LAYER_FLAG_HIGH_QUALITY`` - Enable high quality mode which tells the
           compositor to use 4x anisotropic filtering when sampling.
-        * `LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT` - Tell the compositor the
+        * ``LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT`` - Tell the compositor the
           texture origin is at the bottom left, required for using OpenGL
           textures.
-        * `LAYER_FLAG_HEAD_LOCKED` - Enable head locking, which forces the render
-          layer transformations to remain head referenced.
+        * ``LAYER_FLAG_HEAD_LOCKED`` - Enable head locking, which forces the
+          render layer transformations to remain head referenced.
 
     Notes
     -----
-    * `LAYER_FLAG_HIGH_QUALITY` and `LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT
+    * ``LAYER_FLAG_HIGH_QUALITY`` and
+      ``LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT`` are recommended settings and
       are enabled by default.
 
     """
@@ -3377,7 +3369,7 @@ def getTextureSwapChainLengthGL(int swapChain):
     Returns
     -------
     tuple of int
-        Result of the `ovr_GetTextureSwapChainLength` API call and the
+        Result of the ``ovr_GetTextureSwapChainLength`` API call and the
         length of that swap chain.
 
     See Also
@@ -3389,7 +3381,7 @@ def getTextureSwapChainLengthGL(int swapChain):
     --------
 
     Get the swap chain length for the previously created
-    :data:`TEXTURE_SWAP_CHAIN0`::
+    ``TEXTURE_SWAP_CHAIN0``::
 
         result, length = getTextureSwapChainLengthGL(TEXTURE_SWAP_CHAIN0)
 
@@ -3424,8 +3416,8 @@ def getTextureSwapChainCurrentIndex(int swapChain):
     Returns
     -------
     tuple of int
-        Result of the `ovr_GetTextureSwapChainCurrentIndex` API call and the
-        index of the buffer.
+        Result of the ``OVR::ovr_GetTextureSwapChainCurrentIndex`` API call and
+        the index of the buffer.
 
     See Also
     --------
@@ -3465,7 +3457,7 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
     Returns
     -------
     tuple of ints
-        Result of the `ovr_GetTextureSwapChainBufferGL` API call and the
+        Result of the ``OVR::ovr_GetTextureSwapChainBufferGL`` API call and the
         OpenGL texture buffer name. A OpenGL buffer name is invalid when 0,
         check the returned API call result for an error condition.
 
@@ -3512,16 +3504,16 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
     textureFormat : int
         Texture format to use. Valid color texture formats are:
 
-        * :data:`FORMAT_R8G8B8A8_UNORM`
-        * :data:`FORMAT_R8G8B8A8_UNORM_SRGB`
-        * :data:`FORMAT_R16G16B16A16_FLOAT`
-        * :data:`FORMAT_R11G11B10_FLOAT`
+        * ``FORMAT_R8G8B8A8_UNORM``
+        * ``FORMAT_R8G8B8A8_UNORM_SRGB``
+        * ``FORMAT_R16G16B16A16_FLOAT``
+        * ``FORMAT_R11G11B10_FLOAT``
 
         Depth texture formats:
 
-        * :data:`FORMAT_D16_UNORM`
-        * :data:`FORMAT_D24_UNORM_S8_UINT`
-        * :data:`FORMAT_D32_FLOAT`
+        * ``FORMAT_D16_UNORM``
+        * ``FORMAT_D24_UNORM_S8_UINT``
+        * ``FORMAT_D32_FLOAT``
 
     Other Parameters
     ----------------
@@ -3531,7 +3523,7 @@ def createTextureSwapChainGL(int swapChain, int width, int height, int textureFo
     Returns
     -------
     int
-        The result of the `ovr_CreateTextureSwapChainGL` API call.
+        The result of the ``OVR::ovr_CreateTextureSwapChainGL`` API call.
 
     Examples
     --------
@@ -3586,8 +3578,7 @@ def setEyeColorTextureSwapChain(int eye, int swapChain):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
     swapChain : int
         Swap chain handle to query. Must be a swap chain initialized by a
         previous call to :func:`createTextureSwapChainGL`.
@@ -3640,15 +3631,15 @@ def createMirrorTexture(int width, int height, int textureFormat=FORMAT_R8G8B8A8
     textureFormat : int
         Color texture format to use, valid texture formats are:
 
-        * :data:`FORMAT_R8G8B8A8_UNORM`
-        * :data:`FORMAT_R8G8B8A8_UNORM_SRGB`
-        * :data:`FORMAT_R16G16B16A16_FLOAT`
-        * :data:`FORMAT_R11G11B10_FLOAT`
+        * ``FORMAT_R8G8B8A8_UNORM``
+        * ``FORMAT_R8G8B8A8_UNORM_SRGB``
+        * ``FORMAT_R16G16B16A16_FLOAT``
+        * ``FORMAT_R11G11B10_FLOAT``
 
     Returns
     -------
     int
-        Result of API call `ovr_CreateMirrorTextureGL`.
+        Result of API call ``OVR::ovr_CreateMirrorTextureGL``.
 
     """
     # additional options
@@ -3695,7 +3686,7 @@ def getMirrorTexture():
     Returns
     -------
     tuple of int
-        Result of API call `ovr_GetMirrorTextureBufferGL` and the mirror
+        Result of API call ``OVR::ovr_GetMirrorTextureBufferGL`` and the mirror
         texture ID. A mirror texture ID == 0 is invalid.
 
     Examples
@@ -3746,9 +3737,9 @@ def getTrackingState(double absTime, bint latencyMarker=True):
     -------
     tuple of dict, :class:`LibOVRPose`
         Dictionary of tracking states where keys are
-        :data:`TRACKED_DEVICE_TYPE_HMD`,
-        :data:`TRACKED_DEVICE_TYPE_LTOUCH`, and
-        :data:`TRACKED_DEVICE_TYPE_RTOUCH`. The value referenced by each
+        ``TRACKED_DEVICE_TYPE_HMD``,
+        ``TRACKED_DEVICE_TYPE_LTOUCH``, and
+        ``TRACKED_DEVICE_TYPE_RTOUCH``. The value referenced by each
         key is a tuple containing a :class:`LibOVRPoseState` and `int` for
         status flags. The second value is :class:`LibOVRPose` with the
         calibrated origin used for tracking.
@@ -3821,18 +3812,18 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     deviceTypes : `list` or `tuple` of `int`
         List of device types. Valid device types identifiers are:
 
-        * :data:`TRACKED_DEVICE_TYPE_HMD` : The head or HMD.
-        * :data:`TRACKED_DEVICE_TYPE_LTOUCH` : Left touch controller or hand.
-        * :data:`TRACKED_DEVICE_TYPE_RTOUCH` : Right touch controller or hand.
-        * :data:`TRACKED_DEVICE_TYPE_TOUCH` : Both touch controllers.
+        * ``TRACKED_DEVICE_TYPE_HMD`` : The head or HMD.
+        * ``TRACKED_DEVICE_TYPE_LTOUCH`` : Left touch controller or hand.
+        * ``TRACKED_DEVICE_TYPE_RTOUCH`` : Right touch controller or hand.
+        * ``TRACKED_DEVICE_TYPE_TOUCH`` : Both touch controllers.
 
         Up to four additional touch controllers can be paired and tracked, they
         are assigned as:
 
-        * :data:`TRACKED_DEVICE_TYPE_OBJECT0`
-        * :data:`TRACKED_DEVICE_TYPE_OBJECT1`
-        * :data:`TRACKED_DEVICE_TYPE_OBJECT2`
-        * :data:`TRACKED_DEVICE_TYPE_OBJECT3`
+        * ``TRACKED_DEVICE_TYPE_OBJECT0``
+        * ``TRACKED_DEVICE_TYPE_OBJECT1``
+        * ``TRACKED_DEVICE_TYPE_OBJECT2``
+        * ``TRACKED_DEVICE_TYPE_OBJECT3``
 
     absTime : `float`
         Absolute time in seconds poses refer to.
@@ -3844,14 +3835,14 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     Returns
     -------
     tuple
-        Return code (`int`) of the `ovr_GetDevicePoses` API call and list of
-        tracked device poses (`list` of `LibOVRPoseState`). If a device cannot
-        be tracked, the return code will be :data:`ERROR_LOST_TRACKING`.
+        Return code (`int`) of the ``OVR::ovr_GetDevicePoses`` API call and list 
+        of tracked device poses (`list` of `LibOVRPoseState`). If a device 
+        cannot be tracked, the return code will be ``ERROR_LOST_TRACKING``.
 
     Warning
     -------
     If multiple devices were specified with `deviceTypes`, the return code will
-    be :data:`ERROR_LOST_TRACKING` if ANY of the devices lost tracking.
+    be ``ERROR_LOST_TRACKING`` if ANY of the devices lost tracking.
 
     Examples
     --------
@@ -4030,8 +4021,7 @@ def getHmdToEyePose(int eye):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
 
     Returns
     -------
@@ -4065,8 +4055,7 @@ def setHmdToEyePose(int eye, LibOVRPose eyePose):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
 
     See Also
     --------
@@ -4096,8 +4085,7 @@ def getEyeRenderPose(int eye):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
 
     Returns
     -------
@@ -4145,8 +4133,7 @@ def setEyeRenderPose(int eye, LibOVRPose eyePose):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
 
     See Also
     --------
@@ -4191,8 +4178,7 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either `EYE_LEFT`` or ``EYE_RIGHT``.
     nearClip : `float`, optional
         Near clipping plane in meters.
     farClip : `float`, optional
@@ -4208,7 +4194,7 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
     Raises
     ------
     AssertionError
-        Dimensions, shape, and data type for `outMatrix` is incorrect.
+        Dimensions, shape, and data type for `out` is incorrect.
 
     Examples
     --------
@@ -4276,9 +4262,8 @@ def getEyeRenderViewport(int eye, object out=None):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
-    outRect : `ndarray`, optional
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
+    out : `ndarray`, optional
         Optional NumPy array to place values. If None, this function will return
         a new array. Must be dtype=int and length 4.
 
@@ -4313,8 +4298,7 @@ def setEyeRenderViewport(int eye, object values):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
     `ndarray`, `list`, or `tuple` of `ints`
         Viewport rectangle [x, y, w, h].
 
@@ -4356,8 +4340,7 @@ def getEyeViewMatrix(int eye, object out=None):
     Parameters
     ----------
     eye: int
-        Eye index. Use either :data:`EYE_LEFT` or
-        :data:`EYE_RIGHT`.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
     out : `ndarray` or `None`, optional
         Optional array to write to. Must have ndim=2, dtype=np.float32, and
         shape == (4,4).
@@ -4434,10 +4417,10 @@ def waitToBeginFrame(unsigned int frameIndex=0):
     Returns
     -------
     int
-        Return code of the LibOVR API call `ovr_WaitToBeginFrame`. Returns
-        :data:`SUCCESS` if completed without errors. May return
-        :data:`ERROR_DISPLAY_LOST` if the device was removed, rendering
-        the current session invalid.
+        Return code of the LibOVR API call ``OVR::ovr_WaitToBeginFrame``. 
+        Returns ``SUCCESS`` if completed without errors. May return
+        ``ERROR_DISPLAY_LOST`` if the device was removed, rendering the current 
+        session invalid.
 
     """
     global _ptrSession
@@ -4459,7 +4442,7 @@ def beginFrame(unsigned int frameIndex=0):
     Returns
     -------
     int
-        Error code returned by 'ovr_BeginFrame'.
+        Error code returned by ``OVR::ovr_BeginFrame``.
 
     """
     global _ptrSession
@@ -4482,10 +4465,10 @@ def commitTextureSwapChain(int eye):
     Returns
     -------
     int
-        Error code returned by API call `ovr_CommitTextureSwapChain`. Will
-        return :data:`SUCCESS` if successful. Returns error code
-        :data:`ERROR_TEXTURE_SWAP_CHAIN_FULL` if called too many
-        times without calling 'endFrame'.
+        Error code returned by API call ``OVR::ovr_CommitTextureSwapChain``. 
+        Will return ``SUCCESS`` if successful. Returns error code
+        ``ERROR_TEXTURE_SWAP_CHAIN_FULL`` if called too many times without 
+        calling :func:`endFrame`.
 
     Warning
     -------
@@ -4519,9 +4502,8 @@ def endFrame(unsigned int frameIndex=0):
     -------
     `int`
         Error code returned by API call `ovr_EndFrame`. Check against
-        :data:`SUCCESS`, :data:`SUCCESS_NOT_VISIBLE`,
-        :data:`SUCCESS_BOUNDARY_INVALID`,
-        :data:`SUCCESS_DEVICE_UNAVAILABLE`.
+        ``SUCCESS`, ``SUCCESS_NOT_VISIBLE``, ``SUCCESS_BOUNDARY_INVALID``,
+        and ``SUCCESS_DEVICE_UNAVAILABLE``.
 
     """
     global _ptrSession
@@ -4544,7 +4526,7 @@ def resetFrameStats():
     Returns
     -------
     int
-        Error code returned by `ovr_ResetPerfStats`.
+        Error code returned by `OVR::ovr_ResetPerfStats`.
 
     """
     global _ptrSession
@@ -4558,8 +4540,8 @@ def getTrackingOriginType():
 
     The tracking origin type specifies where the origin is placed when computing
     the pose of tracked objects (i.e. the head and touch controllers.) Valid
-    values are :data:`TRACKING_ORIGIN_EYE_LEVEL` and
-    :data:`TRACKING_ORIGIN_FLOOR_LEVEL`.
+    values are ``TRACKING_ORIGIN_EYE_LEVEL`` and 
+    ``TRACKING_ORIGIN_FLOOR_LEVEL``.
 
     See Also
     --------
@@ -4586,13 +4568,13 @@ def setTrackingOriginType(int value):
     ----------
     value : int
         Tracking origin type, must be either
-        :data:`TRACKING_ORIGIN_FLOOR_LEVEL` or
-        :data:`TRACKING_ORIGIN_EYE_LEVEL`.
+        ``TRACKING_ORIGIN_FLOOR_LEVEL`` or
+        ``TRACKING_ORIGIN_EYE_LEVEL``.
 
     Returns
     -------
     int
-        Result of the `ovr_SetTrackingOriginType` LibOVR API call.
+        Result of the ``OVR::ovr_SetTrackingOriginType`` LibOVR API call.
 
     See Also
     --------
@@ -4621,7 +4603,7 @@ def recenterTrackingOrigin():
     Returns
     -------
     int
-        The result of the LibOVR API call `ovr_RecenterTrackingOrigin`.
+        The result of the LibOVR API call ``OVR::ovr_RecenterTrackingOrigin``.
 
     Examples
     --------
@@ -4715,7 +4697,7 @@ def updatePerfStats():
     Returns
     -------
     int
-        Result of the `ovr_GetPerfStats` LibOVR API call.
+        Result of the ``OVR::ovr_GetPerfStats`` LibOVR API call.
 
     """
     global _ptrSession
@@ -5019,7 +5001,7 @@ def setBoundaryColor(float red, float green, float blue):
     Returns
     -------
     int
-        Result of the LibOVR API call `ovr_SetBoundaryLookAndFeel`.
+        Result of the LibOVR API call ``OVR::ovr_SetBoundaryLookAndFeel``.
 
     """
     global _boundryStyle
@@ -5045,7 +5027,7 @@ def resetBoundaryColor():
     Returns
     -------
     int
-        Result of the LibOVR API call `ovr_ResetBoundaryLookAndFeel`.
+        Result of the LibOVR API call ``OVR::ovr_ResetBoundaryLookAndFeel``.
 
     """
     global _ptrSession
@@ -5064,8 +5046,8 @@ def getBoundaryVisible():
     Returns
     -------
     tuple of int, bool
-        Result of the LibOVR API call `ovr_GetBoundaryVisible` and the boundary
-        state.
+        Result of the LibOVR API call ``OVR::ovr_GetBoundaryVisible`` and the 
+        boundary state.
 
     Notes
     -----
@@ -5090,7 +5072,7 @@ def showBoundary():
     Returns
     -------
     int
-        Result of LibOVR API call `ovr_RequestBoundaryVisible`.
+        Result of LibOVR API call ``OVR::ovr_RequestBoundaryVisible``.
 
     """
     global _ptrSession
@@ -5106,7 +5088,7 @@ def hideBoundary():
     Returns
     -------
     int
-        Result of LibOVR API call `ovr_RequestBoundaryVisible`.
+        Result of LibOVR API call ``OVR::ovr_RequestBoundaryVisible``.
 
     """
     global _ptrSession
@@ -5122,13 +5104,12 @@ def getBoundaryDimensions(int boundaryType):
     Parameters
     ----------
     boundaryType : int
-        Boundary type, can be :data:`BOUNDARY_OUTER` or
-        :data:`BOUNDARY_PLAY_AREA`.
+        Boundary type, can be ``BOUNDARY_OUTER`` or ``BOUNDARY_PLAY_AREA``.
 
     Returns
     -------
     tuple of int, ndarray
-        Result of the LibOVR APi call `ovr_GetBoundaryDimensions` and the
+        Result of the LibOVR APi call ``OVR::ovr_GetBoundaryDimensions`` and the
         dimensions of the boundary in meters [x, y, z].
 
     """
@@ -5160,15 +5141,15 @@ def getConnectedControllerTypes():
     list of int
         IDs of connected controller types. Possible values returned are:
 
-        * :data:`CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        * :data:`CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        * :data:`CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        * :data:`CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        * :data:`CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
-        * :data:`CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
+        * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
+        * ``CONTROLLER_TYPE_REMOTE`` : Oculus Remote.
+        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
+        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
+        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
+        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
+        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
+        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
 
     See Also
     --------
@@ -5227,21 +5208,21 @@ def updateInputState(int controller):
     controller : int
         Controller name. Valid values are:
 
-        * :data:`CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        * :data:`CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        * :data:`CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        * :data:`CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        * :data:`CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
-        * :data:`CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
+        * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
+        * ``CONTROLLER_TYPE_REMOTE`` : Oculus Remote.
+        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
+        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
+        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
+        * ``CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
+        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
+        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
 
     Returns
     -------
     tuple of int, float
-        Result of the `ovr_GetInputState` LibOVR API call and polling time in
-        seconds.
+        Result of the ``OVR::ovr_GetInputState`` LibOVR API call and polling 
+        time in seconds.
 
     See Also
     --------
@@ -5322,41 +5303,41 @@ def getButton(int controller, int button, str testState='continuous'):
     controller : int
         Controller name. Valid values are:
 
-        * :data:`CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        * :data:`CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        * :data:`CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        * :data:`CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        * :data:`CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
-        * :data:`CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
+        * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
+        * ``CONTROLLER_TYPE_REMOTE`` : Oculus Remote.
+        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
+        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
+        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
+        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
+        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
+        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
 
     button : int
         Button to check. Values can be ORed together to test for multiple button
         presses. If a given controller does not have a particular button, False
         will always be returned. Valid button values are:
 
-        * :data:`BUTTON_A`
-        * :data:`BUTTON_B`
-        * :data:`BUTTON_RTHUMB`
-        * :data:`BUTTON_RSHOULDER`
-        * :data:`BUTTON_X`
-        * :data:`BUTTON_Y`
-        * :data:`BUTTON_LTHUMB`
-        * :data:`BUTTON_LSHOULDER`
-        * :data:`BUTTON_UP`
-        * :data:`BUTTON_DOWN`
-        * :data:`BUTTON_LEFT`
-        * :data:`BUTTON_RIGHT`
-        * :data:`BUTTON_ENTER`
-        * :data:`BUTTON_BACK`
-        * :data:`BUTTON_VOLUP`
-        * :data:`BUTTON_VOLDOWN`
-        * :data:`BUTTON_HOME`
-        * :data:`BUTTON_PRIVATE`
-        * :data:`BUTTON_RMASK`
-        * :data:`BUTTON_LMASK`
+        * ``BUTTON_A``
+        * ``BUTTON_B``
+        * ``BUTTON_RTHUMB``
+        * ``BUTTON_RSHOULDER``
+        * ``BUTTON_X``
+        * ``BUTTON_Y``
+        * ``BUTTON_LTHUMB``
+        * ``BUTTON_LSHOULDER``
+        * ``BUTTON_UP``
+        * ``BUTTON_DOWN``
+        * ``BUTTON_LEFT``
+        * ``BUTTON_RIGHT``
+        * ``BUTTON_ENTER``
+        * ``BUTTON_BACK``
+        * ``BUTTON_VOLUP``
+        * ``BUTTON_VOLDOWN``
+        * ``BUTTON_HOME``
+        * ``BUTTON_PRIVATE``
+        * ``BUTTON_RMASK``
+        * ``BUTTON_LMASK``
 
     testState : str
         State to test buttons for. Valid states are 'rising', 'falling',
@@ -5479,22 +5460,22 @@ def getTouch(int controller, int touch, str testState='continuous'):
         touches. If a given controller does not have a particular touch, False
         will always be returned. Valid button values are:
 
-        * :data:`TOUCH_A`
-        * :data:`TOUCH_B`
-        * :data:`TOUCH_RTHUMB`
-        * :data:`TOUCH_RSHOULDER`
-        * :data:`TOUCH_X`
-        * :data:`TOUCH_Y`
-        * :data:`TOUCH_LTHUMB`
-        * :data:`TOUCH_LSHOULDER`
-        * :data:`TOUCH_LINDEXTRIGGER`
-        * :data:`TOUCH_LINDEXTRIGGER`
-        * :data:`TOUCH_LTHUMBREST`
-        * :data:`TOUCH_RTHUMBREST`
-        * :data:`TOUCH_RINDEXPOINTING`
-        * :data:`TOUCH_RTHUMBUP`
-        * :data:`TOUCH_LINDEXPOINTING`
-        * :data:`TOUCH_LTHUMBUP`
+        * ``TOUCH_A``
+        * ``TOUCH_B``
+        * ``TOUCH_RTHUMB``
+        * ``TOUCH_RSHOULDER``
+        * ``TOUCH_X``
+        * ``TOUCH_Y``
+        * ``TOUCH_LTHUMB``
+        * ``TOUCH_LSHOULDER``
+        * ``TOUCH_LINDEXTRIGGER``
+        * ``TOUCH_LINDEXTRIGGER``
+        * ``TOUCH_LTHUMBREST``
+        * ``TOUCH_RTHUMBREST``
+        * ``TOUCH_RINDEXPOINTING``
+        * ``TOUCH_RTHUMBUP``
+        * ``TOUCH_LINDEXPOINTING``
+        * ``TOUCH_LTHUMBUP``
 
     testState : `str`
         State to test touches for. Valid states are 'rising', 'falling',
@@ -5514,11 +5495,9 @@ def getTouch(int controller, int touch, str testState='continuous'):
 
     * Not every controller type supports touch. Unsupported controllers will
       always return False.
-    * Special 'touches' :data:`TOUCH_RINDEXPOINTING`,
-      :data:`TOUCH_RTHUMBUP`, :data:`TOUCH_RTHUMBREST`,
-      :data:`TOUCH_LINDEXPOINTING`, :data:`TOUCH_LINDEXPOINTING`,
-      and :data:`TOUCH_LINDEXPOINTING`, can be used to recognise hand
-      pose/gestures.
+    * Special 'touches' ``TOUCH_RINDEXPOINTING``, ``TOUCH_RTHUMBUP``, 
+      ``TOUCH_RTHUMBREST``, ``TOUCH_LINDEXPOINTING``, ``TOUCH_LINDEXPOINTING``,
+      and ``TOUCH_LINDEXPOINTING``, can be used to recognise hand pose/gestures.
 
     Examples
     --------
@@ -5594,15 +5573,15 @@ def getThumbstickValues(int controller, bint deadzone=False):
     controller : `int`
         Controller name. Valid values are:
 
-        * :data:`CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        * :data:`CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        * :data:`CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        * :data:`CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        * :data:`CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
-        * :data:`CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
+        * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
+        * ``CONTROLLER_TYPE_REMOTE`` : Oculus Remote.
+        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
+        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
+        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
+        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
+        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
+        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
 
     deadzone : `bool`
         Apply a deadzone if True.
@@ -5683,15 +5662,15 @@ def getIndexTriggerValues(int controller, bint deadzone=False):
     controller : `int`
         Controller name. Valid values are:
 
-        * :data:`CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        * :data:`CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        * :data:`CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        * :data:`CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        * :data:`CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
-        * :data:`CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
+        * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
+        * ``CONTROLLER_TYPE_REMOTE`` : Oculus Remote.
+        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
+        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
+        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
+        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
+        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
+        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
 
     Returns
     -------
@@ -5778,15 +5757,15 @@ def getHandTriggerValues(int controller, bint deadzone=False):
     controller : `int`
         Controller name. Valid values are:
 
-        * :data:`CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        * :data:`CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        * :data:`CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        * :data:`CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        * :data:`CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
-        * :data:`CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
+        * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
+        * ``CONTROLLER_TYPE_REMOTE`` : Oculus Remote.
+        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
+        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
+        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
+        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
+        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
+        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
 
     Returns
     -------
@@ -5878,15 +5857,15 @@ def setControllerVibration(int controller, str frequency, float amplitude):
     controller : int
         Controller name. Valid values are:
 
-        * :data:`CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        * :data:`CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        * :data:`CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        * :data:`CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        * :data:`CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
-        * :data:`CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
+        * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
+        * ``CONTROLLER_TYPE_REMOTE`` : Oculus Remote.
+        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
+        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
+        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
+        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
+        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
+        * ``CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
 
     frequency : str
         Vibration frequency. Valid values are: 'off', 'low', or 'high'.
@@ -5897,8 +5876,8 @@ def setControllerVibration(int controller, str frequency, float amplitude):
     Returns
     -------
     int
-        Return value of API call `ovr_SetControllerVibration`. Can return
-        :data:`SUCCESS_DEVICE_UNAVAILABLE` if no device is present.
+        Return value of API call ``OVR::ovr_SetControllerVibration``. Can return
+        ``SUCCESS_DEVICE_UNAVAILABLE`` if no device is present.
 
     """
     global _ptrSession
@@ -5947,8 +5926,8 @@ def getSessionStatus():
     Returns
     -------
     tuple of int, tuple of bool
-        Result of LibOVR API call `ovr_GetSessionStatus` and a namedtuple of
-        session status flags and values.
+        Result of LibOVR API call ``OVR::ovr_GetSessionStatus`` and a namedtuple
+        of session status flags and values.
 
     Examples
     --------
