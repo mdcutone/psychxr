@@ -986,8 +986,7 @@ cdef class LibOVRPose(object):
         toReturn[1] = self.c_data[0].Position.y
         toReturn[2] = self.c_data[0].Position.z
 
-        if out is None:
-            return toReturn
+        return toReturn
 
     def setPos(self, object pos):
         """Set the position of the pose in a scene.
@@ -1056,8 +1055,7 @@ cdef class LibOVRPose(object):
         toReturn[2] = self.c_data[0].Orientation.z
         toReturn[3] = self.c_data[0].Orientation.w
 
-        if out is None:
-            return toReturn
+        return toReturn
 
     def setOri(self, object ori):
         """Set the orientation of the pose in a scene.
@@ -1100,8 +1098,7 @@ cdef class LibOVRPose(object):
         Returns
         -------
         ndarray or None
-            The vector for `at` if `out`=None. Returns None if `out` was
-            specified.
+            The vector for `at` if `out`=None.
 
         Raises
         ------
@@ -1142,8 +1139,7 @@ cdef class LibOVRPose(object):
         toReturn[1] = at.y
         toReturn[2] = at.z
 
-        if out is None:
-            return toReturn
+        return toReturn
 
     @property
     def up(self):
@@ -1162,8 +1158,7 @@ cdef class LibOVRPose(object):
         Returns
         -------
         ndarray or None
-            The vector for `up` if `outVector`=None. Returns None if `outVector`
-            was specified.
+            The vector for `up` if `outVector`=None.
 
         Raises
         ------
@@ -1207,8 +1202,7 @@ cdef class LibOVRPose(object):
         toReturn[1] = up.y
         toReturn[2] = up.z
 
-        if out is None:
-            return toReturn
+        return toReturn
 
     def getYawPitchRoll(self, LibOVRPose refPose=None, object out=None):
         """Get the yaw, pitch, and roll of the orientation quaternion.
@@ -1225,8 +1219,7 @@ cdef class LibOVRPose(object):
         Returns
         -------
         ndarray of float or None
-            Yaw, pitch, and roll of the pose in degrees. Returns `None` if `out`
-            was specified.
+            Yaw, pitch, and roll of the pose in degrees.
 
         Notes
         -----
@@ -1254,8 +1247,7 @@ cdef class LibOVRPose(object):
         toReturn[1] = pitch
         toReturn[2] = roll
 
-        if out is None:
-            return toReturn
+        return toReturn
 
     def asMatrix(self, bint inverse=False, object out=None):
         """Convert this pose into a 4x4 transformation matrix.
@@ -1265,14 +1257,14 @@ cdef class LibOVRPose(object):
         inverse : bool, optional
             If True, return the inverse of the matrix.
         out : ndarray
-            Alternative place to write yaw, pitch, and roll values. Must be a
-            `ndarray` of shape (4, 4,) and have a data type of float32. Values
-            are written assuming row-major order.
+            Alternative place to write the matrix to values. Must be a `ndarray`
+            of shape (4, 4,) and have a data type of float32. Values are written
+            assuming row-major order.
 
         Returns
         -------
         ndarray
-            4x4 transformation matrix. Returns `None` if `out` was specified.
+            4x4 transformation matrix.
 
         """
         cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
@@ -1296,8 +1288,7 @@ cdef class LibOVRPose(object):
             for j in range(N):
                 mv[i, j] = m_pose.M[i][j]
 
-        if out is None:
-            return toReturn
+        return toReturn
 
     def normalize(self):
         """Normalize this pose.
