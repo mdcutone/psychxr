@@ -700,7 +700,7 @@ cdef np.ndarray _wrap_ovrFovPort_as_ndarray(capi.ovrFovPort* prtVec):
 #
 
 cdef class LibOVRPose(object):
-    """Class for representing LibOVR rigid body pose (`ovrPosef`).
+    """Class for representing a LibOVR rigid body pose.
 
     Instances of this class reference a `ovrPosef` C struct for pose data.
     Fields `Orientation` and `Position` are accessed using `ndarray` proxy
@@ -1087,7 +1087,7 @@ cdef class LibOVRPose(object):
         return self.getAt()
 
     def getAt(self, object out=None):
-        """Get the 'at' vector for this pose.
+        """Get the `at` vector for this pose.
 
         Parameters
         ----------
@@ -1122,7 +1122,7 @@ cdef class LibOVRPose(object):
 
         See Also
         --------
-        getUp : Get the 'up' vector.
+        getUp : Get the `up` vector.
 
         """
         cdef np.ndarray[np.float32_t, ndim=1] toReturn
@@ -1185,7 +1185,7 @@ cdef class LibOVRPose(object):
 
         See Also
         --------
-        getAt : Get the 'at' vector.
+        getAt : Get the `up` vector.
 
         """
         cdef np.ndarray[np.float32_t, ndim=1] toReturn
@@ -1224,7 +1224,8 @@ cdef class LibOVRPose(object):
         Notes
         -----
 
-        * Uses `OVR::Quatf.GetYawPitchRoll` which is part of the Oculus PC SDK.
+        * Uses ``OVR::Quatf.GetYawPitchRoll`` which is part of the Oculus PC
+          SDK.
 
         """
         cdef float yaw, pitch, roll
@@ -1295,7 +1296,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        Uses `OVR::Posef.Normalize` which is part of the Oculus PC SDK.
+        Uses ``OVR::Posef.Normalize`` which is part of the Oculus PC SDK.
 
         """
         (<libovr_math.Posef>self.c_data[0]).Normalize()
@@ -1305,12 +1306,12 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        `LibOVRPose`
+        :py:mod:`LibOVRPose`
             Inverted pose.
 
         Notes
         -----
-        * Uses `OVR::Posef.Inverted` which is part of the Oculus PC SDK.
+        * Uses ``OVR::Posef.Inverted`` which is part of the Oculus PC SDK.
 
         """
         cdef capi.ovrPosef* ptr = <capi.ovrPosef*>PyMem_Malloc(
@@ -1350,7 +1351,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        * Uses `OVR::Posef.Rotate` which is part of the Oculus PC SDK.
+        * Uses ``OVR::Posef.Rotate`` which is part of the Oculus PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1379,7 +1380,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        * Uses `OVR::Vector3f.InverseRotate` which is part of the Oculus PC SDK.
+        * Uses ``OVR::Vector3f.InverseRotate`` which is part of the Oculus PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1408,7 +1409,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        * Uses `OVR::Vector3f.Translate` which is part of the Oculus PC SDK.
+        * Uses ``OVR::Vector3f.Translate`` which is part of the Oculus PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1437,7 +1438,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        * Uses `OVR::Vector3f.Transform` which is part of the Oculus PC SDK.
+        * Uses ``OVR::Vector3f.Transform`` which is part of the Oculus PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1467,7 +1468,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        * Uses `OVR::Vector3f.InverseTransform` which is part of the Oculus PC
+        * Uses ``OVR::Vector3f.InverseTransform`` which is part of the Oculus PC
           SDK.
 
         """
@@ -1497,7 +1498,7 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        * Uses `OVR::Vector3f.TransformNormal` which is part of the Oculus PC
+        * Uses ``OVR::Vector3f.TransformNormal`` which is part of the Oculus PC
           SDK.
 
         """
@@ -1527,8 +1528,8 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        * Uses `OVR::Vector3f.InverseTransformNormal` which is part of the Oculus
-          PC SDK.
+        * Uses ``OVR::Vector3f.InverseTransformNormal`` which is part of the
+          Oculus PC SDK.
 
         """
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
@@ -1753,8 +1754,8 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        * Uses `OVR::Posef.Lerp` and `OVR::Posef.FastLerp` which is part of the
-          Oculus PC SDK.
+        * Uses ``OVR::Posef.Lerp`` and ``OVR::Posef.FastLerp`` which is part of
+          the Oculus PC SDK.
 
         """
         if 0.0 > s > 1.0:
@@ -1777,8 +1778,7 @@ cdef class LibOVRPose(object):
 
 
 cdef class LibOVRPoseState(object):
-    """Class for data about rigid body configuration with derivatives computed
-    by the LibOVR runtime.
+    """Class representing rigid body configuration with motion derivatives.
 
     """
     cdef capi.ovrPoseStatef* c_data
@@ -1979,13 +1979,13 @@ cdef class LibOVRPoseState(object):
         Returns
         -------
         LibOVRPose
-            Pose at 'dt'.
+            Pose at `dt`.
 
         Examples
         --------
 
         Time integrate a pose for a 1/4 second (note the returned object is a
-        `LibOVRPose`, not a `LibOVRPoseState`)::
+        :py:mod:`LibOVRPose`, not a :py:mod:`LibOVRPoseState`)::
 
             newPose = oldPose.timeIntegrate(0.25)
             pos, ori = newPose.posOri  # extract components
@@ -2108,7 +2108,7 @@ cdef class LibOVRTrackerInfo(object):
 
 
 cdef class LibOVRHmdInfo(object):
-    """Class for HMD information returned by :func:`getHmdInfo`."""
+    """Class for HMD information."""
 
     cdef capi.ovrHmdDesc* c_data
     cdef bint ptr_owner
@@ -2365,7 +2365,7 @@ def success(int result):
     Returns
     -------
     bool
-        True if API call was an successful (`result` > 0).
+        ``True`` if API call was an successful (`result` > 0).
 
     """
     return <bint>capi.OVR_SUCCESS(result)
@@ -2377,7 +2377,7 @@ def unqualifiedSuccess(int result):
     Returns
     -------
     bool
-        True if API call was an unqualified success (`result` == 0).
+        ``True`` if API call was an unqualified success (`result` == 0).
 
     """
     return <bint>capi.OVR_UNQUALIFIED_SUCCESS(result)
@@ -2389,7 +2389,7 @@ def failure(int result):
     Returns
     -------
     bool
-        True if API call returned an error (`result` < 0).
+        ``True`` if API call returned an error (`result` < 0).
 
     """
     return <bint>capi.OVR_FAILURE(result)
@@ -2404,7 +2404,7 @@ def getBool(bytes propertyName, bint defaultVal=False):
         Name of the property to get.
     defaultVal : bool, optional
         Return value if the property could not be set. The default value is
-        `False`.
+        ``False``.
 
     Returns
     -------
@@ -2438,8 +2438,8 @@ def setBool(bytes propertyName, bint value=True):
     Returns
     -------
     bool
-        `True` if the property was set successfully, `False` if the property was
-        read-only or does not exist.
+        ``True`` if the property was set successfully, ``False`` if the property
+        was read-only or does not exist.
 
     """
     global _ptrSession
@@ -2495,8 +2495,8 @@ def setInt(bytes propertyName, int value):
     Returns
     -------
     bool
-        `True` if the property was set successfully, `False` if the property was
-        read-only or does not exist.
+        ``True`` if the property was set successfully, ``False`` if the property
+        was read-only or does not exist.
 
     Examples
     --------
@@ -2562,8 +2562,8 @@ def setFloat(bytes propertyName, float value):
     Returns
     -------
     bool
-        `True` if the property was set successfully, `False` if the property was
-        read-only or does not exist.
+        ``True`` if the property was set successfully, ``False`` if the property
+        was read-only or does not exist.
 
     """
     global _ptrSession
@@ -2589,8 +2589,8 @@ def setFloatArray(bytes propertyName, np.ndarray[np.float32_t, ndim=1] values):
     Returns
     -------
     bool
-        `True` if the property was set successfully, `False` if the property was
-        read-only or does not exist.
+        ``True`` if the property was set successfully, ``False`` if the property
+        was read-only or does not exist.
 
     Examples
     --------
@@ -2666,8 +2666,8 @@ def setString(bytes propertyName, object value):
     Returns
     -------
     bool
-        `True` if the property was set successfully, `False` if the property was
-        read-only or does not exist.
+        ``True`` if the property was set successfully, ``False`` if the property
+        was read-only or does not exist.
 
     """
     global _ptrSession
@@ -2709,7 +2709,7 @@ def getString(bytes propertyName, object defaultVal=''):
     -----
 
     * Strings passed to this function are converted to bytes before being passed
-      to `ovr_GetString`.
+      to ``OVR::ovr_GetString``.
 
     """
     global _ptrSession
@@ -2799,8 +2799,8 @@ def initialize(bint focusAware=False, int connectionTimeout=0):
     Returns
     -------
     int
-        Return code of the LibOVR API call `ovr_Initialize`. Returns
-        `SUCCESS` if completed without errors. In the event of an
+        Return code of the LibOVR API call ``OVR::ovr_Initialize``. Returns
+        ``SUCCESS`` if completed without errors. In the event of an
         error, possible return values are:
 
         * ``ERROR_INITIALIZE``: Initialization error.
@@ -3338,12 +3338,12 @@ def setLayerEyeFovFlags(unsigned int flags):
         Flags to set. Flags can be ORed together to apply multiple settings.
         Valid values for flags are:
 
-        * ``LAYER_FLAG_HIGH_QUALITY`` - Enable high quality mode which tells the
+        * ``LAYER_FLAG_HIGH_QUALITY`` : Enable high quality mode which tells the
           compositor to use 4x anisotropic filtering when sampling.
-        * ``LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT`` - Tell the compositor the
+        * ``LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT`` : Tell the compositor the
           texture origin is at the bottom left, required for using OpenGL
           textures.
-        * ``LAYER_FLAG_HEAD_LOCKED`` - Enable head locking, which forces the
+        * ``LAYER_FLAG_HEAD_LOCKED`` : Enable head locking, which forces the
           render layer transformations to remain head referenced.
 
     Notes
@@ -5213,7 +5213,7 @@ def updateInputState(int controller):
         * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
         * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
         * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
-        * ``CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
         * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
         * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
         * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
@@ -5445,15 +5445,15 @@ def getTouch(int controller, int touch, str testState='continuous'):
     controller : `int`
         Controller name. Valid values are:
 
-        * :data:`CONTROLLER_TYPE_XBOX` : XBox gamepad.
-        * :data:`CONTROLLER_TYPE_REMOTE` : Oculus Remote.
-        * :data:`CONTROLLER_TYPE_TOUCH` : Combined Touch controllers.
-        * :data:`CONTROLLER_TYPE_LTOUCH` : Left Touch controller.
-        * :data:`CONTROLLER_TYPE_RTOUCH` : Right Touch controller.
-        * :data:`CONTROLLER_TYPE_OBJECT0` : Object 0 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT1` : Object 1 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT2` : Object 2 controller.
-        * :data:`CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
+        * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
+        * ``CONTROLLER_TYPE_REMOTE`` : Oculus Remote.
+        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
+        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
+        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
+        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
+        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
+        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
 
     touch : `int`
         Touch to check. Values can be ORed together to test for multiple
@@ -5865,7 +5865,7 @@ def setControllerVibration(int controller, str frequency, float amplitude):
         * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
         * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
         * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
-        * ``CONTROLLER_TYPE_OBJECT3` : Object 3 controller.
+        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
 
     frequency : str
         Vibration frequency. Valid values are: 'off', 'low', or 'high'.
