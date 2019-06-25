@@ -130,27 +130,10 @@ Functions
 Details
 =======
 
-:class:`~psychxr.libovr.LibOVRPose` - Rigid body pose
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Poses of rigid bodies are represented as a position vector/coordinate and
-orientation quaternion.
-
-Methods associated with this class perform various transformations with the
-components of the pose (position and orientation) using routines found in
-`OVR_MATH.h <https://developer.oculus.com/reference/libovr/1.32/o_v_r_math_8h/>`_,
-which is part of the Oculus PC SDK.
-
 .. autoclass:: LibOVRPose
     :members:
     :undoc-members:
     :inherited-members:
-
-:class:`~psychxr.libovr.LibOVRPoseState` - Rigid body pose state
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Pose, angular and linear motion derivatives of a tracked rigid body reported by
-LibOVR.
 
 .. autoclass:: LibOVRPoseState
     :members:
@@ -160,7 +143,8 @@ LibOVR.
 :class:`~psychxr.libovr.LibOVRHmdInfo` - HMD information
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Class for general HMD information and capabilities.
+Class for general HMD information and capabilities. An instance of this class is
+returned by calling :func:`~psychxr.libovr.getHmdInfo`.
 
 .. autoclass:: LibOVRHmdInfo
     :members:

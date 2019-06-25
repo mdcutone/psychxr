@@ -700,16 +700,31 @@ cdef np.ndarray _wrap_ovrFovPort_as_ndarray(capi.ovrFovPort* prtVec):
 #
 
 cdef class LibOVRPose(object):
-    """Class for representing a LibOVR rigid body pose.
+    """Class for representing rigid body poses.
 
-    Instances of this class reference a `ovrPosef` C struct for pose data.
-    Fields `Orientation` and `Position` are accessed using `ndarray` proxy
-    objects which share the same memory. Therefore, data accessed and written to
-    those objects will directly change the field values of the referenced
-    `ovrPosef` struct. `Orientation` and `Position` can be accessed using the
-    `ori` and `pos` class attributes, respectively. See
-    :py:class:`~LibOVRPose.ori` and :py:class:`~LibOVRPose.pos` for more
-    details.
+    This class is an abstract representation of a rigid body pose, where the
+    position of the body in a scene is represented by a vector/coordinate and
+    the orientation with a quaternion. LibOVR uses poses to represent the
+    posture of tracked devices (e.g. HMD, touch controllers, etc.) and other
+    objects in a VR scene. Poses can be manipulated and interacted with using
+    class methods and attributes.
+
+    Poses can be converted to 4x4 transformation matrices. One can use these
+    matrices when rendering to transform the vertices of a model associated with
+    the pose by passing them to OpenGL. Furthermore, poses can be used to
+    transform other poses and vectors.
+
+    This class is a wrapper for the ``OVR::ovrPosef`` data structure. Fields
+    ``OVR::ovrPosef.Orientation`` and ``OVR::ovrPosef.Position`` are accessed
+    using `ndarray` proxy objects which share the same memory. Therefore, data
+    accessed and written to those objects will directly change the field values
+    of the referenced ``OVR::ovrPosef`` struct. ``OVR::ovrPosef.Orientation``
+    and ``OVR::ovrPosef.Position`` can be accessed and edited using the
+    :py:class:`~LibOVRPose.ori` and :py:class:`~LibOVRPose.pos` class
+    attributes, respectively. Methods associated with this class perform various
+    operations using the functions provided by `OVR_MATH.h
+    <https://developer.oculus.com/reference/libovr/1.32/o_v_r_math_8h/>`_, which
+    is part of the Oculus PC SDK.
 
     """
     cdef capi.ovrPosef* c_data
@@ -941,12 +956,11 @@ cdef class LibOVRPose(object):
         Parameters
         ----------
         out : ndarray or None
-            Option array to write values to. If None, the function will return
-            a new array. Must have a float32 data type.
+            Option array to write values to. Must have a float32 data type.
 
         Returns
         -------
-        ndarray or None
+        ndarray
             Position coordinate of this pose.
 
         Raises
@@ -1023,12 +1037,11 @@ cdef class LibOVRPose(object):
         Parameters
         ----------
         out : ndarray or None
-            Option array to write values to. If None, the function will return
-            a new array. Must have a float32 data type.
+            Option array to write values to. Must have a float32 data type.
 
         Returns
         -------
-        ndarray or None
+        ndarray
             Orientation quaternion of this pose.
 
         Raises
@@ -1092,13 +1105,13 @@ cdef class LibOVRPose(object):
         Parameters
         ----------
         out : ndarray or None
-            Option array to write values to. If None, the function will return
-            a new array. Must have shape (3,) and a float32 data type.
+            Option array to write values to. Must have shape (3,) and a float32
+            data type.
 
         Returns
         -------
-        ndarray or None
-            The vector for `at` if `out`=None.
+        ndarray
+            The vector for `at`.
 
         Raises
         ------
@@ -1110,8 +1123,7 @@ cdef class LibOVRPose(object):
         Notes
         -----
         It's better to use the `at` property if you are not supplying an output
-        array. However, `getAt` will have the same effect as the property if
-        `outVector`=None.
+        array.
 
         Examples
         --------
@@ -1152,13 +1164,13 @@ cdef class LibOVRPose(object):
         Parameters
         ----------
         out : ndarray, optional
-            Option array to write values to. If None, the function will return
-            a new array. Must have a float32 data type and a length of 3.
+            Option array to write values to. Must have shape (3,) and a float32
+            data type.
 
         Returns
         -------
-        ndarray or None
-            The vector for `up` if `outVector`=None.
+        ndarray
+            The vector for `up`.
 
         Raises
         ------
@@ -1171,7 +1183,7 @@ cdef class LibOVRPose(object):
         -----
         It's better to use the `up` property if you are not supplying an output
         array. However, `getUp` will have the same effect as the `up` property
-        if `outVector`=None.
+        if `out`=None.
 
         Examples
         --------
@@ -1213,8 +1225,8 @@ cdef class LibOVRPose(object):
             Reference pose to compute angles relative to. If None is specified,
             computed values are referenced relative to the world axes.
         out : ndarray
-            Alternative place to write yaw, pitch, and roll values. Must be a
-            `ndarray` of shape (3,) and have a data type of float32.
+            Alternative place to write yaw, pitch, and roll values. Must have
+            shape (3,) and a float32 data type.
 
         Returns
         -------
@@ -1778,7 +1790,14 @@ cdef class LibOVRPose(object):
 
 
 cdef class LibOVRPoseState(object):
-    """Class representing rigid body configuration with motion derivatives.
+    """Class for representing rigid body pose states.
+
+    Pose, angular and linear motion derivatives of a tracked rigid body reported
+    by LibOVR. Functions :func:`getTrackingState` and :func:`getDevicePoses`
+    returns an instance of this class. Velocity and acceleration for linear and
+    angular motion can be used to compute forces applied to rigid bodies and
+    predict the future positions of objects (see
+    :py:mod:`~psychxr.libovr.LibOVRPoseState.timeIntegrate`).
 
     """
     cdef capi.ovrPoseStatef* c_data
