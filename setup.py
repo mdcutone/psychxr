@@ -69,24 +69,24 @@ if platform.system() == 'Windows':
     if _build_libovr_ == '1':  # build libovr extensions
         print("building libovr extension modules ...")
         _sdk_data_['libovr'] = {}
-        env_includes = os.environ.get('PSYCHXR_LIBOVR_INCLUDE', None)
-        if env_includes is not None:
-            _sdk_data_['libovr']['include'] = \
-                [i for i in env_includes.split(os.pathsep)]
+        _sdk_data_['libovr']['libs'] = ['LibOVR']
+        env_sdk_path = os.environ.get('PSYCHXR_LIBOVR_SDK_PATH', None)
+        if env_sdk_path is not None:
+            _sdk_data_['libovr']['include'] = [
+                os.path.join(env_sdk_path, 'LibOVR', 'Include'),
+                os.path.join(env_sdk_path, 'LibOVR', 'Include', 'Extras')]
+            _sdk_data_['libovr']['lib_dir'] = [
+                os.path.join(
+                    env_sdk_path, 'LibOVR', 'Lib', 'Windows', 'x64', 'Release',
+                    'VS2017')]
+            _sdk_data_['libovr']['libs'] = []
         else:
             # use a default
             _sdk_data_['libovr']['include'] = \
                 [r"C:\OculusSDK\LibOVR\Include",
                  r"C:\OculusSDK\LibOVR\Include\Extras"]
-
-        _sdk_data_['libovr']['libs'] = ['LibOVR']
-        env_lib = os.environ.get('PSYCHXR_LIBOVR_PATH', None)
-        if env_lib is not None:
             _sdk_data_['libovr']['lib_dir'] = \
-                [i for i in env_lib.split(os.pathsep)]
-        else:
-            _sdk_data_['libovr']['lib_dir'] = \
-                [r"C:\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2015"]
+                [r"C:\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2017"]
 
         # package data
         _sdk_data_['libovr']['packages'] = ['psychxr.libovr']
@@ -103,7 +103,8 @@ ext_modules = []
 if _build_libovr_ == '1':
     cythonize("psychxr/libovr/_libovr.pyx",
               include_path=_sdk_data_['libovr']['include'],
-              compiler_directives = {'embedsignature': True})
+              compiler_directives = {'embedsignature': True,
+                                     'language_level': 3})
     ext_modules.extend([
         Extension(
             "psychxr.libovr._libovr",
