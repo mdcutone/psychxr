@@ -354,6 +354,7 @@ import numpy as np
 np.import_array()
 
 import collections
+import warnings
 
 # ------------------------------------------------------------------------------
 # Initialize module
@@ -414,6 +415,18 @@ def check_result(result):
 # helper functions
 cdef float maxf(float a, float b):
     return a if a >= b else b
+
+# ------------------------------------------------------------------------------
+# Version checker
+
+if capi.OVR_MAJOR_VERSION != 1 or capi.OVR_MINOR_VERSION != 38:
+    # raise a warning if the version of the Oculus SDK may be incompatible
+    warnings.warn(
+        "PsychXR was built using version {major}.{minor} of the Oculus PC SDK "
+        "however 1.38 is recommended. This might be perfectly fine if there "
+        "aren't any API breaking changes.".format(
+            major=capi.OVR_MAJOR_VERSION, minor=capi.OVR_MINOR_VERSION),
+        RuntimeWarning)
 
 # ------------------------------------------------------------------------------
 # Constants
