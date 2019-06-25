@@ -1,11 +1,11 @@
-================
+========
 Examples
-================
+========
 
-This page contains code examples and tutorials for PsychXR.
+Code examples and tutorials for PsychXR are listed here.
 
-LibOVR
-------
+Oculus Rift (LibOVR)
+--------------------
 
 .. toctree::
    :maxdepth: 1
