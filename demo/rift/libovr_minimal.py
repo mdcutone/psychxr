@@ -6,7 +6,7 @@ import sys
 
 def main():
 
-    # create a rift session object
+    # create a rift session
     if failure(initialize()):
         return -1
 
@@ -19,7 +19,7 @@ def main():
     resolution = hmdDesc.resolution
     print(resolution)  # print the resolution of the display
 
-    destroy()
+    destroy()  # clean up
     shutdown()
 
     return 0
