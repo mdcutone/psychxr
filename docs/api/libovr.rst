@@ -27,6 +27,7 @@ Classes
     LibOVRPoseState
     LibOVRHmdInfo
     LibOVRTrackerInfo
+    LibOVRSessionStatus
 
 Functions
 ~~~~~~~~~
@@ -130,6 +131,9 @@ Functions
 Details
 =======
 
+Classes
+~~~~~~~
+
 .. autoclass:: LibOVRPose
     :members:
     :undoc-members:
@@ -140,28 +144,23 @@ Details
     :undoc-members:
     :inherited-members:
 
-:class:`~psychxr.libovr.LibOVRHmdInfo` - HMD information
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Class for general HMD information and capabilities. An instance of this class is
-returned by calling :func:`~psychxr.libovr.getHmdInfo`.
-
 .. autoclass:: LibOVRHmdInfo
     :members:
     :undoc-members:
     :inherited-members:
 
-:class:`~psychxr.libovr.LibOVRTrackerInfo` - Tracker information
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Class for storing tracker (sensor) information such as pose, status, and camera
-frustum information. This object is returned by calling
-:func:`~psychxr.libovr.getTrackerInfo`.
-
 .. autoclass:: LibOVRTrackerInfo
     :members:
     :undoc-members:
     :inherited-members:
+
+.. autoclass:: LibOVRSessionStatus
+    :members:
+    :undoc-members:
+    :inherited-members:
+
+Functions
+~~~~~~~~~
 
 .. autofunction:: success
 .. autofunction:: unqualifiedSuccess

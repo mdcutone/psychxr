@@ -241,6 +241,7 @@ __all__ = [
     'LibOVRPoseState',
     'LibOVRTrackerInfo',
     'LibOVRHmdInfo',
+    'LibOVRSessionStatus',
     'success',
     'unqualifiedSuccess',
     'failure',
@@ -736,7 +737,7 @@ cdef class LibOVRPose(object):
     :py:class:`~LibOVRPose.ori` and :py:class:`~LibOVRPose.pos` class
     attributes, respectively. Methods associated with this class perform various
     operations using the functions provided by `OVR_MATH.h
-    <https://developer.oculus.com/reference/libovr/1.32/o_v_r_math_8h/>`_, which
+    <https://developer.oculus.com/reference/libovr/1.38/o_v_r_math_8h/>`_, which
     is part of the Oculus PC SDK.
 
     """
@@ -1331,7 +1332,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        :py:mod:`LibOVRPose`
+        :py:class:`LibOVRPose`
             Inverted pose.
 
         Notes
@@ -1803,14 +1804,15 @@ cdef class LibOVRPose(object):
 
 
 cdef class LibOVRPoseState(object):
-    """Class for representing rigid body pose states.
+    """Class for representing rigid body poses with additional state
+    information.
 
     Pose, angular and linear motion derivatives of a tracked rigid body reported
     by LibOVR. Functions :func:`getTrackingState` and :func:`getDevicePoses`
     returns an instance of this class. Velocity and acceleration for linear and
     angular motion can be used to compute forces applied to rigid bodies and
     predict the future positions of objects (see
-    :py:mod:`~psychxr.libovr.LibOVRPoseState.timeIntegrate`).
+    :py:method:`~psychxr.libovr.LibOVRPoseState.timeIntegrate`).
 
     """
     cdef capi.ovrPoseStatef* c_data
@@ -2017,7 +2019,7 @@ cdef class LibOVRPoseState(object):
         --------
 
         Time integrate a pose for a 1/4 second (note the returned object is a
-        :py:mod:`LibOVRPose`, not a :py:mod:`LibOVRPoseState`)::
+        :py:mod:`LibOVRPose`, not a :py:class:`LibOVRPoseState`)::
 
             newPose = oldPose.timeIntegrate(0.25)
             pos, ori = newPose.posOri  # extract components
@@ -2047,8 +2049,10 @@ cdef class LibOVRPoseState(object):
 
 
 cdef class LibOVRTrackerInfo(object):
-    """Class for information about camera-based tracking sensors. This object is
-    returned by :func:`getTrackerInfo`. All attributes are read-only.
+    """Class for storing tracker (sensor) information such as pose, status, and
+    camera frustum information. This object is returned by calling
+    :func:`~psychxr.libovr.getTrackerInfo`. Attributes of this class are
+    read-only.
 
     """
     cdef capi.ovrTrackerPose c_ovrTrackerPose
@@ -2140,8 +2144,10 @@ cdef class LibOVRTrackerInfo(object):
 
 
 cdef class LibOVRHmdInfo(object):
-    """Class for HMD information."""
+    """Class for general HMD information and capabilities. An instance of this
+    class is returned by calling :func:`~psychxr.libovr.getHmdInfo`.
 
+    """
     cdef capi.ovrHmdDesc* c_data
     cdef bint ptr_owner
 
@@ -2386,6 +2392,142 @@ cdef class LibOVRHmdInfo(object):
 #     @property
 #     def samplesCount(self):
 #         return self.c_data.SamplesCount
+
+
+cdef class LibOVRSessionStatus(object):
+    """Class for storing session status information. An instance of this class
+    is returned when :func:`getSessionStatus` is called.
+
+    One can check if there was a status change between calls of
+    :func:`getSessionStatus` by using the ``==`` and ``!=`` operators on the
+    returned :py:class:`LibOVRSessionStatus` instances.
+
+    """
+    cdef capi.ovrSessionStatus c_data
+
+    def __init__(self):
+        """
+        Attributes
+        ----------
+        isVisible : bool
+        hmdPresent : bool
+        hmdMounted : bool
+        displayLost : bool
+        shouldQuit : bool
+        shouldRecenter : bool
+        hasInputFocus : bool
+        overlayPresent : bool
+        depthRequested : bool
+
+        """
+        pass
+
+    def __cinit__(self):
+        pass
+
+    def __eq__(self, LibOVRSessionStatus other):
+        """Equality test between status objects. Use this to check if the status
+        is unchanged between two :func:`getSessionStatus` calls.
+
+        """
+        return (self.c_data.IsVisible == other.c_data.IsVisible and
+               self.c_data.HmdPresent == other.c_data.HmdPresent and
+               self.c_data.hmdMounted == other.c_data.hmdMounted and
+               self.c_data.displayLost == other.c_data.displayLost and
+               self.c_data.shouldQuit == other.c_data.shouldQuit and
+               self.c_data.shouldRecenter == other.c_data.shouldRecenter and
+               self.c_data.hasInputFocus == other.c_data.hasInputFocus and
+               self.c_data.overlayPresent == other.c_data.overlayPresent and
+               self.c_data.depthRequested == other.c_data.depthRequested)
+
+    def __ne__(self, LibOVRSessionStatus other):
+        """Equality test between status objects. Use this to check if the status
+        differs between two :func:`getSessionStatus` calls.
+
+        """
+        return not (self.c_data.IsVisible == other.c_data.IsVisible and
+               self.c_data.HmdPresent == other.c_data.HmdPresent and
+               self.c_data.hmdMounted == other.c_data.hmdMounted and
+               self.c_data.displayLost == other.c_data.displayLost and
+               self.c_data.shouldQuit == other.c_data.shouldQuit and
+               self.c_data.shouldRecenter == other.c_data.shouldRecenter and
+               self.c_data.hasInputFocus == other.c_data.hasInputFocus and
+               self.c_data.overlayPresent == other.c_data.overlayPresent and
+               self.c_data.depthRequested == other.c_data.depthRequested)
+
+    @property
+    def isVisible(self):
+        """``True`` the application has focus and visible in the HMD."""
+        return self.c_data.IsVisible == capi.ovrTrue
+
+    @property
+    def hmdPresent(self):
+        """``True`` if the HMD is present."""
+        return self.c_data.HmdPresent == capi.ovrTrue
+
+    @property
+    def hmdMounted(self):
+        """``True`` if the HMD is being worn on the user's head."""
+        return self.c_data.HmdMounted == capi.ovrTrue
+
+    @property
+    def displayLost(self):
+        """``True`` the the display was lost.
+
+        If occurs, the HMD was disconnected and the current session is invalid.
+        You need to destroy all resources associated with current session and
+        call :func:`create` again. Alternatively, you can raise an error and
+        shutdown the application.
+        """
+        return self.c_data.DisplayLost == capi.ovrTrue
+
+    @property
+    def shouldQuit(self):
+        """``True`` the application was signaled to quit.
+
+        This can occur if the user requests the application exit through the
+        system UI menu. You can ignore this flag if needed.
+        """
+        return self.c_data.ShouldQuit == capi.ovrTrue
+
+    @property
+    def shouldRecenter(self):
+        """``True`` if the application was signaled to recenter.
+
+        This happens when the user requests the application recenter the VR
+        scene on their current physical location through the system UI. You can
+        ignore this request or clear it by calling
+        :func:`clearShouldRecenterFlag`.
+
+        """
+        return self.c_data.ShouldRecenter == capi.ovrTrue
+
+    @property
+    def hasInputFocus(self):
+        """``True`` if the application has input focus.
+
+        If the application has focus, the statistics presented by the
+        performance HUD will reflect the current application's frame statistics.
+
+        """
+        return self.c_data.HasInputFocus == capi.ovrTrue
+
+    @property
+    def overlayPresent(self):
+        """``True`` if the system UI is visible."""
+        return self.c_data.OverlayPresent == capi.ovrTrue
+
+    @property
+    def depthRequested(self):
+        """``True`` if the a depth texture is requested.
+
+        Notes
+        -----
+        * This feature is currently unused by PsychXR.
+
+        """
+        return self.c_data.DepthRequested == capi.ovrTrue
+
 
 # ------------------------------------------------------------------------------
 # Functions
@@ -5934,32 +6076,14 @@ def setControllerVibration(int controller, str frequency, float amplitude):
     return result
 
 
-LibOVRSessionStatus = collections.namedtuple(
-    'LibOVRSessionStatus',
-    ['isVisible', 'hmdPresent', 'hmdMounted', 'displayLost', 'shouldQuit',
-     'shouldRecenter', 'hasInputFocus', 'overlayPresent', 'depthRequested'])
-
-
 def getSessionStatus():
     """Get the current session status.
-
-    Function returns a namedtuple with the following names:
-
-        * *isVisible* - the application has focus and visible in the HMD.
-        * *hmdPresent* - the HMD is present.
-        * *hmdMounted* - the HMD is on the user's head.
-        * *displayLost* - the the display was lost.
-        * *shouldQuit* - the application was signaled to quit.
-        * *shouldRecenter* - the application was signaled to re-center.
-        * *hasInputFocus* - the application has input focus.
-        * *overlayPresent* - the system overlay is present.
-        * *depthRequested* - the system requires a depth texture (not used).
 
     Returns
     -------
     tuple of int, tuple of bool
-        Result of LibOVR API call ``OVR::ovr_GetSessionStatus`` and a namedtuple
-        of session status flags and values.
+        Result of LibOVR API call ``OVR::ovr_GetSessionStatus`` and a
+        :py:class:`LibOVRSessionStatus`.
 
     Examples
     --------
@@ -5985,17 +6109,8 @@ def getSessionStatus():
     cdef capi.ovrResult result = capi.ovr_GetSessionStatus(_ptrSession,
                                                            &_sessionStatus)
 
-    to_return = LibOVRSessionStatus(
-        _sessionStatus.IsVisible == capi.ovrTrue,
-        _sessionStatus.HmdPresent == capi.ovrTrue,
-        _sessionStatus.HmdMounted == capi.ovrTrue,
-        _sessionStatus.DisplayLost == capi.ovrTrue,
-        _sessionStatus.ShouldQuit == capi.ovrTrue,
-        _sessionStatus.ShouldRecenter == capi.ovrTrue,
-        _sessionStatus.HasInputFocus == capi.ovrTrue,
-        _sessionStatus.OverlayPresent == capi.ovrTrue,
-        _sessionStatus.DepthRequested == capi.ovrTrue
-    )
+    cdef LibOVRSessionStatus to_return = LibOVRSessionStatus()
+    to_return.c_data = _sessionStatus
 
     return result, to_return
 
