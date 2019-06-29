@@ -111,6 +111,7 @@ Functions
     checkAppLastFrameDropped
     checkCompLastFrameDropped
     getFrameStats
+    timeToVSync
     getLastErrorInfo
     setBoundaryColor
     resetBoundaryColor

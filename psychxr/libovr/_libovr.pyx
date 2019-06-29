@@ -387,6 +387,7 @@ cdef capi.ovrSessionStatus _sessionStatus
 cdef capi.ovrPerfStats _frameStats
 cdef capi.ovrPerfStatsPerCompositorFrame _lastFrameStats
 cdef list compFrameStats
+cdef unsigned int vsyncIndexAtEndFrame = 0
 
 # error information
 cdef capi.ovrErrorInfo _errorInfo  # store our last error here
@@ -4682,6 +4683,7 @@ def endFrame(unsigned int frameIndex=0):
     """
     global _ptrSession
     global _eyeLayer
+    global _vsyncIndexAtEndFrame
 
     cdef capi.ovrLayerHeader* layers = &_eyeLayer.Header
     cdef capi.ovrResult result = capi.ovr_EndFrame(
@@ -4690,6 +4692,11 @@ def endFrame(unsigned int frameIndex=0):
         NULL,
         &layers,
         <unsigned int>1)
+
+    # get the frame performance stats for this frame
+    cdef capi.ovrPerfStats perfStats
+    capi.ovr_GetPerfStats(_ptrSession, &perfStats)
+    _vsyncIndexAtEndFrame = perfStats.FrameStats[0].HmdVsyncIndex
 
     return result
 
@@ -5122,21 +5129,58 @@ def getFrameStats(int frameStatIndex=0):
         stat.CompositorGpuEndToVsyncElapsedTime)
 
 
+def hmdVSyncCount():
+    """Number of HMD vertical synchronization (V-Sync) signals (refreshes) since
+    the last :func:`endFrame` call.
+
+    If >0, at least one v-sync occurred on the HMD since :func:`endFrame` was
+    called. If 0 is returned, V-sync has yet to occur.
+
+    Returns
+    -------
+    int
+        Number of V-Sync signals since last :func:`endFrame` call.
+
+    Warning
+    -------
+    This function is experimental and may not behave as intended in all cases.
+
+    """
+    cdef capi.ovrPerfStats perfStats
+    capi.ovr_GetPerfStats(_ptrSession, &perfStats)
+    cdef capi.ovrPerfStatsPerCompositorFrame stat = perfStats.FrameStats[0]
+
+    return perfStats.FrameStats[0].HmdVsyncIndex - _vsyncIndexAtEndFrame
+
+
 def timeToVSync():
     """Get the time elapsed from the most recent :func:`endFrame` call to the
     vertical synchronization (V-Sync) signal of the HMD in seconds.
+
+    Since V-sync occurs asynchronously, the returned value is only valid if the
+    present HMD V-sync index is greater than that when :func:`endFrame` was
+    called. If not, 0.0 is returned.
 
     Returns
     -------
     float
         Time in seconds.
 
-    """
-    global _frameStats
+    Warning
+    -------
+    This function is experimental and may not behave as intended in all cases.
 
-    cdef capi.ovrPerfStatsPerCompositorFrame stat = _frameStats.FrameStats[0]
-    cdef float time_to_vsync = stat.CompositorCpuStartToGpuEndElapsedTime + \
+    """
+    cdef capi.ovrPerfStats perfStats
+    capi.ovr_GetPerfStats(_ptrSession, &perfStats)
+    cdef capi.ovrPerfStatsPerCompositorFrame stat = perfStats.FrameStats[0]
+
+    # check if VSync occurred since the last call to `endFrame`
+    if perfStats.FrameStats[0].HmdVsyncIndex > _vsyncIndexAtEndFrame:
+        time_to_vsync = stat.CompositorCpuStartToGpuEndElapsedTime + \
         stat.CompositorGpuEndToVsyncElapsedTime
+    else:
+        time_to_vsync = 0.0
 
     return time_to_vsync
 
