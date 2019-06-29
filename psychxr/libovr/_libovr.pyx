@@ -321,6 +321,7 @@ __all__ = [
     'checkAppLastFrameDropped',
     'checkCompLastFrameDropped',
     'getFrameStats',
+    'timeToVSync',
     'getLastErrorInfo',
     'setBoundaryColor',
     'resetBoundaryColor',
@@ -4674,10 +4675,9 @@ def endFrame(unsigned int frameIndex=0):
 
     Returns
     -------
-    `int`
-        Error code returned by API call `ovr_EndFrame`. Check against
-        ``SUCCESS`, ``SUCCESS_NOT_VISIBLE``, ``SUCCESS_BOUNDARY_INVALID``,
-        and ``SUCCESS_DEVICE_UNAVAILABLE``.
+    `tuple` of `int`
+        Error code returned by API call `OVR::ovr_EndFrame` and the absolute
+        time in seconds `OVR::ovr_EndFrame` returned.
 
     """
     global _ptrSession
@@ -5120,6 +5120,25 @@ def getFrameStats(int frameStatIndex=0):
         stat.CompositorGpuElapsedTime,
         stat.CompositorCpuStartToGpuEndElapsedTime,
         stat.CompositorGpuEndToVsyncElapsedTime)
+
+
+def timeToVSync():
+    """Get the time elapsed from the most recent :func:`endFrame` call to the
+    vertical synchronization (V-Sync) signal of the HMD in seconds.
+
+    Returns
+    -------
+    float
+        Time in seconds.
+
+    """
+    global _frameStats
+
+    cdef capi.ovrPerfStatsPerCompositorFrame stat = _frameStats.FrameStats[0]
+    cdef float time_to_vsync = stat.CompositorCpuStartToGpuEndElapsedTime + \
+        stat.CompositorGpuEndToVsyncElapsedTime
+
+    return time_to_vsync
 
 
 def getLastErrorInfo():

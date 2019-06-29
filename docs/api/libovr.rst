@@ -240,6 +240,7 @@ Functions
 .. autofunction:: checkAppLastFrameDropped
 .. autofunction:: checkCompLastFrameDropped
 .. autofunction:: getFrameStats
+.. autofunction:: timeToVSync
 .. autofunction:: getLastErrorInfo
 .. autofunction:: setBoundaryColor
 .. autofunction:: resetBoundaryColor
