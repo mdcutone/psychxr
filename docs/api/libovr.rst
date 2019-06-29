@@ -111,7 +111,6 @@ Functions
     checkAppLastFrameDropped
     checkCompLastFrameDropped
     getFrameStats
-    timeToVSync
     getLastErrorInfo
     setBoundaryColor
     resetBoundaryColor
@@ -119,6 +118,7 @@ Functions
     showBoundary
     hideBoundary
     getBoundaryDimensions
+    testBoundary
     getConnectedControllerTypes
     updateInputState
     getButton
@@ -241,7 +241,6 @@ Functions
 .. autofunction:: checkAppLastFrameDropped
 .. autofunction:: checkCompLastFrameDropped
 .. autofunction:: getFrameStats
-.. autofunction:: timeToVSync
 .. autofunction:: getLastErrorInfo
 .. autofunction:: setBoundaryColor
 .. autofunction:: resetBoundaryColor
@@ -249,6 +248,7 @@ Functions
 .. autofunction:: showBoundary
 .. autofunction:: hideBoundary
 .. autofunction:: getBoundaryDimensions
+.. autofunction:: testBoundary
 .. autofunction:: getConnectedControllerTypes
 .. autofunction:: updateInputState
 .. autofunction:: getButton

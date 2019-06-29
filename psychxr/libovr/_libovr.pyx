@@ -321,7 +321,6 @@ __all__ = [
     'checkAppLastFrameDropped',
     'checkCompLastFrameDropped',
     'getFrameStats',
-    'timeToVSync',
     'getLastErrorInfo',
     'setBoundaryColor',
     'resetBoundaryColor',
@@ -329,6 +328,7 @@ __all__ = [
     'showBoundary',
     'hideBoundary',
     'getBoundaryDimensions',
+    'testBoundary',
     'getConnectedControllerTypes',
     'updateInputState',
     'getButton',
@@ -2531,6 +2531,64 @@ cdef class LibOVRSessionStatus(object):
         return self.c_data.DepthRequested == capi.ovrTrue
 
 
+cdef class LibOVRBoundaryTestResult(object):
+    """Class for boundary collision test data. An instance of this class is
+    returned when :func:`testBoundary` is called.
+
+    """
+    cdef capi.ovrBoundaryTestResult c_data
+    cdef bint ptr_owner
+
+    cdef np.ndarray _closestPoint
+    cdef np.ndarray _closestPointNormal
+
+    def __init__(self):
+        """
+        Attributes
+        ----------
+        isTriggering : bool (read-only)
+        closestDistance : float (read-only)
+        closestPoint : ndarray (read-only)
+        closestPointNormal : ndarray (read-only)
+
+        """
+        pass
+
+    def __cinit__(self):
+        pass
+
+    @property
+    def isTriggering(self):
+        """``True`` if the play area boundary is triggering."""
+        return self.c_data.IsTriggering == capi.ovrTrue
+
+    @property
+    def closestDistance(self):
+        """Closest point to the boundary in meters."""
+        return <float>self.c_data.ClosestDistance
+
+    @property
+    def closestPoint(self):
+        """Closest point on the boundary surface."""
+        cdef np.ndarray[float, ndim=1] to_return = np.asarray([
+            self.c_data.ClosestPoint.x,
+            self.c_data.ClosestPoint.y,
+            self.c_data.ClosestPoint.z],
+            dtype=np.float32)
+
+        return to_return
+
+    @property
+    def closetPointNormal(self):
+        """Unit normal of the closest boundary surface."""
+        cdef np.ndarray[float, ndim=1] to_return = np.asarray([
+            self.c_data.ClosestPointNormal.x,
+            self.c_data.ClosestPointNormal.y,
+            self.c_data.ClosestPointNormal.z],
+            dtype=np.float32)
+
+        return to_return
+
 # ------------------------------------------------------------------------------
 # Functions
 #
@@ -3500,6 +3558,18 @@ def getLayerEyeFovFlags():
     unsigned int
         Flags from ``OVR::ovrLayerEyeFov.Header.Flags``.
 
+    See Also
+    --------
+    setLayerEyeFovFlags : Set layer flags.
+
+    Examples
+    --------
+    Check if a flag is set::
+
+        layerFlags = getLayerEyeFovFlags()
+        if (layerFlags & LAYER_FLAG_HIGH_QUALITY) == LAYER_FLAG_HIGH_QUALITY:
+            print('high quality enabled!')
+
     """
     global _eyeLayer
     return <unsigned int>_eyeLayer.Header.Flags
@@ -3522,11 +3592,23 @@ def setLayerEyeFovFlags(unsigned int flags):
         * ``LAYER_FLAG_HEAD_LOCKED`` : Enable head locking, which forces the
           render layer transformations to remain head referenced.
 
+    See Also
+    --------
+    getLayerEyeFovFlags : Get layer flags.
+
     Notes
     -----
     * ``LAYER_FLAG_HIGH_QUALITY`` and
       ``LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT`` are recommended settings and
       are enabled by default.
+
+    Examples
+    --------
+    Enable head-locked mode::
+
+        layerFlags = getLayerEyeFovFlags()  # get current flags
+        layerFlags |= LAYER_FLAG_HEAD_LOCKED  # set head-locking
+        setLayerEyeFovFlags(layerFlags)  # set the flags again
 
     """
     global _eyeLayer
@@ -4683,6 +4765,8 @@ def endFrame(unsigned int frameIndex=0):
     """
     global _ptrSession
     global _eyeLayer
+    global _frameStats
+    global _lastFrameStats
     global _vsyncIndexAtEndFrame
 
     cdef capi.ovrLayerHeader* layers = &_eyeLayer.Header
@@ -4692,11 +4776,6 @@ def endFrame(unsigned int frameIndex=0):
         NULL,
         &layers,
         <unsigned int>1)
-
-    # get the frame performance stats for this frame
-    cdef capi.ovrPerfStats perfStats
-    capi.ovr_GetPerfStats(_ptrSession, &perfStats)
-    _vsyncIndexAtEndFrame = perfStats.FrameStats[0].HmdVsyncIndex
 
     return result
 
@@ -5129,60 +5208,60 @@ def getFrameStats(int frameStatIndex=0):
         stat.CompositorGpuEndToVsyncElapsedTime)
 
 
-def hmdVSyncCount():
-    """Number of HMD vertical synchronization (V-Sync) signals (refreshes) since
-    the last :func:`endFrame` call.
-
-    If >0, at least one v-sync occurred on the HMD since :func:`endFrame` was
-    called. If 0 is returned, V-sync has yet to occur.
-
-    Returns
-    -------
-    int
-        Number of V-Sync signals since last :func:`endFrame` call.
-
-    Warning
-    -------
-    This function is experimental and may not behave as intended in all cases.
-
-    """
-    cdef capi.ovrPerfStats perfStats
-    capi.ovr_GetPerfStats(_ptrSession, &perfStats)
-    cdef capi.ovrPerfStatsPerCompositorFrame stat = perfStats.FrameStats[0]
-
-    return perfStats.FrameStats[0].HmdVsyncIndex - _vsyncIndexAtEndFrame
-
-
-def timeToVSync():
-    """Get the time elapsed from the most recent :func:`endFrame` call to the
-    vertical synchronization (V-Sync) signal of the HMD in seconds.
-
-    Since V-sync occurs asynchronously, the returned value is only valid if the
-    present HMD V-sync index is greater than that when :func:`endFrame` was
-    called. If not, 0.0 is returned.
-
-    Returns
-    -------
-    float
-        Time in seconds.
-
-    Warning
-    -------
-    This function is experimental and may not behave as intended in all cases.
-
-    """
-    cdef capi.ovrPerfStats perfStats
-    capi.ovr_GetPerfStats(_ptrSession, &perfStats)
-    cdef capi.ovrPerfStatsPerCompositorFrame stat = perfStats.FrameStats[0]
-
-    # check if VSync occurred since the last call to `endFrame`
-    if perfStats.FrameStats[0].HmdVsyncIndex > _vsyncIndexAtEndFrame:
-        time_to_vsync = stat.CompositorCpuStartToGpuEndElapsedTime + \
-        stat.CompositorGpuEndToVsyncElapsedTime
-    else:
-        time_to_vsync = 0.0
-
-    return time_to_vsync
+# def hmdVSyncCount():
+#     """Number of HMD vertical synchronization (V-Sync) signals (refreshes) since
+#     the last :func:`endFrame` call.
+#
+#     If >0, at least one v-sync occurred on the HMD since :func:`endFrame` was
+#     called. If 0 is returned, V-sync has yet to occur.
+#
+#     Returns
+#     -------
+#     int
+#         Number of V-Sync signals since last :func:`endFrame` call.
+#
+#     Warning
+#     -------
+#     This function is experimental and may not behave as intended in all cases.
+#
+#     """
+#     cdef capi.ovrPerfStats perfStats
+#     capi.ovr_GetPerfStats(_ptrSession, &perfStats)
+#     cdef capi.ovrPerfStatsPerCompositorFrame stat = perfStats.FrameStats[0]
+#
+#     return perfStats.FrameStats[0].HmdVsyncIndex - _vsyncIndexAtEndFrame
+#
+#
+# def timeToVSync():
+#     """Get the time elapsed from the most recent :func:`endFrame` call to the
+#     vertical synchronization (V-Sync) signal of the HMD in seconds.
+#
+#     Since V-sync occurs asynchronously, the returned value is only valid if the
+#     present HMD V-sync index is greater than that when :func:`endFrame` was
+#     called. If not, 0.0 is returned.
+#
+#     Returns
+#     -------
+#     float
+#         Time in seconds.
+#
+#     Warning
+#     -------
+#     This function is experimental and may not behave as intended in all cases.
+#
+#     """
+#     cdef capi.ovrPerfStats perfStats
+#     capi.ovr_GetPerfStats(_ptrSession, &perfStats)
+#     cdef capi.ovrPerfStatsPerCompositorFrame stat = perfStats.FrameStats[0]
+#
+#     # check if VSync occurred since the last call to `endFrame`
+#     if perfStats.FrameStats[0].HmdVsyncIndex > _vsyncIndexAtEndFrame:
+#         time_to_vsync = stat.CompositorCpuStartToGpuEndElapsedTime + \
+#         stat.CompositorGpuEndToVsyncElapsedTime
+#     else:
+#         time_to_vsync = 0.0
+#
+#     return time_to_vsync
 
 
 def getLastErrorInfo():
@@ -5364,6 +5443,47 @@ def getBoundaryDimensions(int boundaryType):
         (vec_out.x, vec_out.y, vec_out.z), dtype=np.float32)
 
     return result, to_return
+
+
+def testBoundary(int deviceBitmask, int boundaryType):
+    """Test collision of tracked devices on boundary.
+
+    Parameters
+    ----------
+    deviceBitmask : int
+        Devices to test. Multiple devices identifiers can be combined
+        together. Valid device IDs are::
+
+        * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
+        * ``CONTROLLER_TYPE_REMOTE`` : Oculus Remote.
+        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
+        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
+        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
+        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
+        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
+        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
+
+    boundaryType : int
+        Boundary type, can be ``BOUNDARY_OUTER`` or ``BOUNDARY_PLAY_AREA``.
+
+    Returns
+    -------
+    `tuple` of `int and :py:class:LibOVRBoundaryTestResult
+        Result of the ``OVR::ovr_TestBoundary` LibOVR API call and
+        collision test results.
+
+    """
+    global _ptrSession
+
+    cdef LibOVRBoundaryTestResult testResult = LibOVRBoundaryTestResult()
+    cdef capi.ovrResult result = capi.ovr_TestBoundary(
+        _ptrSession, <capi.ovrTrackedDeviceType>deviceBitmask,
+        <capi.ovrBoundaryType>boundaryType,
+        &testResult.c_data)
+
+    return testResult
+
 
 #def getBoundaryPoints(str boundaryType='PlayArea'):
 #    """Get the floor points which define the boundary."""
