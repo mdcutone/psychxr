@@ -242,6 +242,9 @@ __all__ = [
     'LibOVRTrackerInfo',
     'LibOVRHmdInfo',
     'LibOVRSessionStatus',
+    'LibOVRBoundaryTestResult',
+    'LibOVRPerfStatsPerCompositorFrame',
+    'LibOVRPerfStats',
     'success',
     'unqualifiedSuccess',
     'failure',
@@ -2537,10 +2540,6 @@ cdef class LibOVRBoundaryTestResult(object):
 
     """
     cdef capi.ovrBoundaryTestResult c_data
-    cdef bint ptr_owner
-
-    cdef np.ndarray _closestPoint
-    cdef np.ndarray _closestPointNormal
 
     def __init__(self):
         """
@@ -2588,6 +2587,274 @@ cdef class LibOVRBoundaryTestResult(object):
             dtype=np.float32)
 
         return to_return
+
+
+cdef class LibOVRPerfStatsPerCompositorFrame(object):
+    """Class for frame performance statistics per compositor frame. Instances of
+    this class are returned by calling :func:`getPerfStats` and accessing the
+    `frameStats` field of the returned :class:`LibOVRPerfStats` instance.
+
+    Data contained in this class provide information about compositor
+    performance, such as motion-to-photon latency, dropped frames, and elapsed
+    times of various stages of frame processing to the vertical synchronization
+    (V-Sync) signal of the HMD.
+
+    """
+    cdef capi.ovrPerfStatsPerCompositorFrame* c_data
+    cdef bint ptr_owner
+
+    def __init__(self):
+        """
+        Attributes
+        ----------
+        hmdVsyncIndex : int
+        appFrameIndex : int
+        appDroppedFrameCount : int
+        appMotionToPhotonLatency : float
+        appQueueAheadTime : float
+        appCpuElapsedTime : float
+        appGpuElapsedTime : float
+        compositorFrameIndex : float
+        compositorDroppedFrameCount : float
+        compositorLatency : float
+        compositorCpuElapsedTime : float
+        compositorGpuElapsedTime : float
+        compositorCpuStartToGpuEndElapsedTime : float
+        compositorGpuEndToVsyncElapsedTime : float
+        timeToVsync : float
+
+        """
+        pass
+
+    def __cinit__(self):
+        pass
+
+    @staticmethod
+    cdef capi.ovrPerfStatsPerCompositorFrame fromPtr(
+            capi.ovrPerfStatsPerCompositorFrame* ptr, bint owner=False):
+        cdef LibOVRPerfStatsPerCompositorFrame wrapper = \
+            LibOVRPerfStatsPerCompositorFrame.__new__(
+                LibOVRPerfStatsPerCompositorFrame)
+
+        wrapper.c_data = ptr
+        wrapper.ptr_owner = owner
+
+        return wrapper
+
+    cdef void _new_struct(self, object pos, object ori):
+        if self.c_data is not NULL:
+            return
+
+        cdef capi.ovrPerfStatsPerCompositorFrame* ptr = \
+            <capi.ovrPerfStatsPerCompositorFrame*>PyMem_Malloc(
+                sizeof(capi.ovrPerfStatsPerCompositorFrame))
+
+        if ptr is NULL:
+            raise MemoryError
+
+        self.c_data = ptr
+        self.ptr_owner = True
+
+    def __dealloc__(self):
+        # don't do anything crazy like set c_data=NULL without deallocating!
+        if self.c_data is not NULL:
+            if self.ptr_owner is True:
+                PyMem_Free(self.c_data)
+                self.c_data = NULL
+
+    @property
+    def hmdVsyncIndex(self):
+        """Increments every HMD vertical sync signal."""
+        return self.c_data.HmdVsyncIndex
+
+    @property
+    def appFrameIndex(self):
+        """Index increments after each call to :func:`endFrame`."""
+        return self.c_data.AppFrameIndex
+
+    @property
+    def appDroppedFrameCount(self):
+        """If :func:`endFrame` is not called on-time, this will increment (i.e.
+        missed HMD vertical sync deadline).
+        """
+        return self.c_data.AppDroppedFrameCount
+
+    @property
+    def appMotionToPhotonLatency(self):
+        """Motion-to-photon latency in seconds computed using the marker set by
+        :func:`getTrackingState`.
+        """
+        return self.c_data.AppMotionToPhotonLatency
+
+    @property
+    def appQueueAheadTime(self):
+        """Queue-ahead time in seconds. If >11 ms, the CPU is outpacing the GPU
+        workload by 1 frame.
+        """
+        return self.c_data.AppQueueAheadTime
+
+    @property
+    def appCpuElapsedTime(self):
+        """Time in seconds the CPU spent between calls of :func:`endFrame`. Form
+        the point when :func:`endFrame` releases control back to the
+        application, to the next time it is called.
+        """
+        return self.c_data.AppCpuElapsedTime
+
+    @property
+    def appGpuElapsedTime(self):
+        """Time in seconds the GPU spent between calls of :func:`endFrame`."""
+        return self.c_data.AppGpuElapsedTime
+
+    @property
+    def compositorFrameIndex(self):
+        """Increments when the compositor completes a distortion pass, happens
+        regardless if :func:`endFrame` was called late.
+        """
+        return self.c_data.CompositorFrameIndex
+
+    @property
+    def compositorDroppedFrameCount(self):
+        """Motion-to-photon latency of the compositor, which include the
+        latency of 'timewarp' needed to correct for application latency and
+        dropped application frames.
+        """
+        return self.c_data.CompositorDroppedFrameCount
+
+    @property
+    def compositorLatency(self):
+        """Time in seconds the compositor spends on the CPU."""
+        return self.c_data.CompositorLatency
+
+    @property
+    def compositorCpuElapsedTime(self):
+        """Time in seconds the compositor spends on the GPU."""
+        return self.c_data.CompositorCpuElapsedTime
+
+    @property
+    def compositorGpuElapsedTime(self):
+        """Time in seconds between the point the compositor executes and
+        completes distortion/timewarp. Value is -1.0 if GPU time is not
+        available.
+        """
+        return self.c_data.CompositorGpuElapsedTime
+
+    @property
+    def compositorCpuStartToGpuEndElapsedTime(self):
+        """Time in seconds between the point the compositor executes and
+        completes distortion/timewarp.
+        """
+        return self.c_data.CompositorCpuStartToGpuEndElapsedTime
+
+    @property
+    def compositorGpuEndToVsyncElapsedTime(self):
+        """Time in seconds left between the compositor is complete and the
+        target vertical synchronization (v-sync) on the HMD."""
+        return self.c_data.CompositorGpuEndToVsyncElapsedTime
+
+    @property
+    def timeToVsync(self):
+        """Total time elapsed from when CPU control is handed off to the
+        compositor to HMD vertical synchronization signal (V-Sync). Adding this
+        time to the absolute time taken about :func:`endFrame` may closely
+        approximate the exact time V-Sync occurred.
+
+        """
+        return self.c_data.CompositorCpuStartToGpuEndElapsedTime + \
+            self.c_data.CompositorGpuEndToVsyncElapsedTime
+
+
+cdef class LibOVRPerfStats(object):
+    """Class for frame performance statistics.
+
+    """
+    cdef capi.ovrPerfStats c_data
+    cdef bint ptr_owner
+
+    def __init__(self):
+        """
+        Attributes
+        ----------
+        frameStats : list of `LibOVRPerfStatsPerCompositorFrame`
+        frameStatsCount : int
+        anyFrameStatsDropped : bool
+        adaptiveGpuPerformanceScale : float
+        aswIsAvailable : bool
+        visibleProcessId : int
+
+        """
+        pass
+
+    def __cinit__(self):
+        pass
+
+    @property
+    def frameStats(self):
+        """Performance stats per compositor frame.
+
+        """
+        cdef list to_return = []
+        cdef Py_ssize_t i, nStats
+        stat = 0
+        nStats = <Py_ssize_t>self.c_data.FrameStatsCount
+        for stat in range(nStats):
+            to_return.append(
+                LibOVRPerfStatsPerCompositorFrame.fromPtr(
+                    &self.c_data.FrameStats[stat], owner=False))
+
+        return to_return
+
+    @property
+    def frameStatsCount(self):
+        """Number of compositor frame statistics available. The maximum number
+        of frame statistics is 5.
+        """
+        return self.c_data.FrameStatsCount
+
+    @property
+    def anyFrameStatsDropped(self):
+        """``True`` if compositor frame statistics have been dropped. This
+        occurs if :func:`getPerfStats` is called at a rate less than 1/5th the
+        refresh rate of the HMD.
+        """
+        return self.c_data.AnyFrameStatsDropped == capi.ovrTrue
+
+    @property
+    def adaptiveGpuPerformanceScale(self):
+        """Adaptive performance scale value. This value ranges between 0.0 and
+        1.0. If the application is taking up too many GPU resources, this value
+        will be less than 1.0, indicating the application needs to throttle GPU
+        usage to maintain performance. If the value is 1.0, the GPU is being
+        utilized the correct amount for the application.
+        
+        """
+        return self.c_data.AdaptiveGpuPerformanceScale
+
+    @property
+    def aswIsAvailable(self):
+        """``True`` is ASW is enabled."""
+        return self.c_data.AswIsAvailable == capi.ovrTrue
+
+    @property
+    def visibleProcessId(self):
+        """Visible process ID.
+
+        Since performance stats can be obtained for any application running on
+        the LibOVR runtime that has focus, this value should equal the current
+        process ID returned by :func:`getVisibleProcessId` to ensure the
+        statistics returned are for the current application.
+
+        Examples
+        --------
+        Check if frame statisitics are for the present PsychXR application::
+
+            perfStats = getPerfStats()
+            if perfStats.visibleProcessId == getVisibleProcessId():
+                # has focus, performance stats are for this application
+
+        """
+        return <int>self.c_data.VisibleProcessId
+
 
 # ------------------------------------------------------------------------------
 # Functions
@@ -5105,7 +5372,7 @@ LibOVRFramePerfStats = collections.namedtuple('LibOVRFramePerfStats',
      'compositorGpuEndToVsyncElapsedTime'])
 
 
-def getFrameStats(int frameStatIndex=0):
+def getFrameStats():
     """Get detailed compositor frame statistics.
 
     Returned frame statistics reflect the values contemporaneous with the last
@@ -5119,52 +5386,18 @@ def getFrameStats(int frameStatIndex=0):
 
     Returns
     -------
-    namedtuple
-        Frame statistics from the compositor. Available stats are accessible
-        using the following attributes of the returned `LibOVRFramePerfStats`
-        namedtuple:
-
-        * `hmdVsyncIndex` - Increments every HMD vertical sync signal.
-        * `appFrameIndex` - Index increments after each call to :func:`endFrame`.
-        * `appDroppedFrameCount` - If :func:`endFrame` is not called on-time,
-          this will increment (i.e. missed HMD vertical sync deadline).
-        * `appMotionToPhotonLatency` - Motion-to-photon latency in seconds
-          computed using the marker set by :func:`getTrackingState`.
-        * `appQueueAheadTime` - Queue-ahead time in seconds. If >11 ms, the CPU
-          is outpacing the GPU workload by 1 frame.
-        * `appCpuElapsedTime` - Time in seconds the CPU spent between calls of
-          :func:`endFrame`. Form the point when :func:`endFrame` releases
-          control back to the application, to the next time it is called.
-        * `appGpuElapsedTime` - Time in seconds the GPU spent between calls of
-          :func:`endFrame`.
-        * `compositorFrameIndex` - Increments when the compositor completes a
-          distortion pass, happens regardless if :func:`endFrame` was called
-          late.
-        * `compositorLatency` - Motion-to-photon latency of the compositor, which
-          include the latency of 'timewarp' needed to correct for application
-          latency and dropped application frames.
-        * `compositorCpuElapsedTime` - Time in seconds the compositor spends on
-          the CPU.
-        * `compositorGpuElapsedTime` - Time in seconds the compositor spends on
-          the GPU.
-        * `compositorCpuStartToGpuEndElapsedTime` - Time in seconds between the
-          point the compositor executes and completes distortion/timewarp.
-          Value is -1.0 if GPU time is not available.
-        * `compositorGpuEndToVsyncElapsedTime` - Time in seconds left between the
-          compositor is complete and the target vertical synchronization on the
-          HMD.
-
-    See Also
-    --------
-    updatePerfStats : Update performance and frame statistics.
+    :class:`LibOVRPerfStats`
+        Frame statistics.
 
     Notes
     -----
 
     * If :func:`updatePerfStats` was called less than once per frame, more than
-      one frame statistic will be available. Check :func:`getFrameStatsCount`
-      for the number of queued stats and use an index >0 to access them. Stats
-      are dropped if the queue is larger than 5 items.
+      one frame statistic will be available. Check
+      :py:attr:`~psychxr.libovr.LibOVRPerfStats.frameStatsCount` for the number
+      of queued stats and use an index >0 to access them. Stats are dropped if
+      the queue is larger than 5 items, or if the function is called at a rate
+      fewer than 1/5 the frame rate of the HMD.
 
     Examples
     --------
@@ -5177,35 +5410,13 @@ def getFrameStats(int frameStatIndex=0):
             frameStats = getFrameStats(0)  # only the most recent
             appTime = frameStats.appCpuElapsedTime
 
-    Get all available frame statistics::
-
-        stats = []
-        for i in range(getFrameStatsCount()):
-            stats.append(getFrameStats(i))
-
     """
-    global _frameStats
+    global _ptrSession
+    cdef LibOVRPerfStats to_return = LibOVRPerfStats()
+    cdef capi.ovrResult result = capi.ovr_GetPerfStats(
+        _ptrSession, &to_return.c_data)
 
-    if 0 > frameStatIndex >= _frameStats.FrameStatsCount:
-        raise IndexError("Frame stats index out of range.")
-
-    cdef capi.ovrPerfStatsPerCompositorFrame stat = \
-        _frameStats.FrameStats[frameStatIndex]
-
-    return LibOVRFramePerfStats(
-        stat.HmdVsyncIndex,
-        stat.AppFrameIndex,
-        stat.AppDroppedFrameCount,
-        stat.AppMotionToPhotonLatency,
-        stat.AppQueueAheadTime,
-        stat.AppCpuElapsedTime,
-        stat.AppGpuElapsedTime,
-        stat.CompositorFrameIndex,
-        stat.CompositorLatency,
-        stat.CompositorCpuElapsedTime,
-        stat.CompositorGpuElapsedTime,
-        stat.CompositorCpuStartToGpuEndElapsedTime,
-        stat.CompositorGpuEndToVsyncElapsedTime)
+    return to_return
 
 
 # def hmdVSyncCount():

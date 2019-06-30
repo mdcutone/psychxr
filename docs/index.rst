@@ -29,6 +29,7 @@ Contents
    :maxdepth: 1
 
    installing
+   release_notes
    license
    api
    examples

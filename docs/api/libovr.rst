@@ -28,6 +28,9 @@ Classes
     LibOVRHmdInfo
     LibOVRTrackerInfo
     LibOVRSessionStatus
+    LibOVRBoundaryTestResult
+    LibOVRPerfStatsPerCompositorFrame
+    LibOVRPerfStats
 
 Functions
 ~~~~~~~~~
@@ -106,6 +109,7 @@ Functions
     getAdaptiveGpuPerformanceScale
     getFrameStatsCount
     anyFrameStatsDropped
+    getPerfStats
     checkAswIsAvailable
     getVisibleProcessId
     checkAppLastFrameDropped
@@ -156,6 +160,21 @@ Classes
     :inherited-members:
 
 .. autoclass:: LibOVRSessionStatus
+    :members:
+    :undoc-members:
+    :inherited-members:
+
+.. autoclass:: LibOVRBoundaryTestResult
+    :members:
+    :undoc-members:
+    :inherited-members:
+
+.. autoclass:: LibOVRPerfStatsPerCompositorFrame
+    :members:
+    :undoc-members:
+    :inherited-members:
+
+.. autoclass:: LibOVRPerfStats
     :members:
     :undoc-members:
     :inherited-members:
