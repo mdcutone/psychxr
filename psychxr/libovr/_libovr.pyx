@@ -272,6 +272,7 @@ __all__ = [
     'setHeadLocked',
     'getPixelsPerTanAngleAtCenter',
     'getTanAngleToRenderTargetNDC',
+    'getPixelsPerDegree',
     'getDistortedViewport',
     'getEyeRenderFov',
     'setEyeRenderFov',
@@ -280,13 +281,17 @@ __all__ = [
     'getEyeVerticalFovRadians',
     'getEyeFocalLength',
     'calcEyeBufferSize',
+    'getLayerEyeFovFlags',
+    'setLayerEyeFovFlags',
+    'createTextureSwapChainGL',
     'getTextureSwapChainLengthGL',
     'getTextureSwapChainCurrentIndex',
     'getTextureSwapChainBufferGL',
-    'createTextureSwapChainGL',
     'setEyeColorTextureSwapChain',
     'createMirrorTexture',
     'getMirrorTexture',
+    'getSensorSampleTime',
+    'setSensorSampleTime',
     'getTrackingState',
     'getDevicePoses',
     'calcEyePoses',
@@ -307,7 +312,6 @@ __all__ = [
     'beginFrame',
     'commitTextureSwapChain',
     'endFrame',
-    'resetFrameStats',
     'getTrackingOriginType',
     'setTrackingOriginType',
     'recenterTrackingOrigin',
@@ -315,15 +319,9 @@ __all__ = [
     'clearShouldRecenterFlag',
     'getTrackerCount',
     'getTrackerInfo',
-    'updatePerfStats',
-    'getAdaptiveGpuPerformanceScale',
-    'getFrameStatsCount',
-    'anyFrameStatsDropped',
-    'checkAswIsAvailable',
-    'getVisibleProcessId',
-    'checkAppLastFrameDropped',
-    'checkCompLastFrameDropped',
-    'getFrameStats',
+    'getSessionStatus',
+    'getPerfStats',
+    'resetFrameStats',
     'getLastErrorInfo',
     'setBoundaryColor',
     'resetBoundaryColor',
@@ -339,10 +337,7 @@ __all__ = [
     'getThumbstickValues',
     'getIndexTriggerValues',
     'getHandTriggerValues',
-    'setControllerVibration',
-    'getSessionStatus',
-    'getLayerEyeFovFlags',
-    'setLayerEyeFovFlags'
+    'setControllerVibration'
     #'anyPointInFrustum'
 ]
 
@@ -2558,7 +2553,9 @@ cdef class LibOVRBoundaryTestResult(object):
 
     @property
     def isTriggering(self):
-        """``True`` if the play area boundary is triggering."""
+        """``True`` if the play area boundary is triggering. Since the boundary
+        fades-in, it might not be perceptible when this is called.
+        """
         return self.c_data.IsTriggering == capi.ovrTrue
 
     @property
@@ -2676,13 +2673,21 @@ cdef class LibOVRPerfStatsPerCompositorFrame(object):
     def appDroppedFrameCount(self):
         """If :func:`endFrame` is not called on-time, this will increment (i.e.
         missed HMD vertical sync deadline).
+
+        Examples
+        --------
+        Check if the application dropped a frame::
+
+            framesDropped = frameStats.frameStats[0].appDroppedFrameCount >
+                lastFrameStats.frameStats[0].appDroppedFrameCount
+
         """
         return self.c_data.AppDroppedFrameCount
 
     @property
     def appMotionToPhotonLatency(self):
         """Motion-to-photon latency in seconds computed using the marker set by
-        :func:`getTrackingState`.
+        :func:`getTrackingState` or the sensor sample time set by :func:`.
         """
         return self.c_data.AppMotionToPhotonLatency
 
@@ -2769,13 +2774,18 @@ cdef class LibOVRPerfStats(object):
 
     """
     cdef capi.ovrPerfStats c_data
-    cdef bint ptr_owner
+
+    cdef LibOVRPerfStatsPerCompositorFrame compFrame0
+    cdef LibOVRPerfStatsPerCompositorFrame compFrame1
+    cdef LibOVRPerfStatsPerCompositorFrame compFrame2
+    cdef LibOVRPerfStatsPerCompositorFrame compFrame3
+    cdef LibOVRPerfStatsPerCompositorFrame compFrame4
 
     def __init__(self):
         """
         Attributes
         ----------
-        frameStats : list of `LibOVRPerfStatsPerCompositorFrame`
+        frameStats : tuple of `LibOVRPerfStatsPerCompositorFrame`
         frameStatsCount : int
         anyFrameStatsDropped : bool
         adaptiveGpuPerformanceScale : float
@@ -2786,28 +2796,35 @@ cdef class LibOVRPerfStats(object):
         pass
 
     def __cinit__(self):
-        pass
+        self.compFrame0 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
+            &self.c_data.FrameStats[0])
+        self.compFrame1 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
+            &self.c_data.FrameStats[1])
+        self.compFrame2 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
+            &self.c_data.FrameStats[2])
+        self.compFrame3 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
+            &self.c_data.FrameStats[3])
+        self.compFrame4 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
+            &self.c_data.FrameStats[4])
 
     @property
     def frameStats(self):
-        """Performance stats per compositor frame.
-
+        """Performance stats per compositor frame. Statistics are in reverse
+        chronological order where the first index is the most recent. Only
+        indices 0 to :py:attr:`LibOVRPerfStats.frameStatsCount` are valid.
         """
-        cdef list to_return = []
-        cdef Py_ssize_t i, nStats
-        stat = 0
-        nStats = <Py_ssize_t>self.c_data.FrameStatsCount
-        for stat in range(nStats):
-            to_return.append(
-                LibOVRPerfStatsPerCompositorFrame.fromPtr(
-                    &self.c_data.FrameStats[stat], owner=False))
-
-        return to_return
+        return (self.compFrame0,
+                self.compFrame1,
+                self.compFrame2,
+                self.compFrame3,
+                self.compFrame4)
 
     @property
     def frameStatsCount(self):
         """Number of compositor frame statistics available. The maximum number
-        of frame statistics is 5.
+        of frame statistics is 5. If 1 is returned, the application is calling
+        :func:`getFrameStats` at a rate equal to or greater than the refresh
+        rate of the display.
         """
         return self.c_data.FrameStatsCount
 
@@ -2815,7 +2832,11 @@ cdef class LibOVRPerfStats(object):
     def anyFrameStatsDropped(self):
         """``True`` if compositor frame statistics have been dropped. This
         occurs if :func:`getPerfStats` is called at a rate less than 1/5th the
-        refresh rate of the HMD.
+        refresh rate of the HMD. You can obtain the refresh rate for your model
+        of HMD by calling :func:`getHmdInfo` and accessing the
+        :py:attr:`LibOVRHmdInfo.resolution` field of the returned
+        :py:class:`LibOVRHmdInfo` instance.
+
         """
         return self.c_data.AnyFrameStatsDropped == capi.ovrTrue
 
@@ -2824,9 +2845,9 @@ cdef class LibOVRPerfStats(object):
         """Adaptive performance scale value. This value ranges between 0.0 and
         1.0. If the application is taking up too many GPU resources, this value
         will be less than 1.0, indicating the application needs to throttle GPU
-        usage to maintain performance. If the value is 1.0, the GPU is being
-        utilized the correct amount for the application.
-        
+        usage somehow to maintain performance. If the value is 1.0, the GPU is
+        being utilized the correct amount for the application.
+
         """
         return self.c_data.AdaptiveGpuPerformanceScale
 
@@ -2841,15 +2862,15 @@ cdef class LibOVRPerfStats(object):
 
         Since performance stats can be obtained for any application running on
         the LibOVR runtime that has focus, this value should equal the current
-        process ID returned by :func:`getVisibleProcessId` to ensure the
-        statistics returned are for the current application.
+        process ID returned by ``os.getpid()`` to ensure the statistics returned
+        are for the current application.
 
         Examples
         --------
-        Check if frame statisitics are for the present PsychXR application::
+        Check if frame statistics are for the present PsychXR application::
 
             perfStats = getPerfStats()
-            if perfStats.visibleProcessId == getVisibleProcessId():
+            if perfStats.visibleProcessId == os.getpid():
                 # has focus, performance stats are for this application
 
         """
@@ -2920,8 +2941,7 @@ def getBool(bytes propertyName, bint defaultVal=False):
     cdef capi.ovrBool to_return = capi.ovr_GetBool(
         _ptrSession,
         propertyName,
-        defaultVal
-    )
+        defaultVal)
 
     return to_return == capi.ovrTrue
 
@@ -2949,8 +2969,7 @@ def setBool(bytes propertyName, bint value=True):
     cdef capi.ovrBool to_return = capi.ovr_SetBool(
         _ptrSession,
         propertyName,
-        val
-    )
+        val)
 
     return to_return == capi.ovrTrue
 
@@ -2977,8 +2996,7 @@ def getInt(bytes propertyName, int defaultVal=0):
     cdef int to_return = capi.ovr_GetInt(
         _ptrSession,
         propertyName,
-        defaultVal
-    )
+        defaultVal)
 
     return to_return
 
@@ -3016,8 +3034,7 @@ def setInt(bytes propertyName, int value):
     cdef capi.ovrBool to_return = capi.ovr_SetInt(
         _ptrSession,
         propertyName,
-        value
-    )
+        value)
 
     return to_return == capi.ovrTrue
 
@@ -3535,34 +3552,33 @@ def getTanAngleToRenderTargetNDC(int eye, object tanAngle):
     return toReturn.x, toReturn.y
 
 
-# def getPixelsPerDegree(int eye):
-#     """Get pixels per degree at the center of the display.
-#
-#     Values reflect the FOVs set by the last call to :func:`setEyeRenderFov` (or
-#     else the default FOVs will be used.)
-#
-#     Parameters
-#     ----------
-#     eye: int
-#         Eye index. Use either :data:`EYE_LEFT` or
-#         :data:`EYE_RIGHT`.
-#
-#     Returns
-#     -------
-#     tuple of floats
-#         Pixels per degree at the center of the screen.
-#
-#     """
-#     global _eyeRenderDesc
-#
-#     cdef capi.ovrVector2f pixelsPerTanAngle = \
-#         _eyeRenderDesc[eye].PixelsPerTanAngleAtCenter
-#
-#     # tan(angle)=1 -> 45 deg
-#     cdef float horzPixelPerDeg = pixelsPerTanAngle.x / 45.0
-#     cdef float vertPixelPerDeg = pixelsPerTanAngle.y / 45.0
-#
-#     return horzPixelPerDeg, vertPixelPerDeg
+def getPixelsPerDegree(int eye):
+    """Get pixels per degree at the center of the display.
+
+    Values reflect the FOVs set by the last call to :func:`setEyeRenderFov` (or
+    else the default FOVs will be used.)
+
+    Parameters
+    ----------
+    eye: int
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
+
+    Returns
+    -------
+    tuple of floats
+        Pixels per degree at the center of the screen.
+
+    """
+    global _eyeRenderDesc
+
+    cdef capi.ovrVector2f pixelsPerTanAngle = \
+        _eyeRenderDesc[eye].PixelsPerTanAngleAtCenter
+
+    # tan(angle)=1 -> 45 deg
+    cdef float horzPixelPerDeg = pixelsPerTanAngle.x / 45.0
+    cdef float vertPixelPerDeg = pixelsPerTanAngle.y / 45.0
+
+    return horzPixelPerDeg, vertPixelPerDeg
 
 
 def getDistortedViewport(int eye):
@@ -3750,6 +3766,10 @@ def getEyeFocalLength(int eye):
     float
         Focal length in meters.
 
+    Notes
+    -----
+    * This does not reflect the optical focal length of the HMD.
+
     """
     return 1.0 / tan(getEyeHorizontalFovRadians(eye) / 2.0)
 
@@ -3880,6 +3900,85 @@ def setLayerEyeFovFlags(unsigned int flags):
     """
     global _eyeLayer
     _eyeLayer.Header.Flags = <capi.ovrLayerFlags>flags
+
+
+def createTextureSwapChainGL(int swapChain, int width, int height, int textureFormat=FORMAT_R8G8B8A8_UNORM_SRGB, int levels=1):
+    """Create a texture swap chain for eye image buffers.
+
+    Parameters
+    ----------
+    swapChain : int
+        Swap chain handle to initialize, usually :data:`SWAP_CHAIN*`.
+    width : int
+        Width of texture in pixels.
+    height : int
+        Height of texture in pixels.
+    textureFormat : int
+        Texture format to use. Valid color texture formats are:
+
+        * ``FORMAT_R8G8B8A8_UNORM``
+        * ``FORMAT_R8G8B8A8_UNORM_SRGB``
+        * ``FORMAT_R16G16B16A16_FLOAT``
+        * ``FORMAT_R11G11B10_FLOAT``
+
+        Depth texture formats:
+
+        * ``FORMAT_D16_UNORM``
+        * ``FORMAT_D24_UNORM_S8_UINT``
+        * ``FORMAT_D32_FLOAT``
+
+    Other Parameters
+    ----------------
+    levels : int
+        Mip levels to use, default is 1.
+
+    Returns
+    -------
+    int
+        The result of the ``OVR::ovr_CreateTextureSwapChainGL`` API call.
+
+    Examples
+    --------
+
+    Create a texture swap chain::
+
+        result = createTextureSwapChainGL(TEXTURE_SWAP_CHAIN0,
+            texWidth, texHeight, FORMAT_R8G8B8A8_UNORM)
+        # set the swap chain for each eye buffer
+        for eye in range(EYE_COUNT):
+            setEyeColorTextureSwapChain(eye, TEXTURE_SWAP_CHAIN0)
+
+    """
+    global _swapChains
+    global _ptrSession
+
+    if _swapChains[swapChain] != NULL:
+        raise ValueError("Swap chain TEXTURE_SWAP_CHAIN{} already "
+                         "initialized!".format(swapChain))
+
+    # configure the texture
+    cdef capi.ovrTextureSwapChainDesc swapConfig
+    swapConfig.Type = capi.ovrTexture_2D
+    swapConfig.Format = <capi.ovrTextureFormat>textureFormat
+    swapConfig.ArraySize = 1
+    swapConfig.Width = <int>width
+    swapConfig.Height = <int>height
+    swapConfig.MipLevels = <int>levels
+    swapConfig.SampleCount = 1
+    swapConfig.StaticImage = capi.ovrFalse  # always buffered
+    swapConfig.MiscFlags = capi.ovrTextureMisc_None
+    swapConfig.BindFlags = capi.ovrTextureBind_None
+
+    # create the swap chain
+    cdef capi.ovrResult result = \
+        capi.ovr_CreateTextureSwapChainGL(
+            _ptrSession,
+            &swapConfig,
+            &_swapChains[swapChain])
+
+    #_eyeLayer.ColorTexture[swapChain] = _swapChains[swapChain]
+
+    return result
 
 
 def getTextureSwapChainLengthGL(int swapChain):
@@ -4013,85 +4112,6 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
         _ptrSession, _swapChains[swapChain], index, &tex_id)
 
     return result, tex_id
-
-
-def createTextureSwapChainGL(int swapChain, int width, int height, int textureFormat=FORMAT_R8G8B8A8_UNORM_SRGB, int levels=1):
-    """Create a texture swap chain for eye image buffers.
-
-    Parameters
-    ----------
-    swapChain : int
-        Swap chain handle to initialize, usually :data:`SWAP_CHAIN*`.
-    width : int
-        Width of texture in pixels.
-    height : int
-        Height of texture in pixels.
-    textureFormat : int
-        Texture format to use. Valid color texture formats are:
-
-        * ``FORMAT_R8G8B8A8_UNORM``
-        * ``FORMAT_R8G8B8A8_UNORM_SRGB``
-        * ``FORMAT_R16G16B16A16_FLOAT``
-        * ``FORMAT_R11G11B10_FLOAT``
-
-        Depth texture formats:
-
-        * ``FORMAT_D16_UNORM``
-        * ``FORMAT_D24_UNORM_S8_UINT``
-        * ``FORMAT_D32_FLOAT``
-
-    Other Parameters
-    ----------------
-    levels : int
-        Mip levels to use, default is 1.
-
-    Returns
-    -------
-    int
-        The result of the ``OVR::ovr_CreateTextureSwapChainGL`` API call.
-
-    Examples
-    --------
-
-    Create a texture swap chain::
-
-        result = createTextureSwapChainGL(TEXTURE_SWAP_CHAIN0,
-            texWidth, texHeight, FORMAT_R8G8B8A8_UNORM)
-        # set the swap chain for each eye buffer
-        for eye in range(EYE_COUNT):
-            setEyeColorTextureSwapChain(eye, TEXTURE_SWAP_CHAIN0)
-
-    """
-    global _swapChains
-    global _ptrSession
-
-    if _swapChains[swapChain] != NULL:
-        raise ValueError("Swap chain TEXTURE_SWAP_CHAIN{} already "
-                         "initialized!".format(swapChain))
-
-    # configure the texture
-    cdef capi.ovrTextureSwapChainDesc swapConfig
-    swapConfig.Type = capi.ovrTexture_2D
-    swapConfig.Format = <capi.ovrTextureFormat>textureFormat
-    swapConfig.ArraySize = 1
-    swapConfig.Width = <int>width
-    swapConfig.Height = <int>height
-    swapConfig.MipLevels = <int>levels
-    swapConfig.SampleCount = 1
-    swapConfig.StaticImage = capi.ovrFalse  # always buffered
-    swapConfig.MiscFlags = capi.ovrTextureMisc_None
-    swapConfig.BindFlags = capi.ovrTextureBind_None
-
-    # create the swap chain
-    cdef capi.ovrResult result = \
-        capi.ovr_CreateTextureSwapChainGL(
-            _ptrSession,
-            &swapConfig,
-            &_swapChains[swapChain])
-
-    #_eyeLayer.ColorTexture[swapChain] = _swapChains[swapChain]
-
-    return result
 
 
 def setEyeColorTextureSwapChain(int eye, int swapChain):
@@ -4248,6 +4268,67 @@ def getMirrorTexture():
     return <int>result, <unsigned int>mirror_id
 
 
+def getSensorSampleTime():
+    """Get the sensor sample timestamp.
+
+    The time when the source data used to compute the render pose was sampled.
+    This value is used to compute the motion-to-photon latency. This value is
+    set when :func:`getTrackingState`, :func:`getDevicePoses`, and
+    :func:`setSensorSampleTime` is called.
+
+    Returns
+    -------
+    float
+        Sample timestamp in seconds.
+
+    See Also
+    --------
+    setSensorSampleTime : Set sensor sample time.
+
+    """
+    global _eyeLayer
+    return _eyeLayer.SensorSampleTime
+
+
+def setSensorSampleTime(double absTime):
+    """Set the sensor sample timestamp.
+
+    Specify the sensor sample time of the source data used to compute the render
+    poses of each eye. This value is used to compute motion-to-photon latency.
+
+    Parameters
+    ----------
+    absTime : float
+        Time in seconds.
+
+    See Also
+    --------
+    getSensorSampleTime : Get sensor sample time.
+    getTrackingState : Get the current tracking state.
+    getDevicePoses : Get device poses.
+
+    Examples
+    --------
+    Using external data to set the head pose from a motion capture system::
+
+        # data from mocap system
+        headRigidBody = LibOVRPose(mocap.pos, mocap.ori)
+        sampleTime = mocap.frameTime
+
+        # set sample time and compute eye poses
+        setSensorSampleTime(sampleTime)
+        calcEyePoses(headRigidBody)
+
+        # get frame perf stats after calling `endFrame` to get last frame
+        # motion-to-photon latency
+        perfStats = getPerfStats()
+        m2p_latency = perfStats.frameStats[0].appMotionToPhotonLatency
+
+    """
+    global _eyeLayer
+    _eyeLayer.SensorSampleTime = absTime
+
+
 def getTrackingState(double absTime, bint latencyMarker=True):
     """Get the current poses of the head and hands.
 
@@ -4361,8 +4442,9 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     -------
     tuple
         Return code (`int`) of the ``OVR::ovr_GetDevicePoses`` API call and list 
-        of tracked device poses (`list` of `LibOVRPoseState`). If a device 
-        cannot be tracked, the return code will be ``ERROR_LOST_TRACKING``.
+        of tracked device poses (`list` of `:py:class:LibOVRPoseState`). If a
+        device cannot be tracked, the return code will be
+        ``ERROR_LOST_TRACKING``.
 
     Warning
     -------
@@ -4440,7 +4522,7 @@ def calcEyePoses(LibOVRPose headPose):
     Eye poses are derived from the head pose stored in the pose state and
     the HMD to eye poses reported by LibOVR. Calculated eye poses are stored
     and passed to the compositor when :func:`endFrame` is called for additional
-    rendering.
+    processing.
 
     You can access the computed poses via the :func:`getEyeRenderPose` function.
 
@@ -4454,7 +4536,6 @@ def calcEyePoses(LibOVRPose headPose):
 
     * :func:`getTrackingState` must still be called every frame, even if you
       are specifying your own `headPose`.
-
     * When specifying a head pose defined by any other means than returned by
       :func:`getTrackingState`. The `headPose` will be incongruent to that
       computed by the LibOVR runtime, causing the render layer to 'slip' during
@@ -5032,9 +5113,6 @@ def endFrame(unsigned int frameIndex=0):
     """
     global _ptrSession
     global _eyeLayer
-    global _frameStats
-    global _lastFrameStats
-    global _vsyncIndexAtEndFrame
 
     cdef capi.ovrLayerHeader* layers = &_eyeLayer.Header
     cdef capi.ovrResult result = capi.ovr_EndFrame(
@@ -5043,21 +5121,6 @@ def endFrame(unsigned int frameIndex=0):
         NULL,
         &layers,
         <unsigned int>1)
-
-    return result
-
-
-def resetFrameStats():
-    """Reset frame statistics.
-
-    Returns
-    -------
-    int
-        Error code returned by `OVR::ovr_ResetPerfStats`.
-
-    """
-    global _ptrSession
-    cdef capi.ovrResult result = capi.ovr_ResetPerfStats(_ptrSession)
 
     return result
 
@@ -5216,163 +5279,46 @@ def getTrackerInfo(int trackerIndex):
     return to_return
 
 
-def updatePerfStats():
-    """Update performance stats.
-
-    Should be called once per frame.
+def getSessionStatus():
+    """Get the current session status.
 
     Returns
     -------
-    int
-        Result of the ``OVR::ovr_GetPerfStats`` LibOVR API call.
+    tuple of int, tuple of bool
+        Result of LibOVR API call ``OVR::ovr_GetSessionStatus`` and a
+        :py:class:`LibOVRSessionStatus`.
+
+    Examples
+    --------
+
+    Check if the display is visible to the user::
+
+        result, sessionStatus = getSessionStatus()
+        if sessionStatus.isVisible:
+            # begin frame rendering ...
+
+    Quit if the user requests to through the Oculus overlay::
+
+        result, sessionStatus = getSessionStatus()
+        if sessionStatus.shouldQuit:
+            # destroy any swap chains ...
+            destroy()
+            shutdown()
 
     """
     global _ptrSession
-    global _frameStats
-    global _lastFrameStats
+    global _sessionStatus
 
-    if _frameStats.FrameStatsCount > 0:
-        if _frameStats.FrameStats[0].HmdVsyncIndex > 0:
-            # copy last frame stats
-            _lastFrameStats = _frameStats.FrameStats[0]
+    cdef capi.ovrResult result = capi.ovr_GetSessionStatus(_ptrSession,
+                                                           &_sessionStatus)
 
-    cdef capi.ovrResult result = capi.ovr_GetPerfStats(
-        _ptrSession, &_frameStats)
+    cdef LibOVRSessionStatus to_return = LibOVRSessionStatus()
+    to_return.c_data = _sessionStatus
 
-    return result
+    return result, to_return
 
 
-def getAdaptiveGpuPerformanceScale():
-    """Get the adaptive GPU performance scale.
-
-    Returns
-    -------
-    float
-        GPU performance scaling factor.
-
-    """
-    global _frameStats
-    return _frameStats.AdaptiveGpuPerformanceScale
-
-
-def getFrameStatsCount():
-    """Get the number of queued compositor statistics.
-
-    Returns
-    -------
-    int
-
-    """
-    global _frameStats
-    return _frameStats.FrameStatsCount
-
-
-def anyFrameStatsDropped():
-    """Check if frame stats were dropped.
-
-    This occurs when :func:`updatePerfStats` is called fewer than once every 5
-    frames.
-
-    Returns
-    -------
-    bool
-        True if frame statistics were dropped.
-
-    """
-    global _frameStats
-    return <bint>_frameStats.AnyFrameStatsDropped
-
-
-def checkAswIsAvailable():
-    """Check if ASW is available.
-
-    Returns
-    -------
-    bool
-
-    """
-    global _frameStats
-    return <bint>_frameStats.AswIsAvailable
-
-
-def getVisibleProcessId():
-    """Process ID which the performance stats are currently being polled.
-
-    Returns
-    -------
-    int
-        Process ID.
-
-    """
-    global _frameStats
-    return <int>_frameStats.VisibleProcessId
-
-
-def checkAppLastFrameDropped():
-    """Check if the application dropped a frame.
-
-    Returns
-    -------
-    bool
-        True if the application missed the HMD's flip deadline last frame.
-
-    """
-    global _lastFrameStats
-    global _frameStats
-
-    if _frameStats.FrameStatsCount > 0:
-        if _frameStats.FrameStats[0].HmdVsyncIndex > 0:
-            return _frameStats.FrameStats[0].AppDroppedFrameCount > \
-                   _lastFrameStats.AppDroppedFrameCount
-
-    return False
-
-
-def checkCompLastFrameDropped():
-    """Check if the compositor dropped a frame.
-
-    Returns
-    -------
-    bool
-        True if the compositor missed the HMD's flip deadline last frame.
-
-    """
-    global _lastFrameStats
-    global _frameStats
-
-    if _frameStats.FrameStatsCount > 0:
-        if _frameStats.FrameStats[0].HmdVsyncIndex > 0:
-            return _frameStats.FrameStats[0].CompositorDroppedFrameCount > \
-                   _lastFrameStats.CompositorDroppedFrameCount
-
-    return False
-
-# def getFrameStats():
-#     """Get a list of frame stats."""
-#     global _perfStats
-#
-#     cdef list toReturn = list()
-#     cdef LibOVRFramePerfStat stat
-#     cdef Py_ssize_t N = <Py_ssize_t>_perfStats.FrameStatsCount
-#     cdef Py_ssize_t i = 0
-#     for i in range(N):
-#         stat = LibOVRFramePerfStat()
-#         stat.c_data[0] = _perfStats.FrameStats[i]
-#         toReturn.append(stat)
-#
-#     return toReturn
-
-
-LibOVRFramePerfStats = collections.namedtuple('LibOVRFramePerfStats',
-    ['hmdVsyncIndex', 'appFrameIndex', 'appDroppedFrameCount',
-     'appMotionToPhotonLatency', 'appQueueAheadTime', 'appCpuElapsedTime',
-     'appGpuElapsedTime', 'compositorFrameIndex',
-     'compositorLatency', 'compositorCpuElapsedTime',
-     'compositorGpuElapsedTime', 'compositorCpuStartToGpuEndElapsedTime',
-     'compositorGpuEndToVsyncElapsedTime'])
-
-
-def getFrameStats():
+def getPerfStats():
     """Get detailed compositor frame statistics.
 
     Returned frame statistics reflect the values contemporaneous with the last
@@ -5419,60 +5365,23 @@ def getFrameStats():
     return to_return
 
 
-# def hmdVSyncCount():
-#     """Number of HMD vertical synchronization (V-Sync) signals (refreshes) since
-#     the last :func:`endFrame` call.
-#
-#     If >0, at least one v-sync occurred on the HMD since :func:`endFrame` was
-#     called. If 0 is returned, V-sync has yet to occur.
-#
-#     Returns
-#     -------
-#     int
-#         Number of V-Sync signals since last :func:`endFrame` call.
-#
-#     Warning
-#     -------
-#     This function is experimental and may not behave as intended in all cases.
-#
-#     """
-#     cdef capi.ovrPerfStats perfStats
-#     capi.ovr_GetPerfStats(_ptrSession, &perfStats)
-#     cdef capi.ovrPerfStatsPerCompositorFrame stat = perfStats.FrameStats[0]
-#
-#     return perfStats.FrameStats[0].HmdVsyncIndex - _vsyncIndexAtEndFrame
-#
-#
-# def timeToVSync():
-#     """Get the time elapsed from the most recent :func:`endFrame` call to the
-#     vertical synchronization (V-Sync) signal of the HMD in seconds.
-#
-#     Since V-sync occurs asynchronously, the returned value is only valid if the
-#     present HMD V-sync index is greater than that when :func:`endFrame` was
-#     called. If not, 0.0 is returned.
-#
-#     Returns
-#     -------
-#     float
-#         Time in seconds.
-#
-#     Warning
-#     -------
-#     This function is experimental and may not behave as intended in all cases.
-#
-#     """
-#     cdef capi.ovrPerfStats perfStats
-#     capi.ovr_GetPerfStats(_ptrSession, &perfStats)
-#     cdef capi.ovrPerfStatsPerCompositorFrame stat = perfStats.FrameStats[0]
-#
-#     # check if VSync occurred since the last call to `endFrame`
-#     if perfStats.FrameStats[0].HmdVsyncIndex > _vsyncIndexAtEndFrame:
-#         time_to_vsync = stat.CompositorCpuStartToGpuEndElapsedTime + \
-#         stat.CompositorGpuEndToVsyncElapsedTime
-#     else:
-#         time_to_vsync = 0.0
-#
-#     return time_to_vsync
+def resetFrameStats():
+    """Reset frame statistics.
+
+    Calling this will reset frame statistics, which may be needed if the
+    application loses focus (eg. when the system UI is opened) and performance
+    stats no longer apply to the application.
+
+    Returns
+    -------
+    int
+        Error code returned by `OVR::ovr_ResetPerfStats`.
+
+    """
+    global _ptrSession
+    cdef capi.ovrResult result = capi.ovr_ResetPerfStats(_ptrSession)
+
+    return result
 
 
 def getLastErrorInfo():
@@ -6469,44 +6378,6 @@ def setControllerVibration(int controller, str frequency, float amplitude):
 
     return result
 
-
-def getSessionStatus():
-    """Get the current session status.
-
-    Returns
-    -------
-    tuple of int, tuple of bool
-        Result of LibOVR API call ``OVR::ovr_GetSessionStatus`` and a
-        :py:class:`LibOVRSessionStatus`.
-
-    Examples
-    --------
-
-    Check if the display is visible to the user::
-
-        result, sessionStatus = getSessionStatus()
-        if sessionStatus.isVisible:
-            # begin frame rendering ...
-
-    Quit if the user requests to through the Oculus overlay::
-
-        result, sessionStatus = getSessionStatus()
-        if sessionStatus.shouldQuit:
-            # destroy any swap chains ...
-            destroy()
-            shutdown()
-
-    """
-    global _ptrSession
-    global _sessionStatus
-
-    cdef capi.ovrResult result = capi.ovr_GetSessionStatus(_ptrSession,
-                                                           &_sessionStatus)
-
-    cdef LibOVRSessionStatus to_return = LibOVRSessionStatus()
-    to_return.c_data = _sessionStatus
-
-    return result, to_return
 
 # def testBBoxVisible(int eye, object boundingBox):
 #     """Test if an object's bounding box falls outside of the current view
