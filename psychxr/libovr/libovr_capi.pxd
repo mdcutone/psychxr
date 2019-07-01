@@ -235,7 +235,8 @@ cdef extern from "OVR_CAPI.h":
         ovrHmd_ES06 = 11,
         ovrHmd_ES09 = 12,
         ovrHmd_ES11 = 13,
-        ovrHmd_CV1 = 14
+        ovrHmd_CV1 = 14,
+        ovrHmd_RiftS = 16
 
     ctypedef enum ovrHmdCaps:
         ovrHmdCap_DebugDevice = 0x0010
@@ -285,7 +286,9 @@ cdef extern from "OVR_CAPI.h":
 
     ctypedef enum ovrStatusBits:
         ovrStatus_OrientationTracked = 0x0001, 
-        ovrStatus_PositionTracked = 0x0002
+        ovrStatus_PositionTracked = 0x0002,
+        ovrStatus_OrientationValid = 0x0004,
+        ovrStatus_PositionValid = 0x0008
 
     ctypedef struct ovrTrackerDesc:
         float FrustumHFovInRadians 

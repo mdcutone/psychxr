@@ -63,6 +63,7 @@ Functions
     setHeadLocked
     getPixelsPerTanAngleAtCenter
     getTanAngleToRenderTargetNDC
+    getPixelsPerDegree
     getDistortedViewport
     getEyeRenderFov
     setEyeRenderFov
@@ -73,13 +74,15 @@ Functions
     calcEyeBufferSize
     getLayerEyeFovFlags
     setLayerEyeFovFlags
+    createTextureSwapChainGL
     getTextureSwapChainLengthGL
     getTextureSwapChainCurrentIndex
     getTextureSwapChainBufferGL
-    createTextureSwapChainGL
     setEyeColorTextureSwapChain
     createMirrorTexture
     getMirrorTexture
+    getSensorSampleTime
+    setSensorSampleTime
     getTrackingState
     getDevicePoses
     calcEyePoses
@@ -97,7 +100,6 @@ Functions
     beginFrame
     commitTextureSwapChain
     endFrame
-    resetFrameStats
     getTrackingOriginType
     setTrackingOriginType
     recenterTrackingOrigin
@@ -105,16 +107,9 @@ Functions
     clearShouldRecenterFlag
     getTrackerCount
     getTrackerInfo
-    updatePerfStats
-    getAdaptiveGpuPerformanceScale
-    getFrameStatsCount
-    anyFrameStatsDropped
+    getSessionStatus
     getPerfStats
-    checkAswIsAvailable
-    getVisibleProcessId
-    checkAppLastFrameDropped
-    checkCompLastFrameDropped
-    getFrameStats
+    resetFrameStats
     getLastErrorInfo
     setBoundaryColor
     resetBoundaryColor
@@ -131,7 +126,6 @@ Functions
     getIndexTriggerValues
     getHandTriggerValues
     setControllerVibration
-    getSessionStatus
 
 Details
 =======
@@ -183,7 +177,6 @@ Functions
 ~~~~~~~~~
 
 .. autofunction:: success
-.. autofunction:: unqualifiedSuccess
 .. autofunction:: failure
 .. autofunction:: getBool
 .. autofunction:: setBool
@@ -209,6 +202,7 @@ Functions
 .. autofunction:: setHeadLocked
 .. autofunction:: getPixelsPerTanAngleAtCenter
 .. autofunction:: getTanAngleToRenderTargetNDC
+.. autofunction:: getPixelsPerDegree
 .. autofunction:: getDistortedViewport
 .. autofunction:: getEyeRenderFov
 .. autofunction:: setEyeRenderFov
@@ -219,13 +213,15 @@ Functions
 .. autofunction:: calcEyeBufferSize
 .. autofunction:: getLayerEyeFovFlags
 .. autofunction:: setLayerEyeFovFlags
+.. autofunction:: createTextureSwapChainGL
 .. autofunction:: getTextureSwapChainLengthGL
 .. autofunction:: getTextureSwapChainCurrentIndex
 .. autofunction:: getTextureSwapChainBufferGL
-.. autofunction:: createTextureSwapChainGL
 .. autofunction:: setEyeColorTextureSwapChain
 .. autofunction:: createMirrorTexture
 .. autofunction:: getMirrorTexture
+.. autofunction:: getSensorSampleTime
+.. autofunction:: setSensorSampleTime
 .. autofunction:: getTrackingState
 .. autofunction:: getDevicePoses
 .. autofunction:: calcEyePoses
@@ -243,7 +239,6 @@ Functions
 .. autofunction:: beginFrame
 .. autofunction:: commitTextureSwapChain
 .. autofunction:: endFrame
-.. autofunction:: resetFrameStats
 .. autofunction:: getTrackingOriginType
 .. autofunction:: setTrackingOriginType
 .. autofunction:: recenterTrackingOrigin
@@ -251,15 +246,9 @@ Functions
 .. autofunction:: clearShouldRecenterFlag
 .. autofunction:: getTrackerCount
 .. autofunction:: getTrackerInfo
-.. autofunction:: updatePerfStats
-.. autofunction:: getAdaptiveGpuPerformanceScale
-.. autofunction:: getFrameStatsCount
-.. autofunction:: anyFrameStatsDropped
-.. autofunction:: checkAswIsAvailable
-.. autofunction:: getVisibleProcessId
-.. autofunction:: checkAppLastFrameDropped
-.. autofunction:: checkCompLastFrameDropped
-.. autofunction:: getFrameStats
+.. autofunction:: getSessionStatus
+.. autofunction:: getPerfStats
+.. autofunction:: resetFrameStats
 .. autofunction:: getLastErrorInfo
 .. autofunction:: setBoundaryColor
 .. autofunction:: resetBoundaryColor
@@ -276,4 +265,3 @@ Functions
 .. autofunction:: getIndexTriggerValues
 .. autofunction:: getHandTriggerValues
 .. autofunction:: setControllerVibration
-.. autofunction:: getSessionStatus

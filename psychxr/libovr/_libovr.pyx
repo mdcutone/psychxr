@@ -220,6 +220,8 @@ __all__ = [
     'FEATURE_VERSION',
     'STATUS_ORIENTATION_TRACKED',
     'STATUS_POSITION_TRACKED',
+    'STATUS_ORIENTATION_VALID',
+    'STATUS_POSITION_VALID',
     'PERF_HUD_MODE',
     'PERF_HUD_OFF',
     'PERF_HUD_PERF_SUMMARY',
@@ -237,6 +239,18 @@ __all__ = [
     'LAYER_FLAG_HIGH_QUALITY',
     'LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT',
     'LAYER_FLAG_HEAD_LOCKED',
+    'HMD_NONE',
+    'HMD_DK1',
+    'HMD_DKHD',
+    'HMD_DK2',
+    'HMD_CB',
+    'HMD_OTHER',
+    'HMD_E3_2015',
+    'HMD_ES06',
+    'HMD_ES09',
+    'HMD_ES11',
+    'HMD_CV1',
+    'HMD_RIFTS',
     'LibOVRPose',
     'LibOVRPoseState',
     'LibOVRTrackerInfo',
@@ -299,9 +313,6 @@ __all__ = [
     'setHmdToEyePose',
     'getEyeRenderPose',
     'setEyeRenderPose',
-    'getEyeHorizontalFovRadians',
-    'getEyeVerticalFovRadians',
-    'getEyeFocalLength',
     'getEyeProjectionMatrix',
     'getEyeRenderViewport',
     'setEyeRenderViewport',
@@ -371,7 +382,7 @@ cdef capi.ovrMirrorTexture _mirrorTexture
 cdef capi.ovrLayerEyeFov _eyeLayer
 cdef capi.ovrEyeRenderDesc[2] _eyeRenderDesc
 cdef capi.ovrTrackingState _trackingState
-cdef capi.ovrViewScaleDesc _viewScale
+# cdef capi.ovrViewScaleDesc _viewScale
 
 # prepare the render layer
 _eyeLayer.Header.Type = capi.ovrLayerType_EyeFov
@@ -382,10 +393,6 @@ _eyeLayer.ColorTexture[0] = _eyeLayer.ColorTexture[1] = NULL
 
 # status and performance information
 cdef capi.ovrSessionStatus _sessionStatus
-cdef capi.ovrPerfStats _frameStats
-cdef capi.ovrPerfStatsPerCompositorFrame _lastFrameStats
-cdef list compFrameStats
-cdef unsigned int vsyncIndexAtEndFrame = 0
 
 # error information
 cdef capi.ovrErrorInfo _errorInfo  # store our last error here
@@ -398,8 +405,6 @@ cdef capi.ovrInputState[9] _prevInputState
 cdef bint _debugMode
 
 # geometric data
-#cdef float[2] _nearClip
-#cdef float[2] _farClip
 cdef libovr_math.Matrix4f[2] _eyeProjectionMatrix
 cdef libovr_math.Matrix4f[2] _eyeViewMatrix
 cdef libovr_math.Matrix4f[2] _eyeViewProjectionMatrix
@@ -591,6 +596,8 @@ TRACKING_ORIGIN_FLOOR_LEVEL = capi.ovrTrackingOrigin_FloorLevel
 # trackings state status flags
 STATUS_ORIENTATION_TRACKED = capi.ovrStatus_OrientationTracked
 STATUS_POSITION_TRACKED = capi.ovrStatus_PositionTracked
+STATUS_ORIENTATION_VALID = capi.ovrStatus_OrientationValid
+STATUS_POSITION_VALID = capi.ovrStatus_PositionValid
 
 # API version information
 PRODUCT_VERSION = capi.OVR_PRODUCT_VERSION
@@ -669,6 +676,20 @@ LAYER_FLAG_HIGH_QUALITY = capi.ovrLayerFlag_HighQuality
 LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT = \
     capi.ovrLayerFlag_TextureOriginAtBottomLeft
 LAYER_FLAG_HEAD_LOCKED = capi.ovrLayerFlag_HeadLocked
+
+# HMD types
+HMD_NONE = capi.ovrHmd_None
+HMD_DK1 = capi.ovrHmd_DK1
+HMD_DKHD = capi.ovrHmd_DKHD
+HMD_DK2 = capi.ovrHmd_DK2
+HMD_CB = capi.ovrHmd_CB
+HMD_OTHER = capi.ovrHmd_Other
+HMD_E3_2015  = capi.ovrHmd_E3_2015
+HMD_ES06 = capi.ovrHmd_ES06
+HMD_ES09 = capi.ovrHmd_ES09
+HMD_ES11 = capi.ovrHmd_ES11
+HMD_CV1 = capi.ovrHmd_CV1
+HMD_RIFTS = capi.ovrHmd_RiftS
 
 # ------------------------------------------------------------------------------
 # Wrapper factory functions
@@ -2152,6 +2173,20 @@ cdef class LibOVRHmdInfo(object):
     cdef bint ptr_owner
 
     def __init__(self):
+        """
+        Attributes
+        ----------
+        isVisible : bool
+        hmdPresent : bool
+        hmdMounted : bool
+        displayLost : bool
+        shouldQuit : bool
+        shouldRecenter : bool
+        hasInputFocus : bool
+        overlayPresent : bool
+        depthRequested : bool
+
+        """
         self.newStruct()
 
     def __cinit__(self):
@@ -2185,12 +2220,49 @@ cdef class LibOVRHmdInfo(object):
             self.c_data = NULL
 
     @property
+    def hmdType(self):
+        """HMD type.
+
+        Valid values returned are ``HMD_NONE``, ``HMD_DK1``, ``HMD_DKHD``,
+        ``HMD_DK2``, ``HMD_CB``, ``HMD_OTHER``, ``HMD_E3_2015``, ``HMD_ES06``,
+        ``HMD_ES09``, ``HMD_ES11``, ``HMD_CV1``, and ``HMD_RIFTS``.
+
+        """
+        return <int>self.c_data.Type
+
+    @property
+    def hasOrientationTracking(self):
+        """``True`` if the HMD is capable of tracking orientation."""
+        return (self.c_data.AvailableTrackingCaps &
+                capi.ovrTrackingCap_Orientation) == \
+               capi.ovrTrackingCap_Orientation
+
+    @property
+    def hasPositionTracking(self):
+        """``True`` if the HMD is capable of tracking position."""
+        return (self.c_data.AvailableTrackingCaps &
+                capi.ovrTrackingCap_Position) == capi.ovrTrackingCap_Position
+
+    @property
+    def hasMagYawCorrection(self):
+        """``True`` if this HMD supports yaw drift correction."""
+        return (self.c_data.AvailableTrackingCaps &
+                capi.ovrTrackingCap_MagYawCorrection) == \
+               capi.ovrTrackingCap_MagYawCorrection
+
+    @property
+    def isDebugDevice(self):
+        """``True`` if the HMD is a virtual debug device."""
+        return (self.c_data.AvailableHmdCaps & capi.ovrHmdCap_DebugDevice) == \
+               capi.ovrHmdCap_DebugDevice
+
+    @property
     def productName(self):
         """Get the product name for this device.
 
         Returns
         -------
-        str
+        `str`
             Product name string (utf-8).
 
         """
@@ -2202,7 +2274,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        str
+        `str`
             Manufacturer name string (utf-8).
 
         """
@@ -2214,7 +2286,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        str
+        `str`
             Serial number (utf-8).
 
         """
@@ -2226,7 +2298,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        ndarray of int
+        `ndarray`
             Resolution of the display [w, h].
 
         """
@@ -2239,7 +2311,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        float
+        `float`
             Refresh rate in Hz.
 
         """
@@ -2251,7 +2323,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        tuple
+        `tuple` (`int`, `int`)
             USB HIDs (vendor, product).
 
         """
@@ -2263,7 +2335,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        tuple
+        `tuple`
             Firmware version (major, minor).
 
         """
@@ -2276,7 +2348,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        tuple of ndarray
+        `tuple` (`ndarray` and `ndarray`)
             Pair of left and right eye FOVs specified as tangent angles [Up,
             Down, Left, Right].
 
@@ -2303,7 +2375,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        tuple of ndarray
+        `tuple` (`ndarray` and `ndarray`)
             Pair of left and right eye FOVs specified as tangent angles in
             radians [Up, Down, Left, Right].
 
@@ -2333,7 +2405,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        tuple of ndarray of float
+        `tuple` (`ndarray` and `ndarray`)
             Pair of left and right eye FOVs specified as tangent angles in
             radians [Up, Down, Left, Right]. Both FOV objects will have the same
             values.
@@ -2587,14 +2659,16 @@ cdef class LibOVRBoundaryTestResult(object):
 
 
 cdef class LibOVRPerfStatsPerCompositorFrame(object):
-    """Class for frame performance statistics per compositor frame. Instances of
-    this class are returned by calling :func:`getPerfStats` and accessing the
-    `frameStats` field of the returned :class:`LibOVRPerfStats` instance.
+    """Class for frame performance statistics per compositor frame.
+
+    Instances of this class are returned by calling :func:`getPerfStats` and
+    accessing the :py:attr:`LibOVRPerfStats.frameStats` field of the returned
+    :class:`LibOVRPerfStats` instance.
 
     Data contained in this class provide information about compositor
-    performance, such as motion-to-photon latency, dropped frames, and elapsed
-    times of various stages of frame processing to the vertical synchronization
-    (V-Sync) signal of the HMD.
+    performance. Metrics include motion-to-photon latency, dropped frames, and
+    elapsed times of various stages of frame processing to the vertical
+    synchronization (V-Sync) signal of the HMD.
 
     """
     cdef capi.ovrPerfStatsPerCompositorFrame* c_data
@@ -2834,7 +2908,7 @@ cdef class LibOVRPerfStats(object):
         occurs if :func:`getPerfStats` is called at a rate less than 1/5th the
         refresh rate of the HMD. You can obtain the refresh rate for your model
         of HMD by calling :func:`getHmdInfo` and accessing the
-        :py:attr:`LibOVRHmdInfo.resolution` field of the returned
+        :py:attr:`LibOVRHmdInfo.refreshRate` field of the returned
         :py:class:`LibOVRHmdInfo` instance.
 
         """
@@ -3535,7 +3609,7 @@ def getTanAngleToRenderTargetNDC(int eye, object tanAngle):
 
     Returns
     -------
-    tuple
+    `tuple`
         NDC coordinates X, Y [-1, 1].
 
     """
@@ -3565,7 +3639,7 @@ def getPixelsPerDegree(int eye):
 
     Returns
     -------
-    tuple of floats
+    `tuple` of `float`
         Pixels per degree at the center of the screen.
 
     """
@@ -3793,7 +3867,7 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
 
     Returns
     -------
-    tuple of tuples
+    `tuple` of `tuple`
         Buffer widths and heights (w, h) for each eye.
 
     Examples
@@ -3992,7 +4066,7 @@ def getTextureSwapChainLengthGL(int swapChain):
 
     Returns
     -------
-    tuple of int
+    `tuple` of `int`
         Result of the ``ovr_GetTextureSwapChainLength`` API call and the
         length of that swap chain.
 
@@ -4039,7 +4113,7 @@ def getTextureSwapChainCurrentIndex(int swapChain):
 
     Returns
     -------
-    tuple of int
+    `tuple` of `int`
         Result of the ``OVR::ovr_GetTextureSwapChainCurrentIndex`` API call and
         the index of the buffer.
 
@@ -4080,7 +4154,7 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
 
     Returns
     -------
-    tuple of ints
+    `tuple` (`int`, `int`)
         Result of the ``OVR::ovr_GetTextureSwapChainBufferGL`` API call and the
         OpenGL texture buffer name. A OpenGL buffer name is invalid when 0,
         check the returned API call result for an error condition.
@@ -4230,7 +4304,7 @@ def getMirrorTexture():
 
     Returns
     -------
-    tuple of int
+    `tuple` (`int`, `int`)
         Result of API call ``OVR::ovr_GetMirrorTextureBufferGL`` and the mirror
         texture ID. A mirror texture ID == 0 is invalid.
 
@@ -4330,7 +4404,33 @@ def setSensorSampleTime(double absTime):
 
 
 def getTrackingState(double absTime, bint latencyMarker=True):
-    """Get the current poses of the head and hands.
+    """Get the current tracking state of the head and hands.
+
+    Tracking states are returned as a `dict` where the keys reference tracking
+    state instances and status flags for each tracked object as a `tuple` with
+    format (:py:class:`LibOVRTrackingState`, `int`). Valid dictionary keys for
+    tracking accessing tracking state data are:
+
+    * ``TRACKED_DEVICE_TYPE_HMD`` for head/HMD position.
+    * ``TRACKED_DEVICE_TYPE_LTOUCH`` and ``TRACKED_DEVICE_TYPE_RTOUCH`` for the
+      left and right touch controllers, respectively.
+
+    Status bit flags describe the status of sensor tracking when a tracking
+    state was sampled. You can check each status bit by using the following
+    values:
+
+    * ``STATUS_ORIENTATION_TRACKED``: Orientation is tracked/reported.
+    * ``STATUS_ORIENTATION_VALID``: Orientation is valid for application use. If
+      ``STATUS_ORIENTATION_VALID`` is `True` but ``STATUS_ORIENTATION_TRACKED``
+      is `False`, the LibOVR runtime may be estimating orientation without
+      tracker data. If both values are `False`, the application should not rely
+      on the reported orientation data.
+    * ``STATUS_POSITION_TRACKED``: Position is tracked/reported.
+    * ``STATUS_POSITION_VALID``: Position is valid for application use. If
+      ``STATUS_POSITION_VALID`` is `True` but ``STATUS_POSITION_TRACKED``
+      is `False`, the LibOVR runtime may be estimating position without tracker
+      data. If both values are `False`, the application should not rely
+      on the reported position data.
 
     Parameters
     ----------
@@ -4341,14 +4441,8 @@ def getTrackingState(double absTime, bint latencyMarker=True):
 
     Returns
     -------
-    tuple of dict, :class:`LibOVRPose`
-        Dictionary of tracking states where keys are
-        ``TRACKED_DEVICE_TYPE_HMD``,
-        ``TRACKED_DEVICE_TYPE_LTOUCH``, and
-        ``TRACKED_DEVICE_TYPE_RTOUCH``. The value referenced by each
-        key is a tuple containing a :class:`LibOVRPoseState` and `int` for
-        status flags. The second value is :class:`LibOVRPose` with the
-        calibrated origin used for tracking.
+    `tuple` (`dict`, :class:`LibOVRPose`)
+        Dictionary of tracking states and calibrated origin used for tracking.
 
     Examples
     --------
@@ -5284,7 +5378,7 @@ def getSessionStatus():
 
     Returns
     -------
-    tuple of int, tuple of bool
+    `tuple` (`int`, :py:class:`LibOVRSessionStatus`)
         Result of LibOVR API call ``OVR::ovr_GetSessionStatus`` and a
         :py:class:`LibOVRSessionStatus`.
 
@@ -5395,7 +5489,7 @@ def getLastErrorInfo():
 
     Returns
     -------
-    `tuple` of `int`, `str`
+    `tuple` (`int`, `str`)
         Tuple of the API call result and error string. If there was no API
         error, the function will return tuple (0, '<unknown>').
 
@@ -5481,7 +5575,7 @@ def getBoundaryVisible():
 
     Returns
     -------
-    tuple of int, bool
+    `tuple` (`int`, `bool`)
         Result of the LibOVR API call ``OVR::ovr_GetBoundaryVisible`` and the 
         boundary state.
 
@@ -5544,7 +5638,7 @@ def getBoundaryDimensions(int boundaryType):
 
     Returns
     -------
-    tuple of int, ndarray
+    `tuple` (`int`, `ndarray`)
         Result of the LibOVR APi call ``OVR::ovr_GetBoundaryDimensions`` and the
         dimensions of the boundary in meters [x, y, z].
 
@@ -5697,7 +5791,7 @@ def updateInputState(int controller):
 
     Returns
     -------
-    tuple of int, float
+    `tuple` (`int`, `float`)
         Result of the ``OVR::ovr_GetInputState`` LibOVR API call and polling 
         time in seconds.
 
@@ -5822,7 +5916,7 @@ def getButton(int controller, int button, str testState='continuous'):
 
     Returns
     -------
-    tuple of bool and float
+    `tuple` (`bool`, `float`)
         Result of the button press and the time in seconds it was polled.
 
     Raises
@@ -5960,7 +6054,7 @@ def getTouch(int controller, int touch, str testState='continuous'):
 
     Returns
     -------
-    tuple of bool and float
+    `tuple` (`bool`, `float`)
         Result of the touches and the time in seconds it was polled.
 
     See Also
