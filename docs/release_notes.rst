@@ -30,9 +30,7 @@ so here is a summary of the biggest changes:
   types like `ovrMatrix4f`, `ovrQuatf`, etc. have been dropped. However, many of
   these functions have been integrated as methods of the new `LibOVRPose` rigid
   body pose class.
-* Added haptic feedback support for `libovr`.
-* Added play area boundary testing functions to `libovr`.
-* Added property setters and getters for the `LibOVR` API.
-* Added functions and classes for getting tracker information.
-* Examples have been updated.
+* Lots of other changes, see the API reference for `libovr`.
 
+PsychoPy is still using version 0.1.4 of PsychXR for Rift integration. Expect
+support for 0.2 to be included in the coming weeks.
