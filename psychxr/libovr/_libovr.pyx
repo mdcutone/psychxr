@@ -4347,8 +4347,9 @@ def getSensorSampleTime():
 
     The time when the source data used to compute the render pose was sampled.
     This value is used to compute the motion-to-photon latency. This value is
-    set when :func:`getTrackingState`, :func:`getDevicePoses`, and
-    :func:`setSensorSampleTime` is called.
+    set when :func:`getDevicePoses` and :func:`setSensorSampleTime` is called.
+    If :func:`getTrackingState` was called with `latencyMarker` set, sensor
+    sample time will be 0.0.
 
     Returns
     -------

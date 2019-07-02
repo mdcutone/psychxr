@@ -105,8 +105,8 @@ def main():
     # frame index, increment this every frame
     frame_index = 0
 
-    # session status
-    _, ss = getSessionStatus()
+    # rigid body pose of the rectangle
+    rectMatrix = LibOVRPose((0., 0., -2.)).asMatrix()
 
     # begin application loop
     while not glfw.window_should_close(window):
@@ -123,8 +123,6 @@ def main():
         # calculate eye poses, this needs to be called every frame
         headPose, state = tracking_state[TRACKED_DEVICE_TYPE_HMD]
         calcEyePoses(headPose.pose)
-
-        print(headPose.pose.getAxisAngle(True))
 
         # start frame rendering
         beginFrame(frame_index)
@@ -145,8 +143,6 @@ def main():
             GL.GL_COLOR_ATTACHMENT0,
             GL.GL_TEXTURE_2D, tex_id, 0)
 
-        _, ss = getSessionStatus()
-
         # for each eye, do some rendering
         for eye in range(EYE_COUNT):
 
@@ -157,8 +153,8 @@ def main():
             vp = getEyeRenderViewport(eye)
             GL.glViewport(*vp)
             GL.glScissor(*vp)
-            # Get view and projection matrices, must be flattened assuming
-            # column-major ('F') order into a 1x16 vector.
+
+            # Get view and projection matrices
             P = getEyeProjectionMatrix(eye)
             MV = getEyeViewMatrix(eye)
             # Note - you don't need to get eye projection matrices each frame,
@@ -189,13 +185,17 @@ def main():
 
             # Draw a white 2x2 meter square positioned 5 meters in front of the
             # virtual space's origin.
-            GL.glColor3f(1.0, 1.0, 1.0)
             GL.glPushMatrix()
-            GL.glBegin(GL.GL_QUADS)
-            GL.glVertex3f(-1.0, -1.0, -1.0)
-            GL.glVertex3f(-1.0, 1.0, -1.0)
-            GL.glVertex3f(1.0, 1.0, -1.0)
-            GL.glVertex3f(1.0, -1.0, -1.0)
+            GL.glMultTransposeMatrixf(rectMatrix)  # set the position of rect
+            GL.glBegin(GL.GL_QUADS)  # start drawing it
+            GL.glColor3f(1.0, 0.0, 0.0)
+            GL.glVertex3f(-1.0, -1.0, 0.0)
+            GL.glColor3f(0.0, 1.0, 0.0)
+            GL.glVertex3f(-1.0, 1.0, 0.0)
+            GL.glColor3f(0.0, 0.0, 1.0)
+            GL.glVertex3f(1.0, 1.0, 0.0)
+            GL.glColor3f(1.0, 1.0, 1.0)
+            GL.glVertex3f(1.0, -1.0, 0.0)
             GL.glEnd()
             GL.glPopMatrix()
 
