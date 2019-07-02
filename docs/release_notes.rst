@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-Version 0.2 Released - 2019-06-30
+Version 0.2 Released - 2019-07-01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 PsychXR 0.2 is has numerous bug-fixes and enhancements based off user feedback.
@@ -30,7 +30,12 @@ so here is a summary of the biggest changes:
   types like `ovrMatrix4f`, `ovrQuatf`, etc. have been dropped. However, many of
   these functions have been integrated as methods of the new `LibOVRPose` rigid
   body pose class.
-* Lots of other changes, see the API reference for `libovr`.
+* Lots of other changes.
+
+`Click here to download PsychXR 0.2 <https://github.com/mdcutone/psychxr/releases>`_
 
 PsychoPy is still using version 0.1.4 of PsychXR for Rift integration. Expect
-support for 0.2 to be included in the coming weeks.
+support for 0.2 to be included in the coming weeks. To prevent breaking those
+installations, PsychXR 0.2 will not be uploaded to PIP until PsychoPy has been
+updated. However, you can download and install version 0.2 from the
+`releases <https://github.com/mdcutone/psychxr/releases>`_ page.
