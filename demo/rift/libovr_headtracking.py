@@ -124,6 +124,8 @@ def main():
         headPose, state = tracking_state[TRACKED_DEVICE_TYPE_HMD]
         calcEyePoses(headPose.pose)
 
+        print(headPose.pose.getAxisAngle(True))
+
         # start frame rendering
         beginFrame(frame_index)
 

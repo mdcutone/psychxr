@@ -358,7 +358,7 @@ from .cimport libovr_math
 
 from libc.stdint cimport int32_t, uint32_t
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
-from libc.math cimport pow, tan
+from libc.math cimport pow, tan, M_PI
 
 cimport numpy as np
 import numpy as np
@@ -366,6 +366,7 @@ np.import_array()
 
 import collections
 import warnings
+
 
 # ------------------------------------------------------------------------------
 # Initialize module
@@ -1214,8 +1215,13 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def getAxisAngle(self):
+    def getAxisAngle(self, degrees=False):
         """The axis and angle of rotation for this pose's orientation.
+
+        Parameters
+        ----------
+        degrees : bool, optional
+            Return angle in degrees. Default is ``False``.
 
         Returns
         -------
@@ -1229,9 +1235,12 @@ cdef class LibOVRPose(object):
             np.zeros((3,), dtype=np.float32)
 
         (<libovr_math.Quatf>self.c_data.Orientation).GetAxisAngle(&axis, &angle)
-        ret_axis[0] = angle.x
-        ret_axis[1] = angle.y
-        ret_axis[2] = angle.z
+        ret_axis[0] = axis.x
+        ret_axis[1] = axis.y
+        ret_axis[2] = axis.z
+
+        if degrees:
+            angle *= <float>(360.0 / (2.0 * M_PI))
 
         return angle, ret_axis
 

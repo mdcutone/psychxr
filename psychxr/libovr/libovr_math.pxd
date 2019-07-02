@@ -39,6 +39,7 @@ affiliates. All rights reserved.
 from libcpp cimport bool
 
 cdef extern from "OVR_Math.h" namespace "OVR":
+
     ctypedef enum Axis:
         Axis_X = 0,
         Axis_Y = 1,
