@@ -68,7 +68,7 @@ def main():
     # determine the viewports for each eye's image on the buffer
     eye_w = int(bufferW / 2)
     eye_h = bufferH
-    setInt(PERF_HUD_MODE, PERF_HUD_PERF_SUMMARY)
+    setInt(PERF_HUD_MODE, PERF_HUD_OFF)
     # set the viewports
     viewports = ((0, 0, eye_w, eye_h), (eye_w, 0, eye_w, eye_h))
     for eye, vp in enumerate(viewports):
@@ -105,6 +105,9 @@ def main():
     # frame index, increment this every frame
     frame_index = 0
 
+    # session status
+    _, ss = getSessionStatus()
+
     # begin application loop
     while not glfw.window_should_close(window):
         # wait for the buffer to be freed by the compositor, this is like
@@ -120,9 +123,6 @@ def main():
         # calculate eye poses, this needs to be called every frame
         headPose, state = tracking_state[TRACKED_DEVICE_TYPE_HMD]
         calcEyePoses(headPose.pose)
-
-        eyeLeft = getEyeRenderPose(EYE_LEFT)
-        eyeRight = getEyeRenderPose(EYE_RIGHT)
 
         # start frame rendering
         beginFrame(frame_index)
@@ -144,6 +144,7 @@ def main():
             GL.GL_TEXTURE_2D, tex_id, 0)
 
         _, ss = getSessionStatus()
+
         # for each eye, do some rendering
         for eye in range(EYE_COUNT):
 
@@ -170,20 +171,18 @@ def main():
 
             # Set the projection matrix.
             GL.glMatrixMode(GL.GL_PROJECTION)
-            #GL.glLoadIdentity()
             GL.glLoadTransposeMatrixf(P)
 
             # Set the view matrix. This contains the translation for the head in
             # the virtual space computed by the API.
             GL.glMatrixMode(GL.GL_MODELVIEW)
-            #GL.glLoadIdentity()
             GL.glLoadTransposeMatrixf(MV)
             # Note - We are not using shaders here to keep things simple.
             # However, you can pass computed transforms to a shader program
             # if you like.
 
             # Okay, let's begin drawing stuff. Clear the background first.
-            GL.glClearColor(1.0, 0.5, 0.5, 1.0)
+            GL.glClearColor(0.0, 0.0, 0.0, 1.0)
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
             # Draw a white 2x2 meter square positioned 5 meters in front of the
@@ -252,16 +251,21 @@ def main():
         glfw.swap_buffers(window)
         glfw.poll_events()
 
+        # check session status
+        _, sessionStatus = getSessionStatus()
+        if sessionStatus.shouldQuit:
+            break
+
     # free resources
     destroyMirrorTexture()
     destroyTextureSwapChain(TEXTURE_SWAP_CHAIN0)
-    destroy()
-
-    # end the rift session cleanly
-    shutdown()
 
     # close the GLFW application
     glfw.terminate()
+
+    # end the rift session cleanly
+    destroy()
+    shutdown()
 
     return 0
 

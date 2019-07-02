@@ -774,14 +774,6 @@ cdef class LibOVRPose(object):
         ori : tuple, list, or ndarray of float
             Orientation quaternion vector (x, y, z, w).
 
-        Attributes
-        ----------
-        pos : ndarray
-        ori : ndarray
-        posOri : tuple of ndarray
-        at : ndarray
-        up : ndarray
-
         """
         self._new_struct(pos, ori)
 
@@ -945,7 +937,7 @@ cdef class LibOVRPose(object):
 
     @property
     def pos(self):
-        """Position vector [X, Y, Z].
+        """~numpy.ndarray : Position vector [X, Y, Z].
 
         Examples
         --------
@@ -995,13 +987,6 @@ cdef class LibOVRPose(object):
         ~numpy.ndarray
             Position coordinate of this pose.
 
-        Raises
-        ------
-        ValueError
-            Buffer dtype mismatch where float32 was expected.
-        IndexError
-            Out of bounds on buffer access.
-
         Examples
         --------
 
@@ -1049,7 +1034,7 @@ cdef class LibOVRPose(object):
 
     @property
     def ori(self):
-        """Orientation quaternion [X, Y, Z, W].
+        """~numpy.ndarray : Orientation quaternion [X, Y, Z, W].
         """
         return self._ori
 
@@ -1074,13 +1059,6 @@ cdef class LibOVRPose(object):
         -------
         ~numpy.ndarray
             Orientation quaternion of this pose.
-
-        Raises
-        ------
-        ValueError
-            Buffer dtype mismatch where float32 was expected.
-        IndexError
-            Out of bounds on buffer access.
 
         Notes
         -----
@@ -1117,7 +1095,8 @@ cdef class LibOVRPose(object):
 
     @property
     def posOri(self):
-        """Position vector and orientation quaternion."""
+        """tuple (~numpy.ndarray, ~numpy.ndarray) : Position vector and orientation quaternion.
+        """
         return self.pos, self.ori
 
     @posOri.setter
@@ -1127,7 +1106,9 @@ cdef class LibOVRPose(object):
 
     @property
     def at(self):
-        """Forward vector of this pose (-Z is forward) (read-only)."""
+        """~numpy.ndarray : Forward vector of this pose (-Z is forward)
+        (read-only).
+        """
         return self.getAt()
 
     def getAt(self, object out=None):
@@ -1143,13 +1124,6 @@ cdef class LibOVRPose(object):
         -------
         ~numpy.ndarray
             The vector for `at`.
-
-        Raises
-        ------
-        ValueError
-            Buffer dtype mismatch where float32 was expected.
-        IndexError
-            Out of bounds on buffer access.
 
         Notes
         -----
@@ -1186,7 +1160,7 @@ cdef class LibOVRPose(object):
 
     @property
     def up(self):
-        """Up vector of this pose (+Y is up) (read-only)."""
+        """~numpy.ndarray : Up vector of this pose (+Y is up) (read-only)."""
         return self.getUp()
 
     def getUp(self, object out=None):
@@ -1202,13 +1176,6 @@ cdef class LibOVRPose(object):
         -------
         ~numpy.ndarray
             The vector for `up`.
-
-        Raises
-        ------
-        ValueError
-            Buffer dtype mismatch where float32 was expected.
-        IndexError
-            Out of bounds on buffer access.
 
         Notes
         -----
@@ -2670,7 +2637,7 @@ cdef class LibOVRBoundaryTestResult(object):
         return to_return
 
     @property
-    def closetPointNormal(self):
+    def closestPointNormal(self):
         """Unit normal of the closest boundary surface."""
         cdef np.ndarray[float, ndim=1] to_return = np.asarray([
             self.c_data.ClosestPointNormal.x,
@@ -3673,8 +3640,8 @@ def getPixelsPerDegree(int eye):
         _eyeRenderDesc[eye].PixelsPerTanAngleAtCenter
 
     # tan(angle)=1 -> 45 deg
-    cdef float horzPixelPerDeg = pixelsPerTanAngle.x / 45.0
-    cdef float vertPixelPerDeg = pixelsPerTanAngle.y / 45.0
+    cdef float horzPixelPerDeg = <float>pixelsPerTanAngle.x / <float>45.0
+    cdef float vertPixelPerDeg = <float>pixelsPerTanAngle.y / <float>45.0
 
     return horzPixelPerDeg, vertPixelPerDeg
 
@@ -4915,11 +4882,6 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
     ~numpy.ndarray
         4x4 projection matrix.
 
-    Raises
-    ------
-    AssertionError
-        Dimensions, shape, and data type for `out` is incorrect.
-
     Examples
     --------
 
@@ -5660,7 +5622,7 @@ def getBoundaryDimensions(int boundaryType):
 
     Returns
     -------
-    tuple` (int, ~numpy.ndarray)
+    tuple (int, ~numpy.ndarray)
         Result of the LibOVR APi call ``OVR::ovr_GetBoundaryDimensions`` and the
         dimensions of the boundary in meters [x, y, z].
 
@@ -5690,15 +5652,14 @@ def testBoundary(int deviceBitmask, int boundaryType):
         Devices to test. Multiple devices identifiers can be combined
         together. Valid device IDs are::
 
-        * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
-        * ``CONTROLLER_TYPE_REMOTE`` : Oculus Remote.
-        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
-        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
-        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
-        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
-        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
-        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
-        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
+        * ``TRACKED_DEVICE_TYPE_HMD``: The head or HMD.
+        * ``TRACKED_DEVICE_TYPE_LTOUCH``: Left touch controller or hand.
+        * ``TRACKED_DEVICE_TYPE_RTOUCH``: Right touch controller or hand.
+        * ``TRACKED_DEVICE_TYPE_TOUCH``: Both touch controllers.
+        * ``TRACKED_DEVICE_TYPE_OBJECT0``
+        * ``TRACKED_DEVICE_TYPE_OBJECT1``
+        * ``TRACKED_DEVICE_TYPE_OBJECT2``
+        * ``TRACKED_DEVICE_TYPE_OBJECT3``
 
     boundaryType : int
         Boundary type, can be ``BOUNDARY_OUTER`` or ``BOUNDARY_PLAY_AREA``.
@@ -5940,11 +5901,6 @@ def getButton(int controller, int button, str testState='continuous'):
     -------
     tuple (bool, float)
         Result of the button press and the time in seconds it was polled.
-
-    Raises
-    ------
-    ValueError
-        When an invalid controller, button, or state identifier is passed.
 
     See Also
     --------
