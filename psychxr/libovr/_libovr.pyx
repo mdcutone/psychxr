@@ -401,9 +401,6 @@ cdef capi.ovrErrorInfo _errorInfo  # store our last error here
 cdef capi.ovrInputState[9] _inputStates
 cdef capi.ovrInputState[9] _prevInputState
 
-# debug mode
-cdef bint _debugMode
-
 # geometric data
 cdef libovr_math.Matrix4f[2] _eyeProjectionMatrix
 cdef libovr_math.Matrix4f[2] _eyeViewMatrix
@@ -698,7 +695,7 @@ cdef np.npy_intp[1] VEC2_SHAPE = [2]
 cdef np.npy_intp[1] VEC3_SHAPE = [3]
 cdef np.npy_intp[1] FOVPORT_SHAPE = [4]
 cdef np.npy_intp[1] QUAT_SHAPE = [4]
-cdef np.npy_intp[2] MAT4_SHAPE = [4, 4]
+# cdef np.npy_intp[2] MAT4_SHAPE = [4, 4]
 
 
 cdef np.ndarray _wrap_ovrVector2f_as_ndarray(capi.ovrVector2f* prtVec):
@@ -948,7 +945,7 @@ cdef class LibOVRPose(object):
 
     @property
     def pos(self):
-        """Position vector [X, Y, Z] (`ndarray`).
+        """Position vector [X, Y, Z].
 
         Examples
         --------
@@ -982,7 +979,7 @@ cdef class LibOVRPose(object):
         self._pos[:] = value
 
     def getPos(self, object out=None):
-        """Position vector X, Y, Z (`ndarray` of `float`).
+        """Position vector X, Y, Z.
 
         The returned object is a NumPy array which contains a copy of the data
         stored in an internal structure (ovrPosef). The array is conformal with
@@ -990,12 +987,12 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        out : ndarray or None
-            Option array to write values to. Must have a float32 data type.
+        out : ~numpy.ndarray or None
+            Optional array to write values to. Must have a float32 data type.
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             Position coordinate of this pose.
 
         Raises
@@ -1042,7 +1039,7 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        pos : list, tuple of float or ndarray
+        pos : `array_like`
             Position vector [X, Y, Z].
 
         """
@@ -1052,7 +1049,7 @@ cdef class LibOVRPose(object):
 
     @property
     def ori(self):
-        """Orientation quaternion [X, Y, Z, W] (`ndarray`).
+        """Orientation quaternion [X, Y, Z, W].
         """
         return self._ori
 
@@ -1061,9 +1058,8 @@ cdef class LibOVRPose(object):
         self._ori[:] = value
 
     def getOri(self, object out=None):
-        """Orientation quaternion X, Y, Z, W (`ndarray` of `float`).
-
-        Components X, Y, Z are imaginary and W is real.
+        """Orientation quaternion X, Y, Z, W. Components X, Y, Z are imaginary
+        and W is real.
 
         The returned object is a NumPy array which references data stored in an
         internal structure (ovrPosef). The array is conformal with the internal
@@ -1071,12 +1067,12 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        out : ndarray or None
-            Option array to write values to. Must have a float32 data type.
+        out : ~numpy.ndarray  or None
+            Optional array to write values to. Must have a float32 data type.
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             Orientation quaternion of this pose.
 
         Raises
@@ -1110,7 +1106,7 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        ori : list, tuple of float or ndarray
+        ori : array_like
             Orientation quaternion [X, Y, Z, W].
 
         """
@@ -1139,13 +1135,13 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        out : ndarray or None
-            Option array to write values to. Must have shape (3,) and a float32
+        out : ~numpy.ndarray or None
+            Optional array to write values to. Must have shape (3,) and a float32
             data type.
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             The vector for `at`.
 
         Raises
@@ -1198,13 +1194,13 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        out : ndarray, optional
-            Option array to write values to. Must have shape (3,) and a float32
+        out : ~numpy.ndarray, optional
+            Optional array to write values to. Must have shape (3,) and a float32
             data type.
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             The vector for `up`.
 
         Raises
@@ -1251,6 +1247,27 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
+    def getAxisAngle(self):
+        """The axis and angle of rotation for this pose's orientation.
+
+        Returns
+        -------
+        tuple (~numpy.ndarray, float)
+            Axis and angle.
+
+        """
+        cdef libovr_math.Vector3f axis
+        cdef float angle
+        cdef np.ndarray[np.float32_t, ndim=1] ret_axis = \
+            np.zeros((3,), dtype=np.float32)
+
+        (<libovr_math.Quatf>self.c_data.Orientation).GetAxisAngle(&axis, &angle)
+        ret_axis[0] = angle.x
+        ret_axis[1] = angle.y
+        ret_axis[2] = angle.z
+
+        return angle, ret_axis
+
     def getYawPitchRoll(self, LibOVRPose refPose=None, object out=None):
         """Get the yaw, pitch, and roll of the orientation quaternion.
 
@@ -1259,13 +1276,13 @@ cdef class LibOVRPose(object):
         refPose : LibOVRPose, optional
             Reference pose to compute angles relative to. If None is specified,
             computed values are referenced relative to the world axes.
-        out : ndarray
+        out : ~numpy.ndarray
             Alternative place to write yaw, pitch, and roll values. Must have
             shape (3,) and a float32 data type.
 
         Returns
         -------
-        ndarray of float or None
+        ~numpy.ndarray
             Yaw, pitch, and roll of the pose in degrees.
 
         Notes
@@ -1302,16 +1319,16 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        inverse : bool, optional
+        inverse : bool
             If True, return the inverse of the matrix.
-        out : ndarray
+        out : ~numpy.ndarray
             Alternative place to write the matrix to values. Must be a `ndarray`
             of shape (4, 4,) and have a data type of float32. Values are written
             assuming row-major order.
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             4x4 transformation matrix.
 
         """
@@ -1353,7 +1370,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        :py:class:`LibOVRPose`
+        LibOVRPose
             Inverted pose.
 
         Notes
@@ -1388,12 +1405,12 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        v : tuple, list, or ndarray of float
+        v : array_like
             Vector to rotate.
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             Vector rotated by the pose's orientation.
 
         Notes
@@ -1417,12 +1434,12 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        v : tuple, list, or ndarray of float
+        v : array_like
             Vector to rotate.
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             Vector rotated by the pose's inverse orientation.
 
         Notes
@@ -1446,12 +1463,12 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        v : tuple, list, or ndarray of float
+        v : array_like
             Vector to translate [x, y, z].
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             Vector translated by the pose's position.
 
         Notes
@@ -1475,12 +1492,12 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        v : tuple, list, or ndarray of float
+        v : array_like
             Vector to transform [x, y, z].
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             Vector transformed by the pose's position and orientation.
 
         Notes
@@ -1504,12 +1521,12 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        v : tuple, list, or ndarray of float
+        v : array_like
             Vector to transform (x, y, z).
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             Vector transformed by the inverse of the pose's position and
             orientation.
 
@@ -1535,12 +1552,12 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        v : tuple, list, or ndarray of float
+        v : array_like
             Vector to transform (x, y, z).
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             Vector transformed by the pose's position and orientation.
 
         Notes
@@ -1565,12 +1582,12 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        v : tuple, list, or ndarray of float
+        v : array_like
             Vector to transform (x, y, z).
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             Vector transformed by the pose's position and orientation.
 
         Notes
@@ -1595,12 +1612,12 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        v : tuple, list, or ndarray of float
+        v : array_like
             Vector to transform (x, y, z).
 
         Returns
         -------
-        ndarray
+        ~numpy.ndarray
             Vector transformed by the pose's position and orientation.
 
         """
@@ -1620,13 +1637,13 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        v : tuple, list, ndarray, or LibOVRPose
+        v : array_like
             Vector to transform (x, y, z).
 
         Returns
         -------
         float
-            Distance to a point or Pose.
+            Distance to a point or LibOVRPose.
 
         Examples
         --------
@@ -1704,11 +1721,11 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        targetPose : tuple, list, or ndarray of floats
+        targetPose : array_like
             Coordinates of the center of the target sphere (x, y, z).
         radius : float, optional
             The radius of the target.
-        rayDir : tuple, list, or ndarray of floats, optional
+        rayDir : array_like, optional
             Vector indicating the direction for the ray (default is -Z).
         maxRange : float, optional
             The maximum range of the ray. Ray testing will fail automatically if
@@ -1833,7 +1850,7 @@ cdef class LibOVRPoseState(object):
     returns an instance of this class. Velocity and acceleration for linear and
     angular motion can be used to compute forces applied to rigid bodies and
     predict the future positions of objects (see
-    :py:method:`~psychxr.libovr.LibOVRPoseState.timeIntegrate`).
+    :py:meth:`~psychxr.libovr.LibOVRPoseState.timeIntegrate`).
 
     """
     cdef capi.ovrPoseStatef* c_data
@@ -1850,12 +1867,12 @@ cdef class LibOVRPoseState(object):
         """
         Attributes
         ----------
-        pose : :obj:`LibOVRPose`
-        angularVelocity : `ndarray`
-        linearVelocity : `ndarray`
-        angularAcceleration : `ndarray`
-        linearAcceleration : `ndarray`
-        timeInSeconds : `float`
+        pose : LibOVRPose
+        angularVelocity : ndarray
+        linearVelocity : ndarray
+        angularAcceleration : ndarray
+        linearAcceleration : ndarray
+        timeInSeconds : float
 
         """
         self._new_struct()
@@ -1925,9 +1942,9 @@ cdef class LibOVRPoseState(object):
     def __deepcopy__(self, memo=None):
         """Deep copy returned by :py:func:`copy.deepcopy`.
 
-        New `LibOVRPoseState` instance with a copy of the data in a separate
-        memory location. Does not increase the reference count of the object
-        being copied.
+        New :py:class:`LibOVRPoseState` instance with a copy of the data in a
+        separate memory location. Does not increase the reference count of the
+        object being copied.
 
         Examples
         --------
@@ -2176,15 +2193,21 @@ cdef class LibOVRHmdInfo(object):
         """
         Attributes
         ----------
-        isVisible : bool
-        hmdPresent : bool
-        hmdMounted : bool
-        displayLost : bool
-        shouldQuit : bool
-        shouldRecenter : bool
-        hasInputFocus : bool
-        overlayPresent : bool
-        depthRequested : bool
+        hmdType : int
+        hasOrientationTracking : bool
+        hasPositionTracking : bool
+        hasMagYawCorrection : bool
+        isDebugDevice : bool
+        productName : str
+        manufacturer : str
+        serialNumber : str
+        resolution : tuple
+        refreshRate : float
+        hid : tuple
+        firmwareVersion : tuple
+        defaultEyeFov : tuple (~numpy.ndarray and ~numpy.ndarray)
+        maxEyeFov : tuple (~numpy.ndarray and ~numpy.ndarray)
+        symmetricEyeFov : tuple (~numpy.ndarray and ~numpy.ndarray)
 
         """
         self.newStruct()
@@ -2221,7 +2244,7 @@ cdef class LibOVRHmdInfo(object):
 
     @property
     def hmdType(self):
-        """HMD type.
+        """HMD type currently used.
 
         Valid values returned are ``HMD_NONE``, ``HMD_DK1``, ``HMD_DKHD``,
         ``HMD_DK2``, ``HMD_CB``, ``HMD_OTHER``, ``HMD_E3_2015``, ``HMD_ES06``,
@@ -2262,7 +2285,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        `str`
+        str
             Product name string (utf-8).
 
         """
@@ -2274,7 +2297,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        `str`
+        str
             Manufacturer name string (utf-8).
 
         """
@@ -2286,7 +2309,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        `str`
+        str
             Serial number (utf-8).
 
         """
@@ -2298,7 +2321,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        `ndarray`
+        ~numpy.ndarray
             Resolution of the display [w, h].
 
         """
@@ -2311,7 +2334,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        `float`
+        ~numpy.ndarray
             Refresh rate in Hz.
 
         """
@@ -2323,7 +2346,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        `tuple` (`int`, `int`)
+        tuple (int, int)
             USB HIDs (vendor, product).
 
         """
@@ -2335,7 +2358,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        `tuple`
+        tuple (int, int)
             Firmware version (major, minor).
 
         """
@@ -2348,7 +2371,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        `tuple` (`ndarray` and `ndarray`)
+        tuple (~numpy.ndarray, ~numpy.ndarray)
             Pair of left and right eye FOVs specified as tangent angles [Up,
             Down, Left, Right].
 
@@ -2375,7 +2398,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        `tuple` (`ndarray` and `ndarray`)
+        tuple (~numpy.ndarray, ~numpy.ndarray)
             Pair of left and right eye FOVs specified as tangent angles in
             radians [Up, Down, Left, Right].
 
@@ -2405,7 +2428,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        `tuple` (`ndarray` and `ndarray`)
+        tuple (~numpy.ndarray, ~numpy.ndarray)
             Pair of left and right eye FOVs specified as tangent angles in
             radians [Up, Down, Left, Right]. Both FOV objects will have the same
             values.
@@ -2761,7 +2784,8 @@ cdef class LibOVRPerfStatsPerCompositorFrame(object):
     @property
     def appMotionToPhotonLatency(self):
         """Motion-to-photon latency in seconds computed using the marker set by
-        :func:`getTrackingState` or the sensor sample time set by :func:`.
+        :func:`getTrackingState` or the sensor sample time set by
+        :func:`setSensorSampleTime`.
         """
         return self.c_data.AppMotionToPhotonLatency
 
@@ -2859,7 +2883,7 @@ cdef class LibOVRPerfStats(object):
         """
         Attributes
         ----------
-        frameStats : tuple of `LibOVRPerfStatsPerCompositorFrame`
+        frameStats : tuple
         frameStatsCount : int
         anyFrameStatsDropped : bool
         adaptiveGpuPerformanceScale : float
@@ -3175,7 +3199,7 @@ def setFloatArray(bytes propertyName, np.ndarray[np.float32_t, ndim=1] values):
     ----------
     propertyName : bytes
         Name of the property to set.
-    values : ndarray
+    values : ~numpy.ndarray
         Value to write, must be 1-D and have dtype=float32.
 
     Returns
@@ -3212,7 +3236,7 @@ def getFloatArray(bytes propertyName, np.ndarray[np.float32_t, ndim=1] values no
     ----------
     propertyName : bytes
         Name of the property to get.
-    values : ndarray
+    values : ~numpy.ndarray
         Output array array for values, must be 1-D and have dtype=float32.
 
     Returns
@@ -3287,7 +3311,7 @@ def getString(bytes propertyName, object defaultVal=''):
     ----------
     propertyName : bytes
         Name of the property to get.
-    defaultVal : str, bytes, optional
+    defaultVal : bytes, optional
         Return value if the property could not be set. Returns 0.0 if not
         specified.
 
@@ -3585,7 +3609,7 @@ def getPixelsPerTanAngleAtCenter(int eye):
 
     Returns
     -------
-    tuple of floats
+    tuple
         Pixels per tan angle at the center of the screen.
 
     """
@@ -3609,7 +3633,7 @@ def getTanAngleToRenderTargetNDC(int eye, object tanAngle):
 
     Returns
     -------
-    `tuple`
+    tuple
         NDC coordinates X, Y [-1, 1].
 
     """
@@ -3639,8 +3663,8 @@ def getPixelsPerDegree(int eye):
 
     Returns
     -------
-    `tuple` of `float`
-        Pixels per degree at the center of the screen.
+    tuple
+        Pixels per degree at the center of the screen (h, v).
 
     """
     global _eyeRenderDesc
@@ -3692,7 +3716,7 @@ def getEyeRenderFov(int eye):
 
     Returns
     -------
-    ndarray of float
+    ~numpy.ndarray
         Eye FOV tangent angles [UpTan, DownTan, LeftTan, RightTan].
 
     Examples
@@ -3729,7 +3753,7 @@ def setEyeRenderFov(int eye, object fov):
     ----------
     eye : int
         Eye index. Values are ``EYE_LEFT`` and ``EYE_RIGHT``.
-    fov : tuple, list or ndarray of floats
+    fov : array_like
         Eye FOV tangent angles [UpTan, DownTan, LeftTan, RightTan].
 
     Examples
@@ -3867,7 +3891,7 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
 
     Returns
     -------
-    `tuple` of `tuple`
+    tuple
         Buffer widths and heights (w, h) for each eye.
 
     Examples
@@ -4066,7 +4090,7 @@ def getTextureSwapChainLengthGL(int swapChain):
 
     Returns
     -------
-    `tuple` of `int`
+    tuple of int
         Result of the ``ovr_GetTextureSwapChainLength`` API call and the
         length of that swap chain.
 
@@ -4113,7 +4137,7 @@ def getTextureSwapChainCurrentIndex(int swapChain):
 
     Returns
     -------
-    `tuple` of `int`
+    tuple of int
         Result of the ``OVR::ovr_GetTextureSwapChainCurrentIndex`` API call and
         the index of the buffer.
 
@@ -4154,7 +4178,7 @@ def getTextureSwapChainBufferGL(int swapChain, int index):
 
     Returns
     -------
-    `tuple` (`int`, `int`)
+    tuple (int, int)
         Result of the ``OVR::ovr_GetTextureSwapChainBufferGL`` API call and the
         OpenGL texture buffer name. A OpenGL buffer name is invalid when 0,
         check the returned API call result for an error condition.
@@ -4304,7 +4328,7 @@ def getMirrorTexture():
 
     Returns
     -------
-    `tuple` (`int`, `int`)
+    tuple (int, int)
         Result of API call ``OVR::ovr_GetMirrorTextureBufferGL`` and the mirror
         texture ID. A mirror texture ID == 0 is invalid.
 
@@ -4434,14 +4458,14 @@ def getTrackingState(double absTime, bint latencyMarker=True):
 
     Parameters
     ----------
-    absTime : `float`
+    absTime : float
         Absolute time in seconds which the tracking state refers to.
-    latencyMarker : `bool`
+    latencyMarker : bool
         Insert a latency marker for motion-to-photon calculation.
 
     Returns
     -------
-    `tuple` (`dict`, :class:`LibOVRPose`)
+    tuple (dict, LibOVRPose)
         Dictionary of tracking states and calibrated origin used for tracking.
 
     Examples
@@ -4509,7 +4533,7 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
 
     Parameters
     ----------
-    deviceTypes : `list` or `tuple` of `int`
+    deviceTypes : list or tuple of int
         List of device types. Valid device types identifiers are:
 
         * ``TRACKED_DEVICE_TYPE_HMD`` : The head or HMD.
@@ -4525,9 +4549,9 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
         * ``TRACKED_DEVICE_TYPE_OBJECT2``
         * ``TRACKED_DEVICE_TYPE_OBJECT3``
 
-    absTime : `float`
+    absTime : float
         Absolute time in seconds poses refer to.
-    latencyMarker: `bool`, optional
+    latencyMarker: bool, optional
         Insert a marker for motion-to-photon latency calculation. Set this to
         False if :func:`getTrackingState` was previously called and a latency
         marker was set there.
@@ -4725,7 +4749,7 @@ def getHmdToEyePose(int eye):
 
     Returns
     -------
-    `tuple` of :py:class:`LibOVRPose`
+    tuple (LibOVRPose, LibOVRPose)
         Copy of the HMD to eye pose.
 
     See Also
@@ -4789,7 +4813,7 @@ def getEyeRenderPose(int eye):
 
     Returns
     -------
-    `tuple` of `LibOVRPose`
+    tuple (LibOVRPose, LibOVRPose)
         Copies of the HMD to eye poses for the left and right eye.
 
     See Also
@@ -4888,7 +4912,7 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
 
     Returns
     -------
-    `ndarray`
+    ~numpy.ndarray
         4x4 projection matrix.
 
     Raises
@@ -4969,8 +4993,8 @@ def getEyeRenderViewport(int eye, object out=None):
 
     Returns
     -------
-    ndarray of int or None
-        Viewport rectangle [x, y, w, h]. None if 'outRect' was specified.
+    ~numpy.ndarray
+        Viewport rectangle [x, y, w, h].
 
     """
     global _eyeLayer
@@ -4999,7 +5023,7 @@ def setEyeRenderViewport(int eye, object values):
     ----------
     eye: int
         Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
-    `ndarray`, `list`, or `tuple` of `ints`
+    array_like
         Viewport rectangle [x, y, w, h].
 
     Examples
@@ -5041,7 +5065,7 @@ def getEyeViewMatrix(int eye, object out=None):
     ----------
     eye: int
         Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
-    out : `ndarray` or `None`, optional
+    out : ~numpy.ndarray or None, optional
         Optional array to write to. Must have ndim=2, dtype=np.float32, and
         shape == (4,4).
 
@@ -5074,12 +5098,12 @@ def getPredictedDisplayTime(unsigned int frameIndex=0):
 
     Parameters
     ----------
-    frameIndex : `int`
+    frameIndex : int
         Frame index.
 
     Returns
     -------
-    `float`
+    float
         Absolute frame mid-point time for the given frame index in seconds.
 
     """
@@ -5096,7 +5120,7 @@ def timeInSeconds():
 
     Returns
     -------
-    `float`
+    float
         Time in seconds.
 
     """
@@ -5111,7 +5135,7 @@ def waitToBeginFrame(unsigned int frameIndex=0):
 
     Parameters
     ----------
-    frameIndex : `int`
+    frameIndex : int
         The target frame index.
 
     Returns
@@ -5136,7 +5160,7 @@ def beginFrame(unsigned int frameIndex=0):
 
     Parameters
     ----------
-    frameIndex : `int`
+    frameIndex : int
         The target frame index.
 
     Returns
@@ -5159,7 +5183,7 @@ def commitTextureSwapChain(int eye):
 
     Parameters
     ----------
-    eye : `int`
+    eye : int
         Eye buffer index.
 
     Returns
@@ -5172,7 +5196,6 @@ def commitTextureSwapChain(int eye):
 
     Warning
     -------
-
     No additional drawing operations are permitted once the texture is committed
     until the SDK dereferences it, making it available again.
 
@@ -5195,12 +5218,12 @@ def endFrame(unsigned int frameIndex=0):
 
     Parameters
     ----------
-    frameIndex : `int`
+    frameIndex : int
         The target frame index.
 
     Returns
     -------
-    `tuple` of `int`
+    tuple (int, int)
         Error code returned by API call `OVR::ovr_EndFrame` and the absolute
         time in seconds `OVR::ovr_EndFrame` returned.
 
@@ -5291,7 +5314,6 @@ def recenterTrackingOrigin():
 
     Examples
     --------
-
     Recenter the tracking origin if requested by the session status::
 
         sessionStatus = getSessionStatus()
@@ -5311,7 +5333,7 @@ def specifyTrackingOrigin(LibOVRPose newOrigin):
 
     Parameters
     ----------
-    newOrigin : :class:`LibOVRPose`
+    newOrigin : LibOVRPose
         New origin to use.
 
     """
@@ -5378,7 +5400,7 @@ def getSessionStatus():
 
     Returns
     -------
-    `tuple` (`int`, :py:class:`LibOVRSessionStatus`)
+    tuple (int, LibOVRSessionStatus)
         Result of LibOVR API call ``OVR::ovr_GetSessionStatus`` and a
         :py:class:`LibOVRSessionStatus`.
 
@@ -5426,7 +5448,7 @@ def getPerfStats():
 
     Returns
     -------
-    :class:`LibOVRPerfStats`
+    LibOVRPerfStats
         Frame statistics.
 
     Notes
@@ -5469,7 +5491,7 @@ def resetFrameStats():
     Returns
     -------
     int
-        Error code returned by `OVR::ovr_ResetPerfStats`.
+        Error code returned by ``OVR::ovr_ResetPerfStats``.
 
     """
     global _ptrSession
@@ -5489,7 +5511,7 @@ def getLastErrorInfo():
 
     Returns
     -------
-    `tuple` (`int`, `str`)
+    tuple (int, str)
         Tuple of the API call result and error string. If there was no API
         error, the function will return tuple (0, '<unknown>').
 
@@ -5575,7 +5597,7 @@ def getBoundaryVisible():
 
     Returns
     -------
-    `tuple` (`int`, `bool`)
+    tuple (int, bool)
         Result of the LibOVR API call ``OVR::ovr_GetBoundaryVisible`` and the 
         boundary state.
 
@@ -5638,7 +5660,7 @@ def getBoundaryDimensions(int boundaryType):
 
     Returns
     -------
-    `tuple` (`int`, `ndarray`)
+    tuple` (int, ~numpy.ndarray)
         Result of the LibOVR APi call ``OVR::ovr_GetBoundaryDimensions`` and the
         dimensions of the boundary in meters [x, y, z].
 
@@ -5683,7 +5705,7 @@ def testBoundary(int deviceBitmask, int boundaryType):
 
     Returns
     -------
-    `tuple` of `int and :py:class:LibOVRBoundaryTestResult
+    tuple (int, LibOVRBoundaryTestResult)
         Result of the ``OVR::ovr_TestBoundary` LibOVR API call and
         collision test results.
 
@@ -5791,7 +5813,7 @@ def updateInputState(int controller):
 
     Returns
     -------
-    `tuple` (`int`, `float`)
+    tuple (int, float)
         Result of the ``OVR::ovr_GetInputState`` LibOVR API call and polling 
         time in seconds.
 
@@ -5916,7 +5938,7 @@ def getButton(int controller, int button, str testState='continuous'):
 
     Returns
     -------
-    `tuple` (`bool`, `float`)
+    tuple (bool, float)
         Result of the button press and the time in seconds it was polled.
 
     Raises
@@ -6013,7 +6035,7 @@ def getTouch(int controller, int touch, str testState='continuous'):
 
     Parameters
     ----------
-    controller : `int`
+    controller : int
         Controller name. Valid values are:
 
         * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
@@ -6026,7 +6048,7 @@ def getTouch(int controller, int touch, str testState='continuous'):
         * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
         * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
 
-    touch : `int`
+    touch : int
         Touch to check. Values can be ORed together to test for multiple
         touches. If a given controller does not have a particular touch, False
         will always be returned. Valid button values are:
@@ -6048,13 +6070,13 @@ def getTouch(int controller, int touch, str testState='continuous'):
         * ``TOUCH_LINDEXPOINTING``
         * ``TOUCH_LTHUMBUP``
 
-    testState : `str`
+    testState : str
         State to test touches for. Valid states are 'rising', 'falling',
         'continuous', 'pressed', and 'released'.
 
     Returns
     -------
-    `tuple` (`bool`, `float`)
+    tuple (bool, float)
         Result of the touches and the time in seconds it was polled.
 
     See Also
@@ -6141,7 +6163,7 @@ def getThumbstickValues(int controller, bint deadzone=False):
 
     Parameters
     ----------
-    controller : `int`
+    controller : int
         Controller name. Valid values are:
 
         * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
@@ -6154,12 +6176,12 @@ def getThumbstickValues(int controller, bint deadzone=False):
         * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
         * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
 
-    deadzone : `bool`
+    deadzone : bool
         Apply a deadzone if True.
 
     Returns
     -------
-    tuple
+    tuple (float, float)
         Thumbstick values.
 
     Examples
@@ -6230,7 +6252,7 @@ def getIndexTriggerValues(int controller, bint deadzone=False):
 
     Parameters
     ----------
-    controller : `int`
+    controller : int
         Controller name. Valid values are:
 
         * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
@@ -6245,7 +6267,7 @@ def getIndexTriggerValues(int controller, bint deadzone=False):
 
     Returns
     -------
-    `tuple`
+    tuple (float, float)
         Trigger values (left, right).
 
     See Also
@@ -6325,7 +6347,7 @@ def getHandTriggerValues(int controller, bint deadzone=False):
 
     Parameters
     ----------
-    controller : `int`
+    controller : int
         Controller name. Valid values are:
 
         * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
@@ -6340,7 +6362,7 @@ def getHandTriggerValues(int controller, bint deadzone=False):
 
     Returns
     -------
-    tuple
+    tuple (float, float)
         Trigger values (left, right).
 
     See Also
