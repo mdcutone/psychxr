@@ -11,3 +11,4 @@ Oculus Rift (LibOVR)
    :maxdepth: 1
 
    examples/libovr_helloworld
+   examples/libovr_rendering
