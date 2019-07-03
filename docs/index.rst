@@ -59,6 +59,15 @@ Related Projects
   `PsychToolbox <http://psychtoolbox.org/>`_ package for similar functionality
   to PsychXR.
 
+How to Cite PsychXR
+-------------------
+
+If you use PsychXR in one of your projects, please consider citing it using the
+following:
+
+   Cutone, M. D. & Wilcox, L. M. (2018). PsychXR (Version 0.2.0) [Software].
+   Available from https://github.com/mdcutone/psychxr.
+
 Site Index
 ----------
 
