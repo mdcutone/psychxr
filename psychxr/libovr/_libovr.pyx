@@ -4879,7 +4879,7 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
     Parameters
     ----------
     eye: int
-        Eye index. Use either `EYE_LEFT`` or ``EYE_RIGHT``.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
     nearClip : `float`, optional
         Near clipping plane in meters.
     farClip : `float`, optional
@@ -5660,7 +5660,7 @@ def testBoundary(int deviceBitmask, int boundaryType):
     ----------
     deviceBitmask : int
         Devices to test. Multiple devices identifiers can be combined
-        together. Valid device IDs are::
+        together. Valid device IDs are:
 
         * ``TRACKED_DEVICE_TYPE_HMD``: The head or HMD.
         * ``TRACKED_DEVICE_TYPE_LTOUCH``: Left touch controller or hand.
