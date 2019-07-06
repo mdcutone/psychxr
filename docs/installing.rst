@@ -56,12 +56,12 @@ extensions on that platform.
 
 Download the `Oculus SDK for Windows
 <https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/>`_
-(version v1.38.0 is recommended) and extract the zip file somewhere accessible
+(version v1.37.0 is recommended) and extract the zip file somewhere accessible
 on your PC. You can download the latest source distribution package for PsychXR
 from the `releases <https://github.com/mdcutone/psychxr/releases>`_ page.
 
 .. note:: If you build PsychXR using a version of the Oculus PC SDK other than
-          1.38, a warning will be raised upon importing the module. The software
+          1.37, a warning will be raised upon importing the module. The software
           should work fine if the SDK version is newer and has no breaking
           changes. However, this may result in unexpected behaviour!
 
