@@ -2224,7 +2224,13 @@ cdef class LibOVRHmdInfo(object):
 
         Valid values returned are ``HMD_NONE``, ``HMD_DK1``, ``HMD_DKHD``,
         ``HMD_DK2``, ``HMD_CB``, ``HMD_OTHER``, ``HMD_E3_2015``, ``HMD_ES06``,
-        ``HMD_ES09``, ``HMD_ES11``, ``HMD_CV1``, and ``HMD_RIFTS``.
+        ``HMD_ES09``, ``HMD_ES11``, and ``HMD_CV1``.
+
+        Notes
+        -----
+        * LibOVR (1.37) will return ``HMD_CV1`` when using the Rift S for
+          backwards compatibility. However :py:attr:`~LibOVRHmdInfo.productName`
+          will return ``'Oculus Rift S'``.
 
         """
         return <int>self.c_data.Type

@@ -1,7 +1,7 @@
 This file contains changes introduced to PsychXR for each version. Breaking
 changes may be incompatible with your current code.
 
-Version 0.2.0 - 2019/21/02
+Version 0.2.0 - 2019/07/06
 --------------------------
 
 Overview:
@@ -48,6 +48,7 @@ New Features:
     - Controller states functions return time stamps and states in a single
     call.
     - Tracker/sensor information is now available.
+    - Many more ...
 
 Bug Fixes:
 
