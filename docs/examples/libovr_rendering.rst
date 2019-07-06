@@ -68,8 +68,8 @@ If both ``initialize()`` and ``create()`` return no errors, the session has been
 successfully created. At this point, the Oculus application will start if not
 already running in the background.
 
-Setup Rendering
----------------
+Setup Eye Render Buffers
+------------------------
 
 We need to access data from `LibOVR` to instruct how to setup OpenGL for
 rendering. First, we need to get information about the particular model of HMD
@@ -128,9 +128,9 @@ calling::
 
     setHighQuality(True)
 
-Finally, we create an OpenGL framebuffer which will serve as a render target for
+We now create an OpenGL framebuffer which will serve as a render target for
 image buffers pulled from the swap chain. You must use the computed buffer sizes
-above to configure render buffers::
+above to configure associated render buffers::
 
     fboId = GL.GLuint()
     GL.glGenFramebuffers(1, ctypes.byref(fboId))
@@ -150,4 +150,19 @@ above to configure render buffers::
 
     GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0)
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+
+
+Finally we create a mirror texture using the size used when creating the GLFW
+window and create a framebuffer for it::
+
+    createMirrorTexture(800, 600)
+    mirrorFbo = GL.GLuint()
+    GL.glGenFramebuffers(1, ctypes.byref(mirrorFbo))
+
+Rendering to the HMD
+--------------------
+
+
+
+
 

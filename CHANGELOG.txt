@@ -31,10 +31,10 @@ New Features:
     - Added LibOVRPose, LibOVRPoseState, LibOVRSessionStatus, LibOVRHmdInfo,
     etc.
     - Library now exposes vectors, quaternions, and matrices as Numpy arrays.
-    - LibOVR version bump to 1.32.
+    - LibOVR version bump to 1.37.
     - Functions which call the LibOVR API return error/success codes, making it
     easier to write custom error handlers.
-    - More arguments for 'ovr.initialize()', such as 'focusAware'.
+    - More arguments for 'initialize()', such as 'focusAware'.
     - LibOVRPose handles rigid body pose data like 'ovr.math.Posef' did.
     - Added swap chain names 'LIBOVR_TEXTURE_SWAP_CHAIN*' so you don't need to
     define them yourself.
@@ -51,7 +51,7 @@ New Features:
 
 Bug Fixes:
 
-    - Cleaned up old and unused code from 'psychxr.ovr'.
+    - Cleaned up old and unused code from 'psychxr.libovr'.
     - Fixed crash when shutdown is called after a texture swap chain is created.
 
 Breaking Changes:

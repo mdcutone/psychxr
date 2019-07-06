@@ -250,7 +250,7 @@ __all__ = [
     'HMD_ES09',
     'HMD_ES11',
     'HMD_CV1',
-    'HMD_RIFTS',
+    # 'HMD_RIFTS',
     'LibOVRPose',
     'LibOVRPoseState',
     'LibOVRTrackerInfo',
@@ -423,7 +423,7 @@ cdef float maxf(float a, float b):
 # ------------------------------------------------------------------------------
 # Version checker
 
-if capi.OVR_MAJOR_VERSION != 1 or capi.OVR_MINOR_VERSION != 38:
+if capi.OVR_MAJOR_VERSION != 1 or capi.OVR_MINOR_VERSION != 37:
     # raise a warning if the version of the Oculus SDK may be incompatible
     warnings.warn(
         "PsychXR was built using version {major}.{minor} of the Oculus PC SDK "
@@ -687,7 +687,7 @@ HMD_ES06 = capi.ovrHmd_ES06
 HMD_ES09 = capi.ovrHmd_ES09
 HMD_ES11 = capi.ovrHmd_ES11
 HMD_CV1 = capi.ovrHmd_CV1
-HMD_RIFTS = capi.ovrHmd_RiftS
+# HMD_RIFTS = capi.ovrHmd_RiftS  # won't build
 
 # ------------------------------------------------------------------------------
 # Wrapper factory functions
