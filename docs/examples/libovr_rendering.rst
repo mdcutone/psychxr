@@ -133,6 +133,7 @@ We now start calling OpenGL commands to build our framebuffer. You can use
 importing::
 
     import OpenGL.GL as GL
+    import ctypes  # needed for some OpenGL commands
 
 We now create an OpenGL framebuffer which will serve as a render target for
 image buffers pulled from the swap chain. You must use the computed buffer sizes
