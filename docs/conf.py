@@ -24,9 +24,9 @@ copyright = '2018, Matthew D. Cutone'
 author = 'Matthew D. Cutone'
 
 # The short X.Y version
-version = '0.2'
+version = '0.2.0'
 # The full version, including alpha/beta/rc tags
-release = '0.2.0alpha'
+release = '0.2.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -167,7 +167,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'PsychXR', 'PsychXR Documentation',
-     author, 'PsychXR', 'One line description of project.',
+     author, 'PsychXR',
+     'PsychXR is a collection of Python extension libraries for interacting with eXtended Reality displays (HMDs), intended for neuroscience and psychology research applications.',
      'Miscellaneous'),
 ]
 
