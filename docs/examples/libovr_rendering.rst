@@ -400,10 +400,11 @@ calling the following commands::
 Conclusion
 ----------
 
-This example demonstrates how to use PsychXR with OpenGL to render VR scenes.
-Following the basic pattern shown here, you can render more complex scenes using
-OpenGL and utilize more features of your HMD hardware exposed by PsychXR. A
-complete executable version of the above example can be found `here
+This example demonstrates how to use PsychXR with OpenGL to render VR scenes in
+less than 200 lines of code. Following the basic pattern shown here, you can
+render more complex scenes using OpenGL and utilize more features of your HMD
+hardware exposed by PsychXR. A complete executable version of the above example
+can be found `here
 <https://github.com/mdcutone/psychxr/blob/master/demo/rift/libovr_headtracking.py>`_.
 
 
