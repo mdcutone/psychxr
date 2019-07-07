@@ -1,4 +1,5 @@
-# PsychXR Oculus Rift head tracking example. This file is public domain.
+# PsychXR Oculus Rift head tracking example. This file is public domain. See
+# See http://psychxr.org/examples/libovr_rendering.html for more information.
 #
 import OpenGL.GL as GL
 import ctypes
@@ -8,14 +9,12 @@ import sys
 
 
 def main():
-    # start GLFW
     if not glfw.init():
         return -1
 
     if not glfw.init():
         return -1
 
-    # for this example, we are using OpenGL 2.1 to keep things simple
     glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 2)
     glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 1)
 
@@ -27,9 +26,6 @@ def main():
     glfw.make_context_current(window)
 
     glfw.swap_interval(0)
-
-    # --------------------------------------------------------------------------
-    # Configure Rendering
 
     if failure(initialize()):
         return -1

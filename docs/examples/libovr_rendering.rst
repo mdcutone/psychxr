@@ -3,7 +3,8 @@ Rendering with OpenGL
 =====================
 
 This tutorial covers how to use PsychXR to render graphics to the Oculus Rift
-HMD using pure OpenGL and the :mod:`libovr` extension.
+HMD using pure OpenGL and the :mod:`libovr` extension. Futhermore, using
+rigid body transforms, head tracking, and input is also demonstrated.
 
 Setting up your application for rendering involves the following steps:
 
@@ -395,3 +396,15 @@ calling the following commands::
     # end the rift session cleanly
     destroy()
     shutdown()
+
+Conclusion
+----------
+
+This example demonstrates how to use PsychXR with OpenGL to render VR scenes.
+Following the basic pattern shown here, you can render more complex scenes using
+OpenGL and utilize more features of your HMD hardware exposed by PsychXR. A
+complete executable version of the above example can be found `here
+<https://github.com/mdcutone/psychxr/blob/master/demo/rift/libovr_headtracking.py>`_.
+
+
+
