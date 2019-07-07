@@ -2038,6 +2038,24 @@ cdef class LibOVRPoseState(object):
             newPose = oldPose.timeIntegrate(0.25)
             pos, ori = newPose.posOri  # extract components
 
+        Time integration can be used to predict the pose of an object at HMD
+        V-Sync if velocity and acceleration is known. Usually for predicting HMD
+        position, we would pass the predicted time to `getDevicePoses` or
+        `getTrackingState` directly and have `LibOVR` compute the pose offset.
+        For this example, we will use do so with the following::
+
+            tsec = timeInSeconds()
+            ptime = getPredictedDisplayTime(frame_index)
+
+            _, headPoseState = getDevicePoses(
+                [TRACKED_DEVICE_TYPE_HMD],
+                absTime=tsec,  # not the predicted time!
+                latencyMarker=True)
+
+            dt = ptime - tsec  # time difference from now and v-sync
+            headPoseAtVsync = headPose.timeIntegrate(dt)
+            calcEyePoses(headPoseAtVsync)
+
         """
         cdef libovr_math.Posef res = \
             (<libovr_math.Posef>self.c_data[0].ThePose).TimeIntegrate(
@@ -4537,7 +4555,8 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     latencyMarker: bool, optional
         Insert a marker for motion-to-photon latency calculation. Set this to
         False if :func:`getTrackingState` was previously called and a latency
-        marker was set there.
+        marker was set there. The latency marker is set to the absolute time
+        this function was called.
 
     Returns
     -------
@@ -4566,15 +4585,13 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     """
     # give a success code and empty pose list if an empty list was specified
     if not deviceTypes:
+        if latencyMarker:
+            _eyeLayer.SensorSampleTime = capi.ovr_GetTimeInSeconds()
         return capi.ovrSuccess, []
 
     global _ptrSession
     global _eyeLayer
     #global _devicePoses
-
-    # for computing app photon-to-motion latency
-    if latencyMarker:
-        _eyeLayer.SensorSampleTime = absTime
 
     # allocate arrays to store pose types and poses
     cdef int count = <int>len(deviceTypes)
@@ -4601,6 +4618,10 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
         count,
         absTime,
         devicePoses)
+
+    # for computing app photon-to-motion latency
+    if latencyMarker:
+        _eyeLayer.SensorSampleTime = capi.ovr_GetTimeInSeconds()
 
     # build list of device poses
     cdef list outPoses = list()
