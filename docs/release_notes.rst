@@ -20,7 +20,7 @@ so here is a summary of the biggest changes:
 
 **Oculus Rift Support (libovr)**
 
-* The `libovr` extension module is now built with version 1.38 of the Oculus
+* The `libovr` extension module is now built with version 1.37 of the Oculus
   Rift SDK, fully supporting the new Oculus Rift S. The module now emits a
   warning if built with a different version.
 * Installation automatically finds Oculus PC SDK header and library files. Only
@@ -35,7 +35,7 @@ so here is a summary of the biggest changes:
 `Click here to download PsychXR 0.2 <https://github.com/mdcutone/psychxr/releases>`_
 
 PsychoPy is still using version 0.1.4 of PsychXR for Rift integration. Expect
-support for 0.2 to be included in the coming weeks. To prevent breaking those
+support for 0.2.0 to be included in the coming weeks. To prevent breaking those
 installations, PsychXR 0.2 will not be uploaded to PIP until PsychoPy has been
-updated. However, you can download and install version 0.2 from the
+updated. However, you can download and install version 0.2.0 from the
 `releases <https://github.com/mdcutone/psychxr/releases>`_ page.

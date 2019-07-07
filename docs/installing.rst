@@ -28,7 +28,7 @@ If the binaries are not available for some reason (eg. your version of Python is
 too new), pip will try to build the source distribution (it will likely fail).
 In that case, see the "Building from Source" section for more information.
 
-**NOTE: PsychXR 0.2 is not yet available on PIP (only 0.1.4 at this time), please
+**NOTE: PsychXR 0.2.0 is not yet available on PIP (only 0.1.4 at this time), please
 follow the sections below if you wish to install it.**
 
 Installing Pre-Compiled Binaries
@@ -94,7 +94,7 @@ them appropriately. By default, the compiler will assume the SDK is located at
 you extracted it there.
 
 Now we can build the source package using the following command (replacing
-<version> with the current version of the package, which is **0.2**)::
+<version> with the current version of the package, which is **0.2.0**)::
 
     python -m pip install psychxr-<version>.tar.gz
 
