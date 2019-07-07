@@ -250,7 +250,6 @@ def main():
             break
 
         # flip the GLFW window and poll events
-        glfw.swap_buffers(window)
         glfw.poll_events()
 
         # check session status

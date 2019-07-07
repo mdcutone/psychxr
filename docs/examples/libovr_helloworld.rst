@@ -1,6 +1,6 @@
-==================
-LibOVR Hello World
-==================
+===============
+Minimal Example
+===============
 
 A minimal example to create a VR session using the LibOVR interface::
 
