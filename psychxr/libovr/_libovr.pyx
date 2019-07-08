@@ -1830,10 +1830,11 @@ cdef class LibOVRPoseState(object):
 
     Parameters
     ----------
-    pose : LibOVRPose, list or tuple
+    pose : LibOVRPose, list, tuple or None
         Rigid body pose this state refers to. Can be a `LibOVRPose` pose
         instance or a tuple/list of a position coordinate (x, y, z) and
-        orientation quaternion (x, y, z, w).
+        orientation quaternion (x, y, z, w). If ``None`` the pose will be
+        initialized as an identity pose.
     linearVelocity : tuple, list, or ndarray of float
         Linear acceleration vector [vx, vy, vz] in meters/sec.
     angularVelocity : tuple, list, or ndarray of float
@@ -1858,7 +1859,7 @@ cdef class LibOVRPoseState(object):
     cdef np.ndarray _angularAcceleration
 
     def __init__(self,
-                 object pose,
+                 object pose=None,
                  object linearVelocity=(0., 0., 0.),
                  object angularVelocity=(0., 0., 0.),
                  object linearAcceleration=(0., 0. ,0.),
@@ -1940,7 +1941,10 @@ cdef class LibOVRPoseState(object):
             &self.c_data.AngularAcceleration)
 
         # set values
-        if isinstance(pose, LibOVRPose):
+        if pose is None:
+            _ptr.ThePose.Position = [0., 0., 0.]
+            _ptr.ThePose.Orientation = [0., 0., 0., 1.]
+        elif isinstance(pose, LibOVRPose):
             _ptr.ThePose.Position = (<LibOVRPose>pose).c_data.Position
             _ptr.ThePose.Orientation = (<LibOVRPose>pose).c_data.Orientation
         elif isinstance(pose, (tuple, list,)):
