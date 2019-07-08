@@ -5,7 +5,7 @@
 #
 #  libovr_capi.pxd
 #
-#  Copyright 2018 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
+#  Copyright 2019 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University, 
 #  Toronto, Canada
 #
@@ -29,7 +29,7 @@
 # 
 """This file exposes Oculus Rift C API types and functions, allowing Cython
 extensions to access them. The declarations in the file are contemporaneous
-with version 1.32 (retrieved 02.01.2019) of the Oculus Rift PC SDK.
+with version 1.37 (retrieved 02.01.2019) of the Oculus Rift PC SDK.
 
 The Oculus PC SDK is Copyright (c) Facebook Technologies, LLC and its
 affiliates. All rights reserved.
@@ -235,8 +235,8 @@ cdef extern from "OVR_CAPI.h":
         ovrHmd_ES06 = 11,
         ovrHmd_ES09 = 12,
         ovrHmd_ES11 = 13,
-        ovrHmd_CV1 = 14,
-        ovrHmd_RiftS = 16
+        ovrHmd_CV1 = 14#,
+        #ovrHmd_RiftS = 16
 
     ctypedef enum ovrHmdCaps:
         ovrHmdCap_DebugDevice = 0x0010

@@ -4508,17 +4508,9 @@ def getTrackingState(double absTime, bint latencyMarker=True):
     values:
 
     * ``STATUS_ORIENTATION_TRACKED``: Orientation is tracked/reported.
-    * ``STATUS_ORIENTATION_VALID``: Orientation is valid for application use. If
-      ``STATUS_ORIENTATION_VALID`` is `True` but ``STATUS_ORIENTATION_TRACKED``
-      is `False`, the LibOVR runtime may be estimating orientation without
-      tracker data. If both values are `False`, the application should not rely
-      on the reported orientation data.
+    * ``STATUS_ORIENTATION_VALID``: Orientation is valid for application use.
     * ``STATUS_POSITION_TRACKED``: Position is tracked/reported.
-    * ``STATUS_POSITION_VALID``: Position is valid for application use. If
-      ``STATUS_POSITION_VALID`` is `True` but ``STATUS_POSITION_TRACKED``
-      is `False`, the LibOVR runtime may be estimating position without tracker
-      data. If both values are `False`, the application should not rely
-      on the reported position data.
+    * ``STATUS_POSITION_VALID``: Position is valid for application use.
 
     Parameters
     ----------
@@ -4625,7 +4617,7 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     -------
     tuple
         Return code (`int`) of the ``OVR::ovr_GetDevicePoses`` API call and list 
-        of tracked device poses (`list` of `:py:class:LibOVRPoseState`). If a
+        of tracked device poses (`list` of :py:class:`LibOVRPoseState`). If a
         device cannot be tracked, the return code will be
         ``ERROR_LOST_TRACKING``.
 

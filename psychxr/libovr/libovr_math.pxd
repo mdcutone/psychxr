@@ -5,7 +5,7 @@
 #
 #  libovr_math.pxd
 #
-#  Copyright 2018 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
+#  Copyright 2019 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University,
 #  Toronto, Canada
 #
