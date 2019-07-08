@@ -742,10 +742,20 @@ cdef class LibOVRPose(object):
     objects in a VR scene. Poses can be manipulated and interacted with using
     class methods and attributes.
 
+    Poses can be manipulated using operators such as ``*``, ``~``, and ``*=``.
+    One pose can be transformed by another by multiplying them using the
+    ``*`` operator::
+
+        newPose = pose1 * pose2
+
+    The above code returns `pose2` transformed by `pose1`. On can get the
+    inverse of a pose by using the ``~`` operator::
+
+        poseInverse = ~pose
+
     Poses can be converted to 4x4 transformation matrices. One can use these
     matrices when rendering to transform the vertices of a model associated with
-    the pose by passing them to OpenGL. Furthermore, poses can be used to
-    transform other poses and vectors.
+    the pose by passing them to OpenGL.
 
     This class is a wrapper for the ``OVR::ovrPosef`` data structure. Fields
     ``OVR::ovrPosef.Orientation`` and ``OVR::ovrPosef.Position`` are accessed
@@ -759,6 +769,13 @@ cdef class LibOVRPose(object):
     <https://developer.oculus.com/reference/libovr/1.38/o_v_r_math_8h/>`_, which
     is part of the Oculus PC SDK.
 
+    Parameters
+    ----------
+    pos : tuple, list, or ndarray of float
+        Position vector (x, y, z).
+    ori : tuple, list, or ndarray of float
+        Orientation quaternion vector (x, y, z, w).
+
     """
     cdef capi.ovrPosef* c_data
     cdef bint ptr_owner
@@ -767,15 +784,6 @@ cdef class LibOVRPose(object):
     cdef np.ndarray _ori
 
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
-        """
-        Parameters
-        ----------
-        pos : tuple, list, or ndarray of float
-            Position vector (x, y, z).
-        ori : tuple, list, or ndarray of float
-            Orientation quaternion vector (x, y, z, w).
-
-        """
         self._new_struct(pos, ori)
 
     def __cinit__(self, *args, **kwargs):
@@ -837,14 +845,6 @@ cdef class LibOVRPose(object):
         # copy into
         ptr[0] = <capi.ovrPosef>pose_r
         return LibOVRPose.fromPtr(ptr, True)
-
-    def __imul__(self, LibOVRPose other):
-        """Inplace multiplication operator (*=) to combine poses.
-        """
-        cdef libovr_math.Posef result = <libovr_math.Posef>self.c_data[0] * \
-                                        <libovr_math.Posef>other.c_data[0]
-        self.c_data[0] = <capi.ovrPosef>result
-        return self
 
     def __invert__(self):
         """Invert operator (~) to invert a pose."""
@@ -1828,6 +1828,24 @@ cdef class LibOVRPoseState(object):
     predict the future positions of objects (see
     :py:meth:`~psychxr.libovr.LibOVRPoseState.timeIntegrate`).
 
+    Parameters
+    ----------
+    pose : LibOVRPose, list or tuple
+        Rigid body pose this state refers to. Can be a `LibOVRPose` pose
+        instance or a tuple/list of a position coordinate (x, y, z) and
+        orientation quaternion (x, y, z, w).
+    linearVelocity : tuple, list, or ndarray of float
+        Linear acceleration vector [vx, vy, vz] in meters/sec.
+    angularVelocity : tuple, list, or ndarray of float
+        Angular velocity vector [vx, vy, vz] in radians/sec.
+    linearAcceleration : tuple, list, or ndarray of float
+        Linear acceleration vector [ax, ay, az] in meters/sec^2.
+    angularAcceleration : tuple, list, or ndarray of float
+        Angular acceleration vector [ax, ay, az] in radians/sec^2.
+    timeInSeconds : float
+        Time in seconds this state refers to.
+
+
     """
     cdef capi.ovrPoseStatef* c_data
     cdef bint ptr_owner  # owns the data
@@ -1839,7 +1857,14 @@ cdef class LibOVRPoseState(object):
     cdef np.ndarray _linearAcceleration
     cdef np.ndarray _angularAcceleration
 
-    def __init__(self):
+    def __init__(self,
+                 object pose,
+                 object linearVelocity=(0., 0., 0.),
+                 object angularVelocity=(0., 0., 0.),
+                 object linearAcceleration=(0., 0. ,0.),
+                 object angularAcceleration=(0., 0., 0.),
+                 double timeInSeconds=0.0
+                 ):
         """
         Attributes
         ----------
@@ -1851,9 +1876,15 @@ cdef class LibOVRPoseState(object):
         timeInSeconds : float
 
         """
-        self._new_struct()
+        self._new_struct(
+            pose,
+            linearVelocity,
+            angularVelocity,
+            linearAcceleration,
+            angularAcceleration,
+            timeInSeconds)
 
-    def __cinit__(self):
+    def __cinit__(self, *args, **kwargs):
         self.ptr_owner = False
 
     @staticmethod
@@ -1875,7 +1906,15 @@ cdef class LibOVRPoseState(object):
 
         return wrapper
 
-    cdef void _new_struct(self):
+    cdef void _new_struct(
+            self,
+            object pose,
+            object linearVelocity,
+            object angularVelocity,
+            object linearAcceleration,
+            object angularAcceleration,
+            double timeInSeconds):
+
         if self.c_data is not NULL:  # already allocated, __init__ called twice?
             return
 
@@ -1885,15 +1924,6 @@ cdef class LibOVRPoseState(object):
 
         if _ptr is NULL:
             raise MemoryError
-
-        # clear memory to defaults
-        _ptr.ThePose.Position = [0., 0., 0.]
-        _ptr.ThePose.Orientation = [0., 0., 0., 1.]
-        _ptr.AngularVelocity = [0., 0., 0.]
-        _ptr.LinearVelocity = [0., 0., 0.]
-        _ptr.AngularAcceleration = [0., 0., 0.]
-        _ptr.LinearAcceleration = [0., 0., 0.]
-        _ptr.TimeInSeconds = 0.0
 
         self.c_data = _ptr
         self.ptr_owner = True
@@ -1908,6 +1938,23 @@ cdef class LibOVRPoseState(object):
             &self.c_data.AngularVelocity)
         self._angularAcceleration = _wrap_ovrVector3f_as_ndarray(
             &self.c_data.AngularAcceleration)
+
+        # set values
+        if isinstance(pose, LibOVRPose):
+            _ptr.ThePose.Position = (<LibOVRPose>pose).c_data.Position
+            _ptr.ThePose.Orientation = (<LibOVRPose>pose).c_data.Orientation
+        elif isinstance(pose, (tuple, list,)):
+            self._pose.posOri = pose
+        else:
+            raise TypeError('Invalid value for `pose`, must be `LibOVRPose`'
+                            ', `list` or `tuple`.')
+
+        self._angularVelocity[:] = angularVelocity
+        self._linearVelocity[:] = linearVelocity
+        self._angularAcceleration[:] = angularAcceleration
+        self._linearAcceleration[:] = linearAcceleration
+
+        _ptr.TimeInSeconds = 0.0
 
     def __dealloc__(self):
         # don't do anything crazy like set c_data=NULL without deallocating!
@@ -2032,17 +2079,18 @@ cdef class LibOVRPoseState(object):
         Examples
         --------
 
-        Time integrate a pose for a 1/4 second (note the returned object is a
-        :py:mod:`LibOVRPose`, not a :py:class:`LibOVRPoseState`)::
+        Time integrate a pose for 20 milliseconds (note the returned object is a
+        :py:mod:`LibOVRPose`, not another :py:class:`LibOVRPoseState`)::
 
-            newPose = oldPose.timeIntegrate(0.25)
+            newPose = oldPose.timeIntegrate(0.02)
             pos, ori = newPose.posOri  # extract components
 
         Time integration can be used to predict the pose of an object at HMD
-        V-Sync if velocity and acceleration is known. Usually for predicting HMD
-        position, we would pass the predicted time to `getDevicePoses` or
-        `getTrackingState` directly and have `LibOVR` compute the pose offset.
-        For this example, we will use do so with the following::
+        V-Sync if velocity and acceleration are known. Usually we would pass the
+        predicted time to `getDevicePoses` or `getTrackingState` for a more
+        robust estimate of HMD pose at predicted display time. However, in most
+        cases the following will yield the same position and orientation as
+        `LibOVR` within a few decimal places::
 
             tsec = timeInSeconds()
             ptime = getPredictedDisplayTime(frame_index)
@@ -2078,6 +2126,21 @@ cdef class LibOVRPoseState(object):
         to_return.c_data[0] = <capi.ovrPosef>res
 
         return to_return
+
+    # def relativize(self, LibOVRPoseState poseState):
+    #     """Get relative motion and acceleration derivatives.
+    #
+    #     This function returns a new `LibOVRPoseState` object where velocity
+    #     and acceleration derivatives of `poseState` are transformed into the
+    #     reference frame of this pose state. If `timeInSeconds` differs between
+    #     the poses, `poseState` is time integrated to the time this pose refers
+    #     to.
+    #
+    #     Parameters
+    #     ----------
+    #     poseState : LibOVRPoseState
+    #
+    #     """
 
 
 cdef class LibOVRTrackerInfo(object):
@@ -5704,7 +5767,7 @@ def testBoundary(int deviceBitmask, int boundaryType):
     Returns
     -------
     tuple (int, LibOVRBoundaryTestResult)
-        Result of the ``OVR::ovr_TestBoundary` LibOVR API call and
+        Result of the ``OVR::ovr_TestBoundary`` LibOVR API call and
         collision test results.
 
     """
