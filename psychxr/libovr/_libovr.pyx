@@ -250,6 +250,7 @@ __all__ = [
     'HMD_ES09',
     'HMD_ES11',
     'HMD_CV1',
+    'HAPTICS_BUFFER_SAMPLES_MAX',
     # 'HMD_RIFTS',
     'LibOVRPose',
     'LibOVRPoseState',
@@ -259,6 +260,8 @@ __all__ = [
     'LibOVRBoundaryTestResult',
     'LibOVRPerfStatsPerCompositorFrame',
     'LibOVRPerfStats',
+    'LibOVRTouchHaptics',
+    'LibOVRHapticsBuffer',
     'success',
     'unqualifiedSuccess',
     'failure',
@@ -348,7 +351,8 @@ __all__ = [
     'getThumbstickValues',
     'getIndexTriggerValues',
     'getHandTriggerValues',
-    'setControllerVibration'
+    'setControllerVibration',
+    'submitControllerVibration'
     #'anyPointInFrustum'
 ]
 
@@ -3047,7 +3051,7 @@ cdef class LibOVRPerfStats(object):
 
 
 cdef class LibOVRTouchHaptics(object):
-    """Class for touch haptics information.
+    """Class for touch haptics engine information.
 
     """
     cdef capi.ovrTouchHapticsDesc* c_data
@@ -3058,6 +3062,7 @@ cdef class LibOVRTouchHaptics(object):
         Attributes
         ----------
         sampleRateHz : int
+        sampleTime : float
         sampleSizeInBytes : int
         queueMinSizeToAvoidStarvation : int
         submitMinSamples : int
@@ -3067,15 +3072,15 @@ cdef class LibOVRTouchHaptics(object):
         pass
 
     def __cinit__(self):
-        pass
+        self.ptr_owner = True
 
     @staticmethod
-    cdef capi.ovrTouchHapticsDesc fromPtr(capi.ovrTouchHapticsDesc* ptr, bint owner=False):
+    cdef capi.ovrTouchHapticsDesc fromPtr(capi.ovrTouchHapticsDesc* ptr):
         cdef LibOVRTouchHaptics wrapper = LibOVRTouchHaptics.__new__(
             LibOVRTouchHaptics)
 
         wrapper.c_data = ptr
-        wrapper.ptr_owner = owner
+        wrapper.ptr_owner = True
 
         return wrapper
 
@@ -3102,7 +3107,7 @@ cdef class LibOVRTouchHaptics(object):
 
     @property
     def sampleRateHz(self):
-        """Haptics engine frequency over sample-rate."""
+        """Haptics engine frequency/sample-rate."""
         return self.c_data.SampleRateHz
 
     @property
@@ -3129,7 +3134,91 @@ cdef class LibOVRTouchHaptics(object):
     def submitOptimalSamples(self):
         """Optimal number of samples for the haptics engine."""
         return self.c_data.SubmitMinSamples
-    
+
+
+cdef class LibOVRHapticsBuffer(object):
+    """Class for haptics buffer data.
+
+    """
+    cdef capi.ovrHapticsBuffer* c_data
+    cdef bint ptr_owner
+    cdef np.ndarray _buffer_data
+
+    def __init__(self, object buffer):
+        """
+        Attributes
+        ----------
+        sampleRateHz : int
+
+        """
+        self._new_struct(buffer)
+
+    def __cinit__(self, object buffer):
+        self.ptr_owner = False
+
+    @staticmethod
+    cdef LibOVRHapticsBuffer fromPtr(capi.ovrHapticsBuffer* ptr, bint owner=False):
+        cdef LibOVRHapticsBuffer wrapper = LibOVRHapticsBuffer.__new__(
+            LibOVRHapticsBuffer)
+
+        wrapper.c_data = ptr
+        wrapper.ptr_owner = owner
+
+        # create a numpy array to serve as sample buffer
+        cdef np.npy_intp[1] buffer_shape = [wrapper.c_data.SamplesCount]
+        wrapper._buffer_data = np.PyArray_SimpleNewFromData(
+            1, buffer_shape, np.NPY_FLOAT32, <void*>wrapper.c_data.Samples)
+
+        return wrapper
+
+    cdef void _new_struct(self, object buffer):
+        if self.c_data is not NULL:
+            return
+
+        cdef capi.ovrHapticsBuffer* ptr = \
+            <capi.ovrHapticsBuffer*>PyMem_Malloc(
+                sizeof(capi.ovrHapticsBuffer))
+
+        if ptr is NULL:
+            raise MemoryError
+
+        self.c_data = ptr
+        self.ptr_owner = True
+
+        # setup samples buffer buffer
+        self._buffer_data = np.asarray(buffer, dtype=np.float32)
+        assert self._buffer_data.ndim == 1
+        cdef int num_samples = <int>self._buffer_data.shape[0]
+        assert num_samples < capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX
+
+        # set samples buffer data
+        self.c_data.Samples = <void*>self._buffer_data.data
+        self.c_data.SamplesCount = num_samples
+        self.c_data.SubmitMode = capi.ovrHapticsBufferSubmit_Enqueue
+
+    def __dealloc__(self):
+        # don't do anything crazy like set c_data=NULL without deallocating!
+        if self.c_data is not NULL:
+            if self.ptr_owner is True:
+                PyMem_Free(self.c_data)
+                self.c_data = NULL
+
+    @property
+    def samples(self):
+        """Haptics buffer samples.
+
+        Warnings
+        --------
+        Do not modify the contents of this array during playback.
+
+        """
+        return self._buffer_data
+
+    @property
+    def samplesCount(self):
+        """Number of buffer samples."""
+        return self.c_data.SamplesCount
+
 
 # ------------------------------------------------------------------------------
 # Functions
@@ -6633,6 +6722,43 @@ def setControllerVibration(int controller, str frequency, float amplitude):
         amplitude)
 
     return result
+
+
+def submitControllerVibration(int controller, LibOVRHapticsBuffer buffer):
+    """Submit a haptics buffer to Touch controllers.
+
+    Parameters
+    ----------
+    controller : int
+        Controller name. Valid values are:
+
+        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
+        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
+        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
+        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
+        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
+        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
+
+    buffer : LibOVRHapticsBuffer
+        Haptics buffer to submit.
+
+    Returns
+    -------
+    int
+        Return value of API call ``OVR::ovr_SetControllerVibration``. Can return
+        ``SUCCESS_DEVICE_UNAVAILABLE`` if no device is present.
+
+    """
+    global _ptrSession
+
+    cdef capi.ovrResult result = capi.ovr_SubmitControllerVibration(
+        _ptrSession,
+        <capi.ovrControllerType>controller,
+        buffer.c_data)
+
+    return result
+
 
 
 # def testBBoxVisible(int eye, object boundingBox):
