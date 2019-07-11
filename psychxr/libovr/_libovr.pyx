@@ -352,7 +352,8 @@ __all__ = [
     'getIndexTriggerValues',
     'getHandTriggerValues',
     'setControllerVibration',
-    'submitControllerVibration'
+    'submitControllerVibration',
+    'getControllerPlaybackState'
     #'anyPointInFrustum'
 ]
 
@@ -2541,29 +2542,6 @@ cdef class LibOVRHmdInfo(object):
         return fov_left_out, fov_right_out
 
 
-# cdef class LibOVRHapticsBuffer(object):
-#     """Class for storing haptics buffer data."""
-#     cdef capi.ovrHapticsBuffer c_data
-#
-#     def __init__(self, *args, **kwargs):
-#         pass
-#
-#     def __cinit__(self, np.ndarray[np.float32, ndim=1] samples):
-#
-#         cdef int numSamples = <int>samples.shape[0]
-#         if numSamples > capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX:
-#             raise ValueError(
-#                 "Too many buffer samples, must be <{}.".format(
-#                     capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX))
-#
-#         self.c_data.Samples = <void>&samples[0]
-#         self.c_data.SamplesCount = numSamples
-#
-#     @property
-#     def samplesCount(self):
-#         return self.c_data.SamplesCount
-
-
 cdef class LibOVRSessionStatus(object):
     """Class for storing session status information. An instance of this class
     is returned when :func:`getSessionStatus` is called.
@@ -2941,6 +2919,29 @@ cdef class LibOVRPerfStatsPerCompositorFrame(object):
         return self.c_data.CompositorCpuStartToGpuEndElapsedTime + \
             self.c_data.CompositorGpuEndToVsyncElapsedTime
 
+    @property
+    def aswIsActive(self):
+        """``True`` is ASW was active this frame."""
+        return self.c_data.AswIsActive == capi.ovrTrue
+
+    @property
+    def aswActivatedToggleCount(self):
+        """How many frames ASW activated during the runtime of this application.
+        """
+        return self.c_data.AswActivatedToggleCount
+
+    @property
+    def aswPresentedFrameCount(self):
+        """Number of frames the compositor extrapolated using ASW."""
+        return self.c_data.AswPresentedFrameCount
+
+    @property
+    def aswFailedFrameCount(self):
+        """Number of frames the compositor failed to present extrapolated frames
+        using ASW.
+        """
+        return self.c_data.AswFailedFrameCount
+
 
 cdef class LibOVRPerfStats(object):
     """Class for frame performance statistics.
@@ -3084,7 +3085,7 @@ cdef class LibOVRTouchHaptics(object):
 
         return wrapper
 
-    cdef void _new_struct(self, object pos, object ori):
+    cdef void _new_struct(self):
         if self.c_data is not NULL:
             return
 
@@ -3148,30 +3149,21 @@ cdef class LibOVRHapticsBuffer(object):
         """
         Attributes
         ----------
-        sampleRateHz : int
+        samples : ndarray
+        samplesCount : int
 
         """
-        self._new_struct(buffer)
+        pass
 
     def __cinit__(self, object buffer):
-        self.ptr_owner = False
+        self.ptr_owner = True
 
-    @staticmethod
-    cdef LibOVRHapticsBuffer fromPtr(capi.ovrHapticsBuffer* ptr, bint owner=False):
-        cdef LibOVRHapticsBuffer wrapper = LibOVRHapticsBuffer.__new__(
-            LibOVRHapticsBuffer)
+        # setup samples buffer buffer
+        self._buffer_data = np.asarray(buffer, dtype=np.float32)
+        assert self._buffer_data.ndim == 1
+        cdef int num_samples = <int>self._buffer_data.shape[0]
+        assert num_samples < capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX
 
-        wrapper.c_data = ptr
-        wrapper.ptr_owner = owner
-
-        # create a numpy array to serve as sample buffer
-        cdef np.npy_intp[1] buffer_shape = [wrapper.c_data.SamplesCount]
-        wrapper._buffer_data = np.PyArray_SimpleNewFromData(
-            1, buffer_shape, np.NPY_FLOAT32, <void*>wrapper.c_data.Samples)
-
-        return wrapper
-
-    cdef void _new_struct(self, object buffer):
         if self.c_data is not NULL:
             return
 
@@ -3184,12 +3176,6 @@ cdef class LibOVRHapticsBuffer(object):
 
         self.c_data = ptr
         self.ptr_owner = True
-
-        # setup samples buffer buffer
-        self._buffer_data = np.asarray(buffer, dtype=np.float32)
-        assert self._buffer_data.ndim == 1
-        cdef int num_samples = <int>self._buffer_data.shape[0]
-        assert num_samples < capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX
 
         # set samples buffer data
         self.c_data.Samples = <void*>self._buffer_data.data
@@ -3206,6 +3192,8 @@ cdef class LibOVRHapticsBuffer(object):
     @property
     def samples(self):
         """Haptics buffer samples.
+
+        Each sample specifies the amplitude of vibration.
 
         Warnings
         --------
@@ -6746,8 +6734,8 @@ def submitControllerVibration(int controller, LibOVRHapticsBuffer buffer):
     Returns
     -------
     int
-        Return value of API call ``OVR::ovr_SetControllerVibration``. Can return
-        ``SUCCESS_DEVICE_UNAVAILABLE`` if no device is present.
+        Return value of API call ``OVR::ovr_SubmitControllerVibration``. Can
+        return ``SUCCESS_DEVICE_UNAVAILABLE`` if no device is present.
 
     """
     global _ptrSession
@@ -6759,6 +6747,41 @@ def submitControllerVibration(int controller, LibOVRHapticsBuffer buffer):
 
     return result
 
+
+def getControllerPlaybackState(int controller):
+    """Get the playback state of a touch controller.
+
+    Parameters
+    ----------
+    controller : int
+        Controller name. Valid values are:
+
+        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
+        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
+        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
+        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
+        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
+        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
+
+    Returns
+    -------
+    tuple (int, int, int)
+        Returns three values, thevalue of API call
+        ``OVR::ovr_GetControllerVibrationState``, the remaining space in the
+        haptics buffer available to queue more samples, and the number of
+        samples currently queued.
+
+    """
+    global _ptrSession
+
+    cdef capi.ovrHapticsPlaybackState playback_state
+    cdef capi.ovrResult result = capi.ovr_GetControllerVibrationState(
+        _ptrSession,
+        <capi.ovrControllerType>controller,
+        &playback_state)
+
+    return result, playback_state.RemainingQueueSpace, playback_state.SamplesQueued
 
 
 # def testBBoxVisible(int eye, object boundingBox):
