@@ -689,6 +689,10 @@ HMD_ES11 = capi.ovrHmd_ES11
 HMD_CV1 = capi.ovrHmd_CV1
 # HMD_RIFTS = capi.ovrHmd_RiftS  # won't build
 
+# haptics buffer
+HAPTICS_BUFFER_SAMPLES_MAX = capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX
+
+
 # ------------------------------------------------------------------------------
 # Wrapper factory functions
 #
@@ -3042,6 +3046,91 @@ cdef class LibOVRPerfStats(object):
         return <int>self.c_data.VisibleProcessId
 
 
+cdef class LibOVRTouchHaptics(object):
+    """Class for touch haptics information.
+
+    """
+    cdef capi.ovrTouchHapticsDesc* c_data
+    cdef bint ptr_owner
+
+    def __init__(self):
+        """
+        Attributes
+        ----------
+        sampleRateHz : int
+        sampleSizeInBytes : int
+        queueMinSizeToAvoidStarvation : int
+        submitMinSamples : int
+        submitMaxSamples : int
+        submitOptimalSamples : int
+        """
+        pass
+
+    def __cinit__(self):
+        pass
+
+    @staticmethod
+    cdef capi.ovrTouchHapticsDesc fromPtr(capi.ovrTouchHapticsDesc* ptr, bint owner=False):
+        cdef LibOVRTouchHaptics wrapper = LibOVRTouchHaptics.__new__(
+            LibOVRTouchHaptics)
+
+        wrapper.c_data = ptr
+        wrapper.ptr_owner = owner
+
+        return wrapper
+
+    cdef void _new_struct(self, object pos, object ori):
+        if self.c_data is not NULL:
+            return
+
+        cdef capi.ovrTouchHapticsDesc* ptr = \
+            <capi.ovrTouchHapticsDesc*>PyMem_Malloc(
+                sizeof(capi.ovrTouchHapticsDesc))
+
+        if ptr is NULL:
+            raise MemoryError
+
+        self.c_data = ptr
+        self.ptr_owner = True
+
+    def __dealloc__(self):
+        # don't do anything crazy like set c_data=NULL without deallocating!
+        if self.c_data is not NULL:
+            if self.ptr_owner is True:
+                PyMem_Free(self.c_data)
+                self.c_data = NULL
+
+    @property
+    def sampleRateHz(self):
+        """Haptics engine frequency over sample-rate."""
+        return self.c_data.SampleRateHz
+
+    @property
+    def sampleTime(self):
+        """Time in seconds per sample."""
+        return <float>1.0 / <float>self.c_data.SampleRateHz
+
+    @property
+    def queueMinSizeToAvoidStarvation(self):
+        """Queue size required to prevent starving the haptics engine."""
+        return self.c_data.QueueMinSizeToAvoidStarvation
+
+    @property
+    def submitMinSamples(self):
+        """Minimum number of samples that can be sent to the haptics engine."""
+        return self.c_data.SubmitMinSamples
+
+    @property
+    def submitMaxSamples(self):
+        """Maximum number of samples that can be sent to the haptics engine."""
+        return self.c_data.SubmitMinSamples
+
+    @property
+    def submitOptimalSamples(self):
+        """Optimal number of samples for the haptics engine."""
+        return self.c_data.SubmitMinSamples
+    
+
 # ------------------------------------------------------------------------------
 # Functions
 #
@@ -4698,7 +4787,7 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
 
 
 def calcEyePoses(LibOVRPose headPose):
-    """Calculate eye poses using a given pose state.
+    """Calculate eye poses using a given pose.
 
     Eye poses are derived from the head pose stored in the pose state and
     the HMD to eye poses reported by LibOVR. Calculated eye poses are stored
@@ -4742,7 +4831,6 @@ def calcEyePoses(LibOVRPose headPose):
 
     Use a custom head pose::
 
-        # note headLocked(True) should be called prior
         headPose = LibOVRPose((0., 1.5, 0.))  # eyes 1.5 meters off the ground
         hmd.calcEyePoses(headPose)  # calculate eye poses
 
