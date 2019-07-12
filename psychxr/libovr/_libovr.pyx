@@ -4709,13 +4709,12 @@ def setSensorSampleTime(double absTime):
 
     Examples
     --------
-    Using external data to set the head pose from a motion capture system::
+    Supplying sensor sample time from an external tracking source::
 
-        # data from mocap system
-        headRigidBody = LibOVRPose(mocap.pos, mocap.ori)
-        sampleTime = timeInSeconds() - mocap.frameTime
+        # get sensor time from the mocal system
+        sampleTime = timeInSeconds() - mocap.timeSinceMidExposure
 
-        # set sample time and compute eye poses
+        # set sample time
         setSensorSampleTime(sampleTime)
         calcEyePoses(headRigidBody)
 
@@ -4941,48 +4940,52 @@ def calcEyePoses(LibOVRPose headPose):
     :func:`getEyeRenderPose` function.
 
     Head position can be supplied from a motion tracking system if desired.
-    However, the `up` and `forward` vectors of the tracked rigid body
-    representing the HMD position must perfectly align with what `LibOVR`
-    expects, or else it will be in conflict with the rotation data provided by
-    the on-board IMUs. This will cause the render layer to 'slip', mis-aligning
-    the rendered image with the screen, as LibOVR tries to compensate for the
-    conflict. Use accessories for HMD tracking provided by the motion tracker
-    manufacturer for best results.
+    However, LibOVR is very sensitive to inconsistencies between tracked poses
+    and data from the internal IMUs of the HMD. The `up` and `forward` vectors
+    of the tracked rigid body representing the HMD position must perfectly align
+    with what `LibOVR` expects, or else it will be in conflict with the rotation
+    data provided by the on-board IMUs. As LibOVR tries to compensate for the
+    conflict, the render layer will 'slip', mis-aligning the render layer with
+    the screen. For best results, use accessories for HMD tracking provided by
+    the motion tracker manufacturer.
+
+    A *hacky* solution around this problem is to calculate eye poses twice. Use
+    head poses retrieved from :func:`getTrackingState` or :func:`getDevicePoses`
+    and pass them to :func:`calcEyePoses`. Then compute separate eye poses
+    manually without calling :func:`calcEyePoses` using data from the external
+    tracker, convert those poses to view matrices, and use them to render the
+    actual scene.
 
     Parameters
     ----------
     headPose : :py:class:`LibOVRPose`
         Head pose.
 
-    Notes
-    -----
-
-    * When specifying a head pose defined by any other means than returned by
-      :func:`getTrackingState`. The `headPose` will be incongruent to that
-      computed by the LibOVR runtime, causing the render layer to 'slip' during
-      composting.
-
     Examples
     --------
 
     Compute the eye poses from tracker data::
 
-        t = getPredictedDisplayTime()
-        trackingState = getTrackingState(t)
+        abs_time = getPredictedDisplayTime()
+        tracking_state, calibrated_origin = getTrackingState(abs_time, True)
+        headPoseState, status = tracking_state[TRACKED_DEVICE_TYPE_HMD]
 
-        # check if tracking
-        if head.orientationTracked and head.positionTracked:
-            calcEyePoses(trackingState.headPose.thePose)  # calculate eye poses
-        else:
-            # do something ...
+        # calculate head pose
+        hmd.calcEyePoses(headPoseState.pose)
 
         # computed render poses appear here
         renderPoseLeft, renderPoseRight = hmd.getEyeRenderPoses()
 
-    Use a custom head pose::
+    Using external data to set the head pose from a motion capture system::
 
-        headPose = LibOVRPose((0., 1.5, 0.))  # eyes 1.5 meters off the ground
-        hmd.calcEyePoses(headPose)  # calculate eye poses
+        # rigid body in the scene defining the scene origin
+        rbHead = LibOVRPose(*headRb.posOri)
+        calcEyePoses(rbHead)
+
+    Note that the external tracker latency might be larger than builtin
+    tracking. To get around this, enable forward prediction in your mocap
+    software to equal roughly to average `getPredictedDisplayTime() -
+    mocapMidExposureTime`, or time integrate poses to mid-frame time.
 
     """
     global _ptrSession
