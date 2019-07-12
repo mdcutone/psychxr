@@ -260,7 +260,7 @@ __all__ = [
     'LibOVRBoundaryTestResult',
     'LibOVRPerfStatsPerCompositorFrame',
     'LibOVRPerfStats',
-    'LibOVRTouchHaptics',
+    'LibOVRTouchHapticsInfo',
     'LibOVRHapticsBuffer',
     'success',
     'unqualifiedSuccess',
@@ -3055,8 +3055,7 @@ cdef class LibOVRTouchHapticsInfo(object):
     """Class for touch haptics engine information.
 
     """
-    cdef capi.ovrTouchHapticsDesc* c_data
-    cdef bint ptr_owner
+    cdef capi.ovrTouchHapticsDesc c_data
 
     def __init__(self):
         """
@@ -3073,38 +3072,7 @@ cdef class LibOVRTouchHapticsInfo(object):
         pass
 
     def __cinit__(self):
-        self.ptr_owner = True
-
-    @staticmethod
-    cdef capi.ovrTouchHapticsDesc fromPtr(capi.ovrTouchHapticsDesc* ptr):
-        cdef LibOVRTouchHaptics wrapper = LibOVRTouchHaptics.__new__(
-            LibOVRTouchHaptics)
-
-        wrapper.c_data = ptr
-        wrapper.ptr_owner = True
-
-        return wrapper
-
-    cdef void _new_struct(self):
-        if self.c_data is not NULL:
-            return
-
-        cdef capi.ovrTouchHapticsDesc* ptr = \
-            <capi.ovrTouchHapticsDesc*>PyMem_Malloc(
-                sizeof(capi.ovrTouchHapticsDesc))
-
-        if ptr is NULL:
-            raise MemoryError
-
-        self.c_data = ptr
-        self.ptr_owner = True
-
-    def __dealloc__(self):
-        # don't do anything crazy like set c_data=NULL without deallocating!
-        if self.c_data is not NULL:
-            if self.ptr_owner is True:
-                PyMem_Free(self.c_data)
-                self.c_data = NULL
+        pass
 
     @property
     def sampleRateHz(self):
@@ -3140,15 +3108,23 @@ cdef class LibOVRTouchHapticsInfo(object):
 cdef class LibOVRHapticsBuffer(object):
     """Class for haptics buffer data for controller vibration.
 
-    Instances of this class store a buffer of amplitude values which can be
-    passed to the haptics engine for playback using the
-    :func:`submitControllerVibration` function. Samples are specified as a 1-D
-    array of 32-bit floating-point values values ranging between 0.0 and 1.0,
-    with maximum length ``HAPTICS_BUFFER_SAMPLES_MAX - 1``.
+    Instances of this class store a buffer of vibration amplitude values which
+    can be passed to the haptics engine for playback using the
+    :func:`submitControllerVibration` function. Samples are stored as a 1D array
+    of 32-bit floating-point values ranging between 0.0 and 1.0, with a maximum
+    length of ``HAPTICS_BUFFER_SAMPLES_MAX - 1``. You can access this buffer by
+    through the :py:attr:`~LibOVRHapticsBuffer.samples` attribute.
 
     For information about the haptics engine, such as sampling frequency, call
     :func:`getTouchHapticsInfo` and inspect the returned
     :py:class:`LibOVRTouchHapticsInfo` object.
+
+    Parameters
+    ----------
+    buffer : array_like
+        Buffer of samples. Must be a 1D array of floating point values between
+        0.0 and 1.0. If an `ndarray` with dtype `float32` is specified, the
+        buffer will be set without copying.
 
     Examples
     --------
@@ -3159,13 +3135,13 @@ cdef class LibOVRHapticsBuffer(object):
             1.0, 0.0, num=HAPTICS_BUFFER_SAMPLES_MAX-1, dtype=np.float32)
         hbuff = LibOVRHapticsBuffer(samples)
 
-    Submit the buffer for playback, the controller will vibrate immediately::
+    Submit the buffer for playback, the right touch controller will vibrate
+    immediately::
 
         submitControllerVibration(CONTROLLER_TYPE_RTOUCH, hbuff)
 
     """
-    cdef capi.ovrHapticsBuffer* c_data
-    cdef bint ptr_owner
+    cdef capi.ovrHapticsBuffer c_data
     cdef np.ndarray _buffer_data
 
     def __init__(self, object buffer):
@@ -3179,51 +3155,66 @@ cdef class LibOVRHapticsBuffer(object):
         pass
 
     def __cinit__(self, object buffer):
-        self.ptr_owner = True
+        cdef np.ndarray[np.float32_t, ndim=1] array_in = \
+            np.asarray(buffer, dtype=np.float32)
 
-        # setup samples buffer buffer
-        self._buffer_data = np.asarray(buffer, dtype=np.float32)
-        assert self._buffer_data.ndim == 1
-        cdef int num_samples = <int>self._buffer_data.shape[0]
-        assert num_samples < capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX
+        if array_in.ndim > 1:
+            raise ValueError(
+                "Array has invalid number of dimensions, must be 1.")
 
-        if self.c_data is not NULL:
-            return
+        cdef int num_samples = <int>array_in.shape[0]
+        if num_samples >= capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX:
+            raise ValueError(
+                "Array too large, must have length < HAPTICS_BUFFER_SAMPLES_MAX")
 
-        cdef capi.ovrHapticsBuffer* ptr = \
-            <capi.ovrHapticsBuffer*>PyMem_Malloc(
-                sizeof(capi.ovrHapticsBuffer))
-
-        if ptr is NULL:
-            raise MemoryError
-
-        self.c_data = ptr
-        self.ptr_owner = True
+        self._buffer_data = array_in
 
         # set samples buffer data
         self.c_data.Samples = <void*>self._buffer_data.data
         self.c_data.SamplesCount = num_samples
         self.c_data.SubmitMode = capi.ovrHapticsBufferSubmit_Enqueue
 
-    def __dealloc__(self):
-        # don't do anything crazy like set c_data=NULL without deallocating!
-        if self.c_data is not NULL:
-            if self.ptr_owner is True:
-                PyMem_Free(self.c_data)
-                self.c_data = NULL
-
     @property
     def samples(self):
-        """Haptics buffer samples.
+        """Haptics buffer samples. Each sample specifies the amplitude of
+        vibration at a given point of playback. Must have a length less than
+        ``HAPTICS_BUFFER_SAMPLES_MAX``.
 
-        Each sample specifies the amplitude of vibration.
+        Warnings
+        --------
+        Do not change the value of `samples` during haptic buffer playback. This
+        may crash the application. Check the playback status of the haptics
+        engine before setting the array.
 
         """
         return self._buffer_data
 
+    @samples.setter
+    def samples(self, object value):
+        cdef np.ndarray[np.float32_t, ndim=1] array_in = \
+            np.asarray(value, dtype=np.float32)
+
+        if array_in.ndim > 1:
+            raise ValueError(
+                "Array has invalid number of dimensions, must be 1.")
+
+        cdef int num_samples = <int>array_in.shape[0]
+        if num_samples >= capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX:
+            raise ValueError(
+                "Array too large, must have length < HAPTICS_BUFFER_SAMPLES_MAX")
+
+        self._buffer_data = array_in
+
+        # set samples buffer data
+        self.c_data.Samples = <void*>self._buffer_data.data
+        self.c_data.SamplesCount = num_samples
+
     @property
     def samplesCount(self):
-        """Number of buffer samples."""
+        """Number of haptic buffer samples stored. This value will always be
+        less than ``HAPTICS_BUFFER_SAMPLES_MAX``.
+
+        """
         return self.c_data.SamplesCount
 
 
@@ -6762,7 +6753,7 @@ def submitControllerVibration(int controller, LibOVRHapticsBuffer buffer):
     cdef capi.ovrResult result = capi.ovr_SubmitControllerVibration(
         _ptrSession,
         <capi.ovrControllerType>controller,
-        buffer.c_data)
+        &buffer.c_data)
 
     return result
 
