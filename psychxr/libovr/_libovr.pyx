@@ -3051,7 +3051,7 @@ cdef class LibOVRPerfStats(object):
         return <int>self.c_data.VisibleProcessId
 
 
-cdef class LibOVRTouchHaptics(object):
+cdef class LibOVRTouchHapticsInfo(object):
     """Class for touch haptics engine information.
 
     """
@@ -3138,7 +3138,30 @@ cdef class LibOVRTouchHaptics(object):
 
 
 cdef class LibOVRHapticsBuffer(object):
-    """Class for haptics buffer data.
+    """Class for haptics buffer data for controller vibration.
+
+    Instances of this class store a buffer of amplitude values which can be
+    passed to the haptics engine for playback using the
+    :func:`submitControllerVibration` function. Samples are specified as a 1-D
+    array of 32-bit floating-point values values ranging between 0.0 and 1.0,
+    with maximum length ``HAPTICS_BUFFER_SAMPLES_MAX - 1``.
+
+    For information about the haptics engine, such as sampling frequency, call
+    :func:`getTouchHapticsInfo` and inspect the returned
+    :py:class:`LibOVRTouchHapticsInfo` object.
+
+    Examples
+    --------
+    Create a haptics buffer to vibrate the right Touch controller which ramps
+    down amplitude with time::
+
+        samples = np.linspace(
+            1.0, 0.0, num=HAPTICS_BUFFER_SAMPLES_MAX-1, dtype=np.float32)
+        hbuff = LibOVRHapticsBuffer(samples)
+
+    Submit the buffer for playback, the controller will vibrate immediately::
+
+        submitControllerVibration(CONTROLLER_TYPE_RTOUCH, hbuff)
 
     """
     cdef capi.ovrHapticsBuffer* c_data
@@ -3194,10 +3217,6 @@ cdef class LibOVRHapticsBuffer(object):
         """Haptics buffer samples.
 
         Each sample specifies the amplitude of vibration.
-
-        Warnings
-        --------
-        Do not modify the contents of this array during playback.
 
         """
         return self._buffer_data
