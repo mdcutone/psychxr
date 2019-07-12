@@ -1844,9 +1844,6 @@ cdef class LibOVRPose(object):
             4x4 view matrix derived from the pose.
 
         """
-        cdef libovr_math.Matrix4f to_return = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
-
         # compute the eye transformation matrices from poses
         cdef libovr_math.Vector3f pos
         cdef libovr_math.Quatf ori
@@ -1855,18 +1852,16 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Matrix4f rm
         cdef libovr_math.Matrix4f m_view
 
-        cdef int eye = 0
-        for eye in range(capi.ovrEye_Count):
-            pos = <libovr_math.Vector3f>self.c_data.Position
-            ori = <libovr_math.Quatf>self.c_data.Orientation
+        pos = <libovr_math.Vector3f>self.c_data.Position
+        ori = <libovr_math.Quatf>self.c_data.Orientation
 
-            if not ori.IsNormalized():  # make sure orientation is normalized
-                ori.Normalize()
+        if not ori.IsNormalized():  # make sure orientation is normalized
+            ori.Normalize()
 
-            rm = libovr_math.Matrix4f(ori)
-            up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
-            forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
-            m_view = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+        rm = libovr_math.Matrix4f(ori)
+        up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
+        forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
+        m_view = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
 
         cdef np.ndarray[np.float32_t, ndim=2] to_return
 
