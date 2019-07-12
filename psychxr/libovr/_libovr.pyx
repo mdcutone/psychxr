@@ -4659,7 +4659,7 @@ def setSensorSampleTime(double absTime):
 
         # data from mocap system
         headRigidBody = LibOVRPose(mocap.pos, mocap.ori)
-        sampleTime = mocap.frameTime
+        sampleTime = timeInSeconds() - mocap.frameTime
 
         # set sample time and compute eye poses
         setSensorSampleTime(sampleTime)
@@ -4883,9 +4883,17 @@ def calcEyePoses(LibOVRPose headPose):
     Eye poses are derived from the head pose stored in the pose state and
     the HMD to eye poses reported by LibOVR. Calculated eye poses are stored
     and passed to the compositor when :func:`endFrame` is called for additional
-    processing.
+    processing. You can access the computed poses via the
+    :func:`getEyeRenderPose` function.
 
-    You can access the computed poses via the :func:`getEyeRenderPose` function.
+    Head position can be supplied from a motion tracking system if desired.
+    However, the `up` and `forward` vectors of the tracked rigid body
+    representing the HMD position must perfectly align with what `LibOVR`
+    expects, or else it will be in conflict with the rotation data provided by
+    the on-board IMUs. This will cause the render layer to 'slip', mis-aligning
+    the rendered image with the screen, as LibOVR tries to compensate for the
+    conflict. Use accessories for HMD tracking provided by the motion tracker
+    manufacturer for best results.
 
     Parameters
     ----------
@@ -4895,13 +4903,10 @@ def calcEyePoses(LibOVRPose headPose):
     Notes
     -----
 
-    * :func:`getTrackingState` must still be called every frame, even if you
-      are specifying your own `headPose`.
     * When specifying a head pose defined by any other means than returned by
       :func:`getTrackingState`. The `headPose` will be incongruent to that
       computed by the LibOVR runtime, causing the render layer to 'slip' during
-      composting. To prevent this, you must enable head-locking of the render
-      layer by calling :func:`setHeadLocked` if using custom head poses.
+      composting.
 
     Examples
     --------
