@@ -31,6 +31,8 @@ Classes
     LibOVRBoundaryTestResult
     LibOVRPerfStatsPerCompositorFrame
     LibOVRPerfStats
+    LibOVRHapticsInfo
+    LibOVRHapticsBuffer
 
 Functions
 ~~~~~~~~~
@@ -173,6 +175,16 @@ Classes
     :undoc-members:
     :inherited-members:
 
+.. autoclass:: LibOVRHapticsInfo
+    :members:
+    :undoc-members:
+    :inherited-members:
+
+.. autoclass:: LibOVRHapticsBuffer
+    :members:
+    :undoc-members:
+    :inherited-members:
+
 Functions
 ~~~~~~~~~
 
@@ -265,3 +277,5 @@ Functions
 .. autofunction:: getIndexTriggerValues
 .. autofunction:: getHandTriggerValues
 .. autofunction:: setControllerVibration
+.. autofunction:: submitControllerVibration
+.. autofunction:: getControllerPlaybackState

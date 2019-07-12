@@ -260,7 +260,7 @@ __all__ = [
     'LibOVRBoundaryTestResult',
     'LibOVRPerfStatsPerCompositorFrame',
     'LibOVRPerfStats',
-    'LibOVRTouchHapticsInfo',
+    'LibOVRHapticsInfo',
     'LibOVRHapticsBuffer',
     'success',
     'unqualifiedSuccess',
@@ -3051,7 +3051,7 @@ cdef class LibOVRPerfStats(object):
         return <int>self.c_data.VisibleProcessId
 
 
-cdef class LibOVRTouchHapticsInfo(object):
+cdef class LibOVRHapticsInfo(object):
     """Class for touch haptics engine information.
 
     """
@@ -3081,7 +3081,10 @@ cdef class LibOVRTouchHapticsInfo(object):
 
     @property
     def sampleTime(self):
-        """Time in seconds per sample."""
+        """Time in seconds per sample. You can compute the total playback time
+        of a haptics buffer with the formula ``sampleTime * samplesCount``.
+
+        """
         return <float>1.0 / <float>self.c_data.SampleRateHz
 
     @property
@@ -3115,9 +3118,18 @@ cdef class LibOVRHapticsBuffer(object):
     length of ``HAPTICS_BUFFER_SAMPLES_MAX - 1``. You can access this buffer by
     through the :py:attr:`~LibOVRHapticsBuffer.samples` attribute.
 
+    One can use `Numpy` functions to generate samples for the haptics buffer.
+    Here is an example were amplitude ramps down over playback::
+
+        samples = np.linspace(
+            1.0, 0.0, num=HAPTICS_BUFFER_SAMPLES_MAX-1, dtype=np.float32)
+        hbuff = LibOVRHapticsBuffer(samples)
+        # vibrate right Touch controller
+        submitControllerVibration(CONTROLLER_TYPE_RTOUCH, hbuff)
+
     For information about the haptics engine, such as sampling frequency, call
-    :func:`getTouchHapticsInfo` and inspect the returned
-    :py:class:`LibOVRTouchHapticsInfo` object.
+    :func:`getHapticsInfo` and inspect the returned
+    :py:class:`LibOVRHapticsInfo` object.
 
     Parameters
     ----------
@@ -3126,23 +3138,9 @@ cdef class LibOVRHapticsBuffer(object):
         0.0 and 1.0. If an `ndarray` with dtype `float32` is specified, the
         buffer will be set without copying.
 
-    Examples
-    --------
-    Create a haptics buffer to vibrate the right Touch controller which ramps
-    down amplitude with time::
-
-        samples = np.linspace(
-            1.0, 0.0, num=HAPTICS_BUFFER_SAMPLES_MAX-1, dtype=np.float32)
-        hbuff = LibOVRHapticsBuffer(samples)
-
-    Submit the buffer for playback, the right touch controller will vibrate
-    immediately::
-
-        submitControllerVibration(CONTROLLER_TYPE_RTOUCH, hbuff)
-
     """
     cdef capi.ovrHapticsBuffer c_data
-    cdef np.ndarray _buffer_data
+    cdef np.ndarray _samples
 
     def __init__(self, object buffer):
         """
@@ -3170,10 +3168,10 @@ cdef class LibOVRHapticsBuffer(object):
         # clip values so range is between 0.0 and 1.0
         np.clip(array_in, 0.0, 1.0, out=array_in)
 
-        self._buffer_data = array_in
+        self._samples = array_in
 
         # set samples buffer data
-        self.c_data.Samples = <void*>self._buffer_data.data
+        self.c_data.Samples = <void*>self._samples.data
         self.c_data.SamplesCount = num_samples
         self.c_data.SubmitMode = capi.ovrHapticsBufferSubmit_Enqueue
 
@@ -3190,7 +3188,7 @@ cdef class LibOVRHapticsBuffer(object):
         engine before setting the array.
 
         """
-        return self._buffer_data
+        return self._samples
 
     @samples.setter
     def samples(self, object value):
@@ -3209,10 +3207,10 @@ cdef class LibOVRHapticsBuffer(object):
         # clip values so range is between 0.0 and 1.0
         np.clip(array_in, 0.0, 1.0, out=array_in)
 
-        self._buffer_data = array_in
+        self._samples = array_in
 
         # set samples buffer data
-        self.c_data.Samples = <void*>self._buffer_data.data
+        self.c_data.Samples = <void*>self._samples.data
         self.c_data.SamplesCount = num_samples
 
     @property
@@ -6783,7 +6781,7 @@ def getControllerPlaybackState(int controller):
     Returns
     -------
     tuple (int, int, int)
-        Returns three values, thevalue of API call
+        Returns three values, the value of API call
         ``OVR::ovr_GetControllerVibrationState``, the remaining space in the
         haptics buffer available to queue more samples, and the number of
         samples currently queued.
