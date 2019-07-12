@@ -352,6 +352,7 @@ __all__ = [
     'getIndexTriggerValues',
     'getHandTriggerValues',
     'setControllerVibration',
+    'getHapticsInfo',
     'submitControllerVibration',
     'getControllerPlaybackState'
     #'anyPointInFrustum'
@@ -3115,7 +3116,7 @@ cdef class LibOVRHapticsBuffer(object):
     can be passed to the haptics engine for playback using the
     :func:`submitControllerVibration` function. Samples are stored as a 1D array
     of 32-bit floating-point values ranging between 0.0 and 1.0, with a maximum
-    length of ``HAPTICS_BUFFER_SAMPLES_MAX - 1``. You can access this buffer by
+    length of ``HAPTICS_BUFFER_SAMPLES_MAX - 1``. You can access this buffer
     through the :py:attr:`~LibOVRHapticsBuffer.samples` attribute.
 
     One can use `Numpy` functions to generate samples for the haptics buffer.
@@ -6724,6 +6725,39 @@ def setControllerVibration(int controller, str frequency, float amplitude):
         amplitude)
 
     return result
+
+
+def getHapticsInfo(int controller):
+    """Get information about the haptics engine for a particular controller.
+
+    Parameters
+    ----------
+    controller : int
+        Controller name. Valid values are:
+
+        * ``CONTROLLER_TYPE_XBOX`` : XBox gamepad.
+        * ``CONTROLLER_TYPE_REMOTE`` : Oculus Remote.
+        * ``CONTROLLER_TYPE_TOUCH`` : Combined Touch controllers.
+        * ``CONTROLLER_TYPE_LTOUCH`` : Left Touch controller.
+        * ``CONTROLLER_TYPE_RTOUCH`` : Right Touch controller.
+        * ``CONTROLLER_TYPE_OBJECT0`` : Object 0 controller.
+        * ``CONTROLLER_TYPE_OBJECT1`` : Object 1 controller.
+        * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
+        * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
+
+    Returns
+    -------
+    LibOVRHapticsInfo
+        Haptics engine information. Values do not change over the course of a
+        session.
+
+    """
+    global _ptrSession
+    cdef LibOVRHapticsInfo to_return = LibOVRHapticsInfo()
+    to_return.c_data = capi.ovr_GetTouchHapticsDesc(
+        _ptrSession, <capi.ovrControllerType>controller,)
+
+    return to_return
 
 
 def submitControllerVibration(int controller, LibOVRHapticsBuffer buffer):

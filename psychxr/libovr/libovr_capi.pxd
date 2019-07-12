@@ -897,3 +897,9 @@ cdef extern from "OVR_CAPI_GL.h":
     cdef ovrResult ovr_CreateMirrorTextureWithOptionsGL(ovrSession session, const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture)
     cdef ovrResult ovr_CreateMirrorTextureGL(ovrSession session, const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture)
     cdef ovrResult ovr_GetMirrorTextureBufferGL(ovrSession session, ovrMirrorTexture mirrorTexture, unsigned int* out_TexId)
+
+
+cdef extern from "OVR_CAPI_Audio.h":
+    ctypedef enum:
+        OVR_AUDIO_MAX_DEVICE_STR_SIZE
+
