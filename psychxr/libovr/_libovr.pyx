@@ -1825,6 +1825,65 @@ cdef class LibOVRPose(object):
 
         return LibOVRPose.fromPtr(ptr, True)
 
+    def getViewMatrix(self, object out=None):
+        """Convert this pose into a view matrix.
+
+        Creates a view matrix using the current pose as the eye position in the
+        scene.
+
+        Parameters
+        ----------
+        out : ~numpy.ndarray, optional
+            Alternative place to write the matrix to values. Must be a `ndarray`
+            of shape (4, 4,) and have a data type of float32. Values are written
+            assuming row-major order.
+
+        Returns
+        -------
+        ndarray
+            4x4 view matrix derived from the pose.
+
+        """
+        cdef libovr_math.Matrix4f to_return = libovr_math.Matrix4f(
+            <libovr_math.Posef>self.c_data[0])
+
+        # compute the eye transformation matrices from poses
+        cdef libovr_math.Vector3f pos
+        cdef libovr_math.Quatf ori
+        cdef libovr_math.Vector3f up
+        cdef libovr_math.Vector3f forward
+        cdef libovr_math.Matrix4f rm
+        cdef libovr_math.Matrix4f m_view
+
+        cdef int eye = 0
+        for eye in range(capi.ovrEye_Count):
+            pos = <libovr_math.Vector3f>self.c_data.Position
+            ori = <libovr_math.Quatf>self.c_data.Orientation
+
+            if not ori.IsNormalized():  # make sure orientation is normalized
+                ori.Normalize()
+
+            rm = libovr_math.Matrix4f(ori)
+            up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
+            forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
+            m_view = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+
+        cdef np.ndarray[np.float32_t, ndim=2] to_return
+
+        if out is None:
+            to_return = np.zeros((4, 4), dtype=np.float32)
+        else:
+            to_return = out
+
+        cdef Py_ssize_t i, j, N
+        i = j = 0
+        N = 4
+        for i in range(N):
+            for j in range(N):
+                to_return[i, j] = _eyeViewMatrix[eye].M[i][j]
+
+        return to_return
+
 
 cdef class LibOVRPoseState(object):
     """Class for representing rigid body poses with additional state
