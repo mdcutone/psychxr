@@ -3167,6 +3167,9 @@ cdef class LibOVRHapticsBuffer(object):
             raise ValueError(
                 "Array too large, must have length < HAPTICS_BUFFER_SAMPLES_MAX")
 
+        # clip values so range is between 0.0 and 1.0
+        np.clip(array_in, 0.0, 1.0, out=array_in)
+
         self._buffer_data = array_in
 
         # set samples buffer data
@@ -3202,6 +3205,9 @@ cdef class LibOVRHapticsBuffer(object):
         if num_samples >= capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX:
             raise ValueError(
                 "Array too large, must have length < HAPTICS_BUFFER_SAMPLES_MAX")
+
+        # clip values so range is between 0.0 and 1.0
+        np.clip(array_in, 0.0, 1.0, out=array_in)
 
         self._buffer_data = array_in
 
