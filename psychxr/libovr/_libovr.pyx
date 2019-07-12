@@ -1875,7 +1875,7 @@ cdef class LibOVRPose(object):
         N = 4
         for i in range(N):
             for j in range(N):
-                to_return[i, j] = _eyeViewMatrix[eye].M[i][j]
+                to_return[i, j] = m_view.M[i][j]
 
         return to_return
 
