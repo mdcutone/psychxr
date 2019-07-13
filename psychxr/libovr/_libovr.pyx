@@ -863,9 +863,8 @@ cdef class LibOVRPose(object):
         return LibOVRPose.fromPtr(ptr, True)
 
     def __imul__(self, LibOVRPose other):
-        """Multiplication operator (*) to combine poses.
+        """Multiplication operator (*=) to combine poses.
         """
-
         cdef libovr_math.Posef this_pose = <libovr_math.Posef>self.c_data[0]
         self.c_data[0] = <capi.ovrPosef>(
                 <libovr_math.Posef>other.c_data[0] * this_pose)
@@ -1859,6 +1858,23 @@ cdef class LibOVRPose(object):
         -------
         ndarray
             4x4 view matrix derived from the pose.
+
+        Examples
+        --------
+        Compute eye poses from a head pose and compute view matrices::
+
+            iod = 0.062  # 63 mm
+            headPose = LibOVRPose((0., 1.5, 0.))  # 1.5 meters up from origin
+            leftEyePose = LibOVRPose((-(iod / 2.), 0., 0.))
+            rightEyePose = LibOVRPose((iod / 2., 0., 0.))
+
+            # transform eye poses relative to head poses
+            leftEyeRenderPose = headPose * leftEyePose
+            rightEyeRenderPose = headPose * rightEyePose
+
+            # compute view matrices
+            eyeViewMatrix = [leftEyeRenderPose.getViewMatrix(),
+                             rightEyeRenderPose.getViewMatrix()]
 
         """
         # compute the eye transformation matrices from poses
