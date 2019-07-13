@@ -1826,6 +1826,60 @@ cdef class LibOVRPose(object):
 
         return LibOVRPose.fromPtr(ptr, True)
 
+    def getViewMatrix(self, object out=None):
+        """Convert this pose into a view matrix.
+
+        Creates a view matrix using the current pose as the eye position in the
+        scene.
+
+        Parameters
+        ----------
+        out : ~numpy.ndarray, optional
+            Alternative place to write the matrix to values. Must be a `ndarray`
+            of shape (4, 4,) and have a data type of float32. Values are written
+            assuming row-major order.
+
+        Returns
+        -------
+        ndarray
+            4x4 view matrix derived from the pose.
+
+        """
+        # compute the eye transformation matrices from poses
+        cdef libovr_math.Vector3f pos
+        cdef libovr_math.Quatf ori
+        cdef libovr_math.Vector3f up
+        cdef libovr_math.Vector3f forward
+        cdef libovr_math.Matrix4f rm
+        cdef libovr_math.Matrix4f m_view
+
+        pos = <libovr_math.Vector3f>self.c_data.Position
+        ori = <libovr_math.Quatf>self.c_data.Orientation
+
+        if not ori.IsNormalized():  # make sure orientation is normalized
+            ori.Normalize()
+
+        rm = libovr_math.Matrix4f(ori)
+        up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
+        forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
+        m_view = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+
+        cdef np.ndarray[np.float32_t, ndim=2] to_return
+
+        if out is None:
+            to_return = np.zeros((4, 4), dtype=np.float32)
+        else:
+            to_return = out
+
+        cdef Py_ssize_t i, j, N
+        i = j = 0
+        N = 4
+        for i in range(N):
+            for j in range(N):
+                to_return[i, j] = m_view.M[i][j]
+
+        return to_return
+
 
 cdef class LibOVRPoseState(object):
     """Class for representing rigid body poses with additional state
@@ -4223,7 +4277,7 @@ def setLayerEyeFovFlags(unsigned int flags):
           texture origin is at the bottom left, required for using OpenGL
           textures.
         * ``LAYER_FLAG_HEAD_LOCKED`` : Enable head locking, which forces the
-          render layer transformations to remain head referenced.
+          render layer transformations to be head referenced.
 
     See Also
     --------
@@ -4656,13 +4710,12 @@ def setSensorSampleTime(double absTime):
 
     Examples
     --------
-    Using external data to set the head pose from a motion capture system::
+    Supplying sensor sample time from an external tracking source::
 
-        # data from mocap system
-        headRigidBody = LibOVRPose(mocap.pos, mocap.ori)
-        sampleTime = mocap.frameTime
+        # get sensor time from the mocal system
+        sampleTime = timeInSeconds() - mocap.timeSinceMidExposure
 
-        # set sample time and compute eye poses
+        # set sample time
         setSensorSampleTime(sampleTime)
         calcEyePoses(headRigidBody)
 
@@ -4879,52 +4932,61 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
 
 
 def calcEyePoses(LibOVRPose headPose):
-    """Calculate eye poses using a given pose.
+    """Calculate eye poses using a given head pose.
 
-    Eye poses are derived from the head pose stored in the pose state and
-    the HMD to eye poses reported by LibOVR. Calculated eye poses are stored
-    and passed to the compositor when :func:`endFrame` is called for additional
-    processing.
+    Eye poses are derived from the specified head pose, relative eye poses, and
+    the scene tracking origin.
 
-    You can access the computed poses via the :func:`getEyeRenderPose` function.
+    Calculated eye poses are stored and passed to the compositor when
+    :func:`endFrame` is called unless ``LAYER_FLAG_HEAD_LOCKED`` is set. You can
+    access the computed poses via the :func:`getEyeRenderPose` function.
+
+    Head position can be supplied from a motion tracking system if desired.
+    However, LibOVR is very sensitive to inconsistencies between tracked poses
+    and data from the internal IMUs of the HMD. The `up` and `forward` vectors
+    of the tracked rigid body representing the HMD position must perfectly align
+    with what `LibOVR` expects, or else it will be in conflict with the rotation
+    data provided by the on-board IMUs. As LibOVR tries to compensate for the
+    conflict, the render layer will 'slip', mis-aligning the render layer with
+    the screen.
+
+    A *hacky* solution around this problem is to calculate eye poses twice. Use
+    head poses retrieved from :func:`getTrackingState` or :func:`getDevicePoses`
+    and pass them to :func:`calcEyePoses`. Then compute separate eye poses
+    manually without calling :func:`calcEyePoses` using head pose data from the
+    external tracker, convert those poses to view matrices, and use them to
+    render the actual scene.
 
     Parameters
     ----------
     headPose : :py:class:`LibOVRPose`
         Head pose.
 
-    Notes
-    -----
-
-    * :func:`getTrackingState` must still be called every frame, even if you
-      are specifying your own `headPose`.
-    * When specifying a head pose defined by any other means than returned by
-      :func:`getTrackingState`. The `headPose` will be incongruent to that
-      computed by the LibOVR runtime, causing the render layer to 'slip' during
-      composting. To prevent this, you must enable head-locking of the render
-      layer by calling :func:`setHeadLocked` if using custom head poses.
-
     Examples
     --------
 
     Compute the eye poses from tracker data::
 
-        t = getPredictedDisplayTime()
-        trackingState = getTrackingState(t)
+        abs_time = getPredictedDisplayTime()
+        tracking_state, calibrated_origin = getTrackingState(abs_time, True)
+        headPoseState, status = tracking_state[TRACKED_DEVICE_TYPE_HMD]
 
-        # check if tracking
-        if head.orientationTracked and head.positionTracked:
-            calcEyePoses(trackingState.headPose.thePose)  # calculate eye poses
-        else:
-            # do something ...
+        # calculate head pose
+        hmd.calcEyePoses(headPoseState.pose)
 
         # computed render poses appear here
         renderPoseLeft, renderPoseRight = hmd.getEyeRenderPoses()
 
-    Use a custom head pose::
+    Using external data to set the head pose from a motion capture system::
 
-        headPose = LibOVRPose((0., 1.5, 0.))  # eyes 1.5 meters off the ground
-        hmd.calcEyePoses(headPose)  # calculate eye poses
+        # rigid body in the scene defining the scene origin
+        rbHead = LibOVRPose(*headRb.posOri)
+        calcEyePoses(rbHead)
+
+    Note that the external tracker latency might be larger than builtin
+    tracking. To get around this, enable forward prediction in your mocap
+    software to equal roughly to average `getPredictedDisplayTime() -
+    mocapMidExposureTime`, or time integrate poses to mid-frame time.
 
     """
     global _ptrSession
@@ -4938,11 +5000,17 @@ def calcEyePoses(LibOVRPose headPose):
     hmdToEyePoses[0] = _eyeRenderDesc[0].HmdToEyePose
     hmdToEyePoses[1] = _eyeRenderDesc[1].HmdToEyePose
 
-     # calculate the eye poses
-    capi.ovr_CalcEyePoses2(
-        headPose.c_data[0],
-        hmdToEyePoses,
-        _eyeLayer.RenderPose)
+    cdef capi.ovrPosef[2] renderPoses  # temp for holding render poses
+
+    # calculate the eye poses
+    capi.ovr_CalcEyePoses2(headPose.c_data[0], hmdToEyePoses, renderPoses)
+
+    # if head locking is enabled, make sure the render poses are fixed
+    if (_eyeLayer.Header.Flags & capi.ovrLayerFlag_HeadLocked) != \
+            capi.ovrLayerFlag_HeadLocked:
+        _eyeLayer = renderPoses
+    else:
+        _eyeLayer = _eyeRenderDesc.HmdToEyePose
 
     # compute the eye transformation matrices from poses
     cdef libovr_math.Vector3f pos
@@ -4953,8 +5021,8 @@ def calcEyePoses(LibOVRPose headPose):
 
     cdef int eye = 0
     for eye in range(capi.ovrEye_Count):
-        pos = <libovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position
-        ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
+        pos = <libovr_math.Vector3f>renderPoses.RenderPose[eye].Position
+        ori = <libovr_math.Quatf>renderPoses.RenderPose[eye].Orientation
 
         if not ori.IsNormalized():  # make sure orientation is normalized
             ori.Normalize()
