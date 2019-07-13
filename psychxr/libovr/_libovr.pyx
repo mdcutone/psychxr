@@ -760,8 +760,12 @@ cdef class LibOVRPose(object):
 
         newPose = pose1 * pose2
 
-    The above code returns `pose2` transformed by `pose1`. On can get the
-    inverse of a pose by using the ``~`` operator::
+    Using the inplace multiplication operator ``*=``, you can transform a pose
+    into another reference frame.
+
+    The above code returns `pose2` transformed by `pose1`, putting `pose2` into
+    the reference frame of `pose1`. On can get the inverse of a pose by using
+    the ``~`` operator::
 
         poseInverse = ~pose
 
@@ -857,6 +861,16 @@ cdef class LibOVRPose(object):
         # copy into
         ptr[0] = <capi.ovrPosef>pose_r
         return LibOVRPose.fromPtr(ptr, True)
+
+    def __imul__(self, LibOVRPose other):
+        """Multiplication operator (*) to combine poses.
+        """
+
+        cdef libovr_math.Posef this_pose = <libovr_math.Posef>self.c_data[0]
+        self.c_data[0] = <capi.ovrPosef>(
+                <libovr_math.Posef>other.c_data[0] * this_pose)
+
+        return self
 
     def __invert__(self):
         """Invert operator (~) to invert a pose."""
