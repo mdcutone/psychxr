@@ -4276,7 +4276,7 @@ def setLayerEyeFovFlags(unsigned int flags):
           texture origin is at the bottom left, required for using OpenGL
           textures.
         * ``LAYER_FLAG_HEAD_LOCKED`` : Enable head locking, which forces the
-          render layer transformations to remain head referenced.
+          render layer transformations to be head referenced.
 
     See Also
     --------
@@ -4931,13 +4931,14 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
 
 
 def calcEyePoses(LibOVRPose headPose):
-    """Calculate eye poses using a given pose.
+    """Calculate eye poses using a given head pose.
 
-    Eye poses are derived from the head pose stored in the pose state and
-    the HMD to eye poses reported by LibOVR. Calculated eye poses are stored
-    and passed to the compositor when :func:`endFrame` is called for additional
-    processing. You can access the computed poses via the
-    :func:`getEyeRenderPose` function.
+    Eye poses are derived from the specified head pose, relative eye poses, and
+    the scene tracking origin.
+
+    Calculated eye poses are stored and passed to the compositor when
+    :func:`endFrame` is called unless ``LAYER_FLAG_HEAD_LOCKED`` is set. You can
+    access the computed poses via the :func:`getEyeRenderPose` function.
 
     Head position can be supplied from a motion tracking system if desired.
     However, LibOVR is very sensitive to inconsistencies between tracked poses
@@ -4946,15 +4947,14 @@ def calcEyePoses(LibOVRPose headPose):
     with what `LibOVR` expects, or else it will be in conflict with the rotation
     data provided by the on-board IMUs. As LibOVR tries to compensate for the
     conflict, the render layer will 'slip', mis-aligning the render layer with
-    the screen. For best results, use accessories for HMD tracking provided by
-    the motion tracker manufacturer.
+    the screen.
 
     A *hacky* solution around this problem is to calculate eye poses twice. Use
     head poses retrieved from :func:`getTrackingState` or :func:`getDevicePoses`
     and pass them to :func:`calcEyePoses`. Then compute separate eye poses
-    manually without calling :func:`calcEyePoses` using data from the external
-    tracker, convert those poses to view matrices, and use them to render the
-    actual scene.
+    manually without calling :func:`calcEyePoses` using head pose data from the
+    external tracker, convert those poses to view matrices, and use them to
+    render the actual scene.
 
     Parameters
     ----------
@@ -4999,11 +4999,17 @@ def calcEyePoses(LibOVRPose headPose):
     hmdToEyePoses[0] = _eyeRenderDesc[0].HmdToEyePose
     hmdToEyePoses[1] = _eyeRenderDesc[1].HmdToEyePose
 
-     # calculate the eye poses
-    capi.ovr_CalcEyePoses2(
-        headPose.c_data[0],
-        hmdToEyePoses,
-        _eyeLayer.RenderPose)
+    cdef capi.ovrPosef[2] renderPoses  # temp for holding render poses
+
+    # calculate the eye poses
+    capi.ovr_CalcEyePoses2(headPose.c_data[0], hmdToEyePoses, renderPoses)
+
+    # if head locking is enabled, make sure the render poses are fixed
+    if (_eyeLayer.Header.Flags & capi.ovrLayerFlag_HeadLocked) != \
+            capi.ovrLayerFlag_HeadLocked:
+        _eyeLayer = renderPoses
+    else:
+        _eyeLayer = _eyeRenderDesc.HmdToEyePose
 
     # compute the eye transformation matrices from poses
     cdef libovr_math.Vector3f pos
@@ -5014,8 +5020,8 @@ def calcEyePoses(LibOVRPose headPose):
 
     cdef int eye = 0
     for eye in range(capi.ovrEye_Count):
-        pos = <libovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position
-        ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
+        pos = <libovr_math.Vector3f>renderPoses.RenderPose[eye].Position
+        ori = <libovr_math.Quatf>renderPoses.RenderPose[eye].Orientation
 
         if not ori.IsNormalized():  # make sure orientation is normalized
             ori.Normalize()
