@@ -287,6 +287,7 @@ __all__ = [
     'getGraphicsLUID',
     'setHighQuality',
     'setHeadLocked',
+    'isHeadLocked',
     'getPixelsPerTanAngleAtCenter',
     'getTanAngleToRenderTargetNDC',
     'getPixelsPerDegree',
@@ -387,6 +388,7 @@ cdef capi.ovrMirrorTexture _mirrorTexture
 
 # VR related data persistent across frames
 cdef capi.ovrLayerEyeFov _eyeLayer
+cdef capi.ovrPosef[2] _eyeRenderPoses
 cdef capi.ovrEyeRenderDesc[2] _eyeRenderDesc
 cdef capi.ovrTrackingState _trackingState
 # cdef capi.ovrViewScaleDesc _viewScale
@@ -3880,10 +3882,20 @@ def setHighQuality(bint enable):
 
 
 def setHeadLocked(bint enable):
-    """True when head-locked mode is enabled.
+    """Set the render layer state for head locking.
 
-    This is disabled by default when a session is started. Enable this if you
-    are considering to use custom head poses.
+    Head-locking prevents the compositor from applying asynchronous time warp
+    (ASW) which compensates for rendering latency. Under normal circumstances
+    where head pose data is retrieved from `LibOVR` using
+    :func:`getTrackingState` or :func:`getDevicePoses` calls, it
+    should be enabled to prevent juddering and improve visual stability.
+
+    However, when using custom head poses (eg. fixed, or from a motion tracker)
+    this system may cause the render layer to slip around, as internal IMU data
+    will be incongruous with head position data. If you plan on passing custom
+    poses to :func:`calcEyePoses`, ensure that head locking is enabled.
+
+    Head locking is disabled by default when a session is started.
 
     Parameters
     ----------
@@ -3896,6 +3908,20 @@ def setHeadLocked(bint enable):
         _eyeLayer.Header.Flags |= capi.ovrLayerFlag_HeadLocked
     else:
         _eyeLayer.Header.Flags &= ~capi.ovrLayerFlag_HeadLocked
+
+
+def isHeadLocked():
+    """Check if head locking is enabled.
+
+    Returns
+    -------
+    bool
+        ``True`` if head-locking is enabled.
+
+    """
+
+    return (_eyeLayer.Header.Flags & capi.ovrLayerFlag_HeadLocked) == \
+           capi.ovrLayerFlag_HeadLocked
 
 
 def getPixelsPerTanAngleAtCenter(int eye):
@@ -4939,23 +4965,8 @@ def calcEyePoses(LibOVRPose headPose):
 
     Calculated eye poses are stored and passed to the compositor when
     :func:`endFrame` is called unless ``LAYER_FLAG_HEAD_LOCKED`` is set. You can
-    access the computed poses via the :func:`getEyeRenderPose` function.
-
-    Head position can be supplied from a motion tracking system if desired.
-    However, LibOVR is very sensitive to inconsistencies between tracked poses
-    and data from the internal IMUs of the HMD. The `up` and `forward` vectors
-    of the tracked rigid body representing the HMD position must perfectly align
-    with what `LibOVR` expects, or else it will be in conflict with the rotation
-    data provided by the on-board IMUs. As LibOVR tries to compensate for the
-    conflict, the render layer will 'slip', mis-aligning the render layer with
-    the screen.
-
-    A *hacky* solution around this problem is to calculate eye poses twice. Use
-    head poses retrieved from :func:`getTrackingState` or :func:`getDevicePoses`
-    and pass them to :func:`calcEyePoses`. Then compute separate eye poses
-    manually without calling :func:`calcEyePoses` using head pose data from the
-    external tracker, convert those poses to view matrices, and use them to
-    render the actual scene.
+    access the computed poses via the :func:`getEyeRenderPose` function. If
+    using custom head poses, ensure :func:`setHeadLocked` is ``True``.
 
     Parameters
     ----------
@@ -4991,6 +5002,7 @@ def calcEyePoses(LibOVRPose headPose):
     """
     global _ptrSession
     global _eyeLayer
+    global _eyeRenderPoses
     global _eyeRenderDesc
     global _eyeViewMatrix
     global _eyeProjectionMatrix
@@ -5000,17 +5012,8 @@ def calcEyePoses(LibOVRPose headPose):
     hmdToEyePoses[0] = _eyeRenderDesc[0].HmdToEyePose
     hmdToEyePoses[1] = _eyeRenderDesc[1].HmdToEyePose
 
-    cdef capi.ovrPosef[2] renderPoses  # temp for holding render poses
-
     # calculate the eye poses
-    capi.ovr_CalcEyePoses2(headPose.c_data[0], hmdToEyePoses, renderPoses)
-
-    # if head locking is enabled, make sure the render poses are fixed
-    if (_eyeLayer.Header.Flags & capi.ovrLayerFlag_HeadLocked) != \
-            capi.ovrLayerFlag_HeadLocked:
-        _eyeLayer = renderPoses
-    else:
-        _eyeLayer = _eyeRenderDesc.HmdToEyePose
+    capi.ovr_CalcEyePoses2(headPose.c_data[0], hmdToEyePoses, _eyeRenderPoses)
 
     # compute the eye transformation matrices from poses
     cdef libovr_math.Vector3f pos
@@ -5021,8 +5024,8 @@ def calcEyePoses(LibOVRPose headPose):
 
     cdef int eye = 0
     for eye in range(capi.ovrEye_Count):
-        pos = <libovr_math.Vector3f>renderPoses.RenderPose[eye].Position
-        ori = <libovr_math.Quatf>renderPoses.RenderPose[eye].Orientation
+        pos = <libovr_math.Vector3f>_eyeRenderPoses[eye].Position
+        ori = <libovr_math.Quatf>_eyeRenderPoses[eye].Orientation
 
         if not ori.IsNormalized():  # make sure orientation is normalized
             ori.Normalize()
@@ -5155,8 +5158,8 @@ def getEyeRenderPose(int eye):
             getHmdToEyePose(eye).asMatrix(eyeViewMatrices[eye])
 
     """
-    global _eyeLayer
-    return LibOVRPose.fromPtr(&_eyeLayer.RenderPose[eye])
+    global _eyeRenderPoses
+    return LibOVRPose.fromPtr(&_eyeRenderPoses[eye])
 
 
 def setEyeRenderPose(int eye, LibOVRPose eyePose):
@@ -5175,11 +5178,11 @@ def setEyeRenderPose(int eye, LibOVRPose eyePose):
     getEyeRenderPose : Get an eye's render pose.
 
     """
-    global _eyeLayer
+    global _eyeRenderPoses
     global _eyeViewMatrix
     global _eyeViewProjectionMatrix
 
-    _eyeLayer.RenderPose[eye] = eyePose.c_data[0]
+    _eyeRenderPoses[eye] = eyePose.c_data[0]
 
     # re-compute the eye transformation matrices from poses
     cdef libovr_math.Vector3f pos
@@ -5188,8 +5191,8 @@ def setEyeRenderPose(int eye, LibOVRPose eyePose):
     cdef libovr_math.Vector3f forward
     cdef libovr_math.Matrix4f rm
 
-    pos = <libovr_math.Vector3f>_eyeLayer.RenderPose[eye].Position
-    ori = <libovr_math.Quatf>_eyeLayer.RenderPose[eye].Orientation
+    pos = <libovr_math.Vector3f>_eyeRenderPoses[eye].Position
+    ori = <libovr_math.Quatf>_eyeRenderPoses[eye].Orientation
 
     if not ori.IsNormalized():  # make sure orientation is normalized
         ori.Normalize()
@@ -5260,7 +5263,7 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
                    out.shape == (4,4,) and \
                    out.dtype == np.float32
         except AssertionError:
-            raise AssertionError("'outMatrix' has wrong type or dimensions.")
+            raise AssertionError("'out' has wrong type or dimensions.")
 
         to_return = out
 
@@ -5536,6 +5539,16 @@ def endFrame(unsigned int frameIndex=0):
     """
     global _ptrSession
     global _eyeLayer
+    global _eyeRenderPoses
+
+    # if head locking is enabled, make sure the render poses are fixed to
+    # HmdToEyePose
+    if (_eyeLayer.Header.Flags & capi.ovrLayerFlag_HeadLocked) != \
+            capi.ovrLayerFlag_HeadLocked:
+        _eyeLayer.RenderPose = _eyeRenderPoses
+    else:
+        _eyeLayer.RenderPose[0] = _eyeRenderDesc[0].HmdToEyePose
+        _eyeLayer.RenderPose[1] = _eyeRenderDesc[1].HmdToEyePose
 
     cdef capi.ovrLayerHeader* layers = &_eyeLayer.Header
     cdef capi.ovrResult result = capi.ovr_EndFrame(
