@@ -6,17 +6,17 @@ Version 0.2.1 - 2019/07/13
 
 Overview:
 
-    This release adds improved haptics support, add more features to LibOVRPose,
-    and fixes head locking.
+    This release adds improved haptics support, adds more features to
+    LibOVRPose, and fixes head locking.
 
 New Features:
 
     - Added `getViewMatrix` to `LibOVRPose` which creates view matrices. This
       allows you to use rigid body poses to define eye locations for rendering.
-    - Support for haptic buffers for use with touch controllers. A haptics
-      buffer contains an array of samples which specify Tocuh controller
+    - Support for haptic buffers for use with Touch controllers. A haptics
+      buffer contains an array of samples which specify Touch controller
       vibration amplitudes. Buffers can be passed to the haptics engine for
-      playback.
+      playback, permitting custom vibration profiles.
 
 Bug Fixes:
 
@@ -32,22 +32,6 @@ Known Issues:
 
     - None
 
-
-Version 0.1.3 - 2018/07/04
---------------------------
-
-New Features:
-
-    - Added "getPitchYawRoll" method to ovrQuatf object.
-    - Changed "ovrSessionStatus" getter functions to properties.
-
-Bug Fixes:
-
-    - No bug fixes this release.
-
-Breaking:
-
-    - "ovrSessionStatus" getter functions are now properties.
 
 Version 0.2.0 - 2019/07/06
 --------------------------
@@ -115,6 +99,21 @@ Breaking Changes:
 Known Issues:
 
     - None so far ...
+
+Version 0.1.4 - 2019/02/11
+--------------------------
+
+New Features:
+
+    - None
+
+Bug Fixes:
+
+    - Updated licensing information.
+
+Breaking:
+
+    - None
 
 
 Version 0.1.3 - 2018/07/04
