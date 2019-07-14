@@ -183,7 +183,7 @@ cdef extern from "OVR_Math.h" namespace "OVR":
 
     cdef cppclass Vector4f "OVR::Vector4f":
         Vector4f() except +
-        CppVector4(Vector3f& v, float w_) except +
+        Vector4f(Vector3f& v, float w_) except +
         Vector4f(float x_, float y_, float z_, float w_) except +
         float x, y, z, w
         @staticmethod
@@ -214,6 +214,18 @@ cdef extern from "OVR_Math.h" namespace "OVR":
         void Normalize()
         Vector4f Normalized()
         Vector4f Lerp(const Vector4f& b, float f)
+
+    cdef cppclass Bounds3f "OVR::Bounds3f":
+        Bounds3f() except +
+        Bounds3f(Vector3f& mins, Vector3f& maxs) except +
+        Vector3f b[2]
+        void Clear()
+        void AddPoint(Vector3f& v)
+        bool Excludes(Vector3f& v)
+        bool ExcludesXZ(Vector3f& v)
+        bool Excludes(Bounds3f& bounds)
+        Vector3f GetMins()
+        Vector3f GetMaxs()
 
     cdef cppclass Quatf "OVR::Quatf":
         Quatf() except +

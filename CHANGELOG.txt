@@ -13,6 +13,10 @@ New Features:
 
     - Added `getViewMatrix` to `LibOVRPose` which creates view matrices. This
       allows you to use rigid body poses to define eye locations for rendering.
+    - Added bounding boxes to poses. You can test if an object's bounding box
+      is visible to a given eye using the new `cullPose` function. This allows
+      you to cull meshes associated with poses if they are not visible during
+      scene rendering, reducing CPU/GPU workload when drawing scenes.
     - Support for haptic buffers for use with Touch controllers. A haptics
       buffer contains an array of samples which specify Touch controller
       vibration amplitudes. Buffers can be passed to the haptics engine for
@@ -90,7 +94,7 @@ Bug Fixes:
 Breaking Changes:
 
     - Many API functions have been removed or renamed, some functions take
-    different arguments all together.
+      different arguments all together.
     - Removed 'ovr.math' module, use LibOVRPose for rigid body transforms.
     - Removed 'ovr.capi', import 'psychxr.libovr' instead.
     - Reduced number of possible swap chains to 8 for now.

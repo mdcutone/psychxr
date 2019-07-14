@@ -254,6 +254,7 @@ __all__ = [
     # 'HMD_RIFTS',
     'LibOVRPose',
     'LibOVRPoseState',
+    'LibOVRBounds',
     'LibOVRTrackerInfo',
     'LibOVRHmdInfo',
     'LibOVRSessionStatus',
@@ -795,11 +796,12 @@ cdef class LibOVRPose(object):
 
     """
     cdef capi.ovrPosef* c_data
-    cdef libovr_math.Vector3f[2] c_bbox
     cdef bint ptr_owner
 
     cdef np.ndarray _pos
     cdef np.ndarray _ori
+
+    cdef LibOVRBounds _bbox
 
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
         self._new_struct(pos, ori)
@@ -815,8 +817,7 @@ cdef class LibOVRPose(object):
 
         wrapper._pos = _wrap_ovrVector3f_as_ndarray(&ptr.Position)
         wrapper._ori = _wrap_ovrQuatf_as_ndarray(&ptr.Orientation)
-        wrapper.c_bbox[0] = libovr_math.Vector3f(-1., -1., -1.)
-        wrapper.c_bbox[1] = libovr_math.Vector3f(1., 1., 1.)
+        wrapper._bbox = None
 
         return wrapper
 
@@ -843,8 +844,7 @@ cdef class LibOVRPose(object):
 
         self._pos = _wrap_ovrVector3f_as_ndarray(&ptr.Position)
         self._ori = _wrap_ovrQuatf_as_ndarray(&ptr.Orientation)
-        self.c_bbox[0] = libovr_math.Vector3f(-1., -1., -1.)
-        self.c_bbox[1] = libovr_math.Vector3f(1., 1., 1.)
+        self._bbox = None
 
     def __dealloc__(self):
         # don't do anything crazy like set c_data=NULL without deallocating!
@@ -916,20 +916,14 @@ cdef class LibOVRPose(object):
 
         return to_return
 
-    def setBoundingBox(self, mins, maxs):
-        """Set axis-aligned bounding box dimensions for this pose.
+    @property
+    def boundingBox(self):
+        """Bounding box object associated with this pose."""
+        return self._bbox
 
-        The bounding box is defined by a minimum and maximum point relative to
-        the pose's position.
-
-        Parameters
-        ----------
-        mins, maxs : array_like
-            Minimum and maximum points of the bounding box.
-
-        """
-        self.c_bbox[0] = libovr_math.Vector3f(mins[0], mins[1], mins[2])
-        self.c_bbox[1] = libovr_math.Vector3f(maxs[0], maxs[1], maxs[2])
+    @boundingBox.setter
+    def boundingBox(self, LibOVRBounds value):
+        self._bbox = value
 
     def isEqual(self, LibOVRPose pose, float tolerance=1e-5):
         """Check if poses are close to equal in position and orientation.
@@ -2251,20 +2245,90 @@ cdef class LibOVRPoseState(object):
 
         return to_return
 
-    # def relativize(self, LibOVRPoseState poseState):
-    #     """Get relative motion and acceleration derivatives.
-    #
-    #     This function returns a new `LibOVRPoseState` object where velocity
-    #     and acceleration derivatives of `poseState` are transformed into the
-    #     reference frame of this pose state. If `timeInSeconds` differs between
-    #     the poses, `poseState` is time integrated to the time this pose refers
-    #     to.
-    #
-    #     Parameters
-    #     ----------
-    #     poseState : LibOVRPoseState
-    #
-    #     """
+
+cdef class LibOVRBounds(object):
+    """Class for constructing and representing axis-aligned bounding boxes.
+    """
+    cdef libovr_math.Bounds3f* c_data
+    cdef bint ptr_owner
+
+    def __init__(self, mins=(-0.5, -0.5, -0.5), maxs=(0.5, 0.5, 0.5)):
+        self._new_struct(mins, maxs)
+
+    def __cinit__(self, *args, **kwargs):
+        self.ptr_owner = False
+
+    @staticmethod
+    cdef LibOVRBounds fromPtr(libovr_math.Bounds3f* ptr, bint owner=False):
+        cdef LibOVRBounds wrapper = LibOVRBounds.__new__(LibOVRBounds)
+        wrapper.c_data = ptr
+        wrapper.ptr_owner = owner
+
+        wrapper._mins = _wrap_ovrVector3f_as_ndarray(<capi.ovrVector3f*>&ptr.b[0])
+        wrapper._maxs = _wrap_ovrVector3f_as_ndarray(<capi.ovrVector3f*>&ptr.b[1])
+
+        return wrapper
+
+    cdef void _new_struct(self, object mins, object maxs):
+        if self.c_data is not NULL:
+            return
+
+        cdef libovr_math.Bounds3f* ptr = \
+            <libovr_math.Bounds3f*>PyMem_Malloc(sizeof(libovr_math.Bounds3f))
+
+        if ptr is NULL:
+            raise MemoryError
+
+        ptr.b[0].x = <float>mins[0]
+        ptr.b[0].y = <float>mins[1]
+        ptr.b[0].z = <float>mins[2]
+        ptr.b[1].x = <float>maxs[0]
+        ptr.b[1].y = <float>maxs[1]
+        ptr.b[1].z = <float>maxs[2]
+
+        self.c_data = ptr
+        self.ptr_owner = True
+
+        self._mins = _wrap_ovrVector3f_as_ndarray(<capi.ovrVector3f*>&ptr.b[0])
+        self._maxs = _wrap_ovrVector3f_as_ndarray(<capi.ovrVector3f*>&ptr.b[1])
+
+    def __dealloc__(self):
+        if self.c_data is not NULL:
+            if self.ptr_owner is True:
+                PyMem_Free(self.c_data)
+                self.c_data = NULL
+
+    def clear(self):
+        """Clear the bounding box."""
+        self.c_data.Clear()
+
+    def addPoint(self, object point):
+        """Add a point to the bounding box. This will resize the bounding box
+        to encompass all points.
+
+        """
+        cdef libovr_math.Vector3f new_point = libovr_math.Vector3f(
+            <float>new_point[0], <float>new_point[1], <float>new_point[2])
+
+        self.c_data.AddPoint(new_point)
+
+    @property
+    def mins(self):
+        """Minimum point."""
+        return self._mins
+
+    @mins.setter
+    def mins(self, object value):
+        self._mins[:] = value
+
+    @property
+    def maxs(self):
+        """Maximum point."""
+        return self._maxs
+
+    @maxs.setter
+    def maxs(self, object value):
+        self._mins[:] = value
 
 
 cdef class LibOVRTrackerInfo(object):
@@ -6968,7 +7032,11 @@ def getControllerPlaybackState(int controller):
 
 
 def cullPose(int eye, LibOVRPose pose):
-    """Test if a pose's bounding box is outside of an eye's view frustum.
+    """Test if a pose's bounding box falls outside of an eye's view frustum.
+
+    If ``True``, the bounding box of a pose is completely outside of the
+    view frustum of the specified `eye`. Any geometry associated with the pose
+    can be culled during rendering to reduce CPU/GPU workload.
 
     Parameters
     ----------
@@ -6980,29 +7048,35 @@ def cullPose(int eye, LibOVRPose pose):
     Returns
     -------
     bool
-        True if the object is not visible and could be culled during rendering.
+        ``True`` if the pose's bounding box is not visible to the given `eye`.
 
     """
-    # This is based on OpenXR's function `XrMatrix4x4f_CullBounds` in
+    # This is based on OpenXR's function `XrMatrix4x4f_CullBounds` found in
     # `xr_linear.h`
     global _eyeViewProjectionMatrix
 
+    if pose.boundingBox is None:  # return if pose has no bounding box
+        return False
+
+    cdef libovr_math.Bounds3f* bbox = pose._bbox.c_data
     cdef libovr_math.Vector4f[8] corners
     cdef libovr_math.Vector4f corner
     cdef libovr_math.Matrix4f mvp = \
         _eyeViewProjectionMatrix[eye] * \
         libovr_math.Matrix4f(<libovr_math.Posef>pose.c_data[0])
 
+    # compute the corners of the bounding box
     cdef Py_ssize_t i
     for i in range(8):
         corner = libovr_math.Vector4f(
-            pose.c_bbox[1].x if (i & 1) else pose.c_bbox[0].x,
-            pose.c_bbox[1].y if (i & 2) else pose.c_bbox[0].y,
-            pose.c_bbox[1].z if (i & 4) else pose.c_bbox[0].z,
+            bbox.b[1].x if (i & 1) else bbox.b[0].x,
+            bbox.b[1].y if (i & 2) else bbox.b[0].y,
+            bbox.b[1].z if (i & 4) else bbox.b[0].z,
             1.0)
         corners[i] = mvp.Transform(corner)
 
-    i = 0
+    # If any of these loops exit normally, the bounding box is completely off to
+    # one side of the viewing frustum.
     for i in range(8):
         if corners[i].x > -corners[i].w:
             break
