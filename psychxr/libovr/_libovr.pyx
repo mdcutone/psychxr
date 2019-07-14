@@ -2247,12 +2247,28 @@ cdef class LibOVRPoseState(object):
 
 
 cdef class LibOVRBounds(object):
-    """Class for constructing and representing axis-aligned bounding boxes.
+    """Class for constructing and representing 3D axis-aligned bounding boxes.
+
+    Parameters
+    ----------
+    mins, maxs : array_like, optional
+        Minimum and maximum extents of the bounding box [x, y, z]. By default,
+        the bounding box will be a unit cube centered on zero.
+
     """
     cdef libovr_math.Bounds3f* c_data
     cdef bint ptr_owner
 
+    cdef np.ndarray _mins
+    cdef np.ndarray _maxs
+
     def __init__(self, mins=(-0.5, -0.5, -0.5), maxs=(0.5, 0.5, 0.5)):
+        """
+        Attributes
+        ----------
+        mins : ndarray
+        maxs : ndarray
+        """
         self._new_struct(mins, maxs)
 
     def __cinit__(self, *args, **kwargs):
@@ -2303,18 +2319,24 @@ cdef class LibOVRBounds(object):
         self.c_data.Clear()
 
     def addPoint(self, object point):
-        """Add a point to the bounding box. This will resize the bounding box
-        to encompass all points.
+        """Resize the bounding box to encompass a given point. Calling this
+        function for each vertex of a model will create an optimal bounding box
+        for it.
+
+        Parameters
+        ----------
+        point : array_like
+            Vector/coordinate to add [x, y, z].
 
         """
         cdef libovr_math.Vector3f new_point = libovr_math.Vector3f(
-            <float>new_point[0], <float>new_point[1], <float>new_point[2])
+            <float>point[0], <float>point[1], <float>point[2])
 
         self.c_data.AddPoint(new_point)
 
     @property
     def mins(self):
-        """Minimum point."""
+        """Minimum extents of the bounding box."""
         return self._mins
 
     @mins.setter
@@ -2323,7 +2345,7 @@ cdef class LibOVRBounds(object):
 
     @property
     def maxs(self):
-        """Maximum point."""
+        """Maximum extents of the bounding box."""
         return self._maxs
 
     @maxs.setter
