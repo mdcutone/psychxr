@@ -355,7 +355,8 @@ __all__ = [
     'setControllerVibration',
     'getHapticsInfo',
     'submitControllerVibration',
-    'getControllerPlaybackState'
+    'getControllerPlaybackState',
+    'cullPose'
     #'anyPointInFrustum'
 ]
 
@@ -794,6 +795,7 @@ cdef class LibOVRPose(object):
 
     """
     cdef capi.ovrPosef* c_data
+    cdef libovr_math.Vector3f[2] c_bbox
     cdef bint ptr_owner
 
     cdef np.ndarray _pos
@@ -813,6 +815,8 @@ cdef class LibOVRPose(object):
 
         wrapper._pos = _wrap_ovrVector3f_as_ndarray(&ptr.Position)
         wrapper._ori = _wrap_ovrQuatf_as_ndarray(&ptr.Orientation)
+        wrapper.c_bbox[0] = libovr_math.Vector3f(-1., -1., -1.)
+        wrapper.c_bbox[1] = libovr_math.Vector3f(1., 1., 1.)
 
         return wrapper
 
@@ -839,6 +843,8 @@ cdef class LibOVRPose(object):
 
         self._pos = _wrap_ovrVector3f_as_ndarray(&ptr.Position)
         self._ori = _wrap_ovrQuatf_as_ndarray(&ptr.Orientation)
+        self.c_bbox[0] = libovr_math.Vector3f(-1., -1., -1.)
+        self.c_bbox[1] = libovr_math.Vector3f(1., 1., 1.)
 
     def __dealloc__(self):
         # don't do anything crazy like set c_data=NULL without deallocating!
@@ -909,6 +915,21 @@ cdef class LibOVRPose(object):
             memo[id(self)] = to_return
 
         return to_return
+
+    def setBoundingBox(self, mins, maxs):
+        """Set axis-aligned bounding box dimensions for this pose.
+
+        The bounding box is defined by a minimum and maximum point relative to
+        the pose's position.
+
+        Parameters
+        ----------
+        mins, maxs : array_like
+            Minimum and maximum points of the bounding box.
+
+        """
+        self.c_bbox[0] = libovr_math.Vector3f(mins[0], mins[1], mins[2])
+        self.c_bbox[1] = libovr_math.Vector3f(maxs[0], maxs[1], maxs[2])
 
     def isEqual(self, LibOVRPose pose, float tolerance=1e-5):
         """Check if poses are close to equal in position and orientation.
@@ -1701,7 +1722,8 @@ cdef class LibOVRPose(object):
         """Raycast to a sphere.
 
         Project an invisible ray of finite or infinite length from this pose in
-        `rayDir` and check if it intersects with the targetPose bounding sphere.
+        `rayDir` and check if it intersects with the `targetPose` bounding
+        sphere.
 
         This method allows for very basic interaction between objects
         represented by poses in a scene, including tracked devices.
@@ -1844,8 +1866,10 @@ cdef class LibOVRPose(object):
     def getViewMatrix(self, object out=None):
         """Convert this pose into a view matrix.
 
-        Creates a view matrix using the current pose as the eye position in the
-        scene.
+        Creates a view matrix which transforms points into eye space using the
+        current pose as the eye position in the scene. Furthermore, you can use
+        view matrices for rendering shadows if light positions are defined
+        as `LibOVRPose` objects.
 
         Parameters
         ----------
@@ -6943,238 +6967,76 @@ def getControllerPlaybackState(int controller):
     return result, playback_state.RemainingQueueSpace, playback_state.SamplesQueued
 
 
-# def testBBoxVisible(int eye, object boundingBox):
-#     """Test if an object's bounding box falls outside of the current view
-#     volume.
-#
-#     Parameters
-#     ----------
-#     eye : int
-#         Eye index.
-#     boundingBox : ndarray
-#         Bounding box as an 8x3 array of floats, where each row contains the
-#         [X, Y, Z] coordinate of a bounding box vertex.
-#
-#     Returns
-#     -------
-#     bool
-#         True if the object is not visible.
-#
-#     """
-#     global _eyeViewProjectionMatrix
-#
-#     cdef float m[16]
-#     cdef float planeEq[6][4]
-#
-#     # compute plane equations, in VR these change constantly so they need to be
-#     # recalculated every frame
-#
-#     cdef int i, j, k
-#     k = 0
-#     for i in range(4):
-#         for j in range(4):
-#             m[k] = _eyeViewProjectionMatrix[eye].M[j][i]  # column-wise
-#             k += 1
-#
-#     planeEq[0][0] = m[3] - m[0]
-#     planeEq[0][1] = m[7] - m[4]
-#     planeEq[0][2] = m[11] - m[8]
-#     planeEq[0][3] = m[15] - m[12]
-#
-#     planeEq[1][0] = m[3] + m[0]
-#     planeEq[1][1] = m[7] + m[4]
-#     planeEq[1][2] = m[11] + m[8]
-#     planeEq[1][3] = m[15] + m[12]
-#
-#     planeEq[2][0] = m[3] + m[1]
-#     planeEq[2][1] = m[7] + m[5]
-#     planeEq[2][2] = m[11] + m[9]
-#     planeEq[2][3] = m[15] + m[13]
-#
-#     planeEq[3][0] = m[3] - m[1]
-#     planeEq[3][1] = m[7] - m[5]
-#     planeEq[3][2] = m[11] - m[9]
-#     planeEq[3][3] = m[15] - m[13]
-#
-#     planeEq[4][0] = m[3] + m[2]
-#     planeEq[4][1] = m[7] + m[6]
-#     planeEq[4][2] = m[11] + m[10]
-#     planeEq[4][3] = m[15] + m[14]
-#
-#     planeEq[5][0] = m[3] - m[2]
-#     planeEq[5][1] = m[7] - m[6]
-#     planeEq[5][2] = m[11] - m[10]
-#     planeEq[5][3] = m[15] - m[14]
-#
-#     # get the bounding box
-#     cdef float[:,:] bbox = np.asarray(boundingBox, dtype=np.float32)
-#
-#     # test if the vertices of the bounding box are all outside of the view
-#     cdef int culled
-#     cdef float distanceFromPlane = 0.0
-#
-#     for i in range(6):
-#         culled = 0
-#         for j in range(8):
-#             distanceFromPlane = planeEq[i][0] * bbox[j, 0] + \
-#                                 planeEq[i][1] * bbox[j, 1] + \
-#                                 planeEq[i][2] * bbox[j, 2] + \
-#                                 planeEq[i][3]
-#
-#             if distanceFromPlane < 0.:
-#                 culled |= 1 << j
-#
-#         if culled == 0xff:
-#             return 1
-#
-#     return 0
+def cullPose(int eye, LibOVRPose pose):
+    """Test if a pose's bounding box is outside of an eye's view frustum.
 
-# def testPointsInEyeFrustums(object points, object out=None):
-#     """Test if points are within each eye's frustum.
-#
-#     This function uses current view and projection matrix in the computation.
-#
-#     Parameters
-#     ----------
-#     points : tuple, list, or ndarray
-#         2D array of points to test. Each coordinate should be in format
-#         [x, y ,z], where dimensions are in meters. Passing a NumPy ndarray with
-#         dtype=float32 and ndim=2 will avoid copying.
-#
-#     out : ndarray
-#         Optional array to write test results. Must have the same shape as
-#         'points' and dtype=bool. If None, the function will create and return an
-#         appropriate array with results.
-#
-#     Returns
-#     -------
-#     ndarray
-#         Nx2 array of results. The row index of the returned array contains the
-#         test results for the coordinates with the matching row index in
-#         'points'. The results for the left and right eye are stored in the first
-#         and second column, respectively.
-#
-#     """
-#     #global _nearClip
-#     #global _farClip
-#
-#     cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
-#         np.array(points, dtype=np.float32, ndmin=2, copy=False)
-#
-#     cdef np.ndarray[np.uint8_t, ndim=2] testOut
-#     if out is not None:
-#         testOut = out
-#     else:
-#         testOut = np.zeros_like(out, dtype=np.uint8_t)
-#
-#     assert testOut.shape == pointsIn.shape
-#
-#     cdef float[:,:] mvPoints = pointsIn
-#     cdef np.uint8_t[:,:] mvResult = testOut
-#
-#     # intermediates
-#     cdef libovr_math.Vector4f vecIn
-#     cdef libovr_math.Vector4f pointHCS
-#     cdef libovr_math.Vector3f pointNDC
-#
-#     # loop over all points specified
-#     cdef Py_ssize_t eye = 0
-#     cdef Py_ssize_t pt = 0
-#     cdef Py_ssize_t N = mvPoints.shape[0]
-#     for pt in range(N):
-#         for eye in range(capi.ovrEye_Count):
-#             vecIn.x = mvPoints[pt, 0]
-#             vecIn.y = mvPoints[pt, 1]
-#             vecIn.z = mvPoints[pt, 2]
-#             vecIn.w = 1.0
-#             pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
-#
-#             # too close to the singularity for perspective division or behind
-#             # the viewer, fail automatically
-#             if pointHCS.w < 0.0001:
-#                 continue
-#
-#             # perspective division XYZ / W
-#             pointNDC.x = pointHCS.x / pointHCS.w
-#             pointNDC.y = pointHCS.y / pointHCS.w
-#             pointNDC.z = pointHCS.z / pointHCS.w
-#
-#             # check if outside [-1:1] in any NDC dimension
-#             if -1.0 < pointNDC.x < 1.0 and -1.0 < pointNDC.y < 1.0 and -1.0 < pointNDC.z < 1.0:
-#                 mvResult[pt, eye] = 1
-#
-#     return testOut.astype(dtype=np.bool)
-#
-# def anyPointInFrustum(object points):
-#     """Check if any of the specified points in world/scene coordinates are
-#     within the viewing frustum of either eye.
-#
-#     This can be used to determine whether or not something should be drawn by
-#     specifying its position, mesh or bounding box vertices. The function will
-#     return True immediately when it comes across a point that falls within
-#     either eye's frustum.
-#
-#     Parameters
-#     ----------
-#     points : tuple, list, or ndarray
-#         2D array of points to test. Each coordinate should be in format
-#         [x, y ,z], where dimensions are in meters. Passing a NumPy ndarray with
-#         dtype=float32 and ndim=2 will avoid copying.
-#
-#     Returns
-#     -------
-#     bool
-#         True if any point specified falls inside a viewing frustum.
-#
-#     Examples
-#     --------
-#     Test if points fall within a viewing frustum::
-#
-#         points = [[1.2, -0.2, -5.6], [-0.01, 0.0, -10.0]]
-#         isVisible = libovr.testPointsInFrustum(points)
-#
-#     """
-#     # eventually we're going to move this function if we decide to support more
-#     # HMDs. This really isn't something specific to LibOVR.
-#
-#     # input values to 2D memory view
-#     cdef np.ndarray[np.float32_t, ndim=2] pointsIn = \
-#         np.array(points, dtype=np.float32, ndmin=2, copy=False)
-#
-#     if pointsIn.shape[1] != 3:
-#         raise ValueError("Invalid number of columns, must be 3.")
-#
-#     cdef float[:,:] mvPoints = pointsIn
-#
-#     # intermediates
-#     cdef libovr_math.Vector4f vecIn
-#     cdef libovr_math.Vector4f pointHCS
-#     cdef libovr_math.Vector3f pointNDC
-#
-#     # loop over all points specified
-#     cdef Py_ssize_t eye = 0
-#     cdef Py_ssize_t pt = 0
-#     cdef Py_ssize_t N = mvPoints.shape[0]
-#     for pt in range(N):
-#         for eye in range(capi.ovrEye_Count):
-#             vecIn.x = mvPoints[pt, 0]
-#             vecIn.y = mvPoints[pt, 1]
-#             vecIn.z = mvPoints[pt, 2]
-#             vecIn.w = 1.0
-#             pointHCS = _eyeViewProjectionMatrix[eye].Transform(vecIn)
-#
-#             # too close to the singularity for perspective division or behind
-#             # the viewer, fail automatically
-#             if pointHCS.w < 0.0001:
-#                 return False
-#
-#             # perspective division XYZ / W
-#             pointNDC.x = pointHCS.x / pointHCS.w
-#             pointNDC.y = pointHCS.y / pointHCS.w
-#             pointNDC.z = pointHCS.z / pointHCS.w
-#
-#             # check if outside [-1:1] in any NDC dimension
-#             if -1.0 < pointNDC.x < 1.0 and -1.0 < pointNDC.y < 1.0 and -1.0 < pointNDC.z < 1.0:
-#                 return True
-#
-#     return False
+    Parameters
+    ----------
+    eye : int
+        Eye index.
+    pose : LibOVRPose
+        Pose to test.
+
+    Returns
+    -------
+    bool
+        True if the object is not visible and could be culled during rendering.
+
+    """
+    # This is based on OpenXR's function `XrMatrix4x4f_CullBounds` in
+    # `xr_linear.h`
+    global _eyeViewProjectionMatrix
+
+    cdef libovr_math.Vector4f[8] corners
+    cdef libovr_math.Vector4f corner
+    cdef libovr_math.Matrix4f mvp = \
+        _eyeViewProjectionMatrix[eye] * \
+        libovr_math.Matrix4f(<libovr_math.Posef>pose.c_data[0])
+
+    cdef Py_ssize_t i
+    for i in range(8):
+        corner = libovr_math.Vector4f(
+            pose.c_bbox[1].x if (i & 1) else pose.c_bbox[0].x,
+            pose.c_bbox[1].y if (i & 2) else pose.c_bbox[0].y,
+            pose.c_bbox[1].z if (i & 4) else pose.c_bbox[0].z,
+            1.0)
+        corners[i] = mvp.Transform(corner)
+
+    i = 0
+    for i in range(8):
+        if corners[i].x > -corners[i].w:
+            break
+    else:
+        return True
+
+    for i in range(8):
+        if corners[i].x < corners[i].w:
+            break
+    else:
+        return True
+
+    for i in range(8):
+        if corners[i].y > -corners[i].w:
+            break
+    else:
+        return True
+
+    for i in range(8):
+        if corners[i].y < corners[i].w:
+            break
+    else:
+        return True
+
+    for i in range(8):
+        if corners[i].z > -corners[i].w:
+            break
+    else:
+        return True
+
+    for i in range(8):
+        if corners[i].z < corners[i].w:
+            break
+    else:
+        return True
+
+    return False
