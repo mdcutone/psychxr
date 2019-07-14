@@ -5733,8 +5733,7 @@ def setTrackingOriginType(int value):
     Parameters
     ----------
     value : int
-        Tracking origin type, must be either
-        ``TRACKING_ORIGIN_FLOOR_LEVEL`` or
+        Tracking origin type, must be either ``TRACKING_ORIGIN_FLOOR_LEVEL`` or
         ``TRACKING_ORIGIN_EYE_LEVEL``.
 
     Returns
@@ -7063,9 +7062,11 @@ def cullPose(int eye, LibOVRPose pose):
     Parameters
     ----------
     eye : int
-        Eye index.
+        Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
     pose : LibOVRPose
-        Pose to test.
+        Pose to test. If the pose has no associated bounding box, or if the
+        bounding box has been cleared, this function will always return
+        ``False``.
 
     Returns
     -------
@@ -7083,6 +7084,12 @@ def cullPose(int eye, LibOVRPose pose):
     cdef libovr_math.Bounds3f* bbox = pose._bbox.c_data
     cdef libovr_math.Vector4f[8] corners
     cdef libovr_math.Vector4f corner
+
+    # bounding box is cleared
+    if bbox[1].x <= bbox[0].x and bbox[1].y <= bbox[0].y and bbox[1].z <= bbox[0].z:
+        return False
+
+    # compute the MVP matrix to transform poses into HCS
     cdef libovr_math.Matrix4f mvp = \
         _eyeViewProjectionMatrix[eye] * \
         libovr_math.Matrix4f(<libovr_math.Posef>pose.c_data[0])
