@@ -7086,7 +7086,9 @@ def cullPose(int eye, LibOVRPose pose):
     cdef libovr_math.Vector4f corner
 
     # bounding box is cleared
-    if bbox[1].x <= bbox[0].x and bbox[1].y <= bbox[0].y and bbox[1].z <= bbox[0].z:
+    if bbox.b[1].x <= bbox.b[0].x and \
+            bbox.b[1].y <= bbox.b[0].y and \
+            bbox.b[1].z <= bbox.b[0].z:
         return False
 
     # compute the MVP matrix to transform poses into HCS
