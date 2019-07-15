@@ -918,7 +918,7 @@ cdef class LibOVRPose(object):
 
     @property
     def boundingBox(self):
-        """Bounding box object associated with this pose."""
+        """Bounding object associated with this pose."""
         return self._bbox
 
     @boundingBox.setter
@@ -2249,11 +2249,35 @@ cdef class LibOVRPoseState(object):
 cdef class LibOVRBounds(object):
     """Class for constructing and representing 3D axis-aligned bounding boxes.
 
+    A bounding boxes is a constructs which represents a 3D rectangular volumes
+    about some pose, defined by its minimum and maximum extents in the reference
+    frame of the pose.
+
+    Bounding boxes are primarily used for visibility testing; to determine if
+    the extents of an objects associated with a pose (eg. the vertices of a
+    model) falls completely outside of the viewing frustum. If so, the model can
+    be culled during rendering to avoid wasting CPU/GPU resources on objects not
+    visible to the viewer. See :func:`cullPose` for more information.
+
     Parameters
     ----------
-    mins, maxs : array_like, optional
-        Minimum and maximum extents of the bounding box [x, y, z]. By default,
-        the bounding box will be a unit cube centered on zero.
+    bounds : tuple, optional
+        Minimum and maximum extents of the bounding box (`mins`, `maxs`) where
+        `mins` and `maxs` specified as coordinates [x, y, z]. If no extents are
+        specified, the bounding box will be invalid until defined.
+
+    Examples
+    --------
+    Create a bounding box and add it to a pose::
+
+            # minumum and maximum extents of the bounding box
+            mins = (-.5, -.5, -.5)
+            maxs = (.5, .5, .5)
+            bounds = (mins, maxs)
+            # create the bounding box and add it to a pose
+            bbox = LibOVRBounds(bounds)
+            modelPose = LibOVRPose()
+            modelPose.boundingBox = bbox
 
     """
     cdef libovr_math.Bounds3f* c_data
@@ -2262,14 +2286,16 @@ cdef class LibOVRBounds(object):
     cdef np.ndarray _mins
     cdef np.ndarray _maxs
 
-    def __init__(self, mins=(-0.5, -0.5, -0.5), maxs=(0.5, 0.5, 0.5)):
+    def __init__(self, object bounds=None):
         """
         Attributes
         ----------
+        isValid : bool
+        bounds : tuple
         mins : ndarray
         maxs : ndarray
         """
-        self._new_struct(mins, maxs)
+        self._new_struct(bounds)
 
     def __cinit__(self, *args, **kwargs):
         self.ptr_owner = False
@@ -2285,7 +2311,7 @@ cdef class LibOVRBounds(object):
 
         return wrapper
 
-    cdef void _new_struct(self, object mins, object maxs):
+    cdef void _new_struct(self, object bounds):
         if self.c_data is not NULL:
             return
 
@@ -2295,12 +2321,15 @@ cdef class LibOVRBounds(object):
         if ptr is NULL:
             raise MemoryError
 
-        ptr.b[0].x = <float>mins[0]
-        ptr.b[0].y = <float>mins[1]
-        ptr.b[0].z = <float>mins[2]
-        ptr.b[1].x = <float>maxs[0]
-        ptr.b[1].y = <float>maxs[1]
-        ptr.b[1].z = <float>maxs[2]
+        if bounds is not None:
+            ptr.b[0].x = <float>bounds[0][0]
+            ptr.b[0].y = <float>bounds[0][1]
+            ptr.b[0].z = <float>bounds[0][2]
+            ptr.b[1].x = <float>bounds[1][0]
+            ptr.b[1].y = <float>bounds[1][1]
+            ptr.b[1].z = <float>bounds[1][2]
+        else:
+            ptr.Clear()
 
         self.c_data = ptr
         self.ptr_owner = True
@@ -2318,6 +2347,67 @@ cdef class LibOVRBounds(object):
         """Clear the bounding box."""
         self.c_data.Clear()
 
+    @property
+    def isValid(self):
+        """``True`` if a bounding box is valid. Bounding boxes are valid if
+        all dimensions of `mins` are less than each of `maxs` which is the case
+        after :py:method:`~LibOVRBounds.clear` is called.
+
+        If a bounding box is invalid, :func:`cullPose` will always return
+        ``True``.
+
+        """
+        if self.c_data.b[1].x <= self.c_data.b[0].x and \
+                self.c_data.b[1].y <= self.c_data.b[0].y and \
+                self.c_data.b[1].z <= self.c_data.b[0].z:
+            return False
+
+        return True
+
+    def fit(self, object points):
+        """Fit an axis aligned bounding box to enclose specified points. The
+        resulting bounding box is guaranteed to enclose all points, however
+        volume is not necessarily minimized or optimal.
+
+        Parameters
+        ----------
+        points : array_like
+            Points [x, y, z] to fit, can be a list of vertices from a 3D model
+            associated with the bounding box.
+
+        Examples
+        --------
+        Create a bounding box around vertices specified in a list::
+
+            # model vertices
+            vertices = [[-1.0, -1.0, 0.0],
+                        [-1.0, 1.0, 0.0],
+                        [1.0, 1.0, 0.0],
+                        [1.0, -1.0, 0.0]]
+
+            # create a bounding box and clear it
+            bbox = LibOVRBounds()
+            bbox.clear()
+            bbox.fit(vertices)
+
+            # associate the bounding box to a pose
+            modelPose = LibOVRPose()
+            modelPose.boundingBox = bbox
+
+        """
+        cdef np.ndarray[np.float32, ndim=2] points_in = np.asarray(
+            points, dtype=np.float32)
+        cdef libovr_math.Vector3f new_point = libovr_math.Vector3f()
+
+        cdef Py_ssize_t i, N
+        cdef float[:, :] mv_points = points_in  # memory view
+        N = <Py_ssize_t>points_in.shape[0]
+        for i in range(N):
+            new_point.x = mv_points[N, 0]
+            new_point.y = mv_points[N, 1]
+            new_point.z = mv_points[N, 2]
+            self.c_data.AddPoint(new_point)
+
     def addPoint(self, object point):
         """Resize the bounding box to encompass a given point. Calling this
         function for each vertex of a model will create an optimal bounding box
@@ -2328,11 +2418,25 @@ cdef class LibOVRBounds(object):
         point : array_like
             Vector/coordinate to add [x, y, z].
 
+        See Also
+        --------
+        fit : Fit a bounding box to enclose a list of points.
+
         """
         cdef libovr_math.Vector3f new_point = libovr_math.Vector3f(
             <float>point[0], <float>point[1], <float>point[2])
 
         self.c_data.AddPoint(new_point)
+
+    @property
+    def bounds(self):
+        """The extents of the bounding box (`mins`, `maxs`)."""
+        return self._mins, self._maxs
+
+    @bounds.setter
+    def bounds(self, object value):
+        self._mins[:] = value[0]
+        self._maxs[:] = value[1]
 
     @property
     def mins(self):
@@ -7060,13 +7164,23 @@ def getControllerPlaybackState(int controller):
 
     return result, playback_state.RemainingQueueSpace, playback_state.SamplesQueued
 
+getEyeRenderFov()
 
 def cullPose(int eye, LibOVRPose pose):
     """Test if a pose's bounding box falls outside of an eye's view frustum.
 
-    If ``True``, the bounding box of a pose is completely outside of the
-    view frustum of the specified `eye`. Any geometry associated with the pose
-    can be culled during rendering to reduce CPU/GPU workload.
+    Poses can be assigned bounding boxes which enclose any 3D models associated
+    with it. These bounding boxes are used for visibility testing, to determine
+    if they fall completely outside of the viewing frustum for a given `eye`.
+    Frustums are defined by the current render FOV for the eye (see:
+    :func:`getEyeRenderFov` and :func:`getEyeSetFov`). If ``True`` is returned,
+    the model is not visible and the mesh can be culled during rendering to
+    reduce CPU/GPU workload.
+
+    The pose must have a bounding box :py:class:`LibOVRBounds` assigned to its
+    :py:attr:`~LibOVRPose.bounds` attribute. If
+    :py:attr:`~LibOVRPose.bounds` is ``None`` (not assigned) or invalid,
+    this function will always return ``False``.
 
     Parameters
     ----------
@@ -7082,7 +7196,26 @@ def cullPose(int eye, LibOVRPose pose):
     bool
         ``True`` if the pose's bounding box is not visible to the given `eye`.
 
+    Examples
+    --------
+    Check if a pose should be culled::
+
+        cullModel = cullPose(eye, pose)
+        if not cullModel:
+            # ... OpenGL calls to draw the model here ...
+
+
+    Notes
+    -----
+    * This function does not test if an object is occluded by another within the
+      frustum. If an object is completely occluded, it will still be fully
+      rendered, and nearer object will be drawn on-top of it. A trick to
+      improve performance in this case is to use ``glDepthFunc(GL_LEQUAL)`` and
+      render objects from nearest to farthest from the head pose. This will
+      reject fragment color calculations for occluded locations.
+
     """
+
     # This is based on OpenXR's function `XrMatrix4x4f_CullBounds` found in
     # `xr_linear.h`
     global _eyeViewProjectionMatrix
