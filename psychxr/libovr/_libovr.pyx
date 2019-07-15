@@ -2249,12 +2249,12 @@ cdef class LibOVRPoseState(object):
 cdef class LibOVRBounds(object):
     """Class for constructing and representing 3D axis-aligned bounding boxes.
 
-    A bounding boxes is a constructs which represents a 3D rectangular volumes
+    A bounding box is a construct which represents a 3D rectangular volume
     about some pose, defined by its minimum and maximum extents in the reference
     frame of the pose.
 
     Bounding boxes are primarily used for visibility testing; to determine if
-    the extents of an objects associated with a pose (eg. the vertices of a
+    the extents of an object associated with a pose (eg. the vertices of a
     model) falls completely outside of the viewing frustum. If so, the model can
     be culled during rendering to avoid wasting CPU/GPU resources on objects not
     visible to the viewer. See :func:`cullPose` for more information.
