@@ -5097,7 +5097,7 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
     return result, outPoses
 
 
-def calcEyePoses(LibOVRPose headPose):
+def calcEyePoses(LibOVRPose headPose, object originPose=None):
     """Calculate eye poses using a given head pose.
 
     Eye poses are derived from the specified head pose, relative eye poses, and
@@ -5112,6 +5112,8 @@ def calcEyePoses(LibOVRPose headPose):
     ----------
     headPose : :py:class:`LibOVRPose`
         Head pose.
+    originPose : :py:class:`LibOVRPose`, optional
+        Optional world origin pose to transform head pose.
 
     Examples
     --------
@@ -5156,16 +5158,23 @@ def calcEyePoses(LibOVRPose headPose):
     capi.ovr_CalcEyePoses2(headPose.c_data[0], hmdToEyePoses, _eyeRenderPoses)
 
     # compute the eye transformation matrices from poses
-    cdef libovr_math.Vector3f pos
-    cdef libovr_math.Quatf ori
+    cdef capi.ovrPosef originPose = (<LibOVRPose>originPose).c_data[0]
+    cdef libovr_math.Vector3f pos, originPos
+    cdef libovr_math.Quatf ori, originOri
     cdef libovr_math.Vector3f up
     cdef libovr_math.Vector3f forward
     cdef libovr_math.Matrix4f rm
 
+    # get origin pose components
+    originPos = <libovr_math.Vector3f>originPose.Position
+    originOri = <libovr_math.Quatf>originPose.Orientation
+    if not originOri.IsNormalized():  # make sure orientation is normalized
+        originOri.Normalize()
+
     cdef int eye = 0
     for eye in range(capi.ovrEye_Count):
-        pos = <libovr_math.Vector3f>_eyeRenderPoses[eye].Position
-        ori = <libovr_math.Quatf>_eyeRenderPoses[eye].Orientation
+        pos = originPos + <libovr_math.Vector3f>_eyeRenderPoses[eye].Position
+        ori = originOri * <libovr_math.Quatf>_eyeRenderPoses[eye].Orientation
 
         if not ori.IsNormalized():  # make sure orientation is normalized
             ori.Normalize()
