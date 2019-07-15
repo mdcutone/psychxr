@@ -2395,7 +2395,7 @@ cdef class LibOVRBounds(object):
             modelPose.boundingBox = bbox
 
         """
-        cdef np.ndarray[np.float32, ndim=2] points_in = np.asarray(
+        cdef np.ndarray[np.float32_t, ndim=2] points_in = np.asarray(
             points, dtype=np.float32)
         cdef libovr_math.Vector3f new_point = libovr_math.Vector3f()
 
@@ -5262,7 +5262,6 @@ def calcEyePoses(LibOVRPose headPose, object originPose=None):
     capi.ovr_CalcEyePoses2(headPose.c_data[0], hmdToEyePoses, _eyeRenderPoses)
 
     # compute the eye transformation matrices from poses
-    cdef capi.ovrPosef originPose = (<LibOVRPose>originPose).c_data[0]
     cdef libovr_math.Vector3f pos, originPos
     cdef libovr_math.Quatf ori, originOri
     cdef libovr_math.Vector3f up
@@ -5270,15 +5269,20 @@ def calcEyePoses(LibOVRPose headPose, object originPose=None):
     cdef libovr_math.Matrix4f rm
 
     # get origin pose components
-    originPos = <libovr_math.Vector3f>originPose.Position
-    originOri = <libovr_math.Quatf>originPose.Orientation
-    if not originOri.IsNormalized():  # make sure orientation is normalized
-        originOri.Normalize()
+    if originPose is not None:
+        originPos = <libovr_math.Vector3f>(<LibOVRPose>originPose).c_data.Position
+        originOri = <libovr_math.Quatf>(<LibOVRPose>originPose).c_data.Orientation
+        if not originOri.IsNormalized():  # make sure orientation is normalized
+            originOri.Normalize()
 
     cdef int eye = 0
     for eye in range(capi.ovrEye_Count):
-        pos = originPos + <libovr_math.Vector3f>_eyeRenderPoses[eye].Position
-        ori = originOri * <libovr_math.Quatf>_eyeRenderPoses[eye].Orientation
+        if originPose is not None:
+            pos = originPos + <libovr_math.Vector3f>_eyeRenderPoses[eye].Position
+            ori = originOri * <libovr_math.Quatf>_eyeRenderPoses[eye].Orientation
+        else:
+            pos = <libovr_math.Vector3f>_eyeRenderPoses[eye].Position
+            ori = <libovr_math.Quatf>_eyeRenderPoses[eye].Orientation
 
         if not ori.IsNormalized():  # make sure orientation is normalized
             ori.Normalize()
@@ -7164,7 +7168,6 @@ def getControllerPlaybackState(int controller):
 
     return result, playback_state.RemainingQueueSpace, playback_state.SamplesQueued
 
-getEyeRenderFov()
 
 def cullPose(int eye, LibOVRPose pose):
     """Test if a pose's bounding box falls outside of an eye's view frustum.
