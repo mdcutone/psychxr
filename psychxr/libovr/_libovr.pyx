@@ -2403,9 +2403,9 @@ cdef class LibOVRBounds(object):
         cdef float[:, :] mv_points = points_in  # memory view
         N = <Py_ssize_t>points_in.shape[0]
         for i in range(N):
-            new_point.x = mv_points[N, 0]
-            new_point.y = mv_points[N, 1]
-            new_point.z = mv_points[N, 2]
+            new_point.x = mv_points[i, 0]
+            new_point.y = mv_points[i, 1]
+            new_point.z = mv_points[i, 2]
             self.c_data.AddPoint(new_point)
 
     def addPoint(self, object point):
