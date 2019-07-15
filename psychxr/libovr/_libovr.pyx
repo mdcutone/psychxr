@@ -251,6 +251,14 @@ __all__ = [
     'HMD_ES11',
     'HMD_CV1',
     'HAPTICS_BUFFER_SAMPLES_MAX',
+    'MIRROR_OPTION_DEFAULT',
+    'MIRROR_OPTION_POST_DISTORTION',
+    'MIRROR_OPTION_LEFT_EYE_ONLY',
+    'MIRROR_OPTION_RIGHT_EYE_ONLY',
+    'MIRROR_OPTION_INCLUDE_GUARDIAN',
+    'MIRROR_OPTION_INCLUDE_NOTIFICATIONS',
+    'MIRROR_OPTION_INCLUDE_SYSTEM_GUI',
+    'MIRROR_OPTION_FORCE_SYMMETRIC_FOV',
     # 'HMD_RIFTS',
     'LibOVRPose',
     'LibOVRPoseState',
@@ -701,6 +709,16 @@ HMD_CV1 = capi.ovrHmd_CV1
 
 # haptics buffer
 HAPTICS_BUFFER_SAMPLES_MAX = capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX
+
+# mirror texture options
+MIRROR_OPTION_DEFAULT = capi.ovrMirrorOption_Default
+MIRROR_OPTION_POST_DISTORTION = capi.ovrMirrorOption_PostDistortion
+MIRROR_OPTION_LEFT_EYE_ONLY = capi.ovrMirrorOption_LeftEyeOnly
+MIRROR_OPTION_RIGHT_EYE_ONLY = capi.ovrMirrorOption_RightEyeOnly
+MIRROR_OPTION_INCLUDE_GUARDIAN = capi.ovrMirrorOption_IncludeGuardian
+MIRROR_OPTION_INCLUDE_NOTIFICATIONS = capi.ovrMirrorOption_IncludeNotifications
+MIRROR_OPTION_INCLUDE_SYSTEM_GUI = capi.ovrMirrorOption_IncludeSystemGui
+MIRROR_OPTION_FORCE_SYMMETRIC_FOV = capi.ovrMirrorOption_ForceSymmetricFov
 
 
 # ------------------------------------------------------------------------------
@@ -4836,7 +4854,7 @@ def setEyeColorTextureSwapChain(int eye, int swapChain):
     _eyeLayer.ColorTexture[eye] = _swapChains[swapChain]
 
 
-def createMirrorTexture(int width, int height, int textureFormat=FORMAT_R8G8B8A8_UNORM_SRGB):
+def createMirrorTexture(int width, int height, int textureFormat=FORMAT_R8G8B8A8_UNORM_SRGB, int mirrorOptions=MIRROR_OPTION_DEFAULT):
     """Create a mirror texture.
 
     This displays the content of the rendered images being presented on the
@@ -4857,33 +4875,37 @@ def createMirrorTexture(int width, int height, int textureFormat=FORMAT_R8G8B8A8
         * ``FORMAT_R16G16B16A16_FLOAT``
         * ``FORMAT_R11G11B10_FLOAT``
 
+    mirrorOptions : int, optional
+        Mirror texture options. Specifies how to display the rendered content.
+        By default, ``MIRROR_OPTION_DEFAULT`` is used which displays the
+        post-distortion image of both eye buffers side-by-side. Other options
+        are available by specifying the following flags:
+
+        * ``MIRROR_OPTION_POST_DISTORTION`` - Barrel distorted eye buffer.
+        * ``MIRROR_OPTION_LEFT_EYE_ONLY`` and ``MIRROR_OPTION_RIGHT_EYE_ONLY`` -
+          show rectilinear images of either the left of right eye. These values
+          are mutually exclusive.
+        * ``MIRROR_OPTION_INCLUDE_GUARDIAN`` - Show guardian boundary system in
+          mirror texture.
+        * ``MIRROR_OPTION_INCLUDE_NOTIFICATIONS`` - Show notifications received
+          on the mirror texture.
+        * ``MIRROR_OPTION_INCLUDE_SYSTEM_GUI`` - Show the system menu when
+          accessed via the home button on the controller.
+        * ``MIRROR_OPTION_FORCE_SYMMETRIC_FOV`` - Force mirror output to use
+          symmetric FOVs. Only valid when ``MIRROR_OPTION_POST_DISTORTION`` is
+          not specified.
+
+        Multiple option flags can be combined by using the ``|`` operator and
+        passed to `mirrorOptions`. However, some options cannot be used in
+        conjunction with each other, if so, this function may return
+        ``ERROR_INVALID_PARAMETER``.
+
     Returns
     -------
     int
-        Result of API call ``OVR::ovr_CreateMirrorTextureGL``.
+        Result of API call ``OVR::ovr_CreateMirrorTextureWithOptionsGL``.
 
     """
-    # additional options
-    #cdef unsigned int mirror_options = capi.ovrMirrorOption_Default
-    # set the mirror texture mode
-    #if mirrorMode == 'Default':
-    #    mirror_options = <capi.ovrMirrorOptions>capi.ovrMirrorOption_Default
-    #elif mirrorMode == 'PostDistortion':
-    #    mirror_options = <capi.ovrMirrorOptions>capi.ovrMirrorOption_PostDistortion
-    #elif mirrorMode == 'LeftEyeOnly':
-    #    mirror_options = <capi.ovrMirrorOptions>capi.ovrMirrorOption_LeftEyeOnly
-    #elif mirrorMode == 'RightEyeOnly':
-    #    mirror_options = <capi.ovrMirrorOptions>capi.ovrMirrorOption_RightEyeOnly
-    #else:
-    #    raise RuntimeError("Invalid 'mirrorMode' mode specified.")
-
-    #if include_guardian:
-    #    mirror_options |= capi.ovrMirrorOption_IncludeGuardian
-    #if include_notifications:
-    #    mirror_options |= capi.ovrMirrorOption_IncludeNotifications
-    #if include_system_gui:
-    #    mirror_options |= capi.ovrMirrorOption_IncludeSystemGui
-
     # create the descriptor
     cdef capi.ovrMirrorTextureDesc mirrorDesc
     global _ptrSession
@@ -4893,9 +4915,9 @@ def createMirrorTexture(int width, int height, int textureFormat=FORMAT_R8G8B8A8
     mirrorDesc.Width = <int>width
     mirrorDesc.Height = <int>height
     mirrorDesc.MiscFlags = capi.ovrTextureMisc_None
-    mirrorDesc.MirrorOptions = capi.ovrMirrorOption_Default
+    mirrorDesc.MirrorOptions = <capi.ovrMirrorOptions>mirrorOptions
 
-    cdef capi.ovrResult result = capi.ovr_CreateMirrorTextureGL(
+    cdef capi.ovrResult result = capi.ovr_CreateMirrorTextureWithOptionsGL(
         _ptrSession, &mirrorDesc, &_mirrorTexture)
 
     return <int>result

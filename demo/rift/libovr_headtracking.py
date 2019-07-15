@@ -77,7 +77,7 @@ def main():
 
     mirrorFbo = GL.GLuint()
     GL.glGenFramebuffers(1, ctypes.byref(mirrorFbo))
-    createMirrorTexture(800, 600)
+    createMirrorTexture(800, 600, mirrorOptions=MIRROR_OPTION_DEFAULT)
 
     frame_index = 0
 

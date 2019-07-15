@@ -11,6 +11,7 @@ Overview:
 
 New Features:
 
+    - Added `mirrorOptions` to `createMirrorTexture`.
     - Added `getViewMatrix` to `LibOVRPose` which creates view matrices, which
       transforms points into the space of the pose. This allows you to use rigid
       body poses to define eye locations for rendering.

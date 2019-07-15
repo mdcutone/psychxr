@@ -395,7 +395,8 @@ cdef extern from "OVR_CAPI.h":
         ovrMirrorOption_RightEyeOnly = 0x0004,
         ovrMirrorOption_IncludeGuardian = 0x0008,
         ovrMirrorOption_IncludeNotifications = 0x0010,
-        ovrMirrorOption_IncludeSystemGui = 0x0020
+        ovrMirrorOption_IncludeSystemGui = 0x0020,
+        ovrMirrorOption_ForceSymmetricFov = 0x0040
 
     ctypedef struct ovrMirrorTextureDesc:
         ovrTextureFormat Format
