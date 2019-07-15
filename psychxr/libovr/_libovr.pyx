@@ -917,12 +917,12 @@ cdef class LibOVRPose(object):
         return to_return
 
     @property
-    def boundingBox(self):
+    def bounds(self):
         """Bounding object associated with this pose."""
         return self._bbox
 
-    @boundingBox.setter
-    def boundingBox(self, LibOVRBounds value):
+    @bounds.setter
+    def bounds(self, LibOVRBounds value):
         self._bbox = value
 
     def isEqual(self, LibOVRPose pose, float tolerance=1e-5):
@@ -2251,7 +2251,8 @@ cdef class LibOVRBounds(object):
 
     A bounding box is a construct which represents a 3D rectangular volume
     about some pose, defined by its minimum and maximum extents in the reference
-    frame of the pose.
+    frame of the pose. The axes of the bounding box are aligned to the axes of
+    the world or the associated pose.
 
     Bounding boxes are primarily used for visibility testing; to determine if
     the extents of an object associated with a pose (eg. the vertices of a
@@ -2261,7 +2262,7 @@ cdef class LibOVRBounds(object):
 
     Parameters
     ----------
-    bounds : tuple, optional
+    extents : tuple, optional
         Minimum and maximum extents of the bounding box (`mins`, `maxs`) where
         `mins` and `maxs` specified as coordinates [x, y, z]. If no extents are
         specified, the bounding box will be invalid until defined.
@@ -2286,16 +2287,16 @@ cdef class LibOVRBounds(object):
     cdef np.ndarray _mins
     cdef np.ndarray _maxs
 
-    def __init__(self, object bounds=None):
+    def __init__(self, object extents=None):
         """
         Attributes
         ----------
         isValid : bool
-        bounds : tuple
+        extents : tuple
         mins : ndarray
         maxs : ndarray
         """
-        self._new_struct(bounds)
+        self._new_struct(extents)
 
     def __cinit__(self, *args, **kwargs):
         self.ptr_owner = False
@@ -2311,7 +2312,7 @@ cdef class LibOVRBounds(object):
 
         return wrapper
 
-    cdef void _new_struct(self, object bounds):
+    cdef void _new_struct(self, object extents):
         if self.c_data is not NULL:
             return
 
@@ -2321,13 +2322,13 @@ cdef class LibOVRBounds(object):
         if ptr is NULL:
             raise MemoryError
 
-        if bounds is not None:
-            ptr.b[0].x = <float>bounds[0][0]
-            ptr.b[0].y = <float>bounds[0][1]
-            ptr.b[0].z = <float>bounds[0][2]
-            ptr.b[1].x = <float>bounds[1][0]
-            ptr.b[1].y = <float>bounds[1][1]
-            ptr.b[1].z = <float>bounds[1][2]
+        if extents is not None:
+            ptr.b[0].x = <float>extents[0][0]
+            ptr.b[0].y = <float>extents[0][1]
+            ptr.b[0].z = <float>extents[0][2]
+            ptr.b[1].x = <float>extents[1][0]
+            ptr.b[1].y = <float>extents[1][1]
+            ptr.b[1].z = <float>extents[1][2]
         else:
             ptr.Clear()
 
@@ -2364,7 +2365,7 @@ cdef class LibOVRBounds(object):
 
         return True
 
-    def fit(self, object points):
+    def fit(self, object points, bint clear=True):
         """Fit an axis aligned bounding box to enclose specified points. The
         resulting bounding box is guaranteed to enclose all points, however
         volume is not necessarily minimized or optimal.
@@ -2372,8 +2373,11 @@ cdef class LibOVRBounds(object):
         Parameters
         ----------
         points : array_like
-            Points [x, y, z] to fit, can be a list of vertices from a 3D model
-            associated with the bounding box.
+            2D array of points [x, y, z] to fit, can be a list of vertices from
+            a 3D model associated with the bounding box.
+        clear : bool, optional
+            Clear the bounding box prior to fitting. If ``False`` the current
+            bounding box will be re-sized to fit new points.
 
         Examples
         --------
@@ -2387,17 +2391,19 @@ cdef class LibOVRBounds(object):
 
             # create a bounding box and clear it
             bbox = LibOVRBounds()
-            bbox.clear()
             bbox.fit(vertices)
 
             # associate the bounding box to a pose
             modelPose = LibOVRPose()
-            modelPose.boundingBox = bbox
+            modelPose.bounds = bbox
 
         """
         cdef np.ndarray[np.float32_t, ndim=2] points_in = np.asarray(
             points, dtype=np.float32)
         cdef libovr_math.Vector3f new_point = libovr_math.Vector3f()
+
+        if clear:
+            self.c_data.Clear()
 
         cdef Py_ssize_t i, N
         cdef float[:, :] mv_points = points_in  # memory view
@@ -2429,18 +2435,18 @@ cdef class LibOVRBounds(object):
         self.c_data.AddPoint(new_point)
 
     @property
-    def bounds(self):
+    def extents(self):
         """The extents of the bounding box (`mins`, `maxs`)."""
         return self._mins, self._maxs
 
-    @bounds.setter
-    def bounds(self, object value):
+    @extents.setter
+    def extents(self, object value):
         self._mins[:] = value[0]
         self._maxs[:] = value[1]
 
     @property
     def mins(self):
-        """Minimum extents of the bounding box."""
+        """Point defining the minimum extent of the bounding box."""
         return self._mins
 
     @mins.setter
@@ -2449,7 +2455,7 @@ cdef class LibOVRBounds(object):
 
     @property
     def maxs(self):
-        """Maximum extents of the bounding box."""
+        """Point defining the maximum extent of the bounding box."""
         return self._maxs
 
     @maxs.setter
@@ -5936,6 +5942,12 @@ def getTrackerCount():
     int
         Number of trackers reported by LibOVR.
 
+    Notes
+    -----
+    * The Oculus Rift S uses inside-out tracking, therefore does not have
+      external trackers. For compatibility, `LibOVR` will return a tracker count
+      of 3.
+
     """
     global _ptrSession
     cdef unsigned int trackerCount = capi.ovr_GetTrackerCount(
@@ -5952,6 +5964,11 @@ def getTrackerInfo(int trackerIndex):
     trackerIndex : int
         The index of the sensor to query. Valid values are between 0 and
         :func:`getTrackerCount` - 1.
+
+    Notes
+    -----
+    * The Oculus Rift S uses inside-out tracking, therefore does not have
+      external trackers. For compatibility, `LibOVR` will dummy tracker objects.
 
     """
     cdef LibOVRTrackerInfo to_return = LibOVRTrackerInfo()
@@ -6014,12 +6031,6 @@ def getPerfStats():
 
     Returned frame statistics reflect the values contemporaneous with the last
     :func:`updatePerfStats` call.
-
-    Parameters
-    ----------
-    frameStatIndex : int (default 0)
-        Frame statistics index to retrieve. The most recent frame statistic is
-        at index 0.
 
     Returns
     -------
@@ -7173,17 +7184,15 @@ def cullPose(int eye, LibOVRPose pose):
     """Test if a pose's bounding box falls outside of an eye's view frustum.
 
     Poses can be assigned bounding boxes which enclose any 3D models associated
-    with it. These bounding boxes are used for visibility testing, to determine
-    if they fall completely outside of the viewing frustum for a given `eye`.
-    Frustums are defined by the current render FOV for the eye (see:
-    :func:`getEyeRenderFov` and :func:`getEyeSetFov`). If ``True`` is returned,
-    the model is not visible and the mesh can be culled during rendering to
-    reduce CPU/GPU workload.
+    with it. The models is not visible if all the corners of the bounding box
+    fall outside the viewing frustum. Therefore any primitives (i.e. triangles)
+    associated with the pose can be culled during rendering to reduce CPU/GPU
+    workload.
 
     The pose must have a bounding box :py:class:`LibOVRBounds` assigned to its
     :py:attr:`~LibOVRPose.bounds` attribute. If
-    :py:attr:`~LibOVRPose.bounds` is ``None`` (not assigned) or invalid,
-    this function will always return ``False``.
+    :py:attr:`~LibOVRPose.bounds` is ``None`` (not assigned) or the assigned
+    bounding box is invalid, this function will always return ``False``.
 
     Parameters
     ----------
@@ -7191,13 +7200,13 @@ def cullPose(int eye, LibOVRPose pose):
         Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
     pose : LibOVRPose
         Pose to test. If the pose has no associated bounding box, or if the
-        bounding box has been cleared, this function will always return
-        ``False``.
+        bounding box is invaild, this function will always return ``False``.
 
     Returns
     -------
     bool
-        ``True`` if the pose's bounding box is not visible to the given `eye`.
+        ``True`` if the pose's bounding box is not visible to the given `eye`
+        and should be culled during rendering.
 
     Examples
     --------
@@ -7207,7 +7216,6 @@ def cullPose(int eye, LibOVRPose pose):
         if not cullModel:
             # ... OpenGL calls to draw the model here ...
 
-
     Notes
     -----
     * This function does not test if an object is occluded by another within the
@@ -7216,6 +7224,8 @@ def cullPose(int eye, LibOVRPose pose):
       improve performance in this case is to use ``glDepthFunc(GL_LEQUAL)`` and
       render objects from nearest to farthest from the head pose. This will
       reject fragment color calculations for occluded locations.
+    * Frustums used for testing are defined by the current render FOV for the
+      eye (see: :func:`getEyeRenderFov` and :func:`getEyeSetFov`).
 
     """
 
@@ -7223,7 +7233,7 @@ def cullPose(int eye, LibOVRPose pose):
     # `xr_linear.h`
     global _eyeViewProjectionMatrix
 
-    if pose.boundingBox is None:  # return if pose has no bounding box
+    if pose.bounds is None:  # return if pose has no bounding box
         return False
 
     cdef libovr_math.Bounds3f* bbox = pose._bbox.c_data
