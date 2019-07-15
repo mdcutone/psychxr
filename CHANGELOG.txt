@@ -11,12 +11,17 @@ Overview:
 
 New Features:
 
-    - Added `getViewMatrix` to `LibOVRPose` which creates view matrices. This
-      allows you to use rigid body poses to define eye locations for rendering.
-    - Added bounding boxes to poses. You can test if an object's bounding box
-      is visible to a given eye using the new `cullPose` function. This allows
-      you to cull meshes associated with poses if they are not visible during
-      scene rendering, reducing CPU/GPU workload when drawing scenes.
+    - Added `getViewMatrix` to `LibOVRPose` which creates view matrices, which
+      transforms points into the space of the pose. This allows you to use rigid
+      body poses to define eye locations for rendering.
+    - Added optional `originPose` to `calcEyePoses`.
+    - Added optional bounding boxes to poses. You can test if an object's
+      bounding box is visible to a given eye using the new `cullPose` function.
+      This allows you to cull meshes associated with poses if they are not
+      visible during scene rendering, reducing CPU/GPU workload when drawing
+      scenes. Bounding boxes can be created to fit a model's vertices if
+      specified, and a single bounding box can be associated with multiple
+      poses.
     - Support for haptic buffers for use with Touch controllers. A haptics
       buffer contains an array of samples which specify Touch controller
       vibration amplitudes. Buffers can be passed to the haptics engine for
