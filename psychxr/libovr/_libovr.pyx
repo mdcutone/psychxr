@@ -7353,7 +7353,7 @@ def cullPose(int eye, LibOVRPose pose):
     """Test if a pose's bounding box falls outside of an eye's view frustum.
 
     Poses can be assigned bounding boxes which enclose any 3D models associated
-    with it. The models is not visible if all the corners of the bounding box
+    with them. A model is not visible if all the corners of the bounding box
     fall outside the viewing frustum. Therefore any primitives (i.e. triangles)
     associated with the pose can be culled during rendering to reduce CPU/GPU
     workload.
@@ -7368,8 +7368,7 @@ def cullPose(int eye, LibOVRPose pose):
     eye : int
         Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
     pose : LibOVRPose
-        Pose to test. If the pose has no associated bounding box, or if the
-        bounding box is invaild, this function will always return ``False``.
+        Pose to test.
 
     Returns
     -------
@@ -7379,7 +7378,7 @@ def cullPose(int eye, LibOVRPose pose):
 
     Examples
     --------
-    Check if a pose should be culled::
+    Check if a pose should be culled (needs to be done for each eye)::
 
         cullModel = cullPose(eye, pose)
         if not cullModel:
@@ -7387,17 +7386,17 @@ def cullPose(int eye, LibOVRPose pose):
 
     Notes
     -----
+    * Frustums used for testing are defined by the current render FOV for the
+      eye (see: :func:`getEyeRenderFov` and :func:`getEyeSetFov`).
     * This function does not test if an object is occluded by another within the
       frustum. If an object is completely occluded, it will still be fully
       rendered, and nearer object will be drawn on-top of it. A trick to
-      improve performance in this case is to use ``glDepthFunc(GL_LEQUAL)`` and
-      render objects from nearest to farthest from the head pose. This will
-      reject fragment color calculations for occluded locations.
-    * Frustums used for testing are defined by the current render FOV for the
-      eye (see: :func:`getEyeRenderFov` and :func:`getEyeSetFov`).
+      improve performance in this case is to use ``glDepthFunc(GL_LEQUAL)`` with
+      ``glEnable(GL_DEPTH_TEST)``and render objects from nearest to farthest
+      from the head pose. This will reject fragment color calculations for
+      occluded locations.
 
     """
-
     # This is based on OpenXR's function `XrMatrix4x4f_CullBounds` found in
     # `xr_linear.h`
     global _eyeViewProjectionMatrix
