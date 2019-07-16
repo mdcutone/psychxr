@@ -770,8 +770,9 @@ cdef class LibOVRPose(object):
     position of the body in a scene is represented by a vector/coordinate and
     the orientation with a quaternion. LibOVR uses poses to represent the
     posture of tracked devices (e.g. HMD, touch controllers, etc.) and other
-    objects in a VR scene. Poses can be manipulated and interacted with using
-    class methods and attributes.
+    objects in a VR scene. They can be manipulated and interacted with using
+    class methods and attributes. Rigid body poses assume a right-handed
+    coordinate system (-Z is forward and +Y is up).
 
     Poses can be manipulated using operators such as ``*``, ``~``, and ``*=``.
     One pose can be transformed by another by multiplying them using the
@@ -2328,8 +2329,34 @@ cdef class LibOVRPoseState(object):
 
 
 cdef class LibOVRTrackingState(object):
-    """Class for tracking state information."""
+    """Class for tracking state information.
 
+    Instances of this class are returned by :func:`getTrackingState` calls, with
+    data referenced to the specified absolute time. Pose states with tracked
+    position and orientation, as well as first and second order motion
+    derivatives, for the head and hands can be accessed through attributes
+    :py:attr:`~LibOVRTrackingState.headPose` and
+    :py:attr:`~LibOVRTrackingState.handPoses`.
+
+    Status flags describe the status of sensor tracking when a tracking
+    state was sampled, accessible for the head and hands through the
+    :py:attr:`~LibOVRTrackingState.statusFlags` and
+    :py:attr:`~LibOVRTrackingState.handStatusFlags`, respectively. You can
+    check each status bit by using the following values:
+
+    * ``STATUS_ORIENTATION_TRACKED``: Orientation is tracked/reported.
+    * ``STATUS_ORIENTATION_VALID``: Orientation is valid for application use.
+    * ``STATUS_POSITION_TRACKED``: Position is tracked/reported.
+    * ``STATUS_POSITION_VALID``: Position is valid for application use.
+
+    Status bit flags can be combined to check for multiple states like so::
+
+        # check if orientation is tracked and valid
+        statusFlags = STATUS_ORIENTATION_TRACKED | STATUS_ORIENTATION_VALID
+        if (trackingState.statusFlags & statusFlags) == statusFlags:
+            print("Orientation is tracked and valid")
+
+    """
     cdef capi.ovrTrackingState* c_data
     cdef bint ptr_owner
 
@@ -2398,7 +2425,15 @@ cdef class LibOVRTrackingState(object):
 
     @property
     def handPoses(self):
-        """Hand pose states (`LibOVRPoseState`, `LibOVRPoseState`)."""
+        """Hand pose states (`LibOVRPoseState`, `LibOVRPoseState`).
+
+        Examples
+        --------
+        Get the left and right hand pose states::
+
+            leftHandPoseState, rightHandPoseState = trackingState.handPoses
+
+        """
         return self._leftHandPoseState, self._rightHandPoseState
 
     @property
@@ -5183,24 +5218,6 @@ def setSensorSampleTime(double absTime):
 def getTrackingState(double absTime, bint latencyMarker=True):
     """Get the current tracking state of the head and hands.
 
-    Tracking states are returned as a `dict` where the keys reference tracking
-    state instances and status flags for each tracked object as a `tuple` with
-    format (:py:class:`LibOVRTrackingState`, `int`). Valid dictionary keys for
-    tracking accessing tracking state data are:
-
-    * ``TRACKED_DEVICE_TYPE_HMD`` for head/HMD position.
-    * ``TRACKED_DEVICE_TYPE_LTOUCH`` and ``TRACKED_DEVICE_TYPE_RTOUCH`` for the
-      left and right touch controllers, respectively.
-
-    Status bit flags describe the status of sensor tracking when a tracking
-    state was sampled. You can check each status bit by using the following
-    values:
-
-    * ``STATUS_ORIENTATION_TRACKED``: Orientation is tracked/reported.
-    * ``STATUS_ORIENTATION_VALID``: Orientation is valid for application use.
-    * ``STATUS_POSITION_TRACKED``: Position is tracked/reported.
-    * ``STATUS_POSITION_VALID``: Position is valid for application use.
-
     Parameters
     ----------
     absTime : float
@@ -5210,23 +5227,22 @@ def getTrackingState(double absTime, bint latencyMarker=True):
 
     Returns
     -------
-    tuple (dict, LibOVRPose)
-        Dictionary of tracking states and calibrated origin used for tracking.
+    LibOVRTrackingState
+        Tracking state at `absTime` for head and hands.
 
     Examples
     --------
     Getting the head pose and calculating eye render poses::
 
         t = hmd.getPredictedDisplayTime()
-        trackedPoses, calibratedOrigin = hmd.getTrackingState(t)
-        headPoseState, status = trackedPoses[TRACKED_DEVICE_TYPE_HMD]
+        trackingState = hmd.getTrackingState(t)
 
         # tracking state flags
         flags = STATUS_ORIENTATION_TRACKED | STATUS_ORIENTATION_TRACKED
 
         # check if tracking
-        if (flags & status) == flags:
-            hmd.calcEyePose(headPoseState.thePose)  # calculate eye poses
+        if (flags & trackingState.statusFlags) == flags:
+            hmd.calcEyePose(trackingState.headPose.pose)  # calculate eye poses
 
     """
     global _ptrSession
@@ -5237,7 +5253,8 @@ def getTrackingState(double absTime, bint latencyMarker=True):
 
     # tracking state object that is actually returned to Python land
     cdef LibOVRTrackingState to_return = LibOVRTrackingState()
-    to_return.c_data[0] = capi.ovr_GetTrackingState(_ptrSession, absTime, use_marker)
+    to_return.c_data[0] = capi.ovr_GetTrackingState(
+        _ptrSession, absTime, use_marker)
 
     return to_return
 
