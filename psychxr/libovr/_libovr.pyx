@@ -381,7 +381,6 @@ cimport numpy as np
 import numpy as np
 np.import_array()
 
-import collections
 import warnings
 
 
@@ -802,7 +801,7 @@ cdef class LibOVRPose(object):
     :py:class:`~LibOVRPose.ori` and :py:class:`~LibOVRPose.pos` class
     attributes, respectively. Methods associated with this class perform various
     operations using the functions provided by `OVR_MATH.h
-    <https://developer.oculus.com/reference/libovr/1.38/o_v_r_math_8h/>`_, which
+    <https://developer.oculus.com/reference/libovr/1.37/o_v_r_math_8h/>`_, which
     is part of the Oculus PC SDK.
 
     Parameters
@@ -1308,8 +1307,9 @@ cdef class LibOVRPose(object):
         Parameters
         ----------
         refPose : LibOVRPose, optional
-            Reference pose to compute angles relative to. If None is specified,
-            computed values are referenced relative to the world axes.
+            Reference pose to compute angles relative to. If `None` is
+            specified, computed values are referenced relative to the world
+            axes.
         out : ~numpy.ndarray
             Alternative place to write yaw, pitch, and roll values. Must have
             shape (3,) and a float32 data type.
@@ -1434,13 +1434,15 @@ cdef class LibOVRPose(object):
 
         return LibOVRPose.fromPtr(ptr, True)
 
-    def rotate(self, object v):
+    def rotate(self, object v, object out=None):
         """Rotate a position vector.
 
         Parameters
         ----------
         v : array_like
             Vector to rotate.
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
 
         Returns
         -------
@@ -1452,24 +1454,31 @@ cdef class LibOVRPose(object):
         * Uses ``OVR::Posef.Rotate`` which is part of the Oculus PC SDK.
 
         """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
         cdef libovr_math.Vector3f rotated_pos = \
             (<libovr_math.Posef>self.c_data[0]).Rotate(pos_in)
 
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((rotated_pos.x, rotated_pos.y, rotated_pos.z),
-                     dtype=np.float32)
+        toReturn = np.array((rotated_pos.x, rotated_pos.y, rotated_pos.z),
+                            dtype=np.float32)
 
-        return to_return
+        return toReturn
 
-    def inverseRotate(self, object v):
+    def inverseRotate(self, object v, object out=None):
         """Inverse rotate a position vector.
 
         Parameters
         ----------
         v : array_like
-            Vector to rotate.
+            Vector to inverse rotate (x, y, z).
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
 
         Returns
         -------
@@ -1478,27 +1487,35 @@ cdef class LibOVRPose(object):
 
         Notes
         -----
-        * Uses ``OVR::Vector3f.InverseRotate`` which is part of the Oculus PC SDK.
+        * Uses ``OVR::Vector3f.InverseRotate`` which is part of the Oculus PC
+          SDK.
 
         """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
         cdef libovr_math.Vector3f invRotatedPos = \
             (<libovr_math.Posef>self.c_data[0]).InverseRotate(pos_in)
 
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((invRotatedPos.x, invRotatedPos.y, invRotatedPos.z),
-                     dtype=np.float32)
+        toReturn = np.array((invRotatedPos.x, invRotatedPos.y, invRotatedPos.z),
+                            dtype=np.float32)
 
-        return to_return
+        return toReturn
 
-    def translate(self, object v):
+    def translate(self, object v, object out=None):
         """Translate a position vector.
 
         Parameters
         ----------
         v : array_like
             Vector to translate [x, y, z].
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
 
         Returns
         -------
@@ -1510,24 +1527,32 @@ cdef class LibOVRPose(object):
         * Uses ``OVR::Vector3f.Translate`` which is part of the Oculus PC SDK.
 
         """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
         cdef libovr_math.Vector3f translated_pos = \
             (<libovr_math.Posef>self.c_data[0]).Translate(pos_in)
 
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((translated_pos.x, translated_pos.y, translated_pos.z),
-                     dtype=np.float32)
+        toReturn = np.array(
+            (translated_pos.x, translated_pos.y, translated_pos.z),
+            dtype=np.float32)
 
-        return to_return
+        return toReturn
 
-    def transform(self, object v):
+    def transform(self, object v, object out=None):
         """Transform a position vector.
 
         Parameters
         ----------
         v : array_like
             Vector to transform [x, y, z].
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
 
         Returns
         -------
@@ -1539,24 +1564,32 @@ cdef class LibOVRPose(object):
         * Uses ``OVR::Vector3f.Transform`` which is part of the Oculus PC SDK.
 
         """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
         cdef libovr_math.Vector3f transformed_pos = \
             (<libovr_math.Posef>self.c_data[0]).Transform(pos_in)
 
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
-                     dtype=np.float32)
+        toReturn = np.array(
+            (transformed_pos.x, transformed_pos.y, transformed_pos.z),
+            dtype=np.float32)
 
-        return to_return
+        return toReturn
 
-    def inverseTransform(self, object v):
+    def inverseTransform(self, object v, object out=None):
         """Inverse transform a position vector.
 
         Parameters
         ----------
         v : array_like
             Vector to transform (x, y, z).
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
 
         Returns
         -------
@@ -1570,24 +1603,32 @@ cdef class LibOVRPose(object):
           SDK.
 
         """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
         cdef libovr_math.Vector3f transformed_pos = \
             (<libovr_math.Posef>self.c_data[0]).InverseTransform(pos_in)
 
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
-                     dtype=np.float32)
+        toReturn = np.array(
+            (transformed_pos.x, transformed_pos.y, transformed_pos.z),
+            dtype=np.float32)
 
-        return to_return
+        return toReturn
 
-    def transformNormal(self, object v):
+    def transformNormal(self, object v, object out=None):
         """Transform a normal vector.
 
         Parameters
         ----------
         v : array_like
             Vector to transform (x, y, z).
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
 
         Returns
         -------
@@ -1600,24 +1641,32 @@ cdef class LibOVRPose(object):
           SDK.
 
         """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
         cdef libovr_math.Vector3f transformed_pos = \
             (<libovr_math.Posef>self.c_data[0]).TransformNormal(pos_in)
 
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
-                     dtype=np.float32)
+        toReturn = np.array(
+            (transformed_pos.x, transformed_pos.y, transformed_pos.z),
+            dtype=np.float32)
 
-        return to_return
+        return toReturn
 
-    def inverseTransformNormal(self, object v):
+    def inverseTransformNormal(self, object v, object out=None):
         """Inverse transform a normal vector.
 
         Parameters
         ----------
         v : array_like
             Vector to transform (x, y, z).
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
 
         Returns
         -------
@@ -1630,24 +1679,32 @@ cdef class LibOVRPose(object):
           Oculus PC SDK.
 
         """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
         cdef libovr_math.Vector3f transformed_pos = \
             (<libovr_math.Posef>self.c_data[0]).InverseTransformNormal(pos_in)
 
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
-                     dtype=np.float32)
+        toReturn = np.array(
+            (transformed_pos.x, transformed_pos.y, transformed_pos.z),
+            dtype=np.float32)
 
-        return to_return
+        return toReturn
 
-    def apply(self, object v):
+    def apply(self, object v, object out=None):
         """Apply a transform to a position vector.
 
         Parameters
         ----------
         v : array_like
             Vector to transform (x, y, z).
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
 
         Returns
         -------
@@ -1655,16 +1712,22 @@ cdef class LibOVRPose(object):
             Vector transformed by the pose's position and orientation.
 
         """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
         cdef libovr_math.Vector3f transformed_pos = \
             (<libovr_math.Posef>self.c_data[0]).Apply(pos_in)
 
-        cdef np.ndarray[np.float32_t, ndim=1] to_return = \
-            np.array((transformed_pos.x, transformed_pos.y, transformed_pos.z),
-                     dtype=np.float32)
+        toReturn = np.array(
+            (transformed_pos.x, transformed_pos.y, transformed_pos.z),
+            dtype=np.float32)
 
-        return to_return
+        return toReturn
 
     def distanceTo(self, object v):
         """Distance to a point or pose from this pose.
