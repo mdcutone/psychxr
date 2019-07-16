@@ -262,6 +262,7 @@ __all__ = [
     # 'HMD_RIFTS',
     'LibOVRPose',
     'LibOVRPoseState',
+    'LibOVRTrackingState',
     'LibOVRBounds',
     'LibOVRTrackerInfo',
     'LibOVRHmdInfo',
@@ -399,7 +400,6 @@ cdef capi.ovrMirrorTexture _mirrorTexture
 cdef capi.ovrLayerEyeFov _eyeLayer
 cdef capi.ovrPosef[2] _eyeRenderPoses
 cdef capi.ovrEyeRenderDesc[2] _eyeRenderDesc
-cdef capi.ovrTrackingState _trackingState
 # cdef capi.ovrViewScaleDesc _viewScale
 
 # prepare the render layer
@@ -2325,6 +2325,96 @@ cdef class LibOVRPoseState(object):
         to_return.c_data[0] = <capi.ovrPosef>res
 
         return to_return
+
+
+cdef class LibOVRTrackingState(object):
+    """Class for tracking state information."""
+
+    cdef capi.ovrTrackingState* c_data
+    cdef bint ptr_owner
+
+    cdef LibOVRPoseState _headPoseState
+    cdef LibOVRPoseState _leftHandPoseState
+    cdef LibOVRPoseState _rightHandPoseState
+    cdef LibOVRPose _calibratedOrigin
+
+    def __init__(self, *args, **kwargs):
+        """
+        Attributes
+        ----------
+        headPose : LibOVRPoseState
+        handPoses : tuple
+        statusFlags : int
+        handStatusFlags : tuple
+        calibratedOrigin : LibOVRPose
+        """
+        self._new_struct()
+
+    def __cinit__(self):
+        self.ptr_owner = False
+
+    @staticmethod
+    cdef LibOVRTrackingState fromPtr(capi.ovrTrackingState* ptr, bint owner=False):
+        cdef LibOVRTrackingState wrapper = \
+            LibOVRTrackingState.__new__(LibOVRTrackingState)
+        wrapper.c_data = ptr
+        wrapper.ptr_owner = owner
+
+        wrapper._headPoseState = LibOVRPoseState.fromPtr(&ptr.HeadPose)
+        wrapper._leftHandPoseState = LibOVRPoseState.fromPtr(&ptr.HandPoses[0])
+        wrapper._rightHandPoseState = LibOVRPoseState.fromPtr(&ptr.HandPoses[1])
+        wrapper._calibratedOrigin = LibOVRPose.fromPtr(&ptr.CalibratedOrigin)
+
+        return wrapper
+
+    cdef void _new_struct(self):
+        if self.c_data is not NULL:
+            return
+
+        cdef capi.ovrTrackingState* ptr = \
+            <capi.ovrTrackingState*>PyMem_Malloc(sizeof(capi.ovrTrackingState))
+
+        if ptr is NULL:
+            raise MemoryError
+
+        self.c_data = ptr
+        self.ptr_owner = True
+
+        self._headPoseState = LibOVRPoseState.fromPtr(&ptr.HeadPose)
+        self._leftHandPoseState = LibOVRPoseState.fromPtr(&ptr.HandPoses[0])
+        self._rightHandPoseState = LibOVRPoseState.fromPtr(&ptr.HandPoses[1])
+        self._calibratedOrigin = LibOVRPose.fromPtr(&ptr.CalibratedOrigin)
+
+    def __dealloc__(self):
+        if self.c_data is not NULL:
+            if self.ptr_owner is True:
+                PyMem_Free(self.c_data)
+                self.c_data = NULL
+
+    @property
+    def headPose(self):
+        """Head pose state (`LibOVRPoseState`)."""
+        return self._headPoseState
+
+    @property
+    def handPoses(self):
+        """Hand pose states (`LibOVRPoseState`, `LibOVRPoseState`)."""
+        return self._leftHandPoseState, self._rightHandPoseState
+
+    @property
+    def statusFlags(self):
+        """Head tracking status flags (`int`)."""
+        return self.c_data.StatusFlags
+
+    @property
+    def handStatusFlags(self):
+        """Hand tracking status flags (`int`, `int`)."""
+        return self.c_data.HandStatusFlags[0], self.c_data.HandStatusFlags[1]
+
+    @property
+    def calibratedOrigin(self):
+        """Calibrated tracking origin this tracking state is using (`LibOVRPose`)."""
+        return self._calibratedOrigin
 
 
 cdef class LibOVRBounds(object):
@@ -5141,38 +5231,15 @@ def getTrackingState(double absTime, bint latencyMarker=True):
     """
     global _ptrSession
     global _eyeLayer
-    global _trackingState
 
     cdef capi.ovrBool use_marker = \
         capi.ovrTrue if latencyMarker else capi.ovrFalse
 
     # tracking state object that is actually returned to Python land
-    _trackingState = capi.ovr_GetTrackingState(_ptrSession, absTime, use_marker)
+    cdef LibOVRTrackingState to_return = LibOVRTrackingState()
+    to_return.c_data[0] = capi.ovr_GetTrackingState(_ptrSession, absTime, use_marker)
 
-    # init objects pointing to tracking state fields
-    cdef LibOVRPoseState headPoseState = \
-        LibOVRPoseState.fromPtr(&_trackingState.HeadPose)
-    cdef LibOVRPoseState leftHandPoseState = \
-        LibOVRPoseState.fromPtr(&_trackingState.HandPoses[0])
-    cdef LibOVRPoseState rightHandPoseState = \
-        LibOVRPoseState.fromPtr(&_trackingState.HandPoses[1])
-    cdef LibOVRPose calibratedOrigin = LibOVRPose.fromPtr(
-        &_trackingState.CalibratedOrigin)
-
-    # build dictionary of returned values
-    cdef dict poseStates = {
-        TRACKED_DEVICE_TYPE_HMD:
-            (headPoseState, _trackingState.StatusFlags),
-        TRACKED_DEVICE_TYPE_LTOUCH:
-            (leftHandPoseState, _trackingState.HandStatusFlags[0]),
-        TRACKED_DEVICE_TYPE_RTOUCH:
-            (rightHandPoseState, _trackingState.HandStatusFlags[1])
-    }
-
-    # for computing app photon-to-motion latency
-    #_eyeLayer.SensorSampleTime = toReturn.c_data[0].HeadPose.TimeInSeconds
-
-    return poseStates, calibratedOrigin
+    return to_return
 
 
 def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
