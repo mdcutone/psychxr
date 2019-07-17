@@ -30,6 +30,8 @@ New Features:
       buffer contains an array of samples which specify Touch controller
       vibration amplitudes. Buffers can be passed to the haptics engine for
       playback, permitting custom vibration profiles.
+    - `endFrame` returns the absolute system time it was called.
+    - ASW stats are also returned with `LibOVRPerfStatsPerCompositorFrame`.
 
 Bug Fixes:
 
@@ -42,6 +44,7 @@ Breaking Changes:
     - `getTrackingState` now returns a `LibOVRTrackingState` instance. This was
       changed given the previous system was less intuitive. This returns to the
       behaviour of the 0.1 series of PsychXR and will stay this way.
+    - `endFrame` returns two values now.
 
 Known Issues:
 

@@ -3287,6 +3287,9 @@ cdef class LibOVRPerfStatsPerCompositorFrame(object):
     elapsed times of various stages of frame processing to the vertical
     synchronization (V-Sync) signal of the HMD.
 
+    Calling :func:`resetFrameStats` will reset integer fields of this class in
+    successive calls to :func:`getPerfStats`.
+
     """
     cdef capi.ovrPerfStatsPerCompositorFrame* c_data
     cdef bint ptr_owner
@@ -3412,34 +3415,34 @@ cdef class LibOVRPerfStatsPerCompositorFrame(object):
 
     @property
     def compositorDroppedFrameCount(self):
-        """Motion-to-photon latency of the compositor, which include the
-        latency of 'timewarp' needed to correct for application latency and
-        dropped application frames.
+        """Number of frames dropped by the compositor. This can happen
+        spontaneously for reasons not related to application performance.
         """
         return self.c_data.CompositorDroppedFrameCount
 
     @property
     def compositorLatency(self):
-        """Time in seconds the compositor spends on the CPU."""
+        """Motion-to-photon latency of the compositor, which include the
+        latency of 'timewarp' needed to correct for application latency and
+        dropped application frames.
+        """
         return self.c_data.CompositorLatency
 
     @property
     def compositorCpuElapsedTime(self):
-        """Time in seconds the compositor spends on the GPU."""
+        """Time in seconds the compositor spends on the CPU."""
         return self.c_data.CompositorCpuElapsedTime
 
     @property
     def compositorGpuElapsedTime(self):
-        """Time in seconds between the point the compositor executes and
-        completes distortion/timewarp. Value is -1.0 if GPU time is not
-        available.
-        """
+        """Time in seconds the compositor spends on the GPU."""
         return self.c_data.CompositorGpuElapsedTime
 
     @property
     def compositorCpuStartToGpuEndElapsedTime(self):
         """Time in seconds between the point the compositor executes and
-        completes distortion/timewarp.
+        completes distortion/timewarp. Value is -1.0 if GPU time is not
+        available.
         """
         return self.c_data.CompositorCpuStartToGpuEndElapsedTime
 
@@ -3452,9 +3455,7 @@ cdef class LibOVRPerfStatsPerCompositorFrame(object):
     @property
     def timeToVsync(self):
         """Total time elapsed from when CPU control is handed off to the
-        compositor to HMD vertical synchronization signal (V-Sync). Adding this
-        time to the absolute time taken about :func:`endFrame` may closely
-        approximate the exact time V-Sync occurred.
+        compositor to HMD vertical synchronization signal (V-Sync).
 
         """
         return self.c_data.CompositorCpuStartToGpuEndElapsedTime + \
@@ -3462,7 +3463,7 @@ cdef class LibOVRPerfStatsPerCompositorFrame(object):
 
     @property
     def aswIsActive(self):
-        """``True`` is ASW was active this frame."""
+        """``True`` if Asynchronous Space Warp (ASW) was active this frame."""
         return self.c_data.AswIsActive == capi.ovrTrue
 
     @property
@@ -6046,7 +6047,9 @@ def endFrame(unsigned int frameIndex=0):
         &layers,
         <unsigned int>1)
 
-    return result
+    cdef double absTime = capi.ovr_GetTimeInSeconds()
+
+    return result, absTime
 
 
 def getTrackingOriginType():
@@ -6254,27 +6257,13 @@ def getSessionStatus():
 def getPerfStats():
     """Get detailed compositor frame statistics.
 
-    Returned frame statistics reflect the values contemporaneous with the last
-    :func:`updatePerfStats` call.
-
     Returns
     -------
     LibOVRPerfStats
         Frame statistics.
 
-    Notes
-    -----
-
-    * If :func:`updatePerfStats` was called less than once per frame, more than
-      one frame statistic will be available. Check
-      :py:attr:`~psychxr.libovr.LibOVRPerfStats.frameStatsCount` for the number
-      of queued stats and use an index >0 to access them. Stats are dropped if
-      the queue is larger than 5 items, or if the function is called at a rate
-      fewer than 1/5 the frame rate of the HMD.
-
     Examples
     --------
-
     Get the time spent by the application between :func:`endFrame` calls::
 
         result = updatePerfStats()
@@ -6529,11 +6518,6 @@ def testBoundary(int deviceBitmask, int boundaryType):
         &testResult.c_data)
 
     return testResult
-
-
-#def getBoundaryPoints(str boundaryType='PlayArea'):
-#    """Get the floor points which define the boundary."""
-#    pass  # TODO: make this work.
 
 
 def getConnectedControllerTypes():
@@ -6830,13 +6814,13 @@ def getTouch(int controller, int touch, str testState='continuous'):
     touch states. The returned value represents the touch state during the last
     :func:`updateInputState` call for the specified `controller`.
 
-    An optional trigger mode may be specified which defines the button's
+    An optional trigger mode may be specified which defines a touch's
     activation criteria. By default, `testState` is 'continuous' will return the
     immediate state of the button. Using 'rising' (or 'pressed') will
-    return True once when something is touched between subsequent
+    return ``True`` once when something is touched between subsequent
     :func:`updateInputState` calls, whereas 'falling' (and 'released') will
-    return True once the touch is discontinued. If :func:`updateInputState` was
-    called only once, 'rising' and 'falling' will return False.
+    return ``True`` once the touch is discontinued. If :func:`updateInputState`
+    was called only once, 'rising' and 'falling' will return False.
 
     Parameters
     ----------
@@ -6853,10 +6837,13 @@ def getTouch(int controller, int touch, str testState='continuous'):
         * ``CONTROLLER_TYPE_OBJECT2`` : Object 2 controller.
         * ``CONTROLLER_TYPE_OBJECT3`` : Object 3 controller.
 
+        However, touches are only applicable for devices which support that
+        feature.
+
     touch : int
         Touch to check. Values can be ORed together to test for multiple
-        touches. If a given controller does not have a particular touch, False
-        will always be returned. Valid button values are:
+        touches. If a given controller does not have a particular touch,
+        ``False`` will always be returned. Valid touch values are:
 
         * ``TOUCH_A``
         * ``TOUCH_B``
@@ -6890,16 +6877,12 @@ def getTouch(int controller, int touch, str testState='continuous'):
 
     Notes
     -----
-
-    * Not every controller type supports touch. Unsupported controllers will
-      always return False.
     * Special 'touches' ``TOUCH_RINDEXPOINTING``, ``TOUCH_RTHUMBUP``, 
       ``TOUCH_RTHUMBREST``, ``TOUCH_LINDEXPOINTING``, ``TOUCH_LINDEXPOINTING``,
       and ``TOUCH_LINDEXPOINTING``, can be used to recognise hand pose/gestures.
 
     Examples
     --------
-
     Check if the user is making a pointing gesture with their right index
     finger::
 
