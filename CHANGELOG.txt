@@ -6,30 +6,38 @@ Version 0.2.1 - 2019/07/16
 
 Overview:
 
-    This release adds improved haptics support, visibility culling, more
-    features to LibOVRPose, and fixes head locking.
+    This release adds improved haptics support, bounding boxes, visibility
+    culling, and more features to LibOVRPose. There are a few API breaking
+    changes, however in the future API changes will raise deprecation warnings
+    and be phased out gradually over several releases.
 
 New Features:
 
-    - Added logging callbacks. You can register a Python function as a callback
-      when LibOVR returns a message by passing it to `initialize`.
-    - Added `mirrorOptions` to `createMirrorTexture`. You can now customize how
-      mirrors are presented (eg. pre-distortion, one eye only, etc.)
-    - Added `getViewMatrix` to `LibOVRPose` which creates view matrices, which
-      transforms points into the space of the pose. This allows you to use rigid
-      body poses to define eye locations for rendering.
-    - Added optional `originPose` to `calcEyePoses`.
-    - Added optional bounding boxes to poses. You can test if an object's
-      bounding box is visible to a given eye using the new `cullPose` function.
-      This allows you to cull meshes associated with poses if they are not
-      visible during rendering, reducing CPU/GPU workload when drawing
-      scenes. Bounding boxes can be created to fit a model's vertices if
-      specified, and a single bounding box can be associated with multiple
-      poses.
     - Support for haptic buffers for use with Touch controllers. A haptics
       buffer contains an array of samples which specify Touch controller
       vibration amplitudes. Buffers can be passed to the haptics engine for
       playback, permitting custom vibration profiles.
+    - Added `mirrorOptions` to `createMirrorTexture` to customize how mirrors
+      are presented (eg. pre-distortion, one eye only, etc.)
+    - Added `getViewMatrix` to `LibOVRPose` which creates view matrices, which
+      transforms points into the space of the pose. This allows you to use rigid
+      body poses to define eye locations for rendering. You can do crazy things
+      like calculating eye poses using touch controller poses (make sure
+      head-locking is enabled!)
+    - Nearly all `LibOVRPose` transformation methods can write values to
+      pre-allocated output arrays.
+    - Added an optional `originPose` to `calcEyePoses`.
+    - Added a bounding box attribute to poses. You can create an axis-aligned
+      bounding box object (`LibOVRBounds`) and assign them to poses.
+      `LibOVRBounds` has a `fit` method to compute boundaries for a 3D model if
+      supplied a list of vertices.
+    - New `cullPose` function allows you to cull meshes associated with poses if
+      they are not visible during rendering by testing if their bounding boxes
+      fall outside of the view frustum. This reduces CPU/GPU workload when
+      drawing scenes.
+    - Added logging callbacks. You can register a Python function as a callback
+      for when LibOVR returns a message. Spits out lots of information, maybe
+      you'll find some of it useful?
     - `endFrame` returns the absolute system time it was called.
     - ASW stats are also returned with `LibOVRPerfStatsPerCompositorFrame`.
 
@@ -42,9 +50,11 @@ Bug Fixes:
 Breaking Changes:
 
     - `getTrackingState` now returns a `LibOVRTrackingState` instance. This was
-      changed given the previous system was less intuitive. This returns to the
-      behaviour of the 0.1 series of PsychXR and will stay this way.
-    - `endFrame` returns two values now.
+      changed given the previous system returned a data structure that was
+      not intuitive to work with. This returns to the behaviour of the 0.1
+      series of PsychXR and will stay this way.
+    - `endFrame` now returns two values.
+    - `resetFrameStats` is now `resetPerfStats` for naming consistency.
 
 Known Issues:
 

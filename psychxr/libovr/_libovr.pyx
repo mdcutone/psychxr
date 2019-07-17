@@ -192,6 +192,7 @@ __all__ = [
     'TEXTURE_SWAP_CHAIN13',
     'TEXTURE_SWAP_CHAIN14',
     'TEXTURE_SWAP_CHAIN15',
+    'TEXTURE_SWAP_CHAIN_COUNT',
     'FORMAT_R8G8B8A8_UNORM',
     'FORMAT_R8G8B8A8_UNORM_SRGB',
     'FORMAT_R16G16B16A16_FLOAT',
@@ -259,6 +260,9 @@ __all__ = [
     'MIRROR_OPTION_INCLUDE_NOTIFICATIONS',
     'MIRROR_OPTION_INCLUDE_SYSTEM_GUI',
     'MIRROR_OPTION_FORCE_SYMMETRIC_FOV',
+    'LOG_LEVEL_DEBUG',
+    'LOG_LEVEL_INFO',
+    'LOG_LEVEL_ERROR',
     # 'HMD_RIFTS',
     'LibOVRPose',
     'LibOVRPoseState',
@@ -346,7 +350,7 @@ __all__ = [
     'getTrackerInfo',
     'getSessionStatus',
     'getPerfStats',
-    'resetFrameStats',
+    'resetPerfStats',
     'getLastErrorInfo',
     'setBoundaryColor',
     'resetBoundaryColor',
@@ -680,7 +684,7 @@ PERF_HUD_APP_RENDER_TIMING = capi.ovrPerfHud_AppRenderTiming
 PERF_HUD_COMP_RENDER_TIMING = capi.ovrPerfHud_CompRenderTiming
 PERF_HUD_ASW_STATS = capi.ovrPerfHud_AswStats
 PERF_HUD_VERSION_INFO = capi.ovrPerfHud_VersionInfo
-PERF_HUD_COUNT = capi.ovrPerfHud_Count
+PERF_HUD_COUNT = capi.ovrPerfHud_Count  # for cycling
 
 # stereo debug hud
 DEBUG_HUD_STEREO_MODE_OFF = capi.ovrDebugHudStereo_Off
@@ -705,6 +709,7 @@ TEXTURE_SWAP_CHAIN12 = 12
 TEXTURE_SWAP_CHAIN13 = 13
 TEXTURE_SWAP_CHAIN14 = 14
 TEXTURE_SWAP_CHAIN15 = 15
+TEXTURE_SWAP_CHAIN_COUNT = 16
 
 # boundary modes
 BOUNDARY_PLAY_AREA = capi.ovrBoundary_PlayArea
@@ -6280,9 +6285,8 @@ def getPerfStats():
 
     return to_return
 
-
-def resetFrameStats():
-    """Reset frame statistics.
+def resetPerfStats():
+    """Reset frame performance statistics.
 
     Calling this will reset frame statistics, which may be needed if the
     application loses focus (eg. when the system UI is opened) and performance
@@ -6298,7 +6302,6 @@ def resetFrameStats():
     cdef capi.ovrResult result = capi.ovr_ResetPerfStats(_ptrSession)
 
     return result
-
 
 def getLastErrorInfo():
     """Get the last error code and information string reported by the API.
