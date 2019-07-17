@@ -1,20 +1,20 @@
 This file contains changes introduced to PsychXR for each version. Breaking
 changes may be incompatible with your current code.
 
-Version 0.2.1 - 2019/07/13
+Version 0.2.1 - 2019/07/16
 --------------------------
 
 Overview:
 
-    This release adds improved haptics support, adds more features to
-    LibOVRPose, and fixes head locking.
+    This release adds improved haptics support, visibility culling, more
+    features to LibOVRPose, and fixes head locking.
 
 New Features:
 
     - Added logging callbacks. You can register a Python function as a callback
-      when LibOVR returns a message by passing it to `initialize`. Within the
-      callback you can filter by `level`.
-    - Added `mirrorOptions` to `createMirrorTexture`.
+      when LibOVR returns a message by passing it to `initialize`.
+    - Added `mirrorOptions` to `createMirrorTexture`. You can now customize how
+      mirrors are presented (eg. pre-distortion, one eye only, etc.)
     - Added `getViewMatrix` to `LibOVRPose` which creates view matrices, which
       transforms points into the space of the pose. This allows you to use rigid
       body poses to define eye locations for rendering.
@@ -22,7 +22,7 @@ New Features:
     - Added optional bounding boxes to poses. You can test if an object's
       bounding box is visible to a given eye using the new `cullPose` function.
       This allows you to cull meshes associated with poses if they are not
-      visible during scene rendering, reducing CPU/GPU workload when drawing
+      visible during rendering, reducing CPU/GPU workload when drawing
       scenes. Bounding boxes can be created to fit a model's vertices if
       specified, and a single bounding box can be associated with multiple
       poses.
@@ -39,7 +39,9 @@ Bug Fixes:
 
 Breaking Changes:
 
-    - No breaking API changes.
+    - `getTrackingState` now returns a `LibOVRTrackingState` instance. This was
+      changed given the previous system was less intuitive. This returns to the
+      behaviour of the 0.1 series of PsychXR and will stay this way.
 
 Known Issues:
 
