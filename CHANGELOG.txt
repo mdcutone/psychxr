@@ -11,6 +11,9 @@ Overview:
 
 New Features:
 
+    - Added logging callbacks. You can register a Python function as a callback
+      when LibOVR returns a message by passing it to `initialize`. Within the
+      callback you can filter by `level`.
     - Added `mirrorOptions` to `createMirrorTexture`.
     - Added `getViewMatrix` to `LibOVRPose` which creates view matrices, which
       transforms points into the space of the pose. This allows you to use rigid

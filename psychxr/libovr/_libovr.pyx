@@ -374,9 +374,10 @@ __all__ = [
 from .cimport libovr_capi as capi
 from .cimport libovr_math
 
-from libc.stdint cimport int32_t, uint32_t
+from libc.stdint cimport int32_t, uint32_t, uintptr_t
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.math cimport pow, tan, M_PI
+cimport cython.parallel  # needed for the callback
 
 cimport numpy as np
 import numpy as np
@@ -437,6 +438,19 @@ def check_result(result):
 cdef float maxf(float a, float b):
     return a if a >= b else b
 
+
+cdef char* str2bytes(str strIn):
+    """Convert UTF-8 encoded strings to bytes."""
+    py_bytes = strIn.encode('UTF-8')
+    cdef char* to_return = py_bytes
+
+    return to_return
+
+
+cdef str bytes2str(char* bytesIn):
+    """Convert UTF-8 encoded strings to bytes."""
+    return bytesIn.decode('UTF-8')
+
 # ------------------------------------------------------------------------------
 # Version checker
 
@@ -448,6 +462,16 @@ if capi.OVR_MAJOR_VERSION != 1 or capi.OVR_MINOR_VERSION != 37:
         "aren't any API breaking changes.".format(
             major=capi.OVR_MAJOR_VERSION, minor=capi.OVR_MINOR_VERSION),
         RuntimeWarning)
+
+# ------------------------------------------------------------------------------
+# Logging Callback
+#
+
+cdef void LibOVRLogCallback(uintptr_t userData, int level, char* message) with gil:
+    """Callback function for LibOVR logging messages.
+    """
+    (<object>(<void*>userData))(level, bytes2str(message))
+
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -719,6 +743,10 @@ MIRROR_OPTION_INCLUDE_NOTIFICATIONS = capi.ovrMirrorOption_IncludeNotifications
 MIRROR_OPTION_INCLUDE_SYSTEM_GUI = capi.ovrMirrorOption_IncludeSystemGui
 MIRROR_OPTION_FORCE_SYMMETRIC_FOV = capi.ovrMirrorOption_ForceSymmetricFov
 
+# logging levels
+LOG_LEVEL_DEBUG = capi.ovrLogLevel_Debug
+LOG_LEVEL_INFO = capi.ovrLogLevel_Info
+LOG_LEVEL_ERROR = capi.ovrLogLevel_Error
 
 # ------------------------------------------------------------------------------
 # Wrapper factory functions
@@ -4162,15 +4190,22 @@ def getHmdInfo():
     return toReturn
 
 
-def initialize(bint focusAware=False, int connectionTimeout=0):
+def initialize(bint focusAware=False, int connectionTimeout=0, object logCallback=None):
     """Initialize the session.
 
     Parameters
     ----------
-    focusAware : bool
+    focusAware : bool, optional
         Client is focus aware.
-    connectionTimeout : bool
+    connectionTimeout : bool, optional
         Timeout in milliseconds for connecting to the server.
+    logCallback : object, optional
+        Python callback function for logging. May be called at anytime from
+        any thread until :func:`shutdown` is called. Function must accept
+        arguments `level` and `message`. Where `level` is passed the logging
+        level and `message` the message string. Callbacks message levels can be
+        ``LOG_LEVEL_DEBUG``, ``LOG_LEVEL_INFO``, and ``LOG_LEVEL_ERROR``. The
+        application can filter messages accordingly.
 
     Returns
     -------
@@ -4189,6 +4224,21 @@ def initialize(bint focusAware=False, int connectionTimeout=0):
         * ``ERROR_SERVER_START``:  Cannot start a server.
         * ``ERROR_REINITIALIZATION``: Reinitialized with a different version.
 
+    Examples
+    --------
+    Passing a callback function for logging::
+
+        def myLoggingCallback(level, message):
+            level_text = {
+                LOG_LEVEL_DEBUG: '[DEBUG]:',
+                LOG_LEVEL_INFO: '[INFO]:',
+                LOG_LEVEL_ERROR: '[ERROR]:'}
+
+            # print message like '[INFO]: IAD changed to 62.1mm'
+            print(level_text[level], message)
+
+        result = initialize(logCallback=myLoggingCallback)
+
     """
     cdef int32_t flags = capi.ovrInit_RequestVersion
     if focusAware is True:
@@ -4199,7 +4249,13 @@ def initialize(bint focusAware=False, int connectionTimeout=0):
     global _initParams
     _initParams.Flags = flags
     _initParams.RequestedMinorVersion = capi.OVR_MINOR_VERSION
-    _initParams.LogCallback = NULL  # not used yet
+
+    if logCallback is not None:
+        _initParams.LogCallback = <capi.ovrLogCallback>LibOVRLogCallback
+        _initParams.UserData = <uintptr_t>(<void*>logCallback)
+    else:
+        _initParams.LogCallback = NULL
+
     _initParams.ConnectionTimeoutMS = <uint32_t>connectionTimeout
     cdef capi.ovrResult result = capi.ovr_Initialize(
         &_initParams)
