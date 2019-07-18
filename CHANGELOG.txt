@@ -7,9 +7,9 @@ Version 0.2.1 - 2019/07/16
 Overview:
 
     This release adds improved haptics support, bounding boxes, visibility
-    culling, and more features to LibOVRPose. There are a few API breaking
-    changes, however in the future API changes will raise deprecation warnings
-    and be phased out gradually over several releases.
+    culling, and more features to `LibOVRPose`. There are a few minor API
+    breaking changes, however in the future API changes will raise deprecation
+    warnings and be phased out gradually over several releases.
 
 New Features:
 
@@ -18,12 +18,14 @@ New Features:
       vibration amplitudes. Buffers can be passed to the haptics engine for
       playback, permitting custom vibration profiles.
     - Added `mirrorOptions` to `createMirrorTexture` to customize how mirrors
-      are presented (eg. pre-distortion, one eye only, etc.)
+      are presented (eg. pre-distortion, rectilinear, one eye only, etc.)
     - Added `getViewMatrix` to `LibOVRPose` which creates view matrices, which
       transforms points into the space of the pose. This allows you to use rigid
       body poses to define eye locations for rendering. You can do crazy things
       like calculating eye poses using touch controller poses (make sure
       head-locking is enabled!)
+    - Added `getAzimuthElevation` and `getAngleTo` methods to `LibOVRPose`, for
+      computing Euler angles of targets within the reference frame of a poses.
     - Nearly all `LibOVRPose` transformation methods can write values to
       pre-allocated output arrays.
     - Added an optional `originPose` to `calcEyePoses`.
@@ -34,7 +36,7 @@ New Features:
     - New `cullPose` function allows you to cull meshes associated with poses if
       they are not visible during rendering by testing if their bounding boxes
       fall outside of the view frustum. This reduces CPU/GPU workload when
-      drawing scenes.
+      complex drawing scenes.
     - Added logging callbacks. You can register a Python function as a callback
       for when LibOVR returns a message. Spits out lots of information, maybe
       you'll find some of it useful?

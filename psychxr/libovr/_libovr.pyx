@@ -380,7 +380,7 @@ from .cimport libovr_math
 
 from libc.stdint cimport int32_t, uint32_t, uintptr_t
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
-from libc.math cimport pow, tan, M_PI
+from libc.math cimport pow, tan, M_PI, atan2, acos
 cimport cython.parallel  # needed for the callback
 
 cimport numpy as np
@@ -438,7 +438,10 @@ def check_result(result):
         raise RuntimeError(
             str(result) + ": " + _last_error_info_.ErrorString.decode("utf-8"))
 
-# helper functions
+# helper functions and data
+RAD_TO_DEGF = <float>180.0 / M_PI
+
+
 cdef float maxf(float a, float b):
     return a if a >= b else b
 
@@ -1423,6 +1426,74 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
+    def getAngleTo(self, object target, bint degrees=True):
+        """Get the relative angle to a point or pose along the shortest arc.
+
+        Parameters
+        ----------
+        target : LibOVRPose or array_like
+            Pose or point [x, y, z].
+        degrees : bool, optional
+            Return angle in degrees if ``True``, else radians. Default is
+            ``True``.
+
+        Returns
+        -------
+        float
+            Angle between the forward vector of this pose and the target.
+
+        """
+        cdef libovr_math.Vector3f targ
+
+        if isinstance(target, LibOVRPose):
+            targ = <libovr_math.Vector3f>(<LibOVRPose>target).c_data[0].Position
+        else:
+            targ = libovr_math.Vector3f(
+                <float>target[0], <float>target[1], <float>target[2])
+
+        targ = (<libovr_math.Posef>self.c_data[0]).InverseTransform(targ)
+        cdef float angle = libovr_math.Vector3f(0., 0., -1.).Angle(targ)
+
+        return angle * RAD_TO_DEGF if degrees else angle
+
+    def getAzimuthElevation(self, object target, bint degrees=True):
+        """Get the azimuth and elevation angles of a point relative to this
+        pose.
+
+        Parameters
+        ----------
+        target : LibOVRPose or array_like
+            Pose or point [x, y, z].
+        degrees : bool, optional
+            Return angles in degrees if ``True``, else radians. Default is
+            ``True``.
+
+        Returns
+        -------
+        tuple (float, float)
+            Azimuth and elevation of the target point in degrees.
+
+        """
+        cdef libovr_math.Vector3f targ = libovr_math.Vector3f()
+
+        if isinstance(target, LibOVRPose):
+            targ = <libovr_math.Vector3f>(<LibOVRPose>target).c_data[0].Position
+        else:
+            targ.x = <float>target[0]
+            targ.y = <float>target[1]
+            targ.z = <float>target[2]
+
+        # put point into reference frame of pose
+        targ = (<libovr_math.Posef>self.c_data[0]).InverseTransform(targ)
+
+        cdef float az = atan2(targ.x, -targ.z)
+        cdef float el = atan2(targ.y, -targ.z)
+
+        az = az * RAD_TO_DEGF if degrees else az
+        el = el * RAD_TO_DEGF if degrees else el
+
+        return az, el
+
     def normalize(self):
         """Normalize this pose.
 
@@ -1972,7 +2043,7 @@ cdef class LibOVRPose(object):
 
         return LibOVRPose.fromPtr(ptr, True)
 
-    def getViewMatrix(self, object out=None):
+    def getViewMatrix(self, bint inverse=False, object out=None):
         """Convert this pose into a view matrix.
 
         Creates a view matrix which transforms points into eye space using the
@@ -1982,6 +2053,8 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
+        inverse : bool, optional
+            Return the inverse of the view matrix. Default it ``False``.
         out : ~numpy.ndarray, optional
             Alternative place to write the matrix to values. Must be a `ndarray`
             of shape (4, 4,) and have a data type of float32. Values are written
@@ -2029,6 +2102,10 @@ cdef class LibOVRPose(object):
         forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
         m_view = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
 
+        if inverse:
+            m_view.InvertHomogeneousTransform()
+
+        # prepare return array
         cdef np.ndarray[np.float32_t, ndim=2] to_return
 
         if out is None:
