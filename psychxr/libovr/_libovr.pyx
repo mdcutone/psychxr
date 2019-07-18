@@ -1427,7 +1427,8 @@ cdef class LibOVRPose(object):
         return toReturn
 
     def getAngleTo(self, object target, bint degrees=True):
-        """Get the relative angle to a point or pose along the shortest arc.
+        """Get the relative angle to a point from the forward vector of this
+        pose.
 
         Parameters
         ----------
@@ -1440,7 +1441,8 @@ cdef class LibOVRPose(object):
         Returns
         -------
         float
-            Angle between the forward vector of this pose and the target.
+            Angle between the forward vector of this pose and the target. Values
+            are always positive.
 
         """
         cdef libovr_math.Vector3f targ
@@ -1458,7 +1460,7 @@ cdef class LibOVRPose(object):
 
     def getAzimuthElevation(self, object target, bint degrees=True):
         """Get the azimuth and elevation angles of a point relative to this
-        pose.
+        pose's forward direction.
 
         Parameters
         ----------
@@ -1471,7 +1473,8 @@ cdef class LibOVRPose(object):
         Returns
         -------
         tuple (float, float)
-            Azimuth and elevation of the target point in degrees.
+            Azimuth and elevation angles of the target point. Values are
+            signed.
 
         """
         cdef libovr_math.Vector3f targ = libovr_math.Vector3f()
@@ -1479,9 +1482,8 @@ cdef class LibOVRPose(object):
         if isinstance(target, LibOVRPose):
             targ = <libovr_math.Vector3f>(<LibOVRPose>target).c_data[0].Position
         else:
-            targ.x = <float>target[0]
-            targ.y = <float>target[1]
-            targ.z = <float>target[2]
+            targ = libovr_math.Vector3f(
+                <float>target[0], <float>target[1], <float>target[2])
 
         # put point into reference frame of pose
         targ = (<libovr_math.Posef>self.c_data[0]).InverseTransform(targ)
