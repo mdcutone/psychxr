@@ -817,18 +817,16 @@ cdef class LibOVRPose(object):
 
         newPose = pose1 * pose2
 
-    Using the inplace multiplication operator ``*=``, you can transform a pose
-    into another reference frame.
-
     The above code returns `pose2` transformed by `pose1`, putting `pose2` into
-    the reference frame of `pose1`. On can get the inverse of a pose by using
-    the ``~`` operator::
+    the reference frame of `pose1`. Using the inplace multiplication operator
+    ``*=``, you can transform a poss into another reference frame without making
+    a copy. One can get the inverse of a pose by using the ``~`` operator::
 
         poseInverse = ~pose
 
-    Poses can be converted to 4x4 transformation matrices. One can use these
-    matrices when rendering to transform the vertices of a model associated with
-    the pose by passing them to OpenGL.
+    Poses can be converted to 4x4 transformation matrices with `asMatrix` and
+    `getViewMatrix`. One can use these matrices when rendering to transform the
+    vertices of a model associated with the pose by passing them to OpenGL.
 
     This class is a wrapper for the ``OVR::ovrPosef`` data structure. Fields
     ``OVR::ovrPosef.Orientation`` and ``OVR::ovrPosef.Position`` are accessed
@@ -1191,7 +1189,8 @@ cdef class LibOVRPose(object):
 
     @property
     def posOri(self):
-        """tuple (~numpy.ndarray, ~numpy.ndarray) : Position vector and orientation quaternion.
+        """tuple (~numpy.ndarray, ~numpy.ndarray) : Position vector and
+        orientation quaternion.
         """
         return self.pos, self.ori
 
@@ -5929,7 +5928,7 @@ def setEyeRenderViewport(int eye, object values):
     ----------
     eye: int
         Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
-    array_like
+    values : array_like
         Viewport rectangle [x, y, w, h].
 
     Examples
@@ -6276,7 +6275,7 @@ def getTrackerCount():
     Returns
     -------
     int
-        Number of trackers reported by LibOVR.
+        Number of trackers reported by `LibOVR`.
 
     Notes
     -----
@@ -6388,6 +6387,7 @@ def getPerfStats():
 
     return to_return
 
+
 def resetPerfStats():
     """Reset frame performance statistics.
 
@@ -6462,7 +6462,7 @@ def setBoundaryColor(float red, float green, float blue):
         Result of the LibOVR API call ``OVR::ovr_SetBoundaryLookAndFeel``.
 
     """
-    global _boundryStyle
+    global _boundaryStyle
     global _ptrSession
 
     cdef capi.ovrColorf color
@@ -6470,11 +6470,11 @@ def setBoundaryColor(float red, float green, float blue):
     color.g = <float>green
     color.b = <float>blue
 
-    _boundryStyle.Color = color
+    _boundaryStyle.Color = color
 
     cdef capi.ovrResult result = capi.ovr_SetBoundaryLookAndFeel(
         _ptrSession,
-        &_boundryStyle)
+        &_boundaryStyle)
 
     return result
 
