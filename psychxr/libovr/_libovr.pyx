@@ -440,6 +440,7 @@ def check_result(result):
 
 # helper functions and data
 RAD_TO_DEGF = <float>180.0 / M_PI
+DEG_TO_RADF = M_PI / <float>180.0
 
 
 cdef float maxf(float a, float b):
@@ -1309,7 +1310,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def getAxisAngle(self, degrees=False):
+    def getOriAxisAngle(self, degrees=False):
         """The axis and angle of rotation for this pose's orientation.
 
         Parameters
@@ -1334,9 +1335,32 @@ cdef class LibOVRPose(object):
         ret_axis[2] = axis.z
 
         if degrees:
-            angle *= <float>(360.0 / (2.0 * M_PI))
+            angle *= RAD_TO_DEGF
 
         return angle, ret_axis
+
+    def setOriAxisAngle(self, object axis, float angle, bint degrees=False):
+        """Set the orientation of this pose using an axis and angle.
+
+        Parameters
+        ----------
+        axis : array_like
+            Axis of rotation [rx, ry, rz].
+        angle : float
+            Angle of rotation.
+        degrees : bool, optional
+            Specify ``True`` if `angle` is in degrees, or else it will be
+            treated as radians. Default is ``False``.
+
+        """
+        cdef libovr_math.Vector3f axis3f = \
+            libovr_math.Vector3f(<float>axis[0], <float>axis[1], <float>axis[2])
+
+        if degrees:
+            angle *= DEG_TO_RADF
+
+        self.c_data.Orientation = \
+            <capi.ovrQuatf>libovr_math.Quatf(axis3f, angle)
 
     def getYawPitchRoll(self, LibOVRPose refPose=None, object out=None):
         """Get the yaw, pitch, and roll of the orientation quaternion.
@@ -2138,7 +2162,7 @@ cdef class LibOVRPoseState(object):
 
     Parameters
     ----------
-    pose : LibOVRPose, list, tuple or None
+    thePose : LibOVRPose, list, tuple or None
         Rigid body pose this state refers to. Can be a `LibOVRPose` pose
         instance or a tuple/list of a position coordinate (x, y, z) and
         orientation quaternion (x, y, z, w). If ``None`` the pose will be
@@ -2160,14 +2184,14 @@ cdef class LibOVRPoseState(object):
     cdef bint ptr_owner  # owns the data
 
     # these will hold references until this object is de-allocated
-    cdef LibOVRPose _pose
+    cdef LibOVRPose _thePose
     cdef np.ndarray _linearVelocity
     cdef np.ndarray _angularVelocity
     cdef np.ndarray _linearAcceleration
     cdef np.ndarray _angularAcceleration
 
     def __init__(self,
-                 object pose=None,
+                 object thePose=None,
                  object linearVelocity=(0., 0., 0.),
                  object angularVelocity=(0., 0., 0.),
                  object linearAcceleration=(0., 0. ,0.),
@@ -2177,7 +2201,7 @@ cdef class LibOVRPoseState(object):
         """
         Attributes
         ----------
-        pose : LibOVRPose
+        thePose : LibOVRPose
         angularVelocity : ndarray
         linearVelocity : ndarray
         angularAcceleration : ndarray
@@ -2186,7 +2210,7 @@ cdef class LibOVRPoseState(object):
 
         """
         self._new_struct(
-            pose,
+            thePose,
             linearVelocity,
             angularVelocity,
             linearAcceleration,
@@ -2203,7 +2227,7 @@ cdef class LibOVRPoseState(object):
         wrapper.c_data = ptr
         wrapper.ptr_owner = owner
 
-        wrapper._pose = LibOVRPose.fromPtr(&wrapper.c_data.ThePose)
+        wrapper._thePose = LibOVRPose.fromPtr(&wrapper.c_data.ThePose)
         wrapper._linearVelocity = _wrap_ovrVector3f_as_ndarray(
                 &wrapper.c_data.LinearVelocity)
         wrapper._linearAcceleration = _wrap_ovrVector3f_as_ndarray(
@@ -2238,7 +2262,7 @@ cdef class LibOVRPoseState(object):
         self.ptr_owner = True
 
         # setup property wrappers
-        self._pose = LibOVRPose.fromPtr(&self.c_data.ThePose)
+        self._thePose = LibOVRPose.fromPtr(&self.c_data.ThePose)
         self._linearVelocity = _wrap_ovrVector3f_as_ndarray(
             &self.c_data.LinearVelocity)
         self._linearAcceleration = _wrap_ovrVector3f_as_ndarray(
@@ -2256,7 +2280,7 @@ cdef class LibOVRPoseState(object):
             _ptr.ThePose.Position = (<LibOVRPose>pose).c_data.Position
             _ptr.ThePose.Orientation = (<LibOVRPose>pose).c_data.Orientation
         elif isinstance(pose, (tuple, list,)):
-            self._pose.posOri = pose
+            self._thePose.posOri = pose
         else:
             raise TypeError('Invalid value for `pose`, must be `LibOVRPose`'
                             ', `list` or `tuple`.')
@@ -2321,12 +2345,12 @@ cdef class LibOVRPoseState(object):
         return self.__deepcopy__()
 
     @property
-    def pose(self):
+    def thePose(self):
         """Rigid body pose."""
-        return self._pose
+        return self._thePose
 
-    @pose.setter
-    def pose(self, LibOVRPose value):
+    @thePose.setter
+    def thePose(self, LibOVRPose value):
         self.c_data.ThePose = value.c_data[0]  # copy into
 
     @property
