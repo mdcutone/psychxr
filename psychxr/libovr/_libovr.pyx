@@ -397,7 +397,7 @@ cdef capi.ovrInitParams _initParams  # initialization parameters
 cdef capi.ovrSession _ptrSession  # session pointer
 cdef capi.ovrGraphicsLuid _gfxLuid  # LUID
 cdef capi.ovrHmdDesc _hmdDesc  # HMD information descriptor
-cdef capi.ovrBoundaryLookAndFeel _boundryStyle
+cdef capi.ovrBoundaryLookAndFeel _boundaryStyle
 cdef capi.ovrTextureSwapChain[16] _swapChains
 cdef capi.ovrMirrorTexture _mirrorTexture
 
