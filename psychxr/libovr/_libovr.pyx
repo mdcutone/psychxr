@@ -1136,7 +1136,7 @@ cdef class LibOVRPose(object):
     def ori(self, object value):
         self._ori[:] = value
 
-    def getOri(self, object out=None):
+    def getOri(self, np.ndarray[np.float32_t] out=None):
         """Orientation quaternion X, Y, Z, W. Components X, Y, Z are imaginary
         and W is real.
 
@@ -1206,7 +1206,7 @@ cdef class LibOVRPose(object):
         """
         return self.getAt()
 
-    def getAt(self, object out=None):
+    def getAt(self, np.ndarray[np.float32_t] out=None):
         """Get the `at` vector for this pose.
 
         Parameters
@@ -1258,7 +1258,7 @@ cdef class LibOVRPose(object):
         """~numpy.ndarray : Up vector of this pose (+Y is up) (read-only)."""
         return self.getUp()
 
-    def getUp(self, object out=None):
+    def getUp(self, np.ndarray[np.float32_t] out=None):
         """Get the 'up' vector for this pose.
 
         Parameters
@@ -1361,7 +1361,7 @@ cdef class LibOVRPose(object):
         self.c_data.Orientation = \
             <capi.ovrQuatf>libovr_math.Quatf(axis3f, angle)
 
-    def getYawPitchRoll(self, LibOVRPose refPose=None, object out=None):
+    def getYawPitchRoll(self, LibOVRPose refPose=None, np.ndarray[np.float32_t] out=None):
         """Get the yaw, pitch, and roll of the orientation quaternion.
 
         Parameters
@@ -1408,7 +1408,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def asMatrix(self, bint inverse=False, object out=None):
+    def asMatrix(self, bint inverse=False, np.ndarray[np.float32_t] out=None):
         """Convert this pose into a 4x4 transformation matrix.
 
         Parameters
@@ -1564,7 +1564,7 @@ cdef class LibOVRPose(object):
 
         return LibOVRPose.fromPtr(ptr, True)
 
-    def rotate(self, object v, object out=None):
+    def rotate(self, object v, np.ndarray[np.float32_t]  out=None):
         """Rotate a position vector.
 
         Parameters
@@ -1600,7 +1600,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def inverseRotate(self, object v, object out=None):
+    def inverseRotate(self, object v, np.ndarray[np.float32_t]  out=None):
         """Inverse rotate a position vector.
 
         Parameters
@@ -1637,7 +1637,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def translate(self, object v, object out=None):
+    def translate(self, object v, np.ndarray[np.float32_t]  out=None):
         """Translate a position vector.
 
         Parameters
@@ -1674,7 +1674,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def transform(self, object v, object out=None):
+    def transform(self, object v, np.ndarray[np.float32_t]  out=None):
         """Transform a position vector.
 
         Parameters
@@ -1711,7 +1711,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def inverseTransform(self, object v, object out=None):
+    def inverseTransform(self, object v, np.ndarray[np.float32_t]  out=None):
         """Inverse transform a position vector.
 
         Parameters
@@ -1750,7 +1750,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def transformNormal(self, object v, object out=None):
+    def transformNormal(self, object v, np.ndarray[np.float32_t]  out=None):
         """Transform a normal vector.
 
         Parameters
@@ -1788,7 +1788,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def inverseTransformNormal(self, object v, object out=None):
+    def inverseTransformNormal(self, object v, np.ndarray[np.float32_t] out=None):
         """Inverse transform a normal vector.
 
         Parameters
@@ -1826,7 +1826,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def apply(self, object v, object out=None):
+    def apply(self, object v, np.ndarray[np.float32_t] out=None):
         """Apply a transform to a position vector.
 
         Parameters
@@ -2500,7 +2500,7 @@ cdef class LibOVRTrackingState(object):
     cdef LibOVRPoseState _rightHandPoseState
     cdef LibOVRPose _calibratedOrigin
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         """
         Attributes
         ----------
@@ -2691,9 +2691,9 @@ cdef class LibOVRBounds(object):
 
     @property
     def isValid(self):
-        """``True`` if a bounding box is valid. Bounding boxes are valid if
-        all dimensions of `mins` are less than each of `maxs` which is the case
-        after :py:method:`~LibOVRBounds.clear` is called.
+        """``True`` if a bounding box is valid. Bounding boxes are valid if all
+        dimensions of `mins` are less than each of `maxs` which is the case
+        after :py:meth:`~LibOVRBounds.clear` is called.
 
         If a bounding box is invalid, :func:`cullPose` will always return
         ``True``.
@@ -2730,7 +2730,7 @@ cdef class LibOVRBounds(object):
                         [1.0, 1.0, 0.0],
                         [1.0, -1.0, 0.0]]
 
-            # create a bounding box and clear it
+            # create an empty bounding box
             bbox = LibOVRBounds()
             bbox.fit(vertices)
 
@@ -7537,7 +7537,7 @@ def cullPose(int eye, LibOVRPose pose):
       frustum. If an object is completely occluded, it will still be fully
       rendered, and nearer object will be drawn on-top of it. A trick to
       improve performance in this case is to use ``glDepthFunc(GL_LEQUAL)`` with
-      ``glEnable(GL_DEPTH_TEST)``and render objects from nearest to farthest
+      ``glEnable(GL_DEPTH_TEST)`` and render objects from nearest to farthest
       from the head pose. This will reject fragment color calculations for
       occluded locations.
 

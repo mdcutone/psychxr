@@ -118,24 +118,24 @@ if _build_libovr_ == '1':
     PACKAGES.extend(_sdk_data_['libovr']['packages'])
 
 setup_pars = {
-    "name" : "psychxr",
-    "author" : "Matthew D. Cutone, Laurie M. Wilcox",
-    "author_email" : "cutonem@yorku.ca",
+    "name": "psychxr",
+    "author": "Matthew D. Cutone, Laurie M. Wilcox",
+    "author_email": "cutonem@yorku.ca",
     "maintainer": "Matthew D. Cutone",
     "maintainer_email": "cutonem@yorku.ca",
-    "packages" : PACKAGES,
-    "url": "https://github.com/mdcutone/psychxr",
+    "packages": PACKAGES,
+    "url": "http://psychxr.org",
     #"package_data": PACKAGE_DATA,
     "include_package_data": True,
-    "version": "0.2.0",
+    "version": "0.2.1",
     "license" : "MIT",
     "description":
         "Python extension library for interacting with eXtended Reality "
         "displays (HMDs), intended for research in neuroscience and "
         "psychology.",
     "long_description": "",
-    "classifiers" : [
-        'Development Status :: 4 - Beta',
+    "classifiers": [
+        'Development Status :: 5 - Production/Stable',
         'Operating System :: Microsoft :: Windows :: Windows 10',
         'Operating System :: Microsoft :: Windows :: Windows 8.1',
         'Operating System :: Microsoft :: Windows :: Windows 7',

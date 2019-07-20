@@ -25,6 +25,8 @@ Classes
 .. autosummary::
     LibOVRPose
     LibOVRPoseState
+    LibOVRTrackingState
+    LibOVRBounds
     LibOVRHmdInfo
     LibOVRTrackerInfo
     LibOVRSessionStatus
@@ -128,6 +130,10 @@ Functions
     getIndexTriggerValues
     getHandTriggerValues
     setControllerVibration
+    getHapticsInfo
+    submitControllerVibration
+    getControllerPlaybackState
+    cullPose
 
 Details
 =======
@@ -141,6 +147,16 @@ Classes
     :inherited-members:
 
 .. autoclass:: LibOVRPoseState
+    :members:
+    :undoc-members:
+    :inherited-members:
+
+.. autoclass:: LibOVRTrackingState
+    :members:
+    :undoc-members:
+    :inherited-members:
+
+.. autoclass:: LibOVRBounds
     :members:
     :undoc-members:
     :inherited-members:
@@ -260,7 +276,7 @@ Functions
 .. autofunction:: getTrackerInfo
 .. autofunction:: getSessionStatus
 .. autofunction:: getPerfStats
-.. autofunction:: resetFrameStats
+.. autofunction:: resetPerfStats
 .. autofunction:: getLastErrorInfo
 .. autofunction:: setBoundaryColor
 .. autofunction:: resetBoundaryColor
@@ -278,4 +294,4 @@ Functions
 .. autofunction:: getHandTriggerValues
 .. autofunction:: setControllerVibration
 .. autofunction:: submitControllerVibration
-.. autofunction:: getControllerPlaybackState
+.. autofunction:: cullPose
