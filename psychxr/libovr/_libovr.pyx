@@ -1064,7 +1064,7 @@ cdef class LibOVRPose(object):
     def pos(self, object value):
         self._pos[:] = value
 
-    def getPos(self, object out=None):
+    def getPos(self, np.ndarray[np.float32_t, ndim=1] out=None):
         """Position vector X, Y, Z.
 
         The returned object is a NumPy array which contains a copy of the data
@@ -1136,7 +1136,7 @@ cdef class LibOVRPose(object):
     def ori(self, object value):
         self._ori[:] = value
 
-    def getOri(self, np.ndarray[np.float32_t] out=None):
+    def getOri(self, np.ndarray[np.float32_t, ndim=1] out=None):
         """Orientation quaternion X, Y, Z, W. Components X, Y, Z are imaginary
         and W is real.
 
@@ -1206,7 +1206,7 @@ cdef class LibOVRPose(object):
         """
         return self.getAt()
 
-    def getAt(self, np.ndarray[np.float32_t] out=None):
+    def getAt(self, np.ndarray[np.float32_t, ndim=1] out=None):
         """Get the `at` vector for this pose.
 
         Parameters
@@ -1258,7 +1258,7 @@ cdef class LibOVRPose(object):
         """~numpy.ndarray : Up vector of this pose (+Y is up) (read-only)."""
         return self.getUp()
 
-    def getUp(self, np.ndarray[np.float32_t] out=None):
+    def getUp(self, np.ndarray[np.float32_t, ndim=1] out=None):
         """Get the 'up' vector for this pose.
 
         Parameters
@@ -1408,7 +1408,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def asMatrix(self, bint inverse=False, np.ndarray[np.float32_t] out=None):
+    def asMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
         """Convert this pose into a 4x4 transformation matrix.
 
         Parameters
@@ -1564,7 +1564,7 @@ cdef class LibOVRPose(object):
 
         return LibOVRPose.fromPtr(ptr, True)
 
-    def rotate(self, object v, np.ndarray[np.float32_t]  out=None):
+    def rotate(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
         """Rotate a position vector.
 
         Parameters
@@ -1600,7 +1600,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def inverseRotate(self, object v, np.ndarray[np.float32_t]  out=None):
+    def inverseRotate(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
         """Inverse rotate a position vector.
 
         Parameters
@@ -1637,7 +1637,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def translate(self, object v, np.ndarray[np.float32_t]  out=None):
+    def translate(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
         """Translate a position vector.
 
         Parameters
@@ -1674,7 +1674,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def transform(self, object v, np.ndarray[np.float32_t]  out=None):
+    def transform(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
         """Transform a position vector.
 
         Parameters
@@ -1711,7 +1711,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def inverseTransform(self, object v, np.ndarray[np.float32_t]  out=None):
+    def inverseTransform(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
         """Inverse transform a position vector.
 
         Parameters
@@ -1750,7 +1750,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def transformNormal(self, object v, np.ndarray[np.float32_t]  out=None):
+    def transformNormal(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
         """Transform a normal vector.
 
         Parameters
@@ -1788,7 +1788,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def inverseTransformNormal(self, object v, np.ndarray[np.float32_t] out=None):
+    def inverseTransformNormal(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
         """Inverse transform a normal vector.
 
         Parameters
@@ -1826,7 +1826,7 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def apply(self, object v, np.ndarray[np.float32_t] out=None):
+    def apply(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
         """Apply a transform to a position vector.
 
         Parameters
@@ -2068,7 +2068,7 @@ cdef class LibOVRPose(object):
 
         return LibOVRPose.fromPtr(ptr, True)
 
-    def getViewMatrix(self, bint inverse=False, object out=None):
+    def getViewMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
         """Convert this pose into a view matrix.
 
         Creates a view matrix which transforms points into eye space using the
@@ -5807,7 +5807,7 @@ def setEyeRenderPose(int eye, LibOVRPose eyePose):
         _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
 
-def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, object out=None):
+def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, np.ndarray[np.float32_t, ndim=2] out=None):
     """Compute the projection matrix.
 
     The projection matrix is computed by the runtime using the eye FOV
@@ -5858,13 +5858,6 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
     if out is None:
         to_return = np.zeros((4, 4), dtype=np.float32)
     else:
-        try:
-            assert out.ndim == 2 and \
-                   out.shape == (4,4,) and \
-                   out.dtype == np.float32
-        except AssertionError:
-            raise AssertionError("'out' has wrong type or dimensions.")
-
         to_return = out
 
     _eyeProjectionMatrix[eye] = \
@@ -5886,7 +5879,7 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, o
     return to_return
 
 
-def getEyeRenderViewport(int eye, object out=None):
+def getEyeRenderViewport(int eye, np.ndarray[np.int_t, ndim=1] out=None):
     """Get the eye render viewport.
 
     The viewport defines the region on the swap texture a given eye's image is
@@ -5964,7 +5957,7 @@ def setEyeRenderViewport(int eye, object values):
     _eyeLayer.Viewport[eye].Size.h = <int>values[3]
 
 
-def getEyeViewMatrix(int eye, object out=None):
+def getEyeViewMatrix(int eye, np.ndarray[np.float32_t, ndim=2] out=None):
     """Compute a view matrix for a specified eye.
 
     View matrices are derived from the eye render poses calculated by the
