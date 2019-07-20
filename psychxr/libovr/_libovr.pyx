@@ -1309,13 +1309,13 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def getOriAxisAngle(self, degrees=False):
+    def getOriAxisAngle(self, degrees=True):
         """The axis and angle of rotation for this pose's orientation.
 
         Parameters
         ----------
         degrees : bool, optional
-            Return angle in degrees. Default is ``False``.
+            Return angle in degrees. Default is ``True``.
 
         Returns
         -------
@@ -1338,7 +1338,7 @@ cdef class LibOVRPose(object):
 
         return angle, ret_axis
 
-    def setOriAxisAngle(self, object axis, float angle, bint degrees=False):
+    def setOriAxisAngle(self, object axis, float angle, bint degrees=True):
         """Set the orientation of this pose using an axis and angle.
 
         Parameters
@@ -1349,7 +1349,7 @@ cdef class LibOVRPose(object):
             Angle of rotation.
         degrees : bool, optional
             Specify ``True`` if `angle` is in degrees, or else it will be
-            treated as radians. Default is ``False``.
+            treated as radians. Default is ``True``.
 
         """
         cdef libovr_math.Vector3f axis3f = \
@@ -2484,13 +2484,6 @@ cdef class LibOVRTrackingState(object):
     * ``STATUS_POSITION_TRACKED``: Position is tracked/reported.
     * ``STATUS_POSITION_VALID``: Position is valid for application use.
 
-    Status bit flags can be combined to check for multiple states like so::
-
-        # check if orientation is tracked and valid
-        statusFlags = STATUS_ORIENTATION_TRACKED | STATUS_ORIENTATION_VALID
-        if (trackingState.statusFlags & statusFlags) == statusFlags:
-            print("Orientation is tracked and valid")
-
     """
     cdef capi.ovrTrackingState* c_data
     cdef bint ptr_owner
@@ -2573,7 +2566,18 @@ cdef class LibOVRTrackingState(object):
 
     @property
     def statusFlags(self):
-        """Head tracking status flags (`int`)."""
+        """Head tracking status flags (`int`).
+
+        Examples
+        --------
+        Check if orientation was tracked and data is valid for use::
+
+            # check if orientation is tracked and valid
+            statusFlags = STATUS_ORIENTATION_TRACKED | STATUS_ORIENTATION_VALID
+            if (trackingState.statusFlags & statusFlags) == statusFlags:
+                print("Orientation is tracked and valid")
+
+        """
         return self.c_data.StatusFlags
 
     @property
