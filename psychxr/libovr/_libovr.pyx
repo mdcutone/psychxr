@@ -842,9 +842,9 @@ cdef class LibOVRPose(object):
 
     Parameters
     ----------
-    pos : tuple, list, or ndarray of float
+    pos : array_like
         Position vector (x, y, z).
-    ori : tuple, list, or ndarray of float
+    ori : array_like
         Orientation quaternion vector (x, y, z, w).
 
     """
@@ -1408,7 +1408,46 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def asMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
+    @property
+    def matrix(self):
+        """Pose as a 4x4 homogeneous transformation matrix."""
+        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
+            <libovr_math.Posef>self.c_data[0])
+
+        cdef np.ndarray[np.float32_t, ndim=2] toReturn = \
+            np.zeros((4, 4), dtype=np.float32)
+        # fast copy matrix to numpy array
+        cdef float [:, :] mv = toReturn
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t N = 4
+        i = j = 0
+        for i in range(N):
+            for j in range(N):
+                mv[i, j] = m_pose.M[i][j]
+
+        return toReturn
+
+    @property
+    def inverseMatrix(self):
+        """Pose as a 4x4 homogeneous inverse transformation matrix."""
+        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
+            <libovr_math.Posef>self.c_data[0])
+        m_pose.InvertHomogeneousTransform()  # rigid body transform inverse
+
+        cdef np.ndarray[np.float32_t, ndim=2] toReturn = \
+            np.zeros((4, 4), dtype=np.float32)
+        # fast copy matrix to numpy array
+        cdef float [:, :] mv = toReturn
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t N = 4
+        i = j = 0
+        for i in range(N):
+            for j in range(N):
+                mv[i, j] = m_pose.M[i][j]
+
+        return toReturn
+
+    def getMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
         """Convert this pose into a 4x4 transformation matrix.
 
         Parameters
