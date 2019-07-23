@@ -1361,7 +1361,7 @@ cdef class LibOVRPose(object):
         self.c_data.Orientation = \
             <capi.ovrQuatf>libovr_math.Quatf(axis3f, angle)
 
-    def getYawPitchRoll(self, LibOVRPose refPose=None, np.ndarray[np.float32_t] out=None):
+    def getYawPitchRoll(self, LibOVRPose refPose=None, bint degrees=True, np.ndarray[np.float32_t] out=None):
         """Get the yaw, pitch, and roll of the orientation quaternion.
 
         Parameters
@@ -1370,6 +1370,8 @@ cdef class LibOVRPose(object):
             Reference pose to compute angles relative to. If `None` is
             specified, computed values are referenced relative to the world
             axes.
+        degrees : bool, optional
+            Return angle in degrees. Default is ``True``.
         out : ~numpy.ndarray
             Alternative place to write yaw, pitch, and roll values. Must have
             shape (3,) and a float32 data type.
@@ -1406,7 +1408,7 @@ cdef class LibOVRPose(object):
         toReturn[1] = pitch
         toReturn[2] = roll
 
-        return toReturn
+        return np.degrees(toReturn) if degrees else toReturn
 
     @property
     def matrix(self):
