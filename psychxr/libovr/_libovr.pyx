@@ -1636,8 +1636,9 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Vector3f rotated_pos = \
             (<libovr_math.Posef>self.c_data[0]).Rotate(pos_in)
 
-        toReturn = np.array((rotated_pos.x, rotated_pos.y, rotated_pos.z),
-                            dtype=np.float32)
+        toReturn[0] = rotated_pos.x
+        toReturn[1] = rotated_pos.y
+        toReturn[2] = rotated_pos.z
 
         return toReturn
 
@@ -1673,8 +1674,9 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Vector3f invRotatedPos = \
             (<libovr_math.Posef>self.c_data[0]).InverseRotate(pos_in)
 
-        toReturn = np.array((invRotatedPos.x, invRotatedPos.y, invRotatedPos.z),
-                            dtype=np.float32)
+        toReturn[0] = invRotatedPos.x
+        toReturn[1] = invRotatedPos.y
+        toReturn[2] = invRotatedPos.z
 
         return toReturn
 
@@ -1709,9 +1711,9 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Vector3f translated_pos = \
             (<libovr_math.Posef>self.c_data[0]).Translate(pos_in)
 
-        toReturn = np.array(
-            (translated_pos.x, translated_pos.y, translated_pos.z),
-            dtype=np.float32)
+        toReturn[0] = translated_pos.x
+        toReturn[1] = translated_pos.y
+        toReturn[2] = translated_pos.z
 
         return toReturn
 
@@ -1746,9 +1748,9 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Vector3f transformed_pos = \
             (<libovr_math.Posef>self.c_data[0]).Transform(pos_in)
 
-        toReturn = np.array(
-            (transformed_pos.x, transformed_pos.y, transformed_pos.z),
-            dtype=np.float32)
+        toReturn[0] = transformed_pos.x
+        toReturn[1] = transformed_pos.y
+        toReturn[2] = transformed_pos.z
 
         return toReturn
 
@@ -1785,9 +1787,9 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Vector3f transformed_pos = \
             (<libovr_math.Posef>self.c_data[0]).InverseTransform(pos_in)
 
-        toReturn = np.array(
-            (transformed_pos.x, transformed_pos.y, transformed_pos.z),
-            dtype=np.float32)
+        toReturn[0] = transformed_pos.x
+        toReturn[1] = transformed_pos.y
+        toReturn[2] = transformed_pos.z
 
         return toReturn
 
@@ -1823,9 +1825,9 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Vector3f transformed_pos = \
             (<libovr_math.Posef>self.c_data[0]).TransformNormal(pos_in)
 
-        toReturn = np.array(
-            (transformed_pos.x, transformed_pos.y, transformed_pos.z),
-            dtype=np.float32)
+        toReturn[0] = transformed_pos.x
+        toReturn[1] = transformed_pos.y
+        toReturn[2] = transformed_pos.z
 
         return toReturn
 
@@ -1861,9 +1863,9 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Vector3f transformed_pos = \
             (<libovr_math.Posef>self.c_data[0]).InverseTransformNormal(pos_in)
 
-        toReturn = np.array(
-            (transformed_pos.x, transformed_pos.y, transformed_pos.z),
-            dtype=np.float32)
+        toReturn[0] = transformed_pos.x
+        toReturn[1] = transformed_pos.y
+        toReturn[2] = transformed_pos.z
 
         return toReturn
 
@@ -1894,9 +1896,9 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Vector3f transformed_pos = \
             (<libovr_math.Posef>self.c_data[0]).Apply(pos_in)
 
-        toReturn = np.array(
-            (transformed_pos.x, transformed_pos.y, transformed_pos.z),
-            dtype=np.float32)
+        toReturn[0] = transformed_pos.x
+        toReturn[1] = transformed_pos.y
+        toReturn[2] = transformed_pos.z
 
         return toReturn
 
@@ -6443,6 +6445,7 @@ def resetPerfStats():
     cdef capi.ovrResult result = capi.ovr_ResetPerfStats(_ptrSession)
 
     return result
+
 
 def getLastErrorInfo():
     """Get the last error code and information string reported by the API.
