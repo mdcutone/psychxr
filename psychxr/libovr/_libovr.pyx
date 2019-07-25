@@ -1244,7 +1244,7 @@ cdef class LibOVRPose(object):
             toReturn = out
 
         cdef libovr_math.Vector3f at = \
-            (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
+            (<libovr_math.Posef>self.c_data[0]).TransformNormal(
                 libovr_math.Vector3f(0.0, 0.0, -1.0))
 
         toReturn[0] = at.x
@@ -1300,7 +1300,7 @@ cdef class LibOVRPose(object):
             toReturn = out
 
         cdef libovr_math.Vector3f up = \
-            (<libovr_math.Quatf>self.c_data[0].Orientation).Rotate(
+            (<libovr_math.Posef>self.c_data[0]).TransformNormal(
                 libovr_math.Vector3f(0.0, 1.0, 0.0))
 
         toReturn[0] = up.x
@@ -1492,31 +1492,61 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def getSwingTwist(self, object twistAxis, bint local=True):
+    def alignTo(self, object alignTo):
+        """Align this pose to another point or pose.
+
+        This sets the orientation of this pose to one which orients the forward
+        axis towards `alignTo`.
+
+        Parameters
+        ----------
+        alignTo : array_like or LibOVRPose
+            Position vector [x, y, z] or pose to align to.
+
+        """
+        cdef libovr_math.Vector3f targ
+        cdef libovr_math.Posef* pose = <libovr_math.Posef*>self.c_data
+
+        if isinstance(alignTo, LibOVRPose):
+            targ = <libovr_math.Vector3f>(<LibOVRPose>alignTo).c_data[0].Position
+        else:
+            targ = libovr_math.Vector3f(
+                <float>alignTo[0], <float>alignTo[1], <float>alignTo[2])
+
+        cdef libovr_math.Vector3f fwd = libovr_math.Vector3f(0, 0, -1)
+        targ = pose.InverseTransform(targ)
+        targ.Normalize()
+
+        self.c_data.Orientation = \
+            <capi.ovrQuatf>(pose.Rotation * libovr_math.Quatf.Align(targ, fwd))
+
+    def getSwingTwist(self, object twistAxis):
         """Swing and twist decomposition of this pose's rotation quaternion.
 
         Where twist is a quaternion which rotates about `twistAxis` and swing is
-        perpendicular to that axis. When multiplied, the quaterions return the
+        perpendicular to that axis. When multiplied, the quaternions return the
         original rotation.
 
         Parameters
         ----------
         twistAxis : array_like
             World referenced twist axis [ax, ay, az].
-        local : bool, optional
-            Specify that the axis is within the frame of reference of the pose.
 
         Returns
         -------
         tuple
             Swing and twist quaternions [x, y, z, w].
 
+        Examples
+        --------
+        Get the swing and twist quaternions about the `up` direction of this
+        pose::
+
+            swing, twist = myPose.getSwingTwist(myPose.up)
+
         """
         cdef libovr_math.Vector3f axis = libovr_math.Vector3f(
             <float>twistAxis[0], <float>twistAxis[1], <float>twistAxis[2])
-
-        if local:
-            axis = (<libovr_math.Posef>self.c_data).TransformNormal(axis)
 
         cdef libovr_math.Quatf qtwist
         cdef libovr_math.Quatf qswing = \
