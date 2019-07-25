@@ -1410,87 +1410,24 @@ cdef class LibOVRPose(object):
 
         return np.degrees(toReturn) if degrees else toReturn
 
-    @property
-    def modelMatrix(self):
-        """Pose as a 4x4 homogeneous transformation matrix."""
-        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
-
-        cdef np.ndarray[np.float32_t, ndim=2] toReturn = \
-            np.zeros((4, 4), dtype=np.float32)
-
-        # fast copy matrix to numpy array
-        cdef float [:, :] mv = toReturn
-        cdef Py_ssize_t i, j
-        cdef Py_ssize_t N = 4
-        i = j = 0
-        for i in range(N):
-            for j in range(N):
-                mv[i, j] = m_pose.M[i][j]
-
-        return toReturn
-
-    @property
-    def inverseModelMatrix(self):
-        """Pose as a 4x4 homogeneous inverse transformation matrix."""
-        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
-        m_pose.InvertHomogeneousTransform()  # rigid body transform inverse
-
-        cdef np.ndarray[np.float32_t, ndim=2] toReturn = \
-            np.zeros((4, 4), dtype=np.float32)
-
-        # fast copy matrix to numpy array
-        cdef float [:, :] mv = toReturn
-        cdef Py_ssize_t i, j
-        cdef Py_ssize_t N = 4
-        i = j = 0
-        for i in range(N):
-            for j in range(N):
-                mv[i, j] = m_pose.M[i][j]
-
-        return toReturn
-
-    def getModelMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
-        """Get this pose as a 4x4 transformation matrix.
+    def getOriAngle(self, bint degrees=True):
+        """Get the angle of this pose's orientation.
 
         Parameters
         ----------
-        inverse : bool
-            If ``True``, return the inverse of the matrix.
-        out : ~numpy.ndarray
-            Alternative place to write the matrix to values. Must be a `ndarray`
-            of shape (4, 4,) and have a data type of float32. Values are written
-            assuming row-major order.
+        degrees : bool, optional
+            Return angle in degrees. Default is ``True``.
 
         Returns
         -------
-        ~numpy.ndarray
-            4x4 transformation matrix.
+        float
+            Angle of quaternion `ori`.
 
         """
-        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
+        cdef float to_return = \
+            (<libovr_math.Quatf>self.c_data.Orientation).Angle()
 
-        if inverse:
-            m_pose.InvertHomogeneousTransform()  # faster than Invert() here
-
-        cdef np.ndarray[np.float32_t, ndim=2] toReturn
-        if out is None:
-            toReturn =  np.zeros((4, 4), dtype=np.float32)
-        else:
-            toReturn = out
-
-        # fast copy matrix to numpy array
-        cdef float [:, :] mv = toReturn
-        cdef Py_ssize_t i, j
-        cdef Py_ssize_t N = 4
-        i = j = 0
-        for i in range(N):
-            for j in range(N):
-                mv[i, j] = m_pose.M[i][j]
-
-        return toReturn
+        return to_return * RAD_TO_DEGF if degrees else to_return
 
     def alignTo(self, object alignTo):
         """Align this pose to another point or pose.
@@ -1525,7 +1462,7 @@ cdef class LibOVRPose(object):
 
         Where twist is a quaternion which rotates about `twistAxis` and swing is
         perpendicular to that axis. When multiplied, the quaternions return the
-        original rotation.
+        original quaternion at `ori`.
 
         Parameters
         ----------
@@ -1661,6 +1598,167 @@ cdef class LibOVRPose(object):
 
         return az, el
 
+    @property
+    def modelMatrix(self):
+        """Pose as a 4x4 homogeneous transformation matrix."""
+        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
+            <libovr_math.Posef>self.c_data[0])
+
+        cdef np.ndarray[np.float32_t, ndim=2] toReturn = \
+            np.zeros((4, 4), dtype=np.float32)
+
+        # fast copy matrix to numpy array
+        cdef float [:, :] mv = toReturn
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t N = 4
+        i = j = 0
+        for i in range(N):
+            for j in range(N):
+                mv[i, j] = m_pose.M[i][j]
+
+        return toReturn
+
+    @property
+    def inverseModelMatrix(self):
+        """Pose as a 4x4 homogeneous inverse transformation matrix."""
+        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
+            <libovr_math.Posef>self.c_data[0])
+        m_pose.InvertHomogeneousTransform()  # rigid body transform inverse
+
+        cdef np.ndarray[np.float32_t, ndim=2] toReturn = \
+            np.zeros((4, 4), dtype=np.float32)
+
+        # fast copy matrix to numpy array
+        cdef float [:, :] mv = toReturn
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t N = 4
+        i = j = 0
+        for i in range(N):
+            for j in range(N):
+                mv[i, j] = m_pose.M[i][j]
+
+        return toReturn
+
+    def getModelMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
+        """Get this pose as a 4x4 transformation matrix.
+
+        Parameters
+        ----------
+        inverse : bool
+            If ``True``, return the inverse of the matrix.
+        out : ~numpy.ndarray
+            Alternative place to write the matrix to values. Must be a `ndarray`
+            of shape (4, 4,) and have a data type of float32. Values are written
+            assuming row-major order.
+
+        Returns
+        -------
+        ~numpy.ndarray
+            4x4 transformation matrix.
+
+        """
+        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
+            <libovr_math.Posef>self.c_data[0])
+
+        if inverse:
+            m_pose.InvertHomogeneousTransform()  # faster than Invert() here
+
+        cdef np.ndarray[np.float32_t, ndim=2] toReturn
+        if out is None:
+            toReturn =  np.zeros((4, 4), dtype=np.float32)
+        else:
+            toReturn = out
+
+        # fast copy matrix to numpy array
+        cdef float [:, :] mv = toReturn
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t N = 4
+        i = j = 0
+        for i in range(N):
+            for j in range(N):
+                mv[i, j] = m_pose.M[i][j]
+
+        return toReturn
+
+    def getViewMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
+        """Convert this pose into a view matrix.
+
+        Creates a view matrix which transforms points into eye space using the
+        current pose as the eye position in the scene. Furthermore, you can use
+        view matrices for rendering shadows if light positions are defined
+        as `LibOVRPose` objects.
+
+        Parameters
+        ----------
+        inverse : bool, optional
+            Return the inverse of the view matrix. Default it ``False``.
+        out : ~numpy.ndarray, optional
+            Alternative place to write the matrix to values. Must be a `ndarray`
+            of shape (4, 4,) and have a data type of float32. Values are written
+            assuming row-major order.
+
+        Returns
+        -------
+        ndarray
+            4x4 view matrix derived from the pose.
+
+        Examples
+        --------
+        Compute eye poses from a head pose and compute view matrices::
+
+            iod = 0.062  # 63 mm
+            headPose = LibOVRPose((0., 1.5, 0.))  # 1.5 meters up from origin
+            leftEyePose = LibOVRPose((-(iod / 2.), 0., 0.))
+            rightEyePose = LibOVRPose((iod / 2., 0., 0.))
+
+            # transform eye poses relative to head poses
+            leftEyeRenderPose = headPose * leftEyePose
+            rightEyeRenderPose = headPose * rightEyePose
+
+            # compute view matrices
+            eyeViewMatrix = [leftEyeRenderPose.getViewMatrix(),
+                             rightEyeRenderPose.getViewMatrix()]
+
+        """
+        # compute the eye transformation matrices from poses
+        cdef libovr_math.Vector3f pos
+        cdef libovr_math.Quatf ori
+        cdef libovr_math.Vector3f up
+        cdef libovr_math.Vector3f forward
+        cdef libovr_math.Matrix4f rm
+        cdef libovr_math.Matrix4f m_view
+
+        pos = <libovr_math.Vector3f>self.c_data.Position
+        ori = <libovr_math.Quatf>self.c_data.Orientation
+
+        if not ori.IsNormalized():  # make sure orientation is normalized
+            ori.Normalize()
+
+        rm = libovr_math.Matrix4f(ori)
+        up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
+        forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
+        m_view = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+
+        if inverse:
+            m_view.InvertHomogeneousTransform()
+
+        # prepare return array
+        cdef np.ndarray[np.float32_t, ndim=2] to_return
+
+        if out is None:
+            to_return = np.zeros((4, 4), dtype=np.float32)
+        else:
+            to_return = out
+
+        cdef Py_ssize_t i, j, N
+        i = j = 0
+        N = 4
+        for i in range(N):
+            for j in range(N):
+                to_return[i, j] = m_view.M[i][j]
+
+        return to_return
+
     def normalize(self):
         """Normalize this pose.
 
@@ -1690,19 +1788,8 @@ cdef class LibOVRPose(object):
         if ptr is NULL:
             raise MemoryError
 
-        cdef libovr_math.Quatf inv_ori = \
-            (<libovr_math.Quatf>self.c_data[0].Orientation).Inverted()
-        cdef libovr_math.Vector3f inv_pos = \
-            (<libovr_math.Quatf>inv_ori).Rotate(
-                -(<libovr_math.Vector3f>self.c_data[0].Position))
-
-        ptr[0].Orientation.x = inv_ori.x
-        ptr[0].Orientation.y = inv_ori.y
-        ptr[0].Orientation.z = inv_ori.z
-        ptr[0].Orientation.w = inv_ori.w
-        ptr[0].Position.x = inv_pos.x
-        ptr[0].Position.y = inv_pos.y
-        ptr[0].Position.z = inv_pos.z
+        cdef libovr_math.Posef* pose = <libovr_math.Posef*>self.c_data
+        ptr[0] = <capi.ovrPosef>(pose.Inverted())
 
         return LibOVRPose.fromPtr(ptr, True)
 
@@ -1732,10 +1819,10 @@ cdef class LibOVRPose(object):
         else:
             toReturn = out
 
+        cdef libovr_math.Posef* pose = <libovr_math.Posef*>self.c_data
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f rotated_pos = \
-            (<libovr_math.Posef>self.c_data[0]).Rotate(pos_in)
+        cdef libovr_math.Vector3f rotated_pos = pose.Rotate(pos_in)
 
         toReturn[0] = rotated_pos.x
         toReturn[1] = rotated_pos.y
@@ -1770,10 +1857,10 @@ cdef class LibOVRPose(object):
         else:
             toReturn = out
 
+        cdef libovr_math.Posef* pose = <libovr_math.Posef*>self.c_data
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f invRotatedPos = \
-            (<libovr_math.Posef>self.c_data[0]).InverseRotate(pos_in)
+        cdef libovr_math.Vector3f invRotatedPos = pose.InverseRotate(pos_in)
 
         toReturn[0] = invRotatedPos.x
         toReturn[1] = invRotatedPos.y
@@ -1807,10 +1894,10 @@ cdef class LibOVRPose(object):
         else:
             toReturn = out
 
+        cdef libovr_math.Posef* pose = <libovr_math.Posef*>self.c_data
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f translated_pos = \
-            (<libovr_math.Posef>self.c_data[0]).Translate(pos_in)
+        cdef libovr_math.Vector3f translated_pos = pose.Translate(pos_in)
 
         toReturn[0] = translated_pos.x
         toReturn[1] = translated_pos.y
@@ -1844,10 +1931,10 @@ cdef class LibOVRPose(object):
         else:
             toReturn = out
 
+        cdef libovr_math.Posef* pose = <libovr_math.Posef*>self.c_data
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f transformed_pos = \
-            (<libovr_math.Posef>self.c_data[0]).Transform(pos_in)
+        cdef libovr_math.Vector3f transformed_pos = pose.Transform(pos_in)
 
         toReturn[0] = transformed_pos.x
         toReturn[1] = transformed_pos.y
@@ -1883,10 +1970,10 @@ cdef class LibOVRPose(object):
         else:
             toReturn = out
 
+        cdef libovr_math.Posef* pose = <libovr_math.Posef*>self.c_data
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f transformed_pos = \
-            (<libovr_math.Posef>self.c_data[0]).InverseTransform(pos_in)
+        cdef libovr_math.Vector3f transformed_pos = pose.InverseTransform(pos_in)
 
         toReturn[0] = transformed_pos.x
         toReturn[1] = transformed_pos.y
@@ -1921,10 +2008,10 @@ cdef class LibOVRPose(object):
         else:
             toReturn = out
 
+        cdef libovr_math.Posef* pose = <libovr_math.Posef*>self.c_data
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
-        cdef libovr_math.Vector3f transformed_pos = \
-            (<libovr_math.Posef>self.c_data[0]).TransformNormal(pos_in)
+        cdef libovr_math.Vector3f transformed_pos = pose.TransformNormal(pos_in)
 
         toReturn[0] = transformed_pos.x
         toReturn[1] = transformed_pos.y
@@ -1959,10 +2046,11 @@ cdef class LibOVRPose(object):
         else:
             toReturn = out
 
+        cdef libovr_math.Posef* pose = <libovr_math.Posef*>self.c_data
         cdef libovr_math.Vector3f pos_in = libovr_math.Vector3f(
             <float>v[0], <float>v[1], <float>v[2])
         cdef libovr_math.Vector3f transformed_pos = \
-            (<libovr_math.Posef>self.c_data[0]).InverseTransformNormal(pos_in)
+            pose.InverseTransformNormal(pos_in)
 
         toReturn[0] = transformed_pos.x
         toReturn[1] = transformed_pos.y
@@ -2056,14 +2144,14 @@ cdef class LibOVRPose(object):
 
         """
         cdef libovr_math.Vector3f pos_in
+        cdef libovr_math.Posef* pose = <libovr_math.Posef*>self.c_data
 
         if isinstance(v, LibOVRPose):
             pos_in = <libovr_math.Vector3f>((<LibOVRPose>v).c_data[0]).Position
         else:
             pos_in = libovr_math.Vector3f(<float>v[0], <float>v[1], <float>v[2])
 
-        cdef float to_return = \
-            (<libovr_math.Posef>self.c_data[0]).Translation.Distance(pos_in)
+        cdef float to_return = pose.Translation.Distance(pos_in)
 
         return to_return
 
@@ -2211,85 +2299,6 @@ cdef class LibOVRPose(object):
                 (<libovr_math.Posef>self.c_data[0]).FastLerp(toPose, s))
 
         return LibOVRPose.fromPtr(ptr, True)
-
-    def getViewMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
-        """Convert this pose into a view matrix.
-
-        Creates a view matrix which transforms points into eye space using the
-        current pose as the eye position in the scene. Furthermore, you can use
-        view matrices for rendering shadows if light positions are defined
-        as `LibOVRPose` objects.
-
-        Parameters
-        ----------
-        inverse : bool, optional
-            Return the inverse of the view matrix. Default it ``False``.
-        out : ~numpy.ndarray, optional
-            Alternative place to write the matrix to values. Must be a `ndarray`
-            of shape (4, 4,) and have a data type of float32. Values are written
-            assuming row-major order.
-
-        Returns
-        -------
-        ndarray
-            4x4 view matrix derived from the pose.
-
-        Examples
-        --------
-        Compute eye poses from a head pose and compute view matrices::
-
-            iod = 0.062  # 63 mm
-            headPose = LibOVRPose((0., 1.5, 0.))  # 1.5 meters up from origin
-            leftEyePose = LibOVRPose((-(iod / 2.), 0., 0.))
-            rightEyePose = LibOVRPose((iod / 2., 0., 0.))
-
-            # transform eye poses relative to head poses
-            leftEyeRenderPose = headPose * leftEyePose
-            rightEyeRenderPose = headPose * rightEyePose
-
-            # compute view matrices
-            eyeViewMatrix = [leftEyeRenderPose.getViewMatrix(),
-                             rightEyeRenderPose.getViewMatrix()]
-
-        """
-        # compute the eye transformation matrices from poses
-        cdef libovr_math.Vector3f pos
-        cdef libovr_math.Quatf ori
-        cdef libovr_math.Vector3f up
-        cdef libovr_math.Vector3f forward
-        cdef libovr_math.Matrix4f rm
-        cdef libovr_math.Matrix4f m_view
-
-        pos = <libovr_math.Vector3f>self.c_data.Position
-        ori = <libovr_math.Quatf>self.c_data.Orientation
-
-        if not ori.IsNormalized():  # make sure orientation is normalized
-            ori.Normalize()
-
-        rm = libovr_math.Matrix4f(ori)
-        up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
-        forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
-        m_view = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
-
-        if inverse:
-            m_view.InvertHomogeneousTransform()
-
-        # prepare return array
-        cdef np.ndarray[np.float32_t, ndim=2] to_return
-
-        if out is None:
-            to_return = np.zeros((4, 4), dtype=np.float32)
-        else:
-            to_return = out
-
-        cdef Py_ssize_t i, j, N
-        i = j = 0
-        N = 4
-        for i in range(N):
-            for j in range(N):
-                to_return[i, j] = m_view.M[i][j]
-
-        return to_return
 
 
 cdef class LibOVRPoseState(object):
