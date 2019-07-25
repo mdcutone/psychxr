@@ -1411,13 +1411,14 @@ cdef class LibOVRPose(object):
         return np.degrees(toReturn) if degrees else toReturn
 
     @property
-    def matrix(self):
+    def modelMatrix(self):
         """Pose as a 4x4 homogeneous transformation matrix."""
         cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
             <libovr_math.Posef>self.c_data[0])
 
         cdef np.ndarray[np.float32_t, ndim=2] toReturn = \
             np.zeros((4, 4), dtype=np.float32)
+
         # fast copy matrix to numpy array
         cdef float [:, :] mv = toReturn
         cdef Py_ssize_t i, j
@@ -1430,7 +1431,7 @@ cdef class LibOVRPose(object):
         return toReturn
 
     @property
-    def inverseMatrix(self):
+    def inverseModelMatrix(self):
         """Pose as a 4x4 homogeneous inverse transformation matrix."""
         cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
             <libovr_math.Posef>self.c_data[0])
@@ -1438,6 +1439,7 @@ cdef class LibOVRPose(object):
 
         cdef np.ndarray[np.float32_t, ndim=2] toReturn = \
             np.zeros((4, 4), dtype=np.float32)
+
         # fast copy matrix to numpy array
         cdef float [:, :] mv = toReturn
         cdef Py_ssize_t i, j
@@ -1449,13 +1451,13 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def getMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
-        """Convert this pose into a 4x4 transformation matrix.
+    def getModelMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
+        """Get this pose as a 4x4 transformation matrix.
 
         Parameters
         ----------
         inverse : bool
-            If True, return the inverse of the matrix.
+            If ``True``, return the inverse of the matrix.
         out : ~numpy.ndarray
             Alternative place to write the matrix to values. Must be a `ndarray`
             of shape (4, 4,) and have a data type of float32. Values are written
@@ -1490,7 +1492,56 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
-    def getAngleTo(self, object target, bint degrees=True):
+    def getSwingTwist(self, object twistAxis, bint local=True):
+        """Swing and twist decomposition of this pose's rotation quaternion.
+
+        Where twist is a quaternion which rotates about `twistAxis` and swing is
+        perpendicular to that axis. When multiplied, the quaterions return the
+        original rotation.
+
+        Parameters
+        ----------
+        twistAxis : array_like
+            World referenced twist axis [ax, ay, az].
+        local : bool, optional
+            Specify that the axis is within the frame of reference of the pose.
+
+        Returns
+        -------
+        tuple
+            Swing and twist quaternions [x, y, z, w].
+
+        """
+        cdef libovr_math.Vector3f axis = libovr_math.Vector3f(
+            <float>twistAxis[0], <float>twistAxis[1], <float>twistAxis[2])
+
+        if local:
+            axis = (<libovr_math.Posef>self.c_data).TransformNormal(axis)
+
+        cdef libovr_math.Quatf qtwist
+        cdef libovr_math.Quatf qswing = \
+            (<libovr_math.Quatf>self.c_data.Orientation).GetSwingTwist(
+                axis, &qtwist)
+
+        cdef np.ndarray[np.float32_t, ndim=1] rswing = \
+            np.zeros((4,), dtype=np.float32)
+
+        rswing[0] = qswing.x
+        rswing[1] = qswing.y
+        rswing[2] = qswing.z
+        rswing[3] = qswing.w
+
+        cdef np.ndarray[np.float32_t, ndim=1] rtwist = \
+            np.zeros((4,), dtype=np.float32)
+
+        rtwist[0] = qtwist.x
+        rtwist[1] = qtwist.y
+        rtwist[2] = qtwist.z
+        rtwist[3] = qtwist.w
+
+        return rswing, rtwist
+
+    def getAngleTo(self, object target, object dir=(0., 0., -1.), bint degrees=True):
         """Get the relative angle to a point from the forward vector of this
         pose.
 
@@ -1498,6 +1549,10 @@ cdef class LibOVRPose(object):
         ----------
         target : LibOVRPose or array_like
             Pose or point [x, y, z].
+        dir : array_like
+            Direction vector [x, y, z] within the reference frame of the pose to
+            compute angle from. Default is forward along the -Z axis
+            (0., 0., -1.).
         degrees : bool, optional
             Return angle in degrees if ``True``, else radians. Default is
             ``True``.
@@ -1508,6 +1563,19 @@ cdef class LibOVRPose(object):
             Angle between the forward vector of this pose and the target. Values
             are always positive.
 
+        Examples
+        --------
+        Get the angle in degrees between the pose's -Z axis (default) and a
+        point::
+
+            point = [2, 0, -4]
+            angle = myPose.getAngleTo(point)
+
+        Get the angle from the `up` direction to the point in radians::
+
+            upAxis = (0., 1., 0.)
+            angle = myPose.getAngleTo(point, dir=upAxis, degrees=False)
+
         """
         cdef libovr_math.Vector3f targ
 
@@ -1517,8 +1585,11 @@ cdef class LibOVRPose(object):
             targ = libovr_math.Vector3f(
                 <float>target[0], <float>target[1], <float>target[2])
 
+        cdef libovr_math.Vector3f direction = libovr_math.Vector3f(
+            <float>dir[0], <float>dir[1], <float>dir[2])
+
         targ = (<libovr_math.Posef>self.c_data[0]).InverseTransform(targ)
-        cdef float angle = libovr_math.Vector3f(0., 0., -1.).Angle(targ)
+        cdef float angle = direction.Angle(targ)
 
         return angle * RAD_TO_DEGF if degrees else angle
 
