@@ -46,8 +46,8 @@ __author__ = "Matthew D. Cutone"
 __credits__ = ["Laurie M. Wilcox"]
 __copyright__ = "Copyright 2019 Matthew D. Cutone"
 __license__ = "MIT"
-__version__ = "0.2.0"
-__status__ = "Beta"
+__version__ = "0.2.1"
+__status__ = "Stable"
 __maintainer__ = "Matthew D. Cutone"
 __email__ = "cutonem@yorku.ca"
 
@@ -5706,14 +5706,16 @@ def calcEyePoses(LibOVRPose headPose, object originPose=None):
     Calculated eye poses are stored and passed to the compositor when
     :func:`endFrame` is called unless ``LAYER_FLAG_HEAD_LOCKED`` is set. You can
     access the computed poses via the :func:`getEyeRenderPose` function. If
-    using custom head poses, ensure :func:`setHeadLocked` is ``True``.
+    using custom head poses, ensure :func:`setHeadLocked` is ``True`` or the
+    ``LAYER_FLAG_HEAD_LOCKED`` render layer flag is set.
 
     Parameters
     ----------
     headPose : :py:class:`LibOVRPose`
         Head pose.
     originPose : :py:class:`LibOVRPose`, optional
-        Optional world origin pose to transform head pose.
+        Optional world origin pose to transform head pose. You can apply
+        transformations to this pose to simulate movement through a scene.
 
     Examples
     --------
