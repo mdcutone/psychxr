@@ -20,13 +20,13 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'PsychXR'
-copyright = '2018, Matthew D. Cutone'
+copyright = '2019, Matthew D. Cutone'
 author = 'Matthew D. Cutone'
 
 # The short X.Y version
-version = '0.2.0'
+version = 'latest'
 # The full version, including alpha/beta/rc tags
-release = '0.2.0'
+release = 'latest'
 
 
 # -- General configuration ---------------------------------------------------
