@@ -85,7 +85,7 @@ def main():
     for eye in range(EYE_COUNT):
          projectionMatrix.append(getEyeProjectionMatrix(eye))
 
-    planeMatrix = LibOVRPose((0., 0., -2.)).asMatrix()
+    planeMatrix = LibOVRPose((0., 0., -2.)).getModelMatrix()
 
     # begin application loop
     while not glfw.window_should_close(window):
