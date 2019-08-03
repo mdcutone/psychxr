@@ -2311,6 +2311,37 @@ cdef class LibOVRPose(object):
 
         return LibOVRPose.fromPtr(ptr, True)
 
+    def isVisible(self, int eye):
+        """Check if this pose if visible to a given eye.
+
+        Visibility testing is done using the current eye render pose for `eye`.
+        This pose must have a valid bounding box assigned to `bounds`. If not,
+        this method will always return ``True``.
+
+        See :func:`cullPose` for more information about the implementation of
+        visibility culling.
+
+        Parameters
+        ----------
+        eye : int
+            Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
+
+        Returns
+        -------
+        bool
+            ``True`` if this pose's bounding box intersects the FOV of the
+            specified `eye`.
+
+        Examples
+        --------
+        Check if a pose should be culled (needs to be done for each eye)::
+
+            if cullModel.isVisible():
+                # ... OpenGL calls to draw the model here ...
+
+        """
+        return not cullPose(eye, self)
+
 
 cdef class LibOVRPoseState(object):
     """Class for representing rigid body poses with additional state
