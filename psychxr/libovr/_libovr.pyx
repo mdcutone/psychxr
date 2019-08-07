@@ -1769,6 +1769,17 @@ cdef class LibOVRPose(object):
         """
         (<libovr_math.Posef>self.c_data[0]).Normalize()
 
+    def invert(self):
+        """Invert this pose.
+
+        Notes
+        -----
+        * Uses ``OVR::Posef.Inverted`` which is part of the Oculus PC SDK.
+
+        """
+        self.c_data[0] = \
+            <capi.ovrPosef>((<libovr_math.Posef>self.c_data[0]).Inverted())
+
     def inverted(self):
         """Get the inverse of the pose.
 
@@ -2300,6 +2311,37 @@ cdef class LibOVRPose(object):
 
         return LibOVRPose.fromPtr(ptr, True)
 
+    def isVisible(self, int eye):
+        """Check if this pose if visible to a given eye.
+
+        Visibility testing is done using the current eye render pose for `eye`.
+        This pose must have a valid bounding box assigned to `bounds`. If not,
+        this method will always return ``True``.
+
+        See :func:`cullPose` for more information about the implementation of
+        visibility culling.
+
+        Parameters
+        ----------
+        eye : int
+            Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
+
+        Returns
+        -------
+        bool
+            ``True`` if this pose's bounding box intersects the FOV of the
+            specified `eye`.
+
+        Examples
+        --------
+        Check if a pose should be culled (needs to be done for each eye)::
+
+            if cullModel.isVisible():
+                # ... OpenGL calls to draw the model here ...
+
+        """
+        return not cullPose(eye, self)
+
 
 cdef class LibOVRPoseState(object):
     """Class for representing rigid body poses with additional state
@@ -2637,6 +2679,9 @@ cdef class LibOVRTrackingState(object):
     * ``STATUS_POSITION_TRACKED``: Position is tracked/reported.
     * ``STATUS_POSITION_VALID``: Position is valid for application use.
 
+    As of SDK 1.39, `*_VALID` flags should be used to determine if tracking data
+    is usable by the application.
+
     """
     cdef capi.ovrTrackingState* c_data
     cdef bint ptr_owner
@@ -2653,7 +2698,11 @@ cdef class LibOVRTrackingState(object):
         headPose : LibOVRPoseState
         handPoses : tuple
         statusFlags : int
+        positionValid : bool
+        orientationValid : bool
         handStatusFlags : tuple
+        handPositionValid : tuple
+        handOrientationValid : tuple
         calibratedOrigin : LibOVRPose
         """
         self._new_struct()
@@ -2734,9 +2783,67 @@ cdef class LibOVRTrackingState(object):
         return self.c_data.StatusFlags
 
     @property
+    def positionValid(self):
+        """`True` if position tracking is valid."""
+        return (self.c_data.StatusFlags & STATUS_POSITION_VALID) == \
+               STATUS_POSITION_VALID
+
+    @property
+    def orientationValid(self):
+        """`True` if orientation tracking is valid."""
+        return (self.c_data.StatusFlags & STATUS_ORIENTATION_VALID) == \
+               STATUS_ORIENTATION_VALID
+
+    @property
     def handStatusFlags(self):
         """Hand tracking status flags (`int`, `int`)."""
         return self.c_data.HandStatusFlags[0], self.c_data.HandStatusFlags[1]
+
+    @property
+    def handPositionValid(self):
+        """`True` if position tracking is valid."""
+        return (self.c_data.StatusFlags & STATUS_POSITION_VALID) == \
+               STATUS_POSITION_VALID
+
+    @property
+    def handOrientationValid(self):
+        """Hand orientation tracking is valid (`bool`, `bool`).
+
+        Examples
+        --------
+        Check if orientation is valid for the right hand's tracking state::
+
+            rightHandOriTracked = trackingState.handOrientationValid[HAND_RIGHT]
+
+        """
+        cdef bint left_hand = (
+            self.c_data.HandStatusFlags[HAND_LEFT] &
+                STATUS_ORIENTATION_VALID) == STATUS_ORIENTATION_VALID
+        cdef bint right_hand = (
+            self.c_data.HandStatusFlags[HAND_RIGHT] &
+                STATUS_ORIENTATION_VALID) == STATUS_ORIENTATION_VALID
+
+        return left_hand, right_hand
+
+    @property
+    def handPositionValid(self):
+        """Hand position tracking is valid (`bool`, `bool`).
+
+        Examples
+        --------
+        Check if position is valid for the right hand's tracking state::
+
+            rightHandOriTracked = trackingState.handPositionValid[HAND_RIGHT]
+
+        """
+        cdef bint left_hand = (
+            self.c_data.HandStatusFlags[HAND_LEFT] &
+                STATUS_POSITION_VALID) == STATUS_POSITION_VALID
+        cdef bint right_hand = (
+            self.c_data.HandStatusFlags[HAND_RIGHT] &
+                STATUS_POSITION_VALID) == STATUS_POSITION_VALID
+
+        return left_hand, right_hand
 
     @property
     def calibratedOrigin(self):
