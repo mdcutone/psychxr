@@ -1509,8 +1509,8 @@ cdef class LibOVRPose(object):
         return rswing, rtwist
 
     def getAngleTo(self, object target, object dir=(0., 0., -1.), bint degrees=True):
-        """Get the relative angle to a point from the forward vector of this
-        pose.
+        """Get the relative angle to a point in world space from the `dir`
+        vector in the local coordinate system of this pose.
 
         Parameters
         ----------
@@ -1646,7 +1646,7 @@ cdef class LibOVRPose(object):
         ----------
         inverse : bool
             If ``True``, return the inverse of the matrix.
-        out : ~numpy.ndarray
+        out : ~numpy.ndarray, optional
             Alternative place to write the matrix to values. Must be a `ndarray`
             of shape (4, 4,) and have a data type of float32. Values are written
             assuming row-major order.
@@ -1655,6 +1655,38 @@ cdef class LibOVRPose(object):
         -------
         ~numpy.ndarray
             4x4 transformation matrix.
+
+        Examples
+        --------
+        Using view matrices with PyOpenGL (fixed-function)::
+
+            M = myPose.getModelMatrix()
+            glMatrixMode(GL_MODELVIEW)
+            glPushMatrix()
+            glMultTransposeMatrixf(M)
+            # run draw commands ...
+            glPopMatrix()
+
+        For `Pyglet` (which is the standard GL interface for `PsychoPy`), you
+        need to convert the matrix to a C-types pointer before passing it to
+        `glLoadTransposeMatrixf`::
+
+            M = myPose.getModelMatrix()
+            M = M.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+            glMatrixMode(GL_MODELVIEW)
+            glPushMatrix()
+            glMultTransposeMatrixf(M)
+            # run draw commands ...
+            glPopMatrix()
+
+        If using fragment shaders, the matrix can be passed on to them as such::
+
+            M = myPose.getModelMatrix()
+            M = M.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+            # after the program was installed in the current rendering state via
+            # `glUseProgram` ...
+            loc = glGetUniformLocation(program, b"m_Model")
+            glUniformMatrix4fv(loc, 1, GL_TRUE, P)  # `transpose` must be `True`
 
         """
         cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
@@ -1686,7 +1718,9 @@ cdef class LibOVRPose(object):
         Creates a view matrix which transforms points into eye space using the
         current pose as the eye position in the scene. Furthermore, you can use
         view matrices for rendering shadows if light positions are defined
-        as `LibOVRPose` objects.
+        as `LibOVRPose` objects. Using :func:`calcEyePoses` and
+        :func:`getEyeViewMatrix` are preferred when rendering VR scenes since
+        features like visibility culling are not available otherwise.
 
         Parameters
         ----------
@@ -2347,12 +2381,16 @@ cdef class LibOVRPoseState(object):
     """Class for representing rigid body poses with additional state
     information.
 
-    Pose, angular and linear motion derivatives of a tracked rigid body reported
-    by LibOVR. Functions :func:`getTrackingState` and :func:`getDevicePoses`
-    returns an instance of this class. Velocity and acceleration for linear and
-    angular motion can be used to compute forces applied to rigid bodies and
-    predict the future positions of objects (see
-    :py:meth:`~psychxr.libovr.LibOVRPoseState.timeIntegrate`).
+    Pose states contain the pose of the tracked body, but also angular and
+    linear motion derivatives experienced by the pose. The pose within a state
+    can be accessed via the :py:attr:`~psychxr.libovr.LibOVRPoseState.thePose`
+    attribute.
+
+    Velocity and acceleration for linear and angular motion can be used to
+    compute forces applied to rigid bodies and predict the future positions of
+    objects (see :py:meth:`~psychxr.libovr.LibOVRPoseState.timeIntegrate`). You
+    can create `LibOVRPoseState` objects using data from other sources, such as
+    *n*DOF IMUs for use with VR environments.
 
     Parameters
     ----------
@@ -2361,17 +2399,16 @@ cdef class LibOVRPoseState(object):
         instance or a tuple/list of a position coordinate (x, y, z) and
         orientation quaternion (x, y, z, w). If ``None`` the pose will be
         initialized as an identity pose.
-    linearVelocity : tuple, list, or ndarray of float
+    linearVelocity : array_like
         Linear acceleration vector [vx, vy, vz] in meters/sec.
-    angularVelocity : tuple, list, or ndarray of float
+    angularVelocity : array_like
         Angular velocity vector [vx, vy, vz] in radians/sec.
-    linearAcceleration : tuple, list, or ndarray of float
+    linearAcceleration : array_like
         Linear acceleration vector [ax, ay, az] in meters/sec^2.
-    angularAcceleration : tuple, list, or ndarray of float
+    angularAcceleration : array_like
         Angular acceleration vector [ax, ay, az] in radians/sec^2.
     timeInSeconds : float
         Time in seconds this state refers to.
-
 
     """
     cdef capi.ovrPoseStatef* c_data
@@ -2390,8 +2427,7 @@ cdef class LibOVRPoseState(object):
                  object angularVelocity=(0., 0., 0.),
                  object linearAcceleration=(0., 0. ,0.),
                  object angularAcceleration=(0., 0., 0.),
-                 double timeInSeconds=0.0
-                 ):
+                 double timeInSeconds=0.0):
         """
         Attributes
         ----------
@@ -5980,7 +6016,7 @@ def getEyeRenderPose(int eye):
     Pose are those computed by the last :func:`calcEyePoses` call. Returned
     objects are copies of the data stored internally by the session
     instance. These poses are used to derive the view matrix when rendering
-    for each eye.
+    for each eye, and used for visibility culling.
 
     Parameters
     ----------
@@ -6109,7 +6145,32 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, n
 
         # for eye in range(EYE_COUNT) also works
         for eye in enumerate(eyeProjectionMatrices):
-            getEyeProjectionMatrix(eye, outMatrix=eyeProjectionMatrices[eye])
+            getEyeProjectionMatrix(eye, out=eyeProjectionMatrices[eye])
+
+    Using eye projection matrices with PyOpenGL (fixed-function)::
+
+        P = getEyeProjectionMatrix(eye)
+        glMatrixMode(GL.GL_PROJECTION)
+        glLoadTransposeMatrixf(P)
+
+    For `Pyglet` (which is the stardard GL interface for `PsychoPy`), you need
+    to convert the matrix to a C-types pointer before passing it to
+    `glLoadTransposeMatrixf`::
+
+        P = getEyeProjectionMatrix(eye)
+        P = P.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+        glMatrixMode(GL.GL_PROJECTION)
+        glLoadTransposeMatrixf(P)
+
+    If using fragment shaders, the matrix can be passed on to them as such::
+
+        P = getEyeProjectionMatrix(eye)
+        P = P.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+
+        # after the program was installed in the current rendering state via
+        # `glUseProgram` ...
+        loc = glGetUniformLocation(program, b"m_Projection")
+        glUniformMatrix4fv(loc, 1, GL_TRUE, P)  # `transpose` must be `True`
 
     """
     global _eyeProjectionMatrix
@@ -7755,7 +7816,8 @@ def getControllerPlaybackState(int controller):
 
 
 def cullPose(int eye, LibOVRPose pose):
-    """Test if a pose's bounding box falls outside of an eye's view frustum.
+    """Test if a pose's bounding box or position falls outside of an eye's view
+    frustum.
 
     Poses can be assigned bounding boxes which enclose any 3D models associated
     with them. A model is not visible if all the corners of the bounding box
@@ -7763,10 +7825,9 @@ def cullPose(int eye, LibOVRPose pose):
     associated with the pose can be culled during rendering to reduce CPU/GPU
     workload.
 
-    The pose must have a bounding box :py:class:`LibOVRBounds` assigned to its
-    :py:attr:`~LibOVRPose.bounds` attribute. If
-    :py:attr:`~LibOVRPose.bounds` is ``None`` (not assigned) or the assigned
-    bounding box is invalid, this function will always return ``False``.
+    If `pose` does not have a valid bounding box (:py:class:`LibOVRBounds`)
+    assigned to its :py:attr:`~LibOVRPose.bounds` attribute, this function will
+    test is if the position of `pose` is outside the view frustum.
 
     Parameters
     ----------
@@ -7806,70 +7867,92 @@ def cullPose(int eye, LibOVRPose pose):
     # `xr_linear.h`
     global _eyeViewProjectionMatrix
 
-    if pose.bounds is None:  # return if pose has no bounding box
-        return False
-
-    cdef libovr_math.Bounds3f* bbox = pose._bbox.c_data
+    cdef libovr_math.Bounds3f* bbox
+    cdef libovr_math.Vector4f test_point
     cdef libovr_math.Vector4f[8] corners
-    cdef libovr_math.Vector4f corner
-
-    # bounding box is cleared
-    if bbox.b[1].x <= bbox.b[0].x and \
-            bbox.b[1].y <= bbox.b[0].y and \
-            bbox.b[1].z <= bbox.b[0].z:
-        return False
+    cdef Py_ssize_t i
 
     # compute the MVP matrix to transform poses into HCS
     cdef libovr_math.Matrix4f mvp = \
         _eyeViewProjectionMatrix[eye] * \
         libovr_math.Matrix4f(<libovr_math.Posef>pose.c_data[0])
 
-    # compute the corners of the bounding box
-    cdef Py_ssize_t i
-    for i in range(8):
-        corner = libovr_math.Vector4f(
-            bbox.b[1].x if (i & 1) else bbox.b[0].x,
-            bbox.b[1].y if (i & 2) else bbox.b[0].y,
-            bbox.b[1].z if (i & 4) else bbox.b[0].z,
-            1.0)
-        corners[i] = mvp.Transform(corner)
+    if pose.bounds is not None:
+        # has a bounding box
+        bbox = pose._bbox.c_data
 
-    # If any of these loops exit normally, the bounding box is completely off to
-    # one side of the viewing frustum.
-    for i in range(8):
-        if corners[i].x > -corners[i].w:
-            break
-    else:
-        return True
+        # bounding box is cleared/not valid, don't cull
+        if bbox.b[1].x <= bbox.b[0].x and \
+                bbox.b[1].y <= bbox.b[0].y and \
+                bbox.b[1].z <= bbox.b[0].z:
+            return False
 
-    for i in range(8):
-        if corners[i].x < corners[i].w:
-            break
-    else:
-        return True
+        # compute the corners of the bounding box
+        for i in range(8):
+            test_point = libovr_math.Vector4f(
+                bbox.b[1].x if (i & 1) else bbox.b[0].x,
+                bbox.b[1].y if (i & 2) else bbox.b[0].y,
+                bbox.b[1].z if (i & 4) else bbox.b[0].z,
+                1.0)
+            corners[i] = mvp.Transform(test_point)
 
-    for i in range(8):
-        if corners[i].y > -corners[i].w:
-            break
-    else:
-        return True
+        # If any of these loops exit normally, the bounding box is completely
+        # off to one side of the viewing frustum
+        for i in range(8):
+            if corners[i].x > -corners[i].w:
+                break
+        else:
+            return True
 
-    for i in range(8):
-        if corners[i].y < corners[i].w:
-            break
-    else:
-        return True
+        for i in range(8):
+            if corners[i].x < corners[i].w:
+                break
+        else:
+            return True
 
-    for i in range(8):
-        if corners[i].z > -corners[i].w:
-            break
-    else:
-        return True
+        for i in range(8):
+            if corners[i].y > -corners[i].w:
+                break
+        else:
+            return True
 
-    for i in range(8):
-        if corners[i].z < corners[i].w:
-            break
+        for i in range(8):
+            if corners[i].y < corners[i].w:
+                break
+        else:
+            return True
+
+        for i in range(8):
+            if corners[i].z > -corners[i].w:
+                break
+        else:
+            return True
+
+        for i in range(8):
+            if corners[i].z < corners[i].w:
+                break
+        else:
+            return True
     else:
-        return True
+        # no bounding box, cull position of the pose
+        test_point = mvp.Transform(
+            libovr_math.Vector4f(
+                pose.c_data.Position.x,
+                pose.c_data.Position.y,
+                pose.c_data.Position.z,
+                1.0))
+
+        if test_point.x <= -test_point.w:
+            return True
+        elif test_point.x >= test_point.w:
+            return True
+        elif test_point.y <= -test_point.w:
+            return True
+        elif test_point.y >= test_point.w:
+            return True
+        elif test_point.z <= -test_point.w:
+            return True
+        elif test_point.z >= test_point.w:
+            return True
 
     return False
