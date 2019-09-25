@@ -130,6 +130,24 @@ Known Issues:
 
     - None so far ...
 
+Version 0.1.5 - 2019/09/25
+--------------------------
+
+Hotfix release to fix an issue where thumbstick values are improperly clipped.
+
+New Features:
+
+    - None
+
+Bug Fixes:
+
+    - Updated licensing information.
+
+Breaking:
+
+    - None
+
+
 Version 0.1.4 - 2019/02/11
 --------------------------
 
