@@ -31,10 +31,11 @@ converted to C++ code. Therefore, you must have a C++ compiler and SDKs
 installed prior to building PsychXR from source.
 
 First, you must configure the installer to build extensions for a target HMD
-API. As of now, only the Oculus PC SDK is supported, therefore only one
-configuration command is available. Command arguments are used to specify API
-specific build options. You must indicate where the compiler can find header
-and library files. See the example command below:
+API. As of now, only the Oculus PC SDK is supported version 1.26
+(retrieved 09.25.2019), therefore only one configuration command is available.
+Command arguments are used to specify API specific build options. You must
+indicate where the compiler can find header and library files. See the example
+command below:
 
     python setup.py libovr --include-dir=C:\OculusSDK\LibOVR\Include
         --lib-dir=C:\OculusSDK\...\VS2015
@@ -154,7 +155,7 @@ setup_pars = {
     "url": "https://github.com/mdcutone/psychxr",
     #"package_data": PACKAGE_DATA,
     "include_package_data": True,
-    "version": "0.1.4",
+    "version": "0.1.5",
     "license" : "MIT",
     "description":
         "Python extension library for interacting with eXtended Reality "

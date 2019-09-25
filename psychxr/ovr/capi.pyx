@@ -1595,8 +1595,8 @@ cdef float clip_input_range(float val):
     """
     if val > 1.0:
         val = 1.0
-    elif val < 1.0:
-        val = 1.0
+    elif val < -1.0:
+        val = -1.0
 
     return val
 

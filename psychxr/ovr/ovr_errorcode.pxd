@@ -29,7 +29,7 @@
 # 
 """This file exposes Oculus Rift(TM) C API types and functions, allowing Cython 
 extensions to access them. The declarations in the file are contemporaneous
-with version 1.24 (retrieved 04.15.2018) of the Oculus Rift(TM) PC SDK. 
+with version 1.26 (retrieved 09.25.2019) of the Oculus Rift(TM) PC SDK.
 
 """
 from libc.stdint cimport int32_t
