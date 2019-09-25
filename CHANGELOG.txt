@@ -1,6 +1,21 @@
 This file contains changes introduced to PsychXR for each version. Breaking
 changes may be incompatible with your current code.
 
+Version 0.1.5 - 2019/09/25
+--------------------------
+
+New Features:
+
+    - None
+
+Bug Fixes:
+
+    - Fixed input clipping range for controllers.
+
+Breaking:
+
+    - None
+
 Version 0.1.3 - 2018/07/04
 --------------------------
 
