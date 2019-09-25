@@ -1031,7 +1031,7 @@ cdef class LibOVRPose(object):
 
     @property
     def pos(self):
-        """~numpy.ndarray : Position vector [X, Y, Z].
+        """ndarray : Position vector [X, Y, Z].
 
         Examples
         --------
@@ -1073,12 +1073,12 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        out : ~numpy.ndarray or None
+        out : ndarray or None
             Optional array to write values to. Must have a float32 data type.
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Position coordinate of this pose.
 
         Examples
@@ -1118,7 +1118,7 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        pos : `array_like`
+        pos : array_like
             Position vector [X, Y, Z].
 
         """
@@ -1128,7 +1128,7 @@ cdef class LibOVRPose(object):
 
     @property
     def ori(self):
-        """~numpy.ndarray : Orientation quaternion [X, Y, Z, W].
+        """ndarray : Orientation quaternion [X, Y, Z, W].
         """
         return self._ori
 
@@ -1146,12 +1146,12 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        out : ~numpy.ndarray  or None
+        out : ndarray  or None
             Optional array to write values to. Must have a float32 data type.
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Orientation quaternion of this pose.
 
         Notes
@@ -1189,7 +1189,7 @@ cdef class LibOVRPose(object):
 
     @property
     def posOri(self):
-        """tuple (~numpy.ndarray, ~numpy.ndarray) : Position vector and
+        """tuple (ndarray, ndarray) : Position vector and
         orientation quaternion.
         """
         return self.pos, self.ori
@@ -1201,7 +1201,7 @@ cdef class LibOVRPose(object):
 
     @property
     def at(self):
-        """~numpy.ndarray : Forward vector of this pose (-Z is forward)
+        """ndarray : Forward vector of this pose (-Z is forward)
         (read-only).
         """
         return self.getAt()
@@ -1211,13 +1211,13 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        out : ~numpy.ndarray or None
+        out : ndarray or None
             Optional array to write values to. Must have shape (3,) and a float32
             data type.
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             The vector for `at`.
 
         Notes
@@ -1255,7 +1255,7 @@ cdef class LibOVRPose(object):
 
     @property
     def up(self):
-        """~numpy.ndarray : Up vector of this pose (+Y is up) (read-only)."""
+        """ndarray : Up vector of this pose (+Y is up) (read-only)."""
         return self.getUp()
 
     def getUp(self, np.ndarray[np.float32_t, ndim=1] out=None):
@@ -1263,13 +1263,13 @@ cdef class LibOVRPose(object):
 
         Parameters
         ----------
-        out : ~numpy.ndarray, optional
+        out : ndarray, optional
             Optional array to write values to. Must have shape (3,) and a float32
             data type.
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             The vector for `up`.
 
         Notes
@@ -1319,7 +1319,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        tuple (~numpy.ndarray, float)
+        tuple (ndarray, float)
             Axis and angle.
 
         """
@@ -1372,13 +1372,13 @@ cdef class LibOVRPose(object):
             axes.
         degrees : bool, optional
             Return angle in degrees. Default is ``True``.
-        out : ~numpy.ndarray
+        out : ndarray
             Alternative place to write yaw, pitch, and roll values. Must have
             shape (3,) and a float32 data type.
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Yaw, pitch, and roll of the pose in degrees.
 
         Notes
@@ -1562,7 +1562,7 @@ cdef class LibOVRPose(object):
 
     def getAzimuthElevation(self, object target, bint degrees=True):
         """Get the azimuth and elevation angles of a point relative to this
-        pose's forward direction.
+        pose's forward direction (0., 0., -1.).
 
         Parameters
         ----------
@@ -1646,14 +1646,14 @@ cdef class LibOVRPose(object):
         ----------
         inverse : bool
             If ``True``, return the inverse of the matrix.
-        out : ~numpy.ndarray, optional
+        out : ndarray, optional
             Alternative place to write the matrix to values. Must be a `ndarray`
             of shape (4, 4,) and have a data type of float32. Values are written
             assuming row-major order.
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             4x4 transformation matrix.
 
         Examples
@@ -1726,7 +1726,7 @@ cdef class LibOVRPose(object):
         ----------
         inverse : bool, optional
             Return the inverse of the view matrix. Default it ``False``.
-        out : ~numpy.ndarray, optional
+        out : ndarray, optional
             Alternative place to write the matrix to values. Must be a `ndarray`
             of shape (4, 4,) and have a data type of float32. Values are written
             assuming row-major order.
@@ -1850,7 +1850,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Vector rotated by the pose's orientation.
 
         Notes
@@ -1887,7 +1887,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Vector rotated by the pose's inverse orientation.
 
         Notes
@@ -1925,7 +1925,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Vector translated by the pose's position.
 
         Notes
@@ -1962,7 +1962,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Vector transformed by the pose's position and orientation.
 
         Notes
@@ -1999,7 +1999,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Vector transformed by the inverse of the pose's position and
             orientation.
 
@@ -2038,7 +2038,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Vector transformed by the pose's position and orientation.
 
         Notes
@@ -2076,7 +2076,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Vector transformed by the pose's position and orientation.
 
         Notes
@@ -2115,7 +2115,7 @@ cdef class LibOVRPose(object):
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Vector transformed by the pose's position and orientation.
 
         """
@@ -3223,9 +3223,9 @@ cdef class LibOVRHmdInfo(object):
         refreshRate : float
         hid : tuple
         firmwareVersion : tuple
-        defaultEyeFov : tuple (~numpy.ndarray and ~numpy.ndarray)
-        maxEyeFov : tuple (~numpy.ndarray and ~numpy.ndarray)
-        symmetricEyeFov : tuple (~numpy.ndarray and ~numpy.ndarray)
+        defaultEyeFov : tuple (ndarray and ndarray)
+        maxEyeFov : tuple (ndarray and ndarray)
+        symmetricEyeFov : tuple (ndarray and ndarray)
 
         """
         self.newStruct()
@@ -3345,7 +3345,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Resolution of the display [w, h].
 
         """
@@ -3358,7 +3358,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        ~numpy.ndarray
+        ndarray
             Refresh rate in Hz.
 
         """
@@ -3395,7 +3395,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        tuple (~numpy.ndarray, ~numpy.ndarray)
+        tuple (ndarray, ndarray)
             Pair of left and right eye FOVs specified as tangent angles [Up,
             Down, Left, Right].
 
@@ -3422,7 +3422,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        tuple (~numpy.ndarray, ~numpy.ndarray)
+        tuple (ndarray, ndarray)
             Pair of left and right eye FOVs specified as tangent angles in
             radians [Up, Down, Left, Right].
 
@@ -3452,7 +3452,7 @@ cdef class LibOVRHmdInfo(object):
 
         Returns
         -------
-        tuple (~numpy.ndarray, ~numpy.ndarray)
+        tuple (ndarray, ndarray)
             Pair of left and right eye FOVs specified as tangent angles in
             radians [Up, Down, Left, Right]. Both FOV objects will have the same
             values.
@@ -4395,7 +4395,7 @@ def setFloatArray(bytes propertyName, np.ndarray[np.float32_t, ndim=1] values):
     ----------
     propertyName : bytes
         Name of the property to set.
-    values : ~numpy.ndarray
+    values : ndarray
         Value to write, must be 1-D and have dtype=float32.
 
     Returns
@@ -4432,7 +4432,7 @@ def getFloatArray(bytes propertyName, np.ndarray[np.float32_t, ndim=1] values no
     ----------
     propertyName : bytes
         Name of the property to get.
-    values : ~numpy.ndarray
+    values : ndarray
         Output array array for values, must be 1-D and have dtype=float32.
 
     Returns
@@ -4964,7 +4964,7 @@ def getEyeRenderFov(int eye):
 
     Returns
     -------
-    ~numpy.ndarray
+    ndarray
         Eye FOV tangent angles [UpTan, DownTan, LeftTan, RightTan].
 
     Examples
@@ -6124,7 +6124,7 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, n
 
     Returns
     -------
-    ~numpy.ndarray
+    ndarray
         4x4 projection matrix.
 
     Examples
@@ -6218,7 +6218,7 @@ def getEyeRenderViewport(int eye, np.ndarray[np.int_t, ndim=1] out=None):
 
     Returns
     -------
-    ~numpy.ndarray
+    ndarray
         Viewport rectangle [x, y, w, h].
 
     """
@@ -6290,7 +6290,7 @@ def getEyeViewMatrix(int eye, np.ndarray[np.float32_t, ndim=2] out=None):
     ----------
     eye: int
         Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
-    out : ~numpy.ndarray or None, optional
+    out : ndarray or None, optional
         Optional array to write to. Must have ndim=2, dtype=np.float32, and
         shape == (4,4).
 
@@ -6887,7 +6887,7 @@ def getBoundaryDimensions(int boundaryType):
 
     Returns
     -------
-    tuple (int, ~numpy.ndarray)
+    tuple (int, ndarray)
         Result of the LibOVR APi call ``OVR::ovr_GetBoundaryDimensions`` and the
         dimensions of the boundary in meters [x, y, z].
 
