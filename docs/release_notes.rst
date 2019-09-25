@@ -2,13 +2,15 @@
 Release Notes
 =============
 
-Version 0.2.1 - 2019-07-18
+Version 0.2.1 - 2019-09-25
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This release adds improved haptics support, bounding boxes, visibility culling,
 and more features to `LibOVRPose`. There are a few minor API breaking changes,
 however in the future API changes will raise deprecation warnings and be phased
 out gradually over several releases.
+
+In the coming weeks, PsychoPy will be updated to support version 0.2.1 features.
 
 **General**
 
