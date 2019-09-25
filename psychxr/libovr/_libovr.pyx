@@ -462,11 +462,11 @@ cdef str bytes2str(char* bytesIn):
 # ------------------------------------------------------------------------------
 # Version checker
 
-if capi.OVR_MAJOR_VERSION != 1 or capi.OVR_MINOR_VERSION != 37:
+if capi.OVR_MAJOR_VERSION != 1 or capi.OVR_MINOR_VERSION != 40:
     # raise a warning if the version of the Oculus SDK may be incompatible
     warnings.warn(
         "PsychXR was built using version {major}.{minor} of the Oculus PC SDK "
-        "however 1.38 is recommended. This might be perfectly fine if there "
+        "however 1.40 is recommended. This might be perfectly fine if there "
         "aren't any API breaking changes.".format(
             major=capi.OVR_MAJOR_VERSION, minor=capi.OVR_MINOR_VERSION),
         RuntimeWarning)

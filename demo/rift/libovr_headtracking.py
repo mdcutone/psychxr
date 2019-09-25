@@ -93,10 +93,9 @@ def main():
 
         abs_time = getPredictedDisplayTime(frame_index)
 
-        tracking_state, calibrated_origin = getTrackingState(abs_time, True)
+        tracking_state = getTrackingState(abs_time, True)
 
-        headPose, state = tracking_state[TRACKED_DEVICE_TYPE_HMD]
-        calcEyePoses(headPose.pose)
+        calcEyePoses(tracking_state.headPose.thePose)
 
         beginFrame(frame_index)
 
