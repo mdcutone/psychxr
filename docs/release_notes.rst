@@ -52,6 +52,16 @@ In the coming weeks, PsychoPy will be updated to support version 0.2.1 features.
 
 `Click here to download PsychXR 0.2.1 <https://github.com/mdcutone/psychxr/releases>`_
 
+Version 0.1.5 - 2019-09-25
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Hotfix release for version 0.1.4 which fixes an input bug where the range of
+thumbstick values is improperly clipped.
+
+**Oculus Rift Support (libovr)**
+
+* Fixed thumbstick values being clipped to 1.0 regardless of the input.
+
 Version 0.2.0 - 2019-07-01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
