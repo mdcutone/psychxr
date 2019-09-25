@@ -263,7 +263,7 @@ __all__ = [
     'LOG_LEVEL_DEBUG',
     'LOG_LEVEL_INFO',
     'LOG_LEVEL_ERROR',
-    # 'HMD_RIFTS',
+    'HMD_RIFTS',
     'LibOVRPose',
     'LibOVRPoseState',
     'LibOVRTrackingState',
@@ -737,7 +737,7 @@ HMD_ES06 = capi.ovrHmd_ES06
 HMD_ES09 = capi.ovrHmd_ES09
 HMD_ES11 = capi.ovrHmd_ES11
 HMD_CV1 = capi.ovrHmd_CV1
-# HMD_RIFTS = capi.ovrHmd_RiftS  # won't build
+HMD_RIFTS = capi.ovrHmd_RiftS
 
 # haptics buffer
 HAPTICS_BUFFER_SAMPLES_MAX = capi.OVR_HAPTICS_BUFFER_SAMPLES_MAX
@@ -3266,13 +3266,7 @@ cdef class LibOVRHmdInfo(object):
 
         Valid values returned are ``HMD_NONE``, ``HMD_DK1``, ``HMD_DKHD``,
         ``HMD_DK2``, ``HMD_CB``, ``HMD_OTHER``, ``HMD_E3_2015``, ``HMD_ES06``,
-        ``HMD_ES09``, ``HMD_ES11``, and ``HMD_CV1``.
-
-        Notes
-        -----
-        * LibOVR (1.37) will return ``HMD_CV1`` when using the Rift S for
-          backwards compatibility. However :py:attr:`~LibOVRHmdInfo.productName`
-          will return ``'Oculus Rift S'``.
+        ``HMD_ES09``, ``HMD_ES11``, `HMD_CV1``, ``HMD_RIFTS``.
 
         """
         return <int>self.c_data.Type
@@ -6448,7 +6442,7 @@ def endFrame(unsigned int frameIndex=0):
 
     Returns
     -------
-    tuple (int, int)
+    tuple (int, float)
         Error code returned by API call `OVR::ovr_EndFrame` and the absolute
         time in seconds `OVR::ovr_EndFrame` returned.
 

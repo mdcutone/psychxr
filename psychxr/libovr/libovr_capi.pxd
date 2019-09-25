@@ -235,8 +235,8 @@ cdef extern from "OVR_CAPI.h":
         ovrHmd_ES06 = 11,
         ovrHmd_ES09 = 12,
         ovrHmd_ES11 = 13,
-        ovrHmd_CV1 = 14#,
-        #ovrHmd_RiftS = 16
+        ovrHmd_CV1 = 14,
+        ovrHmd_RiftS = 16
 
     ctypedef enum ovrHmdCaps:
         ovrHmdCap_DebugDevice = 0x0010

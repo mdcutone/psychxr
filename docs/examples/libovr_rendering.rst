@@ -211,11 +211,10 @@ then use that data to calculate eye poses with `calcEyePoses`::
         abs_time = getPredictedDisplayTime(frame_index)
 
         # get the current tracking state
-        tracking_state, calibrated_origin = getTrackingState(abs_time, True)
+        trackingState = hmd.getTrackingState(abs_time)
 
         # calculate eye poses, this needs to be called every frame
-        headPose, state = tracking_state[TRACKED_DEVICE_TYPE_HMD]
-        calcEyePoses(headPose.pose)
+        calcEyePoses(trackingState.headPose.thePose)
 
 Now we can begin rendering to the eye buffers. First, we tell `LibOVR` that
 frame rendering will commence by calling `beginFrame`. Afterwards, we get the
