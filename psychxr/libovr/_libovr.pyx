@@ -5794,14 +5794,13 @@ def getDevicePoses(object deviceTypes, double absTime, bint latencyMarker=True):
 
     """
     # give a success code and empty pose list if an empty list was specified
+    global _ptrSession
+    global _eyeLayer
+
     if not deviceTypes:
         if latencyMarker:
             _eyeLayer.SensorSampleTime = capi.ovr_GetTimeInSeconds()
         return capi.ovrSuccess, []
-
-    global _ptrSession
-    global _eyeLayer
-    #global _devicePoses
 
     # allocate arrays to store pose types and poses
     cdef int count = <int>len(deviceTypes)
