@@ -3903,6 +3903,8 @@ cdef class LibOVRPerfStatsPerCompositorFrame(object):
 cdef class LibOVRPerfStats(object):
     """Class for frame performance statistics.
 
+    Instances of this class are returned by calling :func:`getPerfStats`.
+
     """
     cdef capi.ovrPerfStats *c_data
     cdef bint ptr_owner
