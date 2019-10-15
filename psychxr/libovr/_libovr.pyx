@@ -3730,13 +3730,13 @@ cdef class LibOVRPerfStatsPerCompositorFrame(object):
         timeToVsync : float
 
         """
-        pass
+        self._new_struct()
 
     def __cinit__(self):
-        pass
+        self.ptr_owner = False
 
     @staticmethod
-    cdef capi.ovrPerfStatsPerCompositorFrame fromPtr(
+    cdef LibOVRPerfStatsPerCompositorFrame fromPtr(
             capi.ovrPerfStatsPerCompositorFrame* ptr, bint owner=False):
         cdef LibOVRPerfStatsPerCompositorFrame wrapper = \
             LibOVRPerfStatsPerCompositorFrame.__new__(
@@ -3747,7 +3747,7 @@ cdef class LibOVRPerfStatsPerCompositorFrame(object):
 
         return wrapper
 
-    cdef void _new_struct(self, object pos, object ori):
+    cdef void _new_struct(self):
         if self.c_data is not NULL:
             return
 
@@ -3904,7 +3904,8 @@ cdef class LibOVRPerfStats(object):
     """Class for frame performance statistics.
 
     """
-    cdef capi.ovrPerfStats c_data
+    cdef capi.ovrPerfStats *c_data
+    cdef bint ptr_owner
 
     cdef LibOVRPerfStatsPerCompositorFrame compFrame0
     cdef LibOVRPerfStatsPerCompositorFrame compFrame1
@@ -3924,9 +3925,45 @@ cdef class LibOVRPerfStats(object):
         visibleProcessId : int
 
         """
-        pass
+        self._new_struct()
 
     def __cinit__(self):
+        self.ptr_owner = False
+
+    @staticmethod
+    cdef LibOVRPerfStats fromPtr(capi.ovrPerfStats* ptr, bint owner=False):
+        cdef LibOVRPerfStats wrapper = LibOVRPerfStats.__new__(LibOVRPerfStats)
+
+        wrapper.c_data = ptr
+        wrapper.ptr_owner = owner
+
+        wrapper.compFrame0 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
+            &wrapper.c_data.FrameStats[0])
+        wrapper.compFrame1 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
+            &wrapper.c_data.FrameStats[1])
+        wrapper.compFrame2 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
+            &wrapper.c_data.FrameStats[2])
+        wrapper.compFrame3 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
+            &wrapper.c_data.FrameStats[3])
+        wrapper.compFrame4 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
+            &wrapper.c_data.FrameStats[4])
+
+        return wrapper
+
+    cdef void _new_struct(self):
+        if self.c_data is not NULL:
+            return
+
+        cdef capi.ovrPerfStats* ptr = \
+            <capi.ovrPerfStats*>PyMem_Malloc(
+                sizeof(capi.ovrPerfStats))
+
+        if ptr is NULL:
+            raise MemoryError
+
+        self.c_data = ptr
+        self.ptr_owner = True
+
         self.compFrame0 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
             &self.c_data.FrameStats[0])
         self.compFrame1 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
@@ -3937,6 +3974,13 @@ cdef class LibOVRPerfStats(object):
             &self.c_data.FrameStats[3])
         self.compFrame4 = LibOVRPerfStatsPerCompositorFrame.fromPtr(
             &self.c_data.FrameStats[4])
+
+    def __dealloc__(self):
+        # don't do anything crazy like set c_data=NULL without deallocating!
+        if self.c_data is not NULL:
+            if self.ptr_owner is True:
+                PyMem_Free(self.c_data)
+                self.c_data = NULL
 
     @property
     def frameStats(self):
@@ -6710,7 +6754,7 @@ def getPerfStats():
     global _ptrSession
     cdef LibOVRPerfStats to_return = LibOVRPerfStats()
     cdef capi.ovrResult result = capi.ovr_GetPerfStats(
-        _ptrSession, &to_return.c_data)
+        _ptrSession, to_return.c_data)
 
     return to_return
 
