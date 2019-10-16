@@ -8,7 +8,8 @@ Version 0.2.2 - 2019-10-16
 
 Bugfix release to address issues introduced in the 0.2+ codebase. This version
 is being uploaded to PyPI for use with PsychoPy which has recently gotten
-a new version of the Rift interface which supports PsychXR 0.2+.
+a new version of the Rift interface which supports PsychXR 0.2+. There should be
+no breaking changes from the 0.2.1 release.
 
 **Oculus Rift Support (libovr)**
 
