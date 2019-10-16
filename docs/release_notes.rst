@@ -2,6 +2,23 @@
 Release Notes
 =============
 
+
+Version 0.2.2 - 2019-10-16
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Bugfix release to address issues introduced in the 0.2+ codebase. This version
+is being uploaded to PyPI for use with PsychoPy which has recently gotten
+a new version of the Rift interface which supports PsychXR 0.2+.
+
+**Oculus Rift Support (libovr)**
+
+* Fixed `LibOVRPerfStats` setting up incorrect pointers to
+  `LibOVRPerfStatsPerCompositorFrame` objects, causing Cython to convert them
+  to dictionaries instead of instances of `LibOVRPerfStatsPerCompositorFrame`.
+* Fixed TOUCH_* module level constants not being exposed by __all__.
+
+`Click here to download PsychXR 0.2.2 <https://github.com/mdcutone/psychxr/releases>`_
+
 Version 0.2.1 - 2019-09-25
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 

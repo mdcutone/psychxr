@@ -1,7 +1,29 @@
 This file contains changes introduced to PsychXR for each version. Breaking
 changes may be incompatible with your current code.
 
-Version 0.2.1 - 2019/07/16
+Version 0.2.2 - 2019/10/16
+--------------------------
+
+Overview:
+
+    Bugfix release.
+
+New Features:
+
+    - None
+
+Bug Fixes:
+
+    - Fixed `LibOVRPerfStats` setting up incorrect pointers to
+      `LibOVRPerfStatsPerCompositorFrame` objects.
+    - Fixed TOUCH_* module level constants not being exposed by __all__.
+
+Breaking Changes:
+
+    - None
+
+
+Version 0.2.1 - 2019/09/25
 --------------------------
 
 Overview:
