@@ -2897,7 +2897,14 @@ cdef class LibOVRTrackingState(object):
 
     @property
     def calibratedOrigin(self):
-        """Calibrated tracking origin this tracking state is using (`LibOVRPose`)."""
+        """Pose of the calibrated origin.
+
+        This pose is used to find the calibrated origin in space if
+        :func:`recenterTrackingOrigin` or :func:`specifyTrackingOrigin` was
+        called. If those functions we never called during a session, this will
+        return an identity pose, which reflects the tracking origin type.
+
+        """
         return self._calibratedOrigin
 
 
