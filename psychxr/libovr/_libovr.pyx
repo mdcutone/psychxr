@@ -838,9 +838,9 @@ cdef class LibOVRPose(object):
 
         poseInverse = ~pose
 
-    Poses can be converted to 4x4 transformation matrices with `asMatrix` and
-    `getViewMatrix`. One can use these matrices when rendering to transform the
-    vertices of a model associated with the pose by passing them to OpenGL.
+    Poses can be converted to 4x4 transformation matrices with `getModelMatrix`
+    and `getViewMatrix`. One can use these matrices when rendering to transform
+    the vertices of a model associated with the pose by passing them to OpenGL.
 
     This class is a wrapper for the ``OVR::ovrPosef`` data structure. Fields
     ``OVR::ovrPosef.Orientation`` and ``OVR::ovrPosef.Position`` are accessed
