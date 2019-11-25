@@ -384,8 +384,8 @@ __all__ = [
     'getHapticsInfo',
     'submitControllerVibration',
     'getControllerPlaybackState',
-    'cullPose'
-    #'anyPointInFrustum'
+    'cullPose',
+    'sessionStarted'
 ]
 
 
@@ -394,7 +394,7 @@ from .cimport libovr_math
 
 from libc.stdint cimport int32_t, uint32_t, uintptr_t
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
-from libc.math cimport pow, tan, M_PI, atan2, acos
+from libc.math cimport pow, tan, M_PI, atan2
 cimport cython.parallel  # needed for the callback
 
 cimport numpy as np
@@ -982,6 +982,13 @@ cdef class LibOVRPose(object):
             memo[id(self)] = to_return
 
         return to_return
+
+    def copy(self):
+        """Create an independent copy of this object."""
+        cdef LibOVRPose toReturn = LibOVRPose()
+        (<LibOVRPose>toReturn).c_data[0] = self.c_data[0]
+
+        return toReturn
 
     @property
     def bounds(self):
@@ -2374,7 +2381,8 @@ cdef class LibOVRPose(object):
         this method will always return ``True``.
 
         See :func:`cullPose` for more information about the implementation of
-        visibility culling.
+        visibility culling. Note this function only works if there is an active
+        VR session.
 
         Parameters
         ----------
@@ -2395,7 +2403,11 @@ cdef class LibOVRPose(object):
                 # ... OpenGL calls to draw the model here ...
 
         """
-        return not cullPose(eye, self)
+        global _ptrSession
+        if _ptrSession != NULL:
+            return not cullPose(eye, self)
+        else:
+            return False
 
 
 cdef class LibOVRPoseState(object):
@@ -2908,7 +2920,7 @@ cdef class LibOVRTrackingState(object):
 
         This pose is used to find the calibrated origin in space if
         :func:`recenterTrackingOrigin` or :func:`specifyTrackingOrigin` was
-        called. If those functions we never called during a session, this will
+        called. If those functions were never called during a session, this will
         return an identity pose, which reflects the tracking origin type.
 
         """
@@ -4782,6 +4794,22 @@ def create():
     return result
 
 
+def sessionStarted():
+    """Check of a session has been created.
+
+    This value should return `True` between calls of :func:`create` and
+    :func:`destroy`. You can use this to determine if you can make API calls
+    which require an active session.
+
+    Returns
+    -------
+    bool
+        `True` if a session is present.
+
+    """
+    return _ptrSession != NULL
+
+
 def destroyTextureSwapChain(int swapChain):
     """Destroy a texture swap chain.
 
@@ -4823,6 +4851,7 @@ def destroy():
 
     # destroy the current session and shutdown
     capi.ovr_Destroy(_ptrSession)
+    _ptrSession = NULL
 
 
 def shutdown():
@@ -4880,8 +4909,9 @@ def setHeadLocked(bint enable):
 
     However, when using custom head poses (eg. fixed, or from a motion tracker)
     this system may cause the render layer to slip around, as internal IMU data
-    will be incongruous with head position data. If you plan on passing custom
-    poses to :func:`calcEyePoses`, ensure that head locking is enabled.
+    will be incongruous with externally supplied head posture data. If you plan
+    on passing custom poses to :func:`calcEyePoses`, ensure that head locking is
+    enabled.
 
     Head locking is disabled by default when a session is started.
 
@@ -4906,8 +4936,11 @@ def isHeadLocked():
     bool
         ``True`` if head-locking is enabled.
 
-    """
+    See Also
+    --------
+    setHeadLocked
 
+    """
     return (_eyeLayer.Header.Flags & capi.ovrLayerFlag_HeadLocked) == \
            capi.ovrLayerFlag_HeadLocked
 

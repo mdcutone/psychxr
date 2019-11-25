@@ -1,6 +1,29 @@
 This file contains changes introduced to PsychXR for each version. Breaking
 changes may be incompatible with your current code.
 
+Version 0.2.3 - 2019/11/25
+--------------------------
+
+Overview:
+
+    This release has some minor fixes and features added.
+
+New Features:
+
+    - Added function `sessionStarted` to determine if there is an active VR
+      session. This is helpful to determine if a session is active from another
+      module or file within the same interpreter thread.
+
+Bug Fixes:
+
+    - Fixed `LibOVRPose.setIdentity()` method not working.
+    - Fixed some errata in the documentation.
+
+Breaking Changes:
+
+    - None
+
+
 Version 0.2.2 - 2019/10/16
 --------------------------
 
