@@ -1041,7 +1041,14 @@ cdef class LibOVRPose(object):
 
     def setIdentity(self):
         """Clear this pose's translation and orientation."""
-        (<libovr_math.Posef>self.c_data[0]).SetIdentity()
+        self.c_data[0].Position.x = 0.0
+        self.c_data[0].Position.y = 0.0
+        self.c_data[0].Position.z = 0.0
+
+        self.c_data[0].Orientation.x = 0.0
+        self.c_data[0].Orientation.y = 0.0
+        self.c_data[0].Orientation.z = 0.0
+        self.c_data[0].Orientation.w = 1.0
 
     @property
     def pos(self):
