@@ -1821,6 +1821,46 @@ cdef class LibOVRPose(object):
 
         return to_return
 
+    def getNormalMatrix(self, np.ndarray[np.float32_t, ndim=2] out=None):
+        """Get a normal matrix used to transform normals within a fragment
+        shader.
+
+        Parameters
+        ----------
+        out : ndarray, optional
+            Alternative place to write the matrix to values. Must be a `ndarray`
+            of shape (4, 4,) and have a data type of float32. Values are written
+            assuming row-major order.
+
+        Returns
+        -------
+        ndarray
+            4x4 normal matrix.
+
+        """
+        cdef libovr_math.Matrix4f normalMatrix = libovr_math.Matrix4f(
+            <libovr_math.Posef>self.c_data[0])
+
+        normalMatrix.Inverted()
+        normalMatrix.Transposed()
+
+        cdef np.ndarray[np.float32_t, ndim=2] toReturn
+        if out is None:
+            toReturn =  np.zeros((4, 4), dtype=np.float32)
+        else:
+            toReturn = out
+
+        # fast copy matrix to numpy array
+        cdef float [:, :] mv = toReturn
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t N = 4
+        i = j = 0
+        for i in range(N):
+            for j in range(N):
+                mv[i, j] = normalMatrix.M[i][j]
+
+        return toReturn
+
     def normalize(self):
         """Normalize this pose.
 
