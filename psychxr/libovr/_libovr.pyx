@@ -1667,6 +1667,30 @@ cdef class LibOVRPose(object):
 
         return toReturn
 
+    @property
+    def normalMatrix(self):
+        """Normal matrix for transforming normals of meshes associated with
+        poses."""
+        cdef libovr_math.Matrix4f normalMatrix = libovr_math.Matrix4f(
+            <libovr_math.Posef>self.c_data[0])
+
+        normalMatrix.InvertHomogeneousTransform()
+        normalMatrix.Transposed()
+
+        cdef np.ndarray[np.float32_t, ndim=2] toReturn = \
+            np.zeros((4, 4), dtype=np.float32)
+
+        # fast copy matrix to numpy array
+        cdef float [:, :] mv = toReturn
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t N = 4
+        i = j = 0
+        for i in range(N):
+            for j in range(N):
+                mv[i, j] = normalMatrix.M[i][j]
+
+        return toReturn
+
     def getModelMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
         """Get this pose as a 4x4 transformation matrix.
 
