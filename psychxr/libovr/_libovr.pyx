@@ -1841,7 +1841,7 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Matrix4f normalMatrix = libovr_math.Matrix4f(
             <libovr_math.Posef>self.c_data[0])
 
-        normalMatrix.Inverted()
+        normalMatrix.InvertHomogeneousTransform()
         normalMatrix.Transposed()
 
         cdef np.ndarray[np.float32_t, ndim=2] toReturn
