@@ -85,7 +85,7 @@ def main():
     for eye in range(EYE_COUNT):
          projectionMatrix.append(getEyeProjectionMatrix(eye))
 
-    planeMatrix = LibOVRPose((0., 0., -2.)).getModelMatrix()
+    planePose = LibOVRPose((0., 0., -2.))
 
     # begin application loop
     while not glfw.window_should_close(window):
@@ -129,7 +129,7 @@ def main():
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
             GL.glPushMatrix()
-            GL.glMultTransposeMatrixf(planeMatrix)
+            GL.glMultTransposeMatrixf(planePose.modelMatrix)
             GL.glBegin(GL.GL_QUADS)
             GL.glColor3f(1.0, 0.0, 0.0)
             GL.glVertex3f(-1.0, -1.0, 0.0)

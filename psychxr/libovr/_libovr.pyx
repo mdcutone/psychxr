@@ -385,7 +385,7 @@ __all__ = [
     'submitControllerVibration',
     'getControllerPlaybackState',
     'cullPose',
-    'sessionStarted'
+    'checkSessionStarted'
 ]
 
 
@@ -402,7 +402,7 @@ import numpy as np
 np.import_array()
 
 import warnings
-
+import ctypes
 
 # ------------------------------------------------------------------------------
 # Initialize module
@@ -778,7 +778,7 @@ cdef np.npy_intp[1] VEC2_SHAPE = [2]
 cdef np.npy_intp[1] VEC3_SHAPE = [3]
 cdef np.npy_intp[1] FOVPORT_SHAPE = [4]
 cdef np.npy_intp[1] QUAT_SHAPE = [4]
-# cdef np.npy_intp[2] MAT4_SHAPE = [4, 4]
+cdef np.npy_intp[2] MAT4_SHAPE = [4, 4]
 
 
 cdef np.ndarray _wrap_ovrVector2f_as_ndarray(capi.ovrVector2f* prtVec):
@@ -868,6 +868,21 @@ cdef class LibOVRPose(object):
     cdef np.ndarray _pos
     cdef np.ndarray _ori
 
+    cdef libovr_math.Matrix4f _modelMatrix
+    cdef libovr_math.Matrix4f _invModelMatrix
+    cdef libovr_math.Matrix4f _normalMatrix
+    cdef libovr_math.Matrix4f _viewMatrix
+    cdef libovr_math.Matrix4f _invViewMatrix
+
+    cdef np.ndarray _modelMatrixArr
+    cdef np.ndarray _invModelMatrixArr
+    cdef np.ndarray _normalMatrixArr
+    cdef np.ndarray _viewMatrixArr
+    cdef np.ndarray _invViewMatrixArr
+    cdef dict _matrixPointers
+
+    cdef bint _matrixNeedsUpdate
+
     cdef LibOVRBounds _bbox
 
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
@@ -885,6 +900,7 @@ cdef class LibOVRPose(object):
         wrapper._pos = _wrap_ovrVector3f_as_ndarray(&ptr.Position)
         wrapper._ori = _wrap_ovrQuatf_as_ndarray(&ptr.Orientation)
         wrapper._bbox = None
+        wrapper._matrixNeedsUpdate = True
 
         return wrapper
 
@@ -912,6 +928,7 @@ cdef class LibOVRPose(object):
         self._pos = _wrap_ovrVector3f_as_ndarray(&ptr.Position)
         self._ori = _wrap_ovrQuatf_as_ndarray(&ptr.Orientation)
         self._bbox = None
+        self._matrixNeedsUpdate = True
 
     def __dealloc__(self):
         # don't do anything crazy like set c_data=NULL without deallocating!
@@ -1057,6 +1074,68 @@ cdef class LibOVRPose(object):
         self.c_data[0].Orientation.z = 0.0
         self.c_data[0].Orientation.w = 1.0
 
+    def _updateMatrices(self):
+        """Update model, inverse, and normal matrices due to an attribute change.
+        """
+        if not self._matrixNeedsUpdate:
+            return
+
+        self._modelMatrix = libovr_math.Matrix4f(<libovr_math.Posef>self.c_data[0])
+        self._invModelMatrix = self._modelMatrix.InvertedHomogeneousTransform()
+        self._normalMatrix = self._invModelMatrix.Transposed()
+
+        # update the view matrix
+        cdef libovr_math.Vector3f pos = <libovr_math.Vector3f>self.c_data.Position
+        cdef libovr_math.Quatf ori = <libovr_math.Quatf>self.c_data.Orientation
+
+        if not ori.IsNormalized():  # make sure orientation is normalized
+            ori.Normalize()
+
+        cdef libovr_math.Matrix4f rm = libovr_math.Matrix4f(ori)
+        cdef libovr_math.Vector3f up = rm.Transform(
+            libovr_math.Vector3f(0., 1., 0.))
+        cdef libovr_math.Vector3f forward = rm.Transform(
+            libovr_math.Vector3f(0., 0., -1.))
+        self._viewMatrix = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
+        self._invViewMatrix = self._viewMatrix.InvertedHomogeneousTransform()
+
+        # make sure we have proxy objects
+        if self._modelMatrixArr is None:
+            self._modelMatrixArr = np.PyArray_SimpleNewFromData(
+                2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._modelMatrix.M)
+
+        if self._invModelMatrixArr is None:
+            self._invModelMatrixArr = np.PyArray_SimpleNewFromData(
+                2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._invModelMatrix.M)
+
+        if self._normalMatrixArr is None:
+            self._normalMatrixArr = np.PyArray_SimpleNewFromData(
+                2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._normalMatrix.M)
+
+        if self._viewMatrixArr is None:
+            self._viewMatrixArr = np.PyArray_SimpleNewFromData(
+                2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._viewMatrix.M)
+
+        if self._invViewMatrixArr is None:
+            self._invViewMatrixArr = np.PyArray_SimpleNewFromData(
+                2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._invViewMatrix.M)
+
+        # ctypes pointers to matrices
+        if self._matrixPointers is None:
+            self._matrixPointers = {
+                'modelMatrix': self._modelMatrixArr.ctypes.data_as(
+                    ctypes.POINTER(ctypes.c_float)),
+                'invModelMatrix': self._invModelMatrixArr.ctypes.data_as(
+                    ctypes.POINTER(ctypes.c_float)),
+                'viewMatrix': self._viewMatrixArr.ctypes.data_as(
+                    ctypes.POINTER(ctypes.c_float)),
+                'invViewMatrix': self._invViewMatrixArr.ctypes.data_as(
+                    ctypes.POINTER(ctypes.c_float)),
+                'normalMatrix': self._normalMatrixArr.ctypes.data_as(
+                    ctypes.POINTER(ctypes.c_float))}
+
+        self._matrixNeedsUpdate = False
+
     @property
     def pos(self):
         """ndarray : Position vector [X, Y, Z].
@@ -1086,10 +1165,12 @@ cdef class LibOVRPose(object):
             p[1] = 1.5  # sets the Y position of 'myPose' to 1.5
 
         """
+        self._matrixNeedsUpdate = True
         return self._pos
 
     @pos.setter
     def pos(self, object value):
+        self._matrixNeedsUpdate = True
         self._pos[:] = value
 
     def getPos(self, np.ndarray[np.float32_t, ndim=1] out=None):
@@ -1139,6 +1220,8 @@ cdef class LibOVRPose(object):
         toReturn[1] = self.c_data[0].Position.y
         toReturn[2] = self.c_data[0].Position.z
 
+        self._matrixNeedsUpdate = True
+
         return toReturn
 
     def setPos(self, object pos):
@@ -1153,15 +1236,18 @@ cdef class LibOVRPose(object):
         self.c_data[0].Position.x = <float>pos[0]
         self.c_data[0].Position.y = <float>pos[1]
         self.c_data[0].Position.z = <float>pos[2]
+        self._matrixNeedsUpdate = True
 
     @property
     def ori(self):
         """ndarray : Orientation quaternion [X, Y, Z, W].
         """
+        self._matrixNeedsUpdate = True
         return self._ori
 
     @ori.setter
     def ori(self, object value):
+        self._matrixNeedsUpdate = True
         self._ori[:] = value
 
     def getOri(self, np.ndarray[np.float32_t, ndim=1] out=None):
@@ -1199,6 +1285,8 @@ cdef class LibOVRPose(object):
         toReturn[2] = self.c_data[0].Orientation.z
         toReturn[3] = self.c_data[0].Orientation.w
 
+        self._matrixNeedsUpdate = True
+
         return toReturn
 
     def setOri(self, object ori):
@@ -1215,11 +1303,14 @@ cdef class LibOVRPose(object):
         self.c_data[0].Orientation.z = <float>ori[2]
         self.c_data[0].Orientation.w = <float>ori[3]
 
+        self._matrixNeedsUpdate = True
+
     @property
     def posOri(self):
         """tuple (ndarray, ndarray) : Position vector and
         orientation quaternion.
         """
+        self._matrixNeedsUpdate = True
         return self.pos, self.ori
 
     @posOri.setter
@@ -1389,6 +1480,8 @@ cdef class LibOVRPose(object):
         self.c_data.Orientation = \
             <capi.ovrQuatf>libovr_math.Quatf(axis3f, angle)
 
+        self._matrixNeedsUpdate = True
+
     def getYawPitchRoll(self, LibOVRPose refPose=None, bint degrees=True, np.ndarray[np.float32_t] out=None):
         """Get the yaw, pitch, and roll of the orientation quaternion.
 
@@ -1484,6 +1577,8 @@ cdef class LibOVRPose(object):
 
         self.c_data.Orientation = \
             <capi.ovrQuatf>(pose.Rotation * libovr_math.Quatf.Align(targ, fwd))
+
+        self._matrixNeedsUpdate = True
 
     def getSwingTwist(self, object twistAxis):
         """Swing and twist decomposition of this pose's rotation quaternion.
@@ -1629,67 +1724,27 @@ cdef class LibOVRPose(object):
     @property
     def modelMatrix(self):
         """Pose as a 4x4 homogeneous transformation matrix."""
-        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
+        if self._matrixNeedsUpdate:
+            self._updateMatrices()
 
-        cdef np.ndarray[np.float32_t, ndim=2] toReturn = \
-            np.zeros((4, 4), dtype=np.float32)
-
-        # fast copy matrix to numpy array
-        cdef float [:, :] mv = toReturn
-        cdef Py_ssize_t i, j
-        cdef Py_ssize_t N = 4
-        i = j = 0
-        for i in range(N):
-            for j in range(N):
-                mv[i, j] = m_pose.M[i][j]
-
-        return toReturn
+        return self._modelMatrixArr
 
     @property
     def inverseModelMatrix(self):
         """Pose as a 4x4 homogeneous inverse transformation matrix."""
-        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
-        m_pose.InvertHomogeneousTransform()  # rigid body transform inverse
+        if self._matrixNeedsUpdate:
+            self._updateMatrices()
 
-        cdef np.ndarray[np.float32_t, ndim=2] toReturn = \
-            np.zeros((4, 4), dtype=np.float32)
-
-        # fast copy matrix to numpy array
-        cdef float [:, :] mv = toReturn
-        cdef Py_ssize_t i, j
-        cdef Py_ssize_t N = 4
-        i = j = 0
-        for i in range(N):
-            for j in range(N):
-                mv[i, j] = m_pose.M[i][j]
-
-        return toReturn
+        return self._invModelMatrixArr
 
     @property
     def normalMatrix(self):
         """Normal matrix for transforming normals of meshes associated with
         poses."""
-        cdef libovr_math.Matrix4f normalMatrix = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
+        if self._matrixNeedsUpdate:
+            self._updateMatrices()
 
-        normalMatrix.InvertHomogeneousTransform()
-        normalMatrix.Transposed()
-
-        cdef np.ndarray[np.float32_t, ndim=2] toReturn = \
-            np.zeros((4, 4), dtype=np.float32)
-
-        # fast copy matrix to numpy array
-        cdef float [:, :] mv = toReturn
-        cdef Py_ssize_t i, j
-        cdef Py_ssize_t N = 4
-        i = j = 0
-        for i in range(N):
-            for j in range(N):
-                mv[i, j] = normalMatrix.M[i][j]
-
-        return toReturn
+        return self._normalMatrixArr
 
     def getModelMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
         """Get this pose as a 4x4 transformation matrix.
@@ -1708,14 +1763,19 @@ cdef class LibOVRPose(object):
         ndarray
             4x4 transformation matrix.
 
+        Notes
+        -----
+        * This function create a new `ndarray` with data copied from cache. Use
+          the `modelMatrix` or `inverseModelMatrix` attributes for direct cache
+          memory access.
+
         Examples
         --------
         Using view matrices with PyOpenGL (fixed-function)::
 
-            M = myPose.getModelMatrix()
             glMatrixMode(GL_MODELVIEW)
             glPushMatrix()
-            glMultTransposeMatrixf(M)
+            glMultTransposeMatrixf(myPose.getModelMatrix())
             # run draw commands ...
             glPopMatrix()
 
@@ -1723,8 +1783,7 @@ cdef class LibOVRPose(object):
         need to convert the matrix to a C-types pointer before passing it to
         `glLoadTransposeMatrixf`::
 
-            M = myPose.getModelMatrix()
-            M = M.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+            M = myPose.getModelMatrix().ctypes.data_as(ctypes.POINTER(ctypes.c_float))
             glMatrixMode(GL_MODELVIEW)
             glPushMatrix()
             glMultTransposeMatrixf(M)
@@ -1733,7 +1792,7 @@ cdef class LibOVRPose(object):
 
         If using fragment shaders, the matrix can be passed on to them as such::
 
-            M = myPose.getModelMatrix()
+            M = myPose.getModelMatrix().ctypes.data_as(ctypes.POINTER(ctypes.c_float))
             M = M.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
             # after the program was installed in the current rendering state via
             # `glUseProgram` ...
@@ -1741,28 +1800,38 @@ cdef class LibOVRPose(object):
             glUniformMatrix4fv(loc, 1, GL_TRUE, P)  # `transpose` must be `True`
 
         """
-        cdef libovr_math.Matrix4f m_pose = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
+        if self._matrixNeedsUpdate:
+            self._updateMatrices()
 
-        if inverse:
-            m_pose.InvertHomogeneousTransform()  # faster than Invert() here
-
-        cdef np.ndarray[np.float32_t, ndim=2] toReturn
         if out is None:
-            toReturn =  np.zeros((4, 4), dtype=np.float32)
-        else:
-            toReturn = out
+            if not inverse:
+                return self._modelMatrixArr.copy()
+            else:
+                return self._invModelMatrixArr.copy()
 
-        # fast copy matrix to numpy array
-        cdef float [:, :] mv = toReturn
-        cdef Py_ssize_t i, j
-        cdef Py_ssize_t N = 4
+        cdef libovr_math.Matrix4f* m = NULL
+
+        if not inverse:
+            m = &self._modelMatrix
+        else:
+            m = &self._invModelMatrix
+
+        cdef Py_ssize_t i, j, N
         i = j = 0
+        N = 4
         for i in range(N):
             for j in range(N):
-                mv[i, j] = m_pose.M[i][j]
+                out[i, j] = m.M[i][j]
 
-        return toReturn
+        return out
+
+    @property
+    def inverseViewMatrix(self):
+        """Pose as a 4x4 homogeneous inverse transformation matrix."""
+        if self._matrixNeedsUpdate:
+            self._updateMatrices()
+
+        return self._invViewMatrixArr
 
     def getViewMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
         """Convert this pose into a view matrix.
@@ -1788,6 +1857,11 @@ cdef class LibOVRPose(object):
         ndarray
             4x4 view matrix derived from the pose.
 
+        Notes
+        -----
+        * This function create a new `ndarray` with data copied from cache. Use
+          the `viewMatrix` attribute for direct cache memory access.
+
         Examples
         --------
         Compute eye poses from a head pose and compute view matrices::
@@ -1806,44 +1880,30 @@ cdef class LibOVRPose(object):
                              rightEyeRenderPose.getViewMatrix()]
 
         """
-        # compute the eye transformation matrices from poses
-        cdef libovr_math.Vector3f pos
-        cdef libovr_math.Quatf ori
-        cdef libovr_math.Vector3f up
-        cdef libovr_math.Vector3f forward
-        cdef libovr_math.Matrix4f rm
-        cdef libovr_math.Matrix4f m_view
-
-        pos = <libovr_math.Vector3f>self.c_data.Position
-        ori = <libovr_math.Quatf>self.c_data.Orientation
-
-        if not ori.IsNormalized():  # make sure orientation is normalized
-            ori.Normalize()
-
-        rm = libovr_math.Matrix4f(ori)
-        up = rm.Transform(libovr_math.Vector3f(0., 1., 0.))
-        forward = rm.Transform(libovr_math.Vector3f(0., 0., -1.))
-        m_view = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
-
-        if inverse:
-            m_view.InvertHomogeneousTransform()
-
-        # prepare return array
-        cdef np.ndarray[np.float32_t, ndim=2] to_return
+        if self._matrixNeedsUpdate:
+            self._updateMatrices()
 
         if out is None:
-            to_return = np.zeros((4, 4), dtype=np.float32)
+            if not inverse:
+                return self._viewMatrixArr.copy()
+            else:
+                return self._invViewMatrixArr.copy()
+
+        cdef libovr_math.Matrix4f* m = NULL
+
+        if not inverse:
+            m = &self._viewMatrix
         else:
-            to_return = out
+            m = &self._invViewMatrix
 
         cdef Py_ssize_t i, j, N
         i = j = 0
         N = 4
         for i in range(N):
             for j in range(N):
-                to_return[i, j] = m_view.M[i][j]
+                out[i, j] = m.M[i][j]
 
-        return to_return
+        return out
 
     def getNormalMatrix(self, np.ndarray[np.float32_t, ndim=2] out=None):
         """Get a normal matrix used to transform normals within a fragment
@@ -1861,29 +1921,60 @@ cdef class LibOVRPose(object):
         ndarray
             4x4 normal matrix.
 
+        Notes
+        -----
+        * This function create a new `ndarray` with data copied from cache. Use
+          the `normalMatrix` attribute for direct cache memory access.
+
         """
-        cdef libovr_math.Matrix4f normalMatrix = libovr_math.Matrix4f(
-            <libovr_math.Posef>self.c_data[0])
+        if self._matrixNeedsUpdate:
+            self._updateMatrices()
 
-        normalMatrix.InvertHomogeneousTransform()
-        normalMatrix.Transposed()
-
-        cdef np.ndarray[np.float32_t, ndim=2] toReturn
         if out is None:
-            toReturn =  np.zeros((4, 4), dtype=np.float32)
-        else:
-            toReturn = out
+            return self._normalMatrixArr.copy()
 
-        # fast copy matrix to numpy array
-        cdef float [:, :] mv = toReturn
-        cdef Py_ssize_t i, j
-        cdef Py_ssize_t N = 4
+        cdef Py_ssize_t i, j, N
         i = j = 0
+        N = 4
         for i in range(N):
             for j in range(N):
-                mv[i, j] = normalMatrix.M[i][j]
+                out[i, j] = self._normalMatrix.M[i][j]
 
-        return toReturn
+        return out
+
+    @property
+    def ctypes(self):
+        """Pointers to matrix data.
+
+        This attribute provides a dictionary of pointers to cached matrix data
+        to simplify passing data to OpenGL. This is particularly useful when
+        using `pyglet` which accepts matrices as pointers. Dictionary keys are
+        strings sharing the same name as the attributes whose data they point
+        to.
+
+        Examples
+        --------
+        Setting the model matrix::
+
+            glMatrixMode(GL_MODELVIEW)
+            glPushMatrix()
+            glMultTransposeMatrixf(myPose.ctypes['modelMatrix'])
+            # run draw commands ...
+            glPopMatrix()
+
+        If using fragment shaders, the matrix can be passed on to them as such::
+
+            # after the program was installed in the current rendering state via
+            # `glUseProgram` ...
+            loc = glGetUniformLocation(program, b"m_Model")
+            # `transpose` must be `True`
+            glUniformMatrix4fv(loc, 1, GL_TRUE, myPose.ctypes['modelMatrix'])
+
+        """
+        if self._matrixNeedsUpdate:
+            self._updateMatrices()
+
+        return self._matrixPointers
 
     def normalize(self):
         """Normalize this pose.
@@ -4858,7 +4949,7 @@ def create():
     return result
 
 
-def sessionStarted():
+def checkSessionStarted():
     """Check of a session has been created.
 
     This value should return `True` between calls of :func:`create` and

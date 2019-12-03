@@ -6,13 +6,37 @@ Version 0.2.3 - 2019/11/25
 
 Overview:
 
-    This release has some minor fixes and features added.
+    This release has some minor fixes and features such as improved memory use
+    and performance.
 
 New Features:
 
-    - Added function `sessionStarted` to determine if there is an active VR
+    - Added function `checkSessionStarted` to determine if there is an active VR
       session. This is helpful to determine if a session is active from another
       module or file within the same interpreter thread.
+    - Added `normalMatrix` and `getNormalMatrix` which retrieves a normal matrix
+      for a mesh at a given pose. This matrix is commonly used by fragment
+      shaders, and would usually need to be computed separately with the model
+      matrix. That's no longer the case, you can now get a normal matrix along
+      with your model matrix from a `LibOVRPose` instance.
+    - `LibOVRPose` matrices are now cached to improve performance and memory
+      access. Returned `ndarray` matrices now reference data directly instead of
+      being copied over to new arrays every time. Matrices are computed only
+      after `pos` and `ori` are accessed/changed. Furthermore, they are computed
+      only when any attribute or method of `LibOVRPose` which returns a matrix
+      is invoked. If there are no changes to `pos` and `ori` between successive
+      matrix related attribute or method calls, cached data will be returned
+      immediately without additional computation. One caveat about this approach
+      is that matrices are always recomputed when accessing values, even if
+      attributes `pos` and `ori` were only read, since currently there is no way
+      to determine if the referencing `ndarrays` modified their referenced data.
+      So it's just always assumed that they did. There is also a `ctypes`
+      attribute associated with the class which returns a dictionary of `ctypes`
+      pointers to the underlying matrix data. This allows `pyglet`'s GL
+      implementation to directly access the data contained in these matrices
+      without needing to create pointers yourself from returned `ndarray`
+      objects. See `Known Issues` for more information about possible problems
+      associated with caching.
 
 Bug Fixes:
 
@@ -22,6 +46,46 @@ Bug Fixes:
 Breaking Changes:
 
     - None
+
+Known Issues:
+
+    - Users need to be aware of idiosyncrasies related to the memory
+      improvements listed above. One must be careful not to modify returned
+      arrays since they will also modify their caches stored by the `LibOVRPose`
+      instance. Furthermore, if the `LibOVRPose` instance is garbage collected
+      because it is no longer referenced or manually deleted (by using `del`),
+      any `ndarrays` or pointers still alive will access invalid data since
+      the caches had their memory freed! This problem can be caused by doing the
+      following::
+
+            # don't do this
+            myPose = LibOVRPose((0., 0., -2.))
+            myMatrix = myPose.modelMatrix
+
+      It's best to keep pose objects alive by not creating references to their
+      data and using them directly::
+
+            # don't do this ...
+            myPose = LibOVRPose((0., 0., -2.))
+            modelMatrix = myPose.modelMatrix
+            viewMatrix = myPose.viewMatrix
+            modelViewMatrix = numpy.matmul(viewMatrix, modelMatrix)
+
+            # instead do this ...
+            modelViewMatrix = numpy.matmul(myPose.viewMatrix, myPose.modelMatrix)
+
+      Keep in mind there is near zero-overhead to doing this since `ndarray`
+      objects are not created when accessing an attribute. If you wish not to
+      keep the `LibOVRPose` object alive for some reason (or can't), you can
+      copy the data like so::
+
+            myPose = LibOVRPose((0., 0., -2.))
+            modelMatrix = planePose.modelMatrix.copy()
+            del myPose  # you can do this and myMatrix will have valid data
+
+      In future versions of PsychXR, the caching system will be improved,
+      expanded, and made more robust to get around these issues. Further
+      reducing overhead and leaving more headroom per-frame for the user.
 
 
 Version 0.2.2 - 2019/10/16
