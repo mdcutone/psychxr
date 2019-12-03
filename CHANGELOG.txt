@@ -37,6 +37,8 @@ New Features:
       without needing to create pointers yourself from returned `ndarray`
       objects. See `Known Issues` for more information about possible problems
       associated with caching.
+    - Added `turn` method to `LibOVRPose` to rotate objects about an axis by
+      some angle cumulatively.
 
 Bug Fixes:
 

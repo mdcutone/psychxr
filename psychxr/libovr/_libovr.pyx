@@ -891,6 +891,31 @@ cdef class LibOVRPose(object):
     def __cinit__(self, *args, **kwargs):
         self.ptr_owner = False
 
+        # make sure we have proxy objects
+        self._modelMatrixArr = np.PyArray_SimpleNewFromData(
+            2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._modelMatrix.M)
+        self._invModelMatrixArr = np.PyArray_SimpleNewFromData(
+            2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._invModelMatrix.M)
+        self._normalMatrixArr = np.PyArray_SimpleNewFromData(
+            2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._normalMatrix.M)
+        self._viewMatrixArr = np.PyArray_SimpleNewFromData(
+            2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._viewMatrix.M)
+        self._invViewMatrixArr = np.PyArray_SimpleNewFromData(
+            2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._invViewMatrix.M)
+
+        # ctypes pointers to matrices
+        self._matrixPointers = {
+            'modelMatrix': self._modelMatrixArr.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float)),
+            'inverseModelMatrix': self._invModelMatrixArr.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float)),
+            'viewMatrix': self._viewMatrixArr.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float)),
+            'inverseViewMatrix': self._invViewMatrixArr.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float)),
+            'normalMatrix': self._normalMatrixArr.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float))}
+
     @staticmethod
     cdef LibOVRPose fromPtr(capi.ovrPosef* ptr, bint owner=False):
         cdef LibOVRPose wrapper = LibOVRPose.__new__(LibOVRPose)
@@ -958,6 +983,8 @@ cdef class LibOVRPose(object):
         cdef libovr_math.Posef this_pose = <libovr_math.Posef>self.c_data[0]
         self.c_data[0] = <capi.ovrPosef>(
                 <libovr_math.Posef>other.c_data[0] * this_pose)
+
+        self._matrixNeedsUpdate = True
 
         return self
 
@@ -1098,41 +1125,6 @@ cdef class LibOVRPose(object):
             libovr_math.Vector3f(0., 0., -1.))
         self._viewMatrix = libovr_math.Matrix4f.LookAtRH(pos, pos + forward, up)
         self._invViewMatrix = self._viewMatrix.InvertedHomogeneousTransform()
-
-        # make sure we have proxy objects
-        if self._modelMatrixArr is None:
-            self._modelMatrixArr = np.PyArray_SimpleNewFromData(
-                2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._modelMatrix.M)
-
-        if self._invModelMatrixArr is None:
-            self._invModelMatrixArr = np.PyArray_SimpleNewFromData(
-                2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._invModelMatrix.M)
-
-        if self._normalMatrixArr is None:
-            self._normalMatrixArr = np.PyArray_SimpleNewFromData(
-                2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._normalMatrix.M)
-
-        if self._viewMatrixArr is None:
-            self._viewMatrixArr = np.PyArray_SimpleNewFromData(
-                2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._viewMatrix.M)
-
-        if self._invViewMatrixArr is None:
-            self._invViewMatrixArr = np.PyArray_SimpleNewFromData(
-                2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._invViewMatrix.M)
-
-        # ctypes pointers to matrices
-        if self._matrixPointers is None:
-            self._matrixPointers = {
-                'modelMatrix': self._modelMatrixArr.ctypes.data_as(
-                    ctypes.POINTER(ctypes.c_float)),
-                'invModelMatrix': self._invModelMatrixArr.ctypes.data_as(
-                    ctypes.POINTER(ctypes.c_float)),
-                'viewMatrix': self._viewMatrixArr.ctypes.data_as(
-                    ctypes.POINTER(ctypes.c_float)),
-                'invViewMatrix': self._invViewMatrixArr.ctypes.data_as(
-                    ctypes.POINTER(ctypes.c_float)),
-                'normalMatrix': self._normalMatrixArr.ctypes.data_as(
-                    ctypes.POINTER(ctypes.c_float))}
 
         self._matrixNeedsUpdate = False
 
@@ -1479,6 +1471,33 @@ cdef class LibOVRPose(object):
 
         self.c_data.Orientation = \
             <capi.ovrQuatf>libovr_math.Quatf(axis3f, angle)
+
+        self._matrixNeedsUpdate = True
+
+    def turn(self, object axis, float angle, bint degrees=True):
+        """Turn (or rotate) this pose about an axis. Successive calls of `turn`
+        are cumulative.
+
+        Parameters
+        ----------
+        axis : array_like
+            Axis of rotation [rx, ry, rz].
+        angle : float
+            Angle of rotation.
+        degrees : bool, optional
+            Specify ``True`` if `angle` is in degrees, or else it will be
+            treated as radians. Default is ``True``.
+
+        """
+        cdef libovr_math.Vector3f axis3f = \
+            libovr_math.Vector3f(<float>axis[0], <float>axis[1], <float>axis[2])
+
+        if degrees:
+            angle *= DEG_TO_RADF
+
+        self.c_data.Orientation = <capi.ovrQuatf>(
+                <libovr_math.Quatf>self.c_data.Orientation *
+                libovr_math.Quatf(axis3f, angle))
 
         self._matrixNeedsUpdate = True
 
@@ -1985,6 +2004,9 @@ cdef class LibOVRPose(object):
 
         """
         (<libovr_math.Posef>self.c_data[0]).Normalize()
+        self._matrixNeedsUpdate = True
+
+        return self
 
     def invert(self):
         """Invert this pose.
@@ -1996,6 +2018,10 @@ cdef class LibOVRPose(object):
         """
         self.c_data[0] = \
             <capi.ovrPosef>((<libovr_math.Posef>self.c_data[0]).Inverted())
+
+        self._matrixNeedsUpdate = True
+
+        return self
 
     def inverted(self):
         """Get the inverse of the pose.
@@ -4911,7 +4937,9 @@ def create():
     Oculus Home.
 
     Starting a session will initialize and create a new session. Afterwards
-    API functions will return valid values.
+    API functions will return valid values. You can only create one session per
+    interpreter thread. All other files/modules within the same thread which
+    import PsychXR make API calls to the same session after `create` is called.
 
     Returns
     -------
