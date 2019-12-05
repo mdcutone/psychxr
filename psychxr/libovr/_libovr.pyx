@@ -799,10 +799,16 @@ cdef np.ndarray _wrap_ovrQuatf_as_ndarray(capi.ovrQuatf* prtVec):
         1, QUAT_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
 
 
-#cdef np.ndarray _wrap_ovrMatrix4f_as_ndarray(capi.ovrMatrix4f* prtVec):
-#    """Wrap an ovrMatrix4f object with a NumPy array."""
-#    return np.PyArray_SimpleNewFromData(
-#        2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec.M)
+cdef np.ndarray _wrap_ovrMatrix4f_as_ndarray(capi.ovrMatrix4f* prtVec):
+    """Wrap an ovrMatrix4f object with a NumPy array."""
+    return np.PyArray_SimpleNewFromData(
+        2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec.M)
+
+
+cdef np.ndarray _wrap_Matrix4f_as_ndarray(libovr_math.Matrix4f* prtVec):
+    """Wrap a Matrix4f object with a NumPy array."""
+    return np.PyArray_SimpleNewFromData(
+        2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec.M)
 
 
 cdef np.ndarray _wrap_ovrFovPort_as_ndarray(capi.ovrFovPort* prtVec):
@@ -879,7 +885,7 @@ cdef class LibOVRPose(object):
     cdef np.ndarray _normalMatrixArr
     cdef np.ndarray _viewMatrixArr
     cdef np.ndarray _invViewMatrixArr
-    cdef dict _matrixPointers
+    cdef dict _ptrMatrices
 
     cdef bint _matrixNeedsUpdate
 
@@ -892,19 +898,14 @@ cdef class LibOVRPose(object):
         self.ptr_owner = False
 
         # make sure we have proxy objects
-        self._modelMatrixArr = np.PyArray_SimpleNewFromData(
-            2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._modelMatrix.M)
-        self._invModelMatrixArr = np.PyArray_SimpleNewFromData(
-            2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._invModelMatrix.M)
-        self._normalMatrixArr = np.PyArray_SimpleNewFromData(
-            2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._normalMatrix.M)
-        self._viewMatrixArr = np.PyArray_SimpleNewFromData(
-            2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._viewMatrix.M)
-        self._invViewMatrixArr = np.PyArray_SimpleNewFromData(
-            2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>self._invViewMatrix.M)
+        self._modelMatrixArr = _wrap_Matrix4f_as_ndarray(&self._modelMatrix)
+        self._invModelMatrixArr = _wrap_Matrix4f_as_ndarray(&self._invModelMatrix)
+        self._normalMatrixArr = _wrap_Matrix4f_as_ndarray(&self._normalMatrix)
+        self._viewMatrixArr = _wrap_Matrix4f_as_ndarray(&self._viewMatrix)
+        self._invViewMatrixArr = _wrap_Matrix4f_as_ndarray(&self._invViewMatrix)
 
         # ctypes pointers to matrices
-        self._matrixPointers = {
+        self._ptrMatrices = {
             'modelMatrix': self._modelMatrixArr.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float)),
             'inverseModelMatrix': self._invModelMatrixArr.ctypes.data_as(
@@ -1743,16 +1744,14 @@ cdef class LibOVRPose(object):
     @property
     def modelMatrix(self):
         """Pose as a 4x4 homogeneous transformation matrix."""
-        if self._matrixNeedsUpdate:
-            self._updateMatrices()
+        self._updateMatrices()
 
         return self._modelMatrixArr
 
     @property
     def inverseModelMatrix(self):
         """Pose as a 4x4 homogeneous inverse transformation matrix."""
-        if self._matrixNeedsUpdate:
-            self._updateMatrices()
+        self._updateMatrices()
 
         return self._invModelMatrixArr
 
@@ -1760,8 +1759,7 @@ cdef class LibOVRPose(object):
     def normalMatrix(self):
         """Normal matrix for transforming normals of meshes associated with
         poses."""
-        if self._matrixNeedsUpdate:
-            self._updateMatrices()
+        self._updateMatrices()
 
         return self._normalMatrixArr
 
@@ -1819,8 +1817,7 @@ cdef class LibOVRPose(object):
             glUniformMatrix4fv(loc, 1, GL_TRUE, P)  # `transpose` must be `True`
 
         """
-        if self._matrixNeedsUpdate:
-            self._updateMatrices()
+        self._updateMatrices()
 
         if out is None:
             if not inverse:
@@ -1847,8 +1844,7 @@ cdef class LibOVRPose(object):
     @property
     def inverseViewMatrix(self):
         """Pose as a 4x4 homogeneous inverse transformation matrix."""
-        if self._matrixNeedsUpdate:
-            self._updateMatrices()
+        self._updateMatrices()
 
         return self._invViewMatrixArr
 
@@ -1899,8 +1895,7 @@ cdef class LibOVRPose(object):
                              rightEyeRenderPose.getViewMatrix()]
 
         """
-        if self._matrixNeedsUpdate:
-            self._updateMatrices()
+        self._updateMatrices()
 
         if out is None:
             if not inverse:
@@ -1946,8 +1941,7 @@ cdef class LibOVRPose(object):
           the `normalMatrix` attribute for direct cache memory access.
 
         """
-        if self._matrixNeedsUpdate:
-            self._updateMatrices()
+        self._updateMatrices()
 
         if out is None:
             return self._normalMatrixArr.copy()
@@ -1990,10 +1984,9 @@ cdef class LibOVRPose(object):
             glUniformMatrix4fv(loc, 1, GL_TRUE, myPose.ctypes['modelMatrix'])
 
         """
-        if self._matrixNeedsUpdate:
-            self._updateMatrices()
+        self._updateMatrices()
 
-        return self._matrixPointers
+        return self._ptrMatrices
 
     def normalize(self):
         """Normalize this pose.
