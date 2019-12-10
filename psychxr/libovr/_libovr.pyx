@@ -421,6 +421,10 @@ cdef capi.ovrPosef[2] _eyeRenderPoses
 cdef capi.ovrEyeRenderDesc[2] _eyeRenderDesc
 # cdef capi.ovrViewScaleDesc _viewScale
 
+# near and far clipping planes
+cdef float[2] _nearClip
+cdef float[2] _farClip
+
 # prepare the render layer
 _eyeLayer.Header.Type = capi.ovrLayerType_EyeFov
 _eyeLayer.Header.Flags = \
@@ -1843,7 +1847,7 @@ cdef class LibOVRPose(object):
 
     @property
     def inverseViewMatrix(self):
-        """Pose as a 4x4 homogeneous inverse transformation matrix."""
+        """View matrix inverse."""
         self._updateMatrices()
 
         return self._invViewMatrixArr
@@ -5241,19 +5245,23 @@ def getEyeRenderFov(int eye):
 
     Returns
     -------
-    ndarray
-        Eye FOV tangent angles [UpTan, DownTan, LeftTan, RightTan].
+    tuple
+        Eye FOV tangent angles [UpTan, DownTan, LeftTan, RightTan], distance to
+        near and far clipping planes in meters.
 
     Examples
     --------
     Getting the tangent angles::
 
-        leftFov = getEyeRenderFOV(EYE_LEFT)
+        leftFov, nearClip, farClip = getEyeRenderFOV(EYE_LEFT)
         # left FOV tangent angles, do the same for the right
         upTan, downTan, leftTan, rightTan =  leftFov
 
     """
     global _eyeRenderDesc
+    global _nearClip
+    global _farClip
+
     cdef np.ndarray to_return = np.asarray([
         _eyeRenderDesc[eye].Fov.UpTan,
         _eyeRenderDesc[eye].Fov.DownTan,
@@ -5261,10 +5269,10 @@ def getEyeRenderFov(int eye):
         _eyeRenderDesc[eye].Fov.RightTan],
         dtype=np.float32)
 
-    return to_return
+    return to_return, _nearClip[eye], _farClip[eye]
 
 
-def setEyeRenderFov(int eye, object fov):
+def setEyeRenderFov(int eye, object fov, float nearClip=0.01, float farClip=1000.):
     """Set the field-of-view of a given eye. This is used to compute the
     projection matrix.
 
@@ -5280,6 +5288,9 @@ def setEyeRenderFov(int eye, object fov):
         Eye index. Values are ``EYE_LEFT`` and ``EYE_RIGHT``.
     fov : array_like
         Eye FOV tangent angles [UpTan, DownTan, LeftTan, RightTan].
+    nearClip, farClip : float
+        Near and far clipping planes in meters. Used when computing the
+        projection matrix.
 
     Examples
     --------
@@ -5299,6 +5310,9 @@ def setEyeRenderFov(int eye, object fov):
     global _ptrSession
     global _eyeRenderDesc
     global _eyeLayer
+    global _nearClip
+    global _farClip
+    global _eyeProjectionMatrix
 
     cdef capi.ovrFovPort fov_in
     fov_in.UpTan = <float>fov[0]
@@ -5313,6 +5327,18 @@ def setEyeRenderFov(int eye, object fov):
 
     # set in eye layer too
     _eyeLayer.Fov[eye] = _eyeRenderDesc[eye].Fov
+
+    # set clipping planes
+    _nearClip[<int>eye] = nearClip
+    _farClip[<int>eye] = farClip
+
+    # compute the projection matrix
+    _eyeProjectionMatrix[eye] = \
+        <libovr_math.Matrix4f>capi.ovrMatrix4f_Projection(
+            _eyeRenderDesc[eye].Fov,
+            _nearClip[eye],
+            _farClip[eye],
+            capi.ovrProjection_ClipRangeOpenGL)
 
 
 def getEyeAspectRatio(int eye):
@@ -6354,6 +6380,7 @@ def setEyeRenderPose(int eye, LibOVRPose eyePose):
     """
     global _eyeRenderPoses
     global _eyeViewMatrix
+    global _eyeProjectionMatrix
     global _eyeViewProjectionMatrix
 
     _eyeRenderPoses[eye] = eyePose.c_data[0]
@@ -6381,7 +6408,7 @@ def setEyeRenderPose(int eye, LibOVRPose eyePose):
         _eyeProjectionMatrix[eye] * _eyeViewMatrix[eye]
 
 
-def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, np.ndarray[np.float32_t, ndim=2] out=None):
+def getEyeProjectionMatrix(int eye, np.ndarray[np.float32_t, ndim=2] out=None):
     """Compute the projection matrix.
 
     The projection matrix is computed by the runtime using the eye FOV
@@ -6391,10 +6418,6 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, n
     ----------
     eye: int
         Eye index. Use either ``EYE_LEFT`` or ``EYE_RIGHT``.
-    nearClip : `float`, optional
-        Near clipping plane in meters.
-    farClip : `float`, optional
-        Far clipping plane in meters.
     out : `ndarray` or `None`, optional
         Alternative matrix to write values to instead of returning a new one.
 
@@ -6450,7 +6473,6 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, n
 
     """
     global _eyeProjectionMatrix
-    global _eyeRenderDesc
 
     cdef np.ndarray[np.float32_t, ndim=2] to_return
 
@@ -6458,13 +6480,6 @@ def getEyeProjectionMatrix(int eye, float nearClip=0.01, float farClip=1000.0, n
         to_return = np.zeros((4, 4), dtype=np.float32)
     else:
         to_return = out
-
-    _eyeProjectionMatrix[eye] = \
-        <libovr_math.Matrix4f>capi.ovrMatrix4f_Projection(
-            _eyeRenderDesc[eye].Fov,
-            nearClip,
-            farClip,
-            capi.ovrProjection_ClipRangeOpenGL)
 
     # fast copy matrix to numpy array
     cdef float [:, :] mv = to_return

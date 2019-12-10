@@ -44,10 +44,17 @@ Bug Fixes:
 
     - Fixed `LibOVRPose.setIdentity()` method not working.
     - Fixed some errata in the documentation.
+    - `getEyeProjectionMatrix` no longer needs to be called for `cullPose` to
+      give valid results. The projection matrix is now computed and is persistent
+      after setting the render FOV.
 
 Breaking Changes:
 
-    - None
+    - `getEyeProjectionMatrix` no longer computes a matrix (just gets one) that
+      is now done when `setEyeRenderFov` is called. Therefore, `setEyeRenderFov`
+      now accepts near and far clipping planes. Those arguments have been
+      removed from `getEyeProjectionMatrix` and will cause a crash if your
+      program set them there.
 
 Known Issues:
 
@@ -85,9 +92,12 @@ Known Issues:
             modelMatrix = planePose.modelMatrix.copy()
             del myPose  # you can do this and myMatrix will have valid data
 
-      In future versions of PsychXR, the caching system will be improved,
-      expanded, and made more robust to get around these issues. Further
-      reducing overhead and leaving more headroom per-frame for the user.
+      Note that "getter" methods `get*` (eg. `getModelMatrix`) will always
+      return copies of cached matrix data. So use those instead of attributes
+      to avoid the problems above. In future versions of PsychXR, the caching
+      system will be improved, expanded, and made more robust to get around
+      these issues. Further reducing overhead and leaving more headroom
+      per-frame for the user.
 
 
 Version 0.2.2 - 2019/10/16
