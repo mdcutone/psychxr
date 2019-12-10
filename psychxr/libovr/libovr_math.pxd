@@ -29,7 +29,7 @@
 #
 """This file exposes Oculus SDK math functions and C++ classes allowing Cython
 extension modules to access them. The declarations in the file are
-contemporaneous with version 1.32 (retrieved 02.01.2019) of the Oculus Rift PC
+contemporaneous with version 1.40 (retrieved 10.12.2019) of the Oculus Rift PC
 SDK.
 
 The Oculus PC SDK is Copyright (c) Facebook Technologies, LLC and its

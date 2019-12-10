@@ -29,7 +29,7 @@
 # 
 """This file exposes Oculus Rift C API types and functions, allowing Cython
 extensions to access them. The declarations in the file are contemporaneous
-with version 1.37 (retrieved 02.01.2019) of the Oculus Rift PC SDK.
+with version 1.40 (retrieved 02.01.2019) of the Oculus Rift PC SDK.
 
 The Oculus PC SDK is Copyright (c) Facebook Technologies, LLC and its
 affiliates. All rights reserved.
