@@ -2,6 +2,46 @@
 Release Notes
 =============
 
+Version 0.2.3 - 2019-12-10
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This release has some minor fixes and features such as improved memory use and
+performance. There are some breaking changes in the release, see the CHANGELOG
+file for more information.
+
+**General**
+
+* Added function `checkSessionStarted` to determine if there is an active VR
+  session. This is helpful to determine if a session is active from another
+  module or file within the same interpreter thread.
+* Added `normalMatrix` and `getNormalMatrix` which retrieves a normal matrix
+  for a mesh at a given pose. This matrix is commonly used by fragment
+  shaders, and would usually need to be computed separately with the model
+  matrix. That's no longer the case, you can now get a normal matrix along
+  with your model matrix from a `LibOVRPose` instance.
+* `LibOVRPose` matrices are now cached to improve performance and memory
+  access. Returned `ndarray` matrices now reference data directly instead of
+  being copied over to new arrays every time. Matrices are computed only
+  after `pos` and `ori` are accessed/changed. Furthermore, they are computed
+  only when any attribute or method of `LibOVRPose` which returns a matrix
+  is invoked. If there are no changes to `pos` and `ori` between successive
+  matrix related attribute or method calls, cached data will be returned
+  immediately without additional computation. One caveat about this approach
+  is that matrices are always recomputed when accessing values, even if
+  attributes `pos` and `ori` were only read, since currently there is no way
+  to determine if the referencing `ndarrays` modified their referenced data.
+  So it's just always assumed that they did. There is also a `ctypes`
+  attribute associated with the class which returns a dictionary of `ctypes`
+  pointers to the underlying matrix data. This allows `pyglet`'s GL
+  implementation to directly access the data contained in these matrices
+  without needing to create pointers yourself from returned `ndarray`
+  objects. See `Known Issues` for more information about possible problems
+  associated with caching.
+* Added `turn` method to `LibOVRPose` to rotate objects about an axis by
+  some angle cumulatively.
+
+`Click here to download PsychXR 0.2.3 <https://github.com/mdcutone/psychxr/releases>`_
+
 
 Version 0.2.2 - 2019-10-16
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -28,9 +28,6 @@ If the binaries are not available for some reason (eg. your version of Python is
 too new), pip will try to build the source distribution (it will likely fail).
 In that case, see the "Building from Source" section for more information.
 
-**NOTE: PsychXR 0.2+ is not yet available on PIP (only 0.1.5 at this time), please
-follow the sections below if you wish to install it.**
-
 Installing Pre-Compiled Binaries
 --------------------------------
 
