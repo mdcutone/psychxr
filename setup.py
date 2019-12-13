@@ -40,83 +40,122 @@ from setuptools.extension import Extension
 from Cython.Build import cythonize, build_ext
 import numpy
 
-# compiler related data
-_include_dir_ = [numpy.get_include()]
-_lib_dirs_ = []
-_libraries_ = []
-_build_ext_ = []
+# Cython specific include directories
+CYTHON_INCLUDE_DIRS = [numpy.get_include(), '.']
 
-# build flags
-_build_libovr_ = '0'  # Oculus PC SDK extensions
+# C++ include directories
+CPP_INCLUDE_DIRS = [numpy.get_include(), '.', 'include/']
 
-# SDK related data
-_sdk_data_ = {}
+# library directories and library names
+LIB_DIRS = ['lib/']
+LIBRARIES = ['opengl32']  # required
 
-# additional package data
-PACKAGES = ['psychxr']
-DATA_FILES = []
+# extension modules to add to the package
+EXT_MODULES = []
 
+# platform and build information
+THIS_PLATFORM = platform.system()
+BUILD_LIBOVR = False
+BUILD_OPENHMD = True
+
+# setup build environment, needs to use MSVC on windows
 if platform.system() == 'Windows':
     # This makes sure the correct compiler is used, even if not explicitly
     # specified.
     os.environ["MSSdk"] = '1'
     os.environ["DISTUTILS_USE_SDK"] = '1'
-    _libraries_.extend(['opengl32', 'User32'])  # required Windows libraries
 
-    # check if which HMD were building libraries for
-    _build_libovr_ = os.environ.get('PSYCHXR_BUILD_LIBOVR', '1')
+    # only can be set on windows
+    BUILD_LIBOVR = os.environ.get('PSYCHXR_BUILD_LIBOVR', '1') == '1'
+    LIBRARIES.extend(['User32'])  # required
 
-    if _build_libovr_ == '1':  # build libovr extensions
-        print("building libovr extension modules ...")
-        _sdk_data_['libovr'] = {}
-        _sdk_data_['libovr']['libs'] = ['LibOVR']
-        env_sdk_path = os.environ.get('PSYCHXR_LIBOVR_SDK_PATH', None)
-        if env_sdk_path is not None:
-            _sdk_data_['libovr']['include'] = [
-                os.path.join(env_sdk_path, 'LibOVR', 'Include'),
-                os.path.join(env_sdk_path, 'LibOVR', 'Include', 'Extras')]
-            _sdk_data_['libovr']['lib_dir'] = [
-                os.path.join(
-                    env_sdk_path, 'LibOVR', 'Lib', 'Windows', 'x64', 'Release',
-                    'VS2017')]
-            _sdk_data_['libovr']['libs'] = []
-        else:
-            # use a default
-            _sdk_data_['libovr']['include'] = \
-                [r"C:\OculusSDK\LibOVR\Include",
-                 r"C:\OculusSDK\LibOVR\Include\Extras"]
-            _sdk_data_['libovr']['lib_dir'] = \
-                [r"C:\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2017"]
+# print out the build configuration
+if BUILD_LIBOVR:
+    print("Configured to build `LibOVR` extension modules.")
 
-        # package data
-        _sdk_data_['libovr']['packages'] = ['psychxr.libovr']
-        _sdk_data_['libovr']['package_data'] = \
-            {'psychxr.libovr': ['*.pxd', '*.pyx', '*.cpp']}
-        _sdk_data_['libovr']['data_files'] = {'psychxr/libovr': ['*.pyd']}
+if BUILD_OPENHMD:
+    print("Configured to build `OpenHMD` extension modules.")
 
-else:
-    raise Exception("Trying to install PsychXR on an unsupported operating "
-                    "system. Exiting.")
+# additional package data
+PACKAGES = ['psychxr']
+DATA_FILES = []
 
-# add configured extensions
-ext_modules = []
-if _build_libovr_ == '1':
+# Build LibOVR extensions which uses the official Oculus driver, this is
+# optional and only supported on Windows.
+if BUILD_LIBOVR:
+    # get SDK base path
+    libovr_sdk_path = os.environ.get('PSYCHXR_LIBOVR_SDK_PATH', None)
+    if libovr_sdk_path is None:
+        libovr_sdk_path = r"C:\OculusSDK"  # default
+    libovr_sdk_path = os.path.join(libovr_sdk_path, 'LibOVR')
+
+    # get libraries and include paths
+    libovr_libs = LIBRARIES + ['LibOVR']
+    libovr_include = CPP_INCLUDE_DIRS + [
+        os.path.join(libovr_sdk_path, 'Include'),
+        os.path.join(libovr_sdk_path, 'Include', 'Extras')]
+    libovr_libdir = LIB_DIRS + [
+        os.path.join(
+            libovr_sdk_path, 'Lib', 'Windows', 'x64', 'Release', 'VS2017')]
+
+    # compile from Cython to C++
     cythonize("psychxr/libovr/_libovr.pyx",
-              include_path=_sdk_data_['libovr']['include'],
-              compiler_directives = {'embedsignature': True,
-                                     'language_level': 3})
-    ext_modules.extend([
+              include_path=CYTHON_INCLUDE_DIRS,
+              compiler_directives={'embedsignature': True,
+                                   'language_level': 3})
+
+    # build the module and add it to the package directory
+    EXT_MODULES.extend([
         Extension(
             "psychxr.libovr._libovr",
-            ["psychxr/libovr/_libovr"+".cpp"],
-            include_dirs=_include_dir_ + _sdk_data_['libovr']['include'],
-            libraries=_libraries_ + _sdk_data_['libovr']['libs'],
-            library_dirs=_lib_dirs_ + _sdk_data_['libovr']['lib_dir'],
+            ["psychxr/libovr/_libovr" + ".cpp"],  # cythonized file
+            include_dirs=libovr_include,
+            libraries=libovr_libs,
+            library_dirs=libovr_libdir,
             language="c++",
-            extra_compile_args=[''])
-    ])
-    PACKAGES.extend(_sdk_data_['libovr']['packages'])
+            extra_compile_args=['']
+        )]
+    )
 
+    PACKAGES.extend(['psychxr.libovr'])
+
+
+# Build the open source OpenHMD VR drivers, these are always built since we
+# ship with the libraries
+if BUILD_OPENHMD:
+    # get libraries and include paths
+    ohmd_libs = LIBRARIES + ['hidapi', 'openhmd']
+    ohmd_include = CPP_INCLUDE_DIRS
+    if THIS_PLATFORM == 'Windows':
+        # use the DLLs we shipped with
+        ohmd_libdir = LIB_DIRS + [os.path.join('lib', 'win', 'x64')]
+    else:
+        # other platforms will use the system libs
+        ohmd_libdir = LIB_DIRS
+
+    # compile from Cython to C++
+    cythonize("psychxr/openhmd/_openhmd.pyx",
+              include_path=CYTHON_INCLUDE_DIRS,
+              compiler_directives={'embedsignature': True,
+                                   'language_level': 3})
+
+    # build the module and add it to the package directory
+    EXT_MODULES.extend([
+        Extension(
+            "psychxr.openhmd._openhmd",
+            ["psychxr/openhmd/_openhmd" + ".cpp"],  # cythonized file
+            include_dirs=ohmd_include,
+            libraries=ohmd_libs,
+            library_dirs=ohmd_libdir,
+            language="c++",
+            extra_compile_args=['']
+        )]
+    )
+
+    PACKAGES.extend(['psychxr.openhmd'])
+
+
+# Setup parameters
 setup_pars = {
     "name": "psychxr",
     "author": "Matthew D. Cutone, Laurie M. Wilcox",
@@ -143,8 +182,9 @@ setup_pars = {
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Cython',
         'Intended Audience :: Science/Research'],
-    "ext_modules": ext_modules,
+    "ext_modules": EXT_MODULES,
     #"data_files": DATA_FILES,
+    "include_dirs": ["."],
     "install_requires" : ["Cython>=0.29.3", "numpy>=1.13.3"],
     "requires" : [],
     "cmdclass" : {"build_ext": build_ext}}
