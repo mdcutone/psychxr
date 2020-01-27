@@ -395,7 +395,6 @@ from .cimport libovr_math
 from libc.stdint cimport int32_t, uint32_t, uintptr_t
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.math cimport pow, tan, M_PI, atan2
-cimport cython.parallel  # needed for the callback
 
 cimport numpy as np
 import numpy as np

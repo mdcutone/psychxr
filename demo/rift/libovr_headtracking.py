@@ -1,11 +1,12 @@
 # PsychXR Oculus Rift head tracking example. This file is public domain. See
 # See http://psychxr.org/examples/libovr_rendering.html for more information.
 #
-import OpenGL.GL as GL
-import ctypes
-import glfw
-from psychxr.libovr import *
+
 import sys
+import ctypes
+import OpenGL.GL as GL
+import glfw
+from psychxr.drivers.libovr import *
 
 
 def main():

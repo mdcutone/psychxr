@@ -101,14 +101,14 @@ else:
 # add configured extensions
 ext_modules = []
 if _build_libovr_ == '1':
-    cythonize("psychxr/libovr/_libovr.pyx",
+    cythonize("psychxr/drivers/libovr/_libovr.pyx",
               include_path=_sdk_data_['libovr']['include'],
               compiler_directives = {'embedsignature': True,
                                      'language_level': 3})
     ext_modules.extend([
         Extension(
-            "psychxr.libovr._libovr",
-            ["psychxr/libovr/_libovr"+".cpp"],
+            "psychxr.drivers.libovr._libovr",
+            ["psychxr/drivers/libovr/_libovr"+".cpp"],
             include_dirs=_include_dir_ + _sdk_data_['libovr']['include'],
             libraries=_libraries_ + _sdk_data_['libovr']['libs'],
             library_dirs=_lib_dirs_ + _sdk_data_['libovr']['lib_dir'],
@@ -127,7 +127,7 @@ setup_pars = {
     "url": "http://psychxr.org",
     #"package_data": PACKAGE_DATA,
     "include_package_data": True,
-    "version": "0.2.2",
+    "version": "0.2.4",
     "license" : "MIT",
     "description":
         "Python extension library for interacting with eXtended Reality "

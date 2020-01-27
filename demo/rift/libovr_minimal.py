@@ -1,6 +1,6 @@
 # PsychXR Oculus Rift minimal rendering example. This file is public domain.
 #
-from psychxr.libovr import *
+from psychxr.drivers.libovr import *
 import sys
 
 
