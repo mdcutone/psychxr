@@ -16,12 +16,12 @@ See [Getting PsychXR](http://psychxr.org/installing.html) for installation instr
 
 There are several limitations to the current version of PsychXR which may make it unsuitable for certain applications.
 
-* Only Oculus VR HMDs which use the PC SDK (Rift S, CV1, and DK2) are supported, the CV1 and S are recommended. There are currently no plans to support the mobile SDK.
+* Only Oculus VR HMDs which use the PC SDK (Rift S, CV1, and DK2) are supported, the CV1 and S are recommended (might work with the tethered Quest, haven't tested it out). There are currently no plans to support the mobile SDK.
 * OpenGL is required for rendering, no support for other graphics APIs (i.e. Vulkan and DirectX) is available at this time. You must use some OpenGL framework such as Pyglet, GLFW ([example](https://github.com/mdcutone/psychxr/blob/master/demo/rift/libovr_headtracking.py)) or PyOpenGL with PsychXR to create visual stimuli.
 
 ## Support
 
-If you encounter problems with PsychXR, please submit an issue to [PsychXR's issue tracker](https://github.com/mdcutone/psychxr/issues). *This software is not offically supported by any device vendor or manufacturer! Please do not direct PsychXR support requests to them.*
+If you encounter problems with PsychXR, please submit an issue to [PsychXR's issue tracker](https://github.com/mdcutone/psychxr/issues). *This software is not officially supported by any device vendor or manufacturer! Please do not direct PsychXR support requests to them.*
 
 ## Authors
 
