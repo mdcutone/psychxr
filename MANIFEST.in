@@ -1,5 +1,2 @@
 include LICENSE MANIFEST.in README.md CHANGELOG.txt
-recursive-include psychxr *.pxd *.py
-recursive-include psychxr/libovr *.pxd *.pyx *.py *.cpp
-recursive-include psychxr/linalg *
-recursive-include psychxr/include *
+recursive-include psychxr *.pxd *.pyx *.py *.cpp *.pxi

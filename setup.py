@@ -92,7 +92,8 @@ if platform.system() == 'Windows':
         _sdk_data_['libovr']['packages'] = ['psychxr.drivers.libovr']
         _sdk_data_['libovr']['package_data'] = \
             {'psychxr.drivers.libovr': ['*.pxi', '*.pxd', '*.pyx', '*.cpp']}
-        _sdk_data_['libovr']['data_files'] = {'psychxr/drivers/libovr': ['*.pyd']}
+        _sdk_data_['libovr']['data_files'] = {
+            'psychxr/drivers/libovr': ['*.pyd', '*.pxi']}
 
 else:
     raise Exception("Trying to install PsychXR on an unsupported operating "
