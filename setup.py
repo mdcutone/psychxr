@@ -89,10 +89,10 @@ if platform.system() == 'Windows':
                 [r"C:\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2017"]
 
         # package data
-        _sdk_data_['libovr']['packages'] = ['psychxr.libovr']
+        _sdk_data_['libovr']['packages'] = ['psychxr.drivers.libovr']
         _sdk_data_['libovr']['package_data'] = \
-            {'psychxr.libovr': ['*.pxd', '*.pyx', '*.cpp']}
-        _sdk_data_['libovr']['data_files'] = {'psychxr/libovr': ['*.pyd']}
+            {'psychxr.drivers.libovr': ['*.pxi', '*.pxd', '*.pyx', '*.cpp']}
+        _sdk_data_['libovr']['data_files'] = {'psychxr/drivers/libovr': ['*.pyd']}
 
 else:
     raise Exception("Trying to install PsychXR on an unsupported operating "
@@ -108,7 +108,7 @@ if _build_libovr_ == '1':
     ext_modules.extend([
         Extension(
             "psychxr.drivers.libovr._libovr",
-            ["psychxr/drivers/libovr/_libovr"+".cpp"],
+            ["psychxr/drivers/libovr/_libovr" + ".cpp"],
             include_dirs=_include_dir_ + _sdk_data_['libovr']['include'],
             libraries=_libraries_ + _sdk_data_['libovr']['libs'],
             library_dirs=_lib_dirs_ + _sdk_data_['libovr']['lib_dir'],

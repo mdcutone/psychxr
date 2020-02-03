@@ -1715,18 +1715,26 @@ cdef class LibOVRPose(object):
 
         This function tests if and where a ray projected from the position of
         this pose in the direction of `rayDir` intersects the bounding box
-        of another :class:`LibOVRPose`.
+        of another :class:`LibOVRPose`. The bounding box of the target object
+        will be oriented by the pose it's associated with.
 
         Parameters
         ----------
         targetPose : LibOVRPose
             Target pose with bounding box.
+        rayDir : array_like
+            Vector specifying the direction the ray should be projected. This
+            direction is in the reference of the pose.
+        maxRange : float
+            Length of the ray. If 0.0, the ray will be assumed to have infinite
+            length.
 
         Returns
         -------
         ndarray
             Position in scene coordinates the ray intersects the bounding box
-            nearest to this pose. Returns `None` if there is no intersect.
+            nearest to this pose. Returns `None` if there is no intersect or
+            the target class does not have a valid bounding box.
 
         Examples
         --------
@@ -1738,12 +1746,26 @@ cdef class LibOVRPose(object):
             if intercept is not None:
                 interceptPose = LibOVRPose(intercept)
 
+        Check if a user is touching a bounding box with their right index
+        finger::
+
+            fingerLength = 0.1  # 10 cm
+            # check if making a pointing gesture with their right hand
+            if getTouch(CONTROLLER_TYPE_RTOUCH, TOUCH_RINDEXPOINTING):
+                isTouching = handPose.raycastPose(targetPose, maxRange=fingerLength)
+                if isTouching is not None:
+                    #  run some code here for when touching ...
+                else:
+                    #  run some code here for when not touching ...
+
         """
         # check if there is a bounding box
         if targetPose.bounds is None:
             return None
 
-        # we have a bounding box
+        # based off algorithm:
+        # http://www.opengl-tutorial.org/miscellaneous/clicking-on-objects/
+        # picking-with-custom-ray-obb-function/
         cdef libovr_math.Vector3f rayOrig = \
             <libovr_math.Vector3f>self.c_data[0].Position
         cdef libovr_math.Vector3f _rayDir = libovr_math.Vector3f(
@@ -1796,7 +1818,7 @@ cdef class LibOVRPose(object):
                     return None
 
         # return if intercept was too far
-        if tmin > (<float>maxRange):
+        if maxRange != 0.0 and tmin > (<float>maxRange):
             return None
 
         # if we made it here, there was an intercept
@@ -1804,11 +1826,7 @@ cdef class LibOVRPose(object):
 
         # output to numpy array
         cdef np.ndarray[np.float32_t, ndim=1] toReturn = \
-            np.zeros((3,), dtype=np.float32)
-
-        toReturn[0] = result.x
-        toReturn[1] = result.y
-        toReturn[2] = result.z
+            np.array((result.x, result.y, result.z), dtype=np.float32)
 
         return toReturn
 
@@ -1877,7 +1895,9 @@ cdef class LibOVRPose(object):
         -------
         bool
             ``True`` if this pose's bounding box intersects the FOV of the
-            specified `eye`.
+            specified `eye`. Returns ``False`` if the pose's bounding box does
+            not intersect the viewing frustum for `eye` or if a VR session has
+            not been started.
 
         Examples
         --------
