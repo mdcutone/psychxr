@@ -1745,31 +1745,32 @@ cdef class LibOVRPose(object):
 
         # we have a bounding box
         cdef libovr_math.Vector3f rayOrig = \
-            <libovr_math.Vector3f>self.c_data.Position
-        cdef libovr_math.Vector3f rayDir = libovr_math.Vector3f(
+            <libovr_math.Vector3f>self.c_data[0].Position
+        cdef libovr_math.Vector3f _rayDir = libovr_math.Vector3f(
             <float>rayDir[0], <float>rayDir[1], <float>rayDir[2])
         cdef libovr_math.Matrix4f modelMatrix = targetPose._modelMatrix
         cdef libovr_math.Vector3f boundsOffset = \
-            <libovr_math.Vector3f>targetPose.c_data.Position
+            <libovr_math.Vector3f>targetPose.c_data[0].Position
         cdef libovr_math.Vector3f[2] bounds = targetPose._bbox.c_data.b
         cdef libovr_math.Vector3f axis
 
         # rotate `rayDir` by this pose
-        rayDir = (<libovr_math.Posef>self.c_data).TransformNormal(rayDir)
+        _rayDir = (<libovr_math.Posef>self.c_data[0]).TransformNormal(_rayDir)
 
-        tmin = 0.0
-        tmax = 1.8446742974197924e19  # from OVR_MATH.h
-        d = boundsOffset - rayOrig
+        cdef float e, f
+        cdef float tmin = 0.0
+        cdef float tmax = 1.8446742974197924e19  # from OVR_MATH.h
+        cdef libovr_math.Vector3f d = boundsOffset - rayOrig
 
         # solve intersects for each pair of planes along each axis
-        cdef Py_ssize_t i, N
+        cdef int i, N
         N = 3
         for i in range(N):
             axis.x = modelMatrix.M[0][i]
             axis.y = modelMatrix.M[1][i]
             axis.z = modelMatrix.M[2][i]
             e = axis.Dot(d)
-            f = rayDir.Dot(axis)
+            f = _rayDir.Dot(axis)
 
             if np.fabs(f) > 1e-5:
                 t1 = (e + bounds[0][i]) / f
@@ -1799,7 +1800,7 @@ cdef class LibOVRPose(object):
             return None
 
         # if we made it here, there was an intercept
-        cdef libovr_math.Vector3f result = (rayDir * tmin) + rayOrig
+        cdef libovr_math.Vector3f result = (_rayDir * tmin) + rayOrig
 
         # output to numpy array
         cdef np.ndarray[np.float32_t, ndim=1] toReturn = \
