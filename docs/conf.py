@@ -176,3 +176,4 @@ texinfo_documents = [
 # -- Extension configuration -------------------------------------------------
 napoleon_numpy_docstring = True
 napoleon_use_ivar = True
+numpydoc_show_class_members = False

@@ -114,7 +114,7 @@ Functions
     getTrackerInfo
     getSessionStatus
     getPerfStats
-    resetFrameStats
+    resetPerfStats
     getLastErrorInfo
     setBoundaryColor
     resetBoundaryColor

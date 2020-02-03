@@ -7,16 +7,19 @@ Version 0.2.4 - 2020/01/27
 Overview:
 
     This release refactors how driver modules are organized in PsychXR, to
-    facilitate possible future additions to the PsychXR library.
+    facilitate possible future additions to the PsychXR driver library. It also
+    adds functions related to timing and object interaction.
 
 New Features:
 
     - The Oculus SDK driver module `psychxr.libovr` has been moved to
       `psychxr.drivers.libovr`. This change is needed to organize things better
-      for when other drivers and packages are added. Eventually, drivers like
-      `libovr` may be made optional and can be added to PsychXR as a plugin
-      package. For now, you can still use the placeholder module
+      for when other drivers and packages are added (eg. OpenXR). Eventually,
+      drivers like `libovr` may be made optional and can be added to PsychXR as
+      a plugin package. For now, you can still use the placeholder module
       `psychxr.libovr` to access the Oculus SDK driver interface.
+    - Source code for the LibOVR driver has been split across multiple files.
+      This should make it easier to navigate the code.
     - Added function `setReferenceTime` which allows you to use an external time
       source for any timing related functions which report or use absolute time.
       This allows for things like predicted display time to be referenced to an
@@ -25,6 +28,10 @@ New Features:
       specified frame index by taking the predicted mid-frame display time and
       subtracting half of the refresh rate. This feature must be used with
       caution since onset times are indeed only estimates!
+    - Added `raycastPose` method to `LibOVRPose`, this allows you to perform
+      raypicking on bounding boxes belonging to other poses. The method returns
+      the position in world space the intersection occurs. Bounding boxes are
+      oriented by the poses they belong to.
 
 Bug Fixes:
 

@@ -540,14 +540,8 @@ cdef class LibOVRPose(object):
         ndarray
             The vector for `at`.
 
-        Notes
-        -----
-        It's better to use the `at` property if you are not supplying an output
-        array.
-
         Examples
         --------
-
         Setting the listener orientation for 3D positional audio (PyOpenAL)::
 
             myListener.set_orientation((*myPose.getAt(), *myPose.getUp()))
@@ -590,17 +584,10 @@ cdef class LibOVRPose(object):
         Returns
         -------
         ndarray
-            The vector for `up`.
-
-        Notes
-        -----
-        It's better to use the `up` property if you are not supplying an output
-        array. However, `getUp` will have the same effect as the `up` property
-        if `out`=None.
+            The vector for up.
 
         Examples
         --------
-
         Using the `up` vector with gluLookAt::
 
             up = myPose.getUp()  # myPose.up also works
@@ -1644,7 +1631,7 @@ cdef class LibOVRPose(object):
             Vector indicating the direction for the ray (default is -Z).
         maxRange : float, optional
             The maximum range of the ray. Ray testing will fail automatically if
-            the target is out of range. Ray is infinite if `maxRange`=0.0.
+            the target is out of range. Ray is infinite if maxRange=0.0.
 
         Returns
         -------
