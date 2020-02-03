@@ -509,47 +509,7 @@ include "libovr_const.pxi"
 # ------------------------------------------------------------------------------
 # Wrapper factory functions
 #
-cdef np.npy_intp[1] VEC2_SHAPE = [2]
-cdef np.npy_intp[1] VEC3_SHAPE = [3]
-cdef np.npy_intp[1] FOVPORT_SHAPE = [4]
-cdef np.npy_intp[1] QUAT_SHAPE = [4]
-cdef np.npy_intp[2] MAT4_SHAPE = [4, 4]
-
-
-cdef np.ndarray _wrap_ovrVector2f_as_ndarray(capi.ovrVector2f* prtVec):
-    """Wrap an ovrVector2f object with a NumPy array."""
-    return np.PyArray_SimpleNewFromData(
-        1, VEC2_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
-
-
-cdef np.ndarray _wrap_ovrVector3f_as_ndarray(capi.ovrVector3f* prtVec):
-    """Wrap an ovrVector3f object with a NumPy array."""
-    return np.PyArray_SimpleNewFromData(
-        1, VEC3_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
-
-
-cdef np.ndarray _wrap_ovrQuatf_as_ndarray(capi.ovrQuatf* prtVec):
-    """Wrap an ovrQuatf object with a NumPy array."""
-    return np.PyArray_SimpleNewFromData(
-        1, QUAT_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
-
-
-cdef np.ndarray _wrap_ovrMatrix4f_as_ndarray(capi.ovrMatrix4f* prtVec):
-    """Wrap an ovrMatrix4f object with a NumPy array."""
-    return np.PyArray_SimpleNewFromData(
-        2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec.M)
-
-
-cdef np.ndarray _wrap_Matrix4f_as_ndarray(libovr_math.Matrix4f* prtVec):
-    """Wrap a Matrix4f object with a NumPy array."""
-    return np.PyArray_SimpleNewFromData(
-        2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec.M)
-
-
-cdef np.ndarray _wrap_ovrFovPort_as_ndarray(capi.ovrFovPort* prtVec):
-    """Wrap an ovrFovPort object with a NumPy array."""
-    return np.PyArray_SimpleNewFromData(
-        1, FOVPORT_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
+include "libovr_wrappers.pxi"
 
 # ------------------------------------------------------------------------------
 # Classes and extension types
