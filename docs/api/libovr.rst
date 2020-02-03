@@ -1,8 +1,8 @@
-============================================================
- :mod:`~psychxr.libovr` - Oculus Rift interface using LibOVR
-============================================================
+====================================================================
+ :mod:`~psychxr.drivers.libovr` - Oculus Rift interface using LibOVR
+====================================================================
 
-.. currentmodule:: psychxr.libovr
+.. currentmodule:: psychxr.drivers.libovr
 
 Classes and functions for using the Oculus Rift (DK2, CV1, and S) HMD and
 associated peripherals via the official runtime/SDK (LibOVRRT). Currently, only
@@ -58,6 +58,7 @@ Functions
     getHmdInfo
     initialize
     create
+    checkSessionStarted
     destroyTextureSwapChain
     destroyMirrorTexture
     destroy
@@ -221,6 +222,7 @@ Functions
 .. autofunction:: getHmdInfo
 .. autofunction:: initialize
 .. autofunction:: create
+.. autofunction:: checkSessionStarted
 .. autofunction:: destroyTextureSwapChain
 .. autofunction:: destroyMirrorTexture
 .. autofunction:: destroy
