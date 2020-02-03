@@ -16,12 +16,14 @@ leverage the vast ecosystem of scientific libraries associated with it (e.g.
 `SciPy <https://www.scipy.org/>`_, `NumPy <https://www.numpy.org/>`_,
 `PyTorch <https://pytorch.org/>`_, etc.)
 
-PsychXR may be used as stand-alone library in conjunction with some OpenGL
-framework like `pyGLFW <https://github.com/FlorianRhiem/pyGLFW>`_ or
-`pyglet <https://pyglet.readthedocs.io/en/pyglet-1.3-maintenance/>`_. However,
-the easiest solution for researchers is to use `PsychoPy <https://psychopy.org>`_
-which uses PsychXR for HMD support, but also provides a framework for developing
-psychophysics experiments.
+PsychXR provides a lightweight interface to hardware drivers with extra tools
+to simplify some aspects of creating virtual reality applications. However, this
+library does not handle the actual rendering of VR scenes or audio. Knowledge of
+`OpenGL <https://www.opengl.org/>`_ is required at this time to create images
+and present them on the HMD. However, researchers may consider using
+`PsychoPy <https://psychopy.org>`_ which uses PsychXR for HMD support, but also
+provides a means of rendering 3D stimuli and developing psychophysics
+experiments.
 
 Contents
 --------
@@ -45,6 +47,12 @@ reports and pull requests.
 PsychXR is mostly written in `Cython <https://cython.org/>`_ a superset of the
 Python language.
 
+Hardware Support
+----------------
+
+As of now, only the Oculus Rift series of HMDs are supported (DK2, CV1, S) via
+the `~psychxr.drivers.libovr` driver interface which uses the official PC SDK.
+However, additional drivers are being considered to be included in the future.
 
 Related Projects
 ----------------
