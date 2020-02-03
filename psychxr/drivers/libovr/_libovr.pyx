@@ -2592,6 +2592,10 @@ cdef class LibOVRPose(object):
                 if -e + bounds[0][i] > 0.0 or -e + bounds[1][i] < 0.0:
                     return None
 
+        # return if intercept was too far
+        if tmin > (<float>maxRange):
+            return None
+
         # if we made it here, there was an intercept
         cdef libovr_math.Vector3f result = (rayDir * tmin) + rayOrig
 
