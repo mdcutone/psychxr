@@ -831,11 +831,12 @@ cdef class LibOVRPose(object):
 
     This class is an abstract representation of a rigid body pose, where the
     position of the body in a scene is represented by a vector/coordinate and
-    the orientation with a quaternion. LibOVR uses poses to represent the
-    posture of tracked devices (e.g. HMD, touch controllers, etc.) and other
-    objects in a VR scene. They can be manipulated and interacted with using
-    class methods and attributes. Rigid body poses assume a right-handed
-    coordinate system (-Z is forward and +Y is up).
+    the orientation with a quaternion. LibOVR uses this format for poses to
+    represent the posture of tracked devices (e.g. HMD, touch controllers, etc.)
+    and other objects in a VR scene. There are many class methods and properties
+    provided to handle accessing, manipulating, and interacting with poses.
+    Rigid body poses assume a right-handed coordinate system (-Z is forward and
+    +Y is up).
 
     Poses can be manipulated using operators such as ``*``, ``~``, and ``*=``.
     One pose can be transformed by another by multiplying them using the
@@ -845,26 +846,25 @@ cdef class LibOVRPose(object):
 
     The above code returns `pose2` transformed by `pose1`, putting `pose2` into
     the reference frame of `pose1`. Using the inplace multiplication operator
-    ``*=``, you can transform a poss into another reference frame without making
+    ``*=``, you can transform a pose into another reference frame without making
     a copy. One can get the inverse of a pose by using the ``~`` operator::
 
-        poseInverse = ~pose
+        poseInv = ~pose
 
-    Poses can be converted to 4x4 transformation matrices with `getModelMatrix`
-    and `getViewMatrix`. One can use these matrices when rendering to transform
-    the vertices of a model associated with the pose by passing them to OpenGL.
+    Poses can be converted to 4x4 transformation matrices with `getModelMatrix`,
+    `getViewMatrix`, and `getNormalMatrix`. One can use these matrices when
+    rendering to transform the vertices and normals of a model associated with
+    the pose by passing the matrices to OpenGL. The `ctypes` property eliminates
+    the need to copy data by providing pointers to data stored by instances of
+    this class. This is useful for some Python OpenGL libraries which require
+    matrices to be provided as pointers.
 
-    This class is a wrapper for the ``OVR::ovrPosef`` data structure. Fields
-    ``OVR::ovrPosef.Orientation`` and ``OVR::ovrPosef.Position`` are accessed
-    using `ndarray` proxy objects which share the same memory. Therefore, data
-    accessed and written to those objects will directly change the field values
-    of the referenced ``OVR::ovrPosef`` struct. ``OVR::ovrPosef.Orientation``
-    and ``OVR::ovrPosef.Position`` can be accessed and edited using the
-    :py:class:`~LibOVRPose.ori` and :py:class:`~LibOVRPose.pos` class
-    attributes, respectively. Methods associated with this class perform various
-    operations using the functions provided by `OVR_MATH.h
-    <https://developer.oculus.com/reference/libovr/1.37/o_v_r_math_8h/>`_, which
-    is part of the Oculus PC SDK.
+    Bounding boxes can be given to poses by assigning a :class:`LibOVRBounds`
+    instance to the `bounds` attribute. Bounding boxes are used for visibility
+    culling, to determine if a mesh associated with a pose is visible to the
+    viewer and whether it should be drawn or not. This aids in reducing
+    workload for the application by only rendering objects that are visible from
+    a given eye's view.
 
     Parameters
     ----------
@@ -2507,6 +2507,103 @@ cdef class LibOVRPose(object):
 
         # one or more roots? if so we are touching the sphere
         return desc >= 0.0
+
+    def raycastPose(self, LibOVRPose targetPose, object rayDir=(0., 0., -1.), float maxRange=0.0):
+        """Raycast a pose's bounding box.
+
+        This function tests if and where a ray projected from the position of
+        this pose in the direction of `rayDir` intersects the bounding box
+        of another :class:`LibOVRPose`.
+
+        Parameters
+        ----------
+        targetPose : LibOVRPose
+            Target pose with bounding box.
+
+        Returns
+        -------
+        ndarray
+            Position in scene coordinates the ray intersects the bounding box
+            nearest to this pose. Returns `None` if there is no intersect.
+
+        Examples
+        --------
+        Test where a ray intersects another pose's bounding box and create a
+        pose object there::
+
+            intercept = thisPose.raycastPose(targetPose)
+
+            if intercept is not None:
+                interceptPose = LibOVRPose(intercept)
+
+        """
+        # check if there is a bounding box
+        if targetPose.bounds is None:
+            return None
+
+        # we have a bounding box
+        cdef libovr_math.Vector3f rayOrig = \
+            <libovr_math.Vector3f>self.c_data.Position
+        cdef libovr_math.Vector3f rayDir = libovr_math.Vector3f(
+            <float>rayDir[0], <float>rayDir[1], <float>rayDir[2])
+        cdef libovr_math.Matrix4f modelMatrix = targetPose._modelMatrix
+        cdef libovr_math.Vector3f boundsOffset = \
+            <libovr_math.Vector3f>targetPose.c_data.Position
+        cdef libovr_math.Vector3f[2] bounds = targetPose._bbox.c_data.b
+        cdef libovr_math.Vector3f axis
+
+        # rotate `rayDir` by this pose
+        rayDir = (<libovr_math.Posef>self.c_data).TransformNormal(rayDir)
+
+        tmin = 0.0
+        tmax = 1.8446742974197924e19  # from OVR_MATH.h
+        d = boundsOffset - rayOrig
+
+        # solve intersects for each pair of planes along each axis
+        cdef Py_ssize_t i, N
+        N = 3
+        for i in range(N):
+            axis.x = modelMatrix.M[0][i]
+            axis.y = modelMatrix.M[1][i]
+            axis.z = modelMatrix.M[2][i]
+            e = axis.Dot(d)
+            f = rayDir.Dot(axis)
+
+            if np.fabs(f) > 1e-5:
+                t1 = (e + bounds[0][i]) / f
+                t2 = (e + bounds[1][i]) / f
+
+                if t1 > t2:
+                    temp = t1
+                    t1 = t2
+                    t2 = temp
+
+                if t2 < tmax:
+                    tmax = t2
+
+                if t1 > tmin:
+                    tmin = t1
+
+                if tmin > tmax:
+                    return None
+
+            else:
+                # very close to parallel with the face
+                if -e + bounds[0][i] > 0.0 or -e + bounds[1][i] < 0.0:
+                    return None
+
+        # if we made it here, there was an intercept
+        cdef libovr_math.Vector3f result = (rayDir * tmin) + rayOrig
+
+        # output to numpy array
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn = \
+            np.zeros((3,), dtype=np.float32)
+
+        toReturn[0] = result.x
+        toReturn[1] = result.y
+        toReturn[2] = result.z
+
+        return toReturn
 
     def interp(self, LibOVRPose end, float s, bint fast=False):
         """Interpolate between poses.
