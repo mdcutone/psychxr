@@ -447,24 +447,20 @@ HAND_COUNT = capi.ovrHand_Count
 # ------------------------------------------------------------------------------
 # Includes
 #
-include "libovr_logging.pxi"
-include "libovr_errors.pxi"
-include "libovr_wrappers.pxi"
-include "libovr_session.pxi"
-include "libovr_api.pxi"
-include "libovr_timing.pxi"
-include "libovr_pose.pxi"
-include "libovr_posestate.pxi"
-include "libovr_tracking.pxi"
-include "libovr_hmdinfo.pxi"
-include "libovr_view.pxi"
-include "libovr_frame.pxi"
-include "libovr_bounds.pxi"
-include "libovr_perfstats.pxi"
-include "libovr_input.pxi"
-include "libovr_haptics.pxi"
-include "libovr_extras.pxi"
-
-
-
-
+include "include/libovr_logging.pxi"
+include "include/libovr_errors.pxi"
+include "include/libovr_wrappers.pxi"
+include "include/libovr_session.pxi"
+include "include/libovr_api.pxi"
+include "include/libovr_timing.pxi"
+include "include/libovr_pose.pxi"
+include "include/libovr_posestate.pxi"
+include "include/libovr_tracking.pxi"
+include "include/libovr_hmdinfo.pxi"
+include "include/libovr_view.pxi"
+include "include/libovr_frame.pxi"
+include "include/libovr_bounds.pxi"
+include "include/libovr_perfstats.pxi"
+include "include/libovr_input.pxi"
+include "include/libovr_haptics.pxi"
+include "include/libovr_extras.pxi"
