@@ -27,6 +27,8 @@
 #  SOFTWARE.
 #
 
+MAX_PROVIDED_FRAME_STATS = capi.ovrMaxProvidedFrameStats
+
 cdef class LibOVRPerfStatsPerCompositorFrame(object):
     """Class for frame performance statistics per compositor frame.
 

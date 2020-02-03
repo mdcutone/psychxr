@@ -106,6 +106,41 @@ def check_result(result):
         raise RuntimeError(
             str(result) + ": " + _last_error_info_.ErrorString.decode("utf-8"))
 
+def success(int result):
+    """Check if an API return indicates success.
+
+    Returns
+    -------
+    bool
+        ``True`` if API call was an successful (`result` > 0).
+
+    """
+    return <bint>capi.OVR_SUCCESS(result)
+
+
+def unqualifiedSuccess(int result):
+    """Check if an API return indicates unqualified success.
+
+    Returns
+    -------
+    bool
+        ``True`` if API call was an unqualified success (`result` == 0).
+
+    """
+    return <bint>capi.OVR_UNQUALIFIED_SUCCESS(result)
+
+
+def failure(int result):
+    """Check if an API return indicates failure (error).
+
+    Returns
+    -------
+    bool
+        ``True`` if API call returned an error (`result` < 0).
+
+    """
+    return <bint>capi.OVR_FAILURE(result)
+
 
 def getLastErrorInfo():
     """Get the last error code and information string reported by the API.

@@ -11,9 +11,9 @@ research applications.
 The goal of this project is to provide researchers in the vision science
 community free and flexible tools to experiment and prototype ideas with virtual
 reality hardware using the
-`Python programming language <http://www.python.org/>`_. Allowing users to directly
-leverage the vast ecosystem of scientific libraries associated with it (e.g.
-`SciPy <https://www.scipy.org/>`_, `NumPy <https://www.numpy.org/>`_,
+`Python programming language <http://www.python.org/>`_. Allowing users to
+directly leverage the vast ecosystem of scientific libraries associated with it
+(e.g. `SciPy <https://www.scipy.org/>`_, `NumPy <https://www.numpy.org/>`_,
 `PyTorch <https://pytorch.org/>`_, etc.)
 
 PsychXR provides a lightweight interface to hardware drivers with extra tools
@@ -73,7 +73,7 @@ How to Cite PsychXR
 If you use PsychXR in one of your projects, please consider citing it using the
 following:
 
-   Cutone, M. D. & Wilcox, L. M. (2018). PsychXR (Version 0.2.0) [Software].
+   Cutone, M. D. & Wilcox, L. M. (2018). PsychXR (Version 0.2) [Software].
    Available from https://github.com/mdcutone/psychxr.
 
 Site Index

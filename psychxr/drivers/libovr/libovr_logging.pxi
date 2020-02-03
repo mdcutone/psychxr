@@ -1,8 +1,8 @@
 #  =============================================================================
-#  libovr_const.pxi - Module level constants
+#  libovr_logging.pxi - LibOVR logging
 #  =============================================================================
 #
-#  libovr_const.pxi
+#  libovr_logging.pxi
 #
 #  Copyright 2020 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University,
@@ -27,40 +27,13 @@
 #  SOFTWARE.
 #
 
-# misc constants
-EYE_LEFT = capi.ovrEye_Left
-EYE_RIGHT = capi.ovrEye_Right
-EYE_COUNT = capi.ovrEye_Count
-HAND_LEFT = capi.ovrHand_Left
-HAND_RIGHT = capi.ovrHand_Right
-HAND_COUNT = capi.ovrHand_Count
-
-# performance
-MAX_PROVIDED_FRAME_STATS = capi.ovrMaxProvidedFrameStats
-
-
-
-# layer header flags
-LAYER_FLAG_HIGH_QUALITY = capi.ovrLayerFlag_HighQuality
-LAYER_FLAG_TEXTURE_ORIGIN_AT_BOTTOM_LEFT = \
-    capi.ovrLayerFlag_TextureOriginAtBottomLeft
-LAYER_FLAG_HEAD_LOCKED = capi.ovrLayerFlag_HeadLocked
-
-# HMD types
-HMD_NONE = capi.ovrHmd_None
-HMD_DK1 = capi.ovrHmd_DK1
-HMD_DKHD = capi.ovrHmd_DKHD
-HMD_DK2 = capi.ovrHmd_DK2
-HMD_CB = capi.ovrHmd_CB
-HMD_OTHER = capi.ovrHmd_Other
-HMD_E3_2015  = capi.ovrHmd_E3_2015
-HMD_ES06 = capi.ovrHmd_ES06
-HMD_ES09 = capi.ovrHmd_ES09
-HMD_ES11 = capi.ovrHmd_ES11
-HMD_CV1 = capi.ovrHmd_CV1
-HMD_RIFTS = capi.ovrHmd_RiftS
-
 # logging levels
 LOG_LEVEL_DEBUG = capi.ovrLogLevel_Debug
 LOG_LEVEL_INFO = capi.ovrLogLevel_Info
 LOG_LEVEL_ERROR = capi.ovrLogLevel_Error
+
+
+cdef void LibOVRLogCallback(uintptr_t userData, int level, char* message) with gil:
+    """Callback function for LibOVR logging messages.
+    """
+    (<object>(<void*>userData))(level, bytes2str(message))

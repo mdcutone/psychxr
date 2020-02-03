@@ -26,6 +26,21 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 #
+
+# HMD types
+HMD_NONE = capi.ovrHmd_None
+HMD_DK1 = capi.ovrHmd_DK1
+HMD_DKHD = capi.ovrHmd_DKHD
+HMD_DK2 = capi.ovrHmd_DK2
+HMD_CB = capi.ovrHmd_CB
+HMD_OTHER = capi.ovrHmd_Other
+HMD_E3_2015  = capi.ovrHmd_E3_2015
+HMD_ES06 = capi.ovrHmd_ES06
+HMD_ES09 = capi.ovrHmd_ES09
+HMD_ES11 = capi.ovrHmd_ES11
+HMD_CV1 = capi.ovrHmd_CV1
+HMD_RIFTS = capi.ovrHmd_RiftS
+
 cdef capi.ovrHmdDesc _hmdDesc  # HMD information descriptor
 
 cdef class LibOVRHmdInfo(object):

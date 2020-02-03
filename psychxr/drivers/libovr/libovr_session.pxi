@@ -308,32 +308,6 @@ def checkSessionStarted():
     return _ptrSession != NULL
 
 
-def destroyTextureSwapChain(int swapChain):
-    """Destroy a texture swap chain.
-
-    Once destroyed, the swap chain's resources will be freed.
-
-    Parameters
-    ----------
-    swapChain : int
-        Swap chain identifier/index.
-
-    """
-    global _ptrSession
-    global _swapChains
-    capi.ovr_DestroyTextureSwapChain(_ptrSession, _swapChains[swapChain])
-    _swapChains[swapChain] = NULL
-
-
-def destroyMirrorTexture():
-    """Destroy the mirror texture.
-    """
-    global _ptrSession
-    global _mirrorTexture
-    if _mirrorTexture != NULL:
-        capi.ovr_DestroyMirrorTexture(_ptrSession, _mirrorTexture)
-
-
 def destroy():
     """Destroy a session.
 

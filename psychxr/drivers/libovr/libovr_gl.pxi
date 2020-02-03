@@ -499,3 +499,62 @@ def getMirrorTexture():
             &mirror_id)
 
     return <int>result, <unsigned int>mirror_id
+
+
+def destroyTextureSwapChain(int swapChain):
+    """Destroy a texture swap chain.
+
+    Once destroyed, the swap chain's resources will be freed.
+
+    Parameters
+    ----------
+    swapChain : int
+        Swap chain identifier/index.
+
+    """
+    global _ptrSession
+    global _swapChains
+    capi.ovr_DestroyTextureSwapChain(_ptrSession, _swapChains[swapChain])
+    _swapChains[swapChain] = NULL
+
+
+def destroyMirrorTexture():
+    """Destroy the mirror texture.
+    """
+    global _ptrSession
+    global _mirrorTexture
+    if _mirrorTexture != NULL:
+        capi.ovr_DestroyMirrorTexture(_ptrSession, _mirrorTexture)
+
+
+def commitTextureSwapChain(int eye):
+    """Commit changes to a given eye's texture swap chain. When called, the
+    runtime is notified that the texture is ready for use, and the swap
+    chain index is incremented.
+
+    Parameters
+    ----------
+    eye : int
+        Eye buffer index.
+
+    Returns
+    -------
+    int
+        Error code returned by API call ``OVR::ovr_CommitTextureSwapChain``.
+        Will return ``SUCCESS`` if successful. Returns error code
+        ``ERROR_TEXTURE_SWAP_CHAIN_FULL`` if called too many times without
+        calling :func:`endFrame`.
+
+    Warning
+    -------
+    No additional drawing operations are permitted once the texture is committed
+    until the SDK dereferences it, making it available again.
+
+    """
+    global _swapChains
+    global _ptrSession
+    cdef capi.ovrResult result = capi.ovr_CommitTextureSwapChain(
+        _ptrSession,
+        _swapChains[eye])
+
+    return <int>result
