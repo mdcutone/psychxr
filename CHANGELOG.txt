@@ -17,6 +17,14 @@ New Features:
       `libovr` may be made optional and can be added to PsychXR as a plugin
       package. For now, you can still use the placeholder module
       `psychxr.libovr` to access the Oculus SDK driver interface.
+    - Added function `setReferenceTime` which allows you to use an external time
+      source for any timing related functions which report or use absolute time.
+      This allows for things like predicted display time to be referenced to an
+      external time source.
+    - Added function `getFrameOnsetTime` which estimates the onset time of the
+      specified frame index by taking the predicted mid-frame display time and
+      subtracting half of the refresh rate. This feature must be used with
+      caution since onset times are indeed only estimates!
 
 Bug Fixes:
 

@@ -446,6 +446,9 @@ cdef libovr_math.Matrix4f[2] _eyeProjectionMatrix
 cdef libovr_math.Matrix4f[2] _eyeViewMatrix
 cdef libovr_math.Matrix4f[2] _eyeViewProjectionMatrix
 
+# clock offset in seconds
+cdef double t_offset = 0.0
+
 # Function to check for errors returned by OVRLib functions
 #
 cdef capi.ovrErrorInfo _last_error_info_  # store our last error here
@@ -5122,6 +5125,72 @@ def isHeadLocked():
     """
     return (_eyeLayer.Header.Flags & capi.ovrLayerFlag_HeadLocked) == \
            capi.ovrLayerFlag_HeadLocked
+
+
+def setReferenceTime(double refTime):
+    """Set a reference time to synchronize the time source used by the LibOVR
+    driver with an external clock.
+
+    This function computes a time offset between the external clock and the one
+    used by the LibOVR driver. The offset is then applied when calling any
+    function which requires or retrieves absolute time information (eg.
+    :func:`getPredictedDisplayTime`). This is useful for cases where the
+    application interfacing with the HMD is using its own time source.
+
+    Parameters
+    ----------
+    refTime : float
+        Current time of the external clock in seconds (must be >=0.0).
+
+    Returns
+    -------
+    float
+        The difference between the external and LibOVR time sources in seconds.
+
+    Notes
+    -----
+    * If the reference time is changed, any previously reported time will be
+      invalid.
+    * Allows for some error on the order of a few microseconds when the time
+      offset is computed.
+    * It is assumed that the an external time source operating on the exact same
+      frequency as the time source used by LibOVR.
+
+    """
+    global t_offset
+
+    if refTime < 0:
+        raise ValueError("Value for `refTime` must be >=0.")
+
+    t_offset = refTime - capi.ovr_GetTimeInSeconds()  # compute the offset
+
+    return t_offset
+
+
+def getFrameOnsetTime(int frameIndex):
+    """Get the estimated frame onset time.
+
+    This function **estimates** the onset time of `frameIndex` by subtracting
+    half the display's frequency from the predicted mid-frame display time
+    reported by LibOVR.
+
+    Returns
+    -------
+    float
+        Estimated onset time of the next frame in seconds.
+
+    Notes
+    -----
+    * Onset times are estimated and one should use caution when using the
+      value reported by this function.
+
+    """
+    global _hmdDesc
+    global _ptrSession
+    cdef double halfRefresh = (1.0 / <double>_hmdDesc.DisplayRefreshRate) / 2.0
+
+    return capi.ovr_GetPredictedDisplayTime(_ptrSession, frameIndex) - \
+           halfRefresh
 
 
 def getPixelsPerTanAngleAtCenter(int eye):
