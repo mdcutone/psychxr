@@ -26,6 +26,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 #
+import ctypes
 
 cdef class LibOVRPose(object):
     """Class for representing rigid body poses.
@@ -1890,3 +1891,220 @@ cdef class LibOVRPose(object):
             return not cullPose(eye, self)
         else:
             return False
+
+
+cdef class LibOVRBounds(object):
+    """Class for constructing and representing 3D axis-aligned bounding boxes.
+
+    A bounding box is a construct which represents a 3D rectangular volume
+    about some pose, defined by its minimum and maximum extents in the reference
+    frame of the pose. The axes of the bounding box are aligned to the axes of
+    the world or the associated pose.
+
+    Bounding boxes are primarily used for visibility testing; to determine if
+    the extents of an object associated with a pose (eg. the vertices of a
+    model) falls completely outside of the viewing frustum. If so, the model can
+    be culled during rendering to avoid wasting CPU/GPU resources on objects not
+    visible to the viewer. See :func:`cullPose` for more information.
+
+    Parameters
+    ----------
+    extents : tuple, optional
+        Minimum and maximum extents of the bounding box (`mins`, `maxs`) where
+        `mins` and `maxs` specified as coordinates [x, y, z]. If no extents are
+        specified, the bounding box will be invalid until defined.
+
+    Examples
+    --------
+    Create a bounding box and add it to a pose::
+
+            # minumum and maximum extents of the bounding box
+            mins = (-.5, -.5, -.5)
+            maxs = (.5, .5, .5)
+            bounds = (mins, maxs)
+            # create the bounding box and add it to a pose
+            bbox = LibOVRBounds(bounds)
+            modelPose = LibOVRPose()
+            modelPose.boundingBox = bbox
+
+    """
+    cdef libovr_math.Bounds3f* c_data
+    cdef bint ptr_owner
+
+    cdef np.ndarray _mins
+    cdef np.ndarray _maxs
+
+    def __init__(self, object extents=None):
+        """
+        Attributes
+        ----------
+        isValid : bool
+        extents : tuple
+        mins : ndarray
+        maxs : ndarray
+        """
+        self._new_struct(extents)
+
+    def __cinit__(self, *args, **kwargs):
+        self.ptr_owner = False
+
+    @staticmethod
+    cdef LibOVRBounds fromPtr(libovr_math.Bounds3f* ptr, bint owner=False):
+        cdef LibOVRBounds wrapper = LibOVRBounds.__new__(LibOVRBounds)
+        wrapper.c_data = ptr
+        wrapper.ptr_owner = owner
+
+        wrapper._mins = _wrap_ovrVector3f_as_ndarray(<capi.ovrVector3f*>&ptr.b[0])
+        wrapper._maxs = _wrap_ovrVector3f_as_ndarray(<capi.ovrVector3f*>&ptr.b[1])
+
+        return wrapper
+
+    cdef void _new_struct(self, object extents):
+        if self.c_data is not NULL:
+            return
+
+        cdef libovr_math.Bounds3f* ptr = \
+            <libovr_math.Bounds3f*>PyMem_Malloc(sizeof(libovr_math.Bounds3f))
+
+        if ptr is NULL:
+            raise MemoryError
+
+        if extents is not None:
+            ptr.b[0].x = <float>extents[0][0]
+            ptr.b[0].y = <float>extents[0][1]
+            ptr.b[0].z = <float>extents[0][2]
+            ptr.b[1].x = <float>extents[1][0]
+            ptr.b[1].y = <float>extents[1][1]
+            ptr.b[1].z = <float>extents[1][2]
+        else:
+            ptr.Clear()
+
+        self.c_data = ptr
+        self.ptr_owner = True
+
+        self._mins = _wrap_ovrVector3f_as_ndarray(<capi.ovrVector3f*>&ptr.b[0])
+        self._maxs = _wrap_ovrVector3f_as_ndarray(<capi.ovrVector3f*>&ptr.b[1])
+
+    def __dealloc__(self):
+        if self.c_data is not NULL:
+            if self.ptr_owner is True:
+                PyMem_Free(self.c_data)
+                self.c_data = NULL
+
+    def clear(self):
+        """Clear the bounding box."""
+        self.c_data.Clear()
+
+    @property
+    def isValid(self):
+        """``True`` if a bounding box is valid. Bounding boxes are valid if all
+        dimensions of `mins` are less than each of `maxs` which is the case
+        after :py:meth:`~LibOVRBounds.clear` is called.
+
+        If a bounding box is invalid, :func:`cullPose` will always return
+        ``True``.
+
+        """
+        if self.c_data.b[1].x <= self.c_data.b[0].x and \
+                self.c_data.b[1].y <= self.c_data.b[0].y and \
+                self.c_data.b[1].z <= self.c_data.b[0].z:
+            return False
+
+        return True
+
+    def fit(self, object points, bint clear=True):
+        """Fit an axis aligned bounding box to enclose specified points. The
+        resulting bounding box is guaranteed to enclose all points, however
+        volume is not necessarily minimized or optimal.
+
+        Parameters
+        ----------
+        points : array_like
+            2D array of points [x, y, z] to fit, can be a list of vertices from
+            a 3D model associated with the bounding box.
+        clear : bool, optional
+            Clear the bounding box prior to fitting. If ``False`` the current
+            bounding box will be re-sized to fit new points.
+
+        Examples
+        --------
+        Create a bounding box around vertices specified in a list::
+
+            # model vertices
+            vertices = [[-1.0, -1.0, 0.0],
+                        [-1.0, 1.0, 0.0],
+                        [1.0, 1.0, 0.0],
+                        [1.0, -1.0, 0.0]]
+
+            # create an empty bounding box
+            bbox = LibOVRBounds()
+            bbox.fit(vertices)
+
+            # associate the bounding box to a pose
+            modelPose = LibOVRPose()
+            modelPose.bounds = bbox
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=2] points_in = np.asarray(
+            points, dtype=np.float32)
+        cdef libovr_math.Vector3f new_point = libovr_math.Vector3f()
+
+        if clear:
+            self.c_data.Clear()
+
+        cdef Py_ssize_t i, N
+        cdef float[:, :] mv_points = points_in  # memory view
+        N = <Py_ssize_t>points_in.shape[0]
+        for i in range(N):
+            new_point.x = mv_points[i, 0]
+            new_point.y = mv_points[i, 1]
+            new_point.z = mv_points[i, 2]
+            self.c_data.AddPoint(new_point)
+
+    def addPoint(self, object point):
+        """Resize the bounding box to encompass a given point. Calling this
+        function for each vertex of a model will create an optimal bounding box
+        for it.
+
+        Parameters
+        ----------
+        point : array_like
+            Vector/coordinate to add [x, y, z].
+
+        See Also
+        --------
+        fit : Fit a bounding box to enclose a list of points.
+
+        """
+        cdef libovr_math.Vector3f new_point = libovr_math.Vector3f(
+            <float>point[0], <float>point[1], <float>point[2])
+
+        self.c_data.AddPoint(new_point)
+
+    @property
+    def extents(self):
+        """The extents of the bounding box (`mins`, `maxs`)."""
+        return self._mins, self._maxs
+
+    @extents.setter
+    def extents(self, object value):
+        self._mins[:] = value[0]
+        self._maxs[:] = value[1]
+
+    @property
+    def mins(self):
+        """Point defining the minimum extent of the bounding box."""
+        return self._mins
+
+    @mins.setter
+    def mins(self, object value):
+        self._mins[:] = value
+
+    @property
+    def maxs(self):
+        """Point defining the maximum extent of the bounding box."""
+        return self._maxs
+
+    @maxs.setter
+    def maxs(self, object value):
+        self._mins[:] = value
