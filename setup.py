@@ -147,7 +147,9 @@ setup_pars = {
     #"data_files": DATA_FILES,
     "install_requires" : ["Cython>=0.29.3", "numpy>=1.13.3"],
     "requires" : [],
-    "cmdclass" : {"build_ext": build_ext}}
+    "cmdclass" : {"build_ext": build_ext},
+    "zip_safe": False
+}
 
 setup(**setup_pars)
 
