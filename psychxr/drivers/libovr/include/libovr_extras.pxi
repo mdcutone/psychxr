@@ -2,8 +2,6 @@
 #  libovr_extras.pxi - Misc. types and functions for use with LibOVR
 #  =============================================================================
 #
-#  libovr_extras.pxi
-#
 #  Copyright 2020 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University,
 #  Toronto, Canada

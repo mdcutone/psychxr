@@ -2,8 +2,6 @@
 #  libovr_error.pxi - LibOVR API errors
 #  =============================================================================
 #
-#  libovr_error.pxi
-#
 #  Copyright 2020 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University,
 #  Toronto, Canada

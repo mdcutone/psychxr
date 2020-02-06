@@ -2,8 +2,6 @@
 #  libovr_session.pxi - VR session and status
 #  =============================================================================
 #
-#  libovr_session.pxi
-#
 #  Copyright 2020 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University,
 #  Toronto, Canada

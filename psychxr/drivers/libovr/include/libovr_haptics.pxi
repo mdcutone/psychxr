@@ -2,8 +2,6 @@
 #  libovr_haptics.pxi - Haptics related types and functions
 #  =============================================================================
 #
-#  libovr_haptics.pxi
-#
 #  Copyright 2020 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University,
 #  Toronto, Canada

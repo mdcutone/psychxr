@@ -2,8 +2,6 @@
 #  libovr_wrappers.pxi - Wrappers for LibOVR data types
 #  =============================================================================
 #
-#  libovr_wrappers.pxi
-#
 #  Copyright 2020 Matthew Cutone <cutonem(a)yorku.ca> and Laurie M. Wilcox
 #  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University,
 #  Toronto, Canada
