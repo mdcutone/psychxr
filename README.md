@@ -1,8 +1,8 @@
 # PsychXR
-[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/mdcutone/psychxr?include_prereleases)
-[![PyPI](https://img.shields.io/pypi/v/psychxr)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/psychxr)
-[![PyPI - Wheel](https://img.shields.io/pypi/wheel/psychxr)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/mdcutone/psychxr?include_prereleases)
+![PyPI](https://img.shields.io/pypi/v/psychxr)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/psychxr)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/psychxr)
 
 PsychXR is a collection of [Python](https://www.python.org/) extension libraries for interacting with eXtended Reality displays (HMDs), intended for neuroscience and psychology research applications. 
 
