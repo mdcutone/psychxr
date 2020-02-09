@@ -3,6 +3,7 @@
 ![PyPI](https://img.shields.io/pypi/v/psychxr)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/psychxr)
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/psychxr)
+[![Generic badge](https://img.shields.io/badge/supported-DK2%20|%20CV1%20|%20S-blue.svg)](https://shields.io/)
 
 PsychXR is a collection of [Python](https://www.python.org/) extension libraries for interacting with eXtended Reality displays (HMDs), intended for neuroscience and psychology research applications. 
 
