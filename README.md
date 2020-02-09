@@ -1,6 +1,6 @@
 # PsychXR
-![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/mdcutone/psychxr?include_prereleases)
-![PyPI](https://img.shields.io/pypi/v/psychxr)
+[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/mdcutone/psychxr?include_prereleases)](https://github.com/mdcutone/psychxr/releases)
+[![PyPI](https://img.shields.io/pypi/v/psychxr)](https://pypi.org/project/psychxr/)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/psychxr)
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/psychxr)
 [![Generic badge](https://img.shields.io/badge/supported-DK2%20|%20CV1%20|%20S-blue.svg)](https://shields.io/)
