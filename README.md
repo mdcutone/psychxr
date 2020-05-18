@@ -28,6 +28,10 @@ There are several limitations to the current version of PsychXR which may make i
 
 If you encounter problems with PsychXR, please submit an issue to [PsychXR's issue tracker](https://github.com/mdcutone/psychxr/issues). *This software is not officially supported by any device vendor or manufacturer! Please do not direct PsychXR support requests to them.*
 
+## News
+
+For updates on PsychXR's development, see [NEWS](NEWS).
+
 ## Authors
 
 * **Matthew D. Cutone** - The Centre for Vision Research, York University - (https://github.com/mdcutone)
