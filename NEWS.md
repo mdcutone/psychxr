@@ -1,9 +1,9 @@
 NEWS
-----
+====
 Development updates and news about PsychXR.
 
 May, 18 2020
-============
+------------
 You may have notcied a bit of a slow down in PsychXR's development in 
 recent months. I've been busy with other projects and PsychXR has been 
 "good enough" for tasks I've been running in the lab, so there isn't 
@@ -52,9 +52,8 @@ off-screen rendering support. This will allow PsychoPy to better support
 stereoscopic rendering in general, but will greatly improve integration 
 with VR hardware. Notibly, you will be able to run the same code across
 different types of stereoscopic displays and HMDs without significant 
-modification to your experiment's code. 3D stimulus classes are also
-going to be added for GLTF2 models which will support PBR materials and 
-HDR lighting. There are also tools currently in PsychoPy that can do 
-VR specific things like lens correction (i.e. barrel distortion) which
-permits labs to create their own HMD-like displays. The introduction of 
-the generic VR math libary in PsychXR will aid in the doing so.
+modification to your experiment's code. There are also tools currently 
+in PsychoPy that can do VR specific things like lens correction (i.e. 
+barrel distortion) which permits labs to create their own HMD-like 
+displays. The introduction of the generic VR math libary in PsychXR will 
+aid in the doing so.
