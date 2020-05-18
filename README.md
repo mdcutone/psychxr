@@ -30,7 +30,7 @@ If you encounter problems with PsychXR, please submit an issue to [PsychXR's iss
 
 ## News
 
-For updates on PsychXR's development, see [NEWS](NEWS).
+For updates on PsychXR's development, see [NEWS](https://github.com/mdcutone/psychxr/blob/master/NEWS.md).
 
 ## Authors
 
