@@ -6,24 +6,15 @@ Version 0.2.4 - 2021/03/14
 
 Overview:
 
-    This release mainly adds some new API features introduced to LibOVR by
-    Facebook(tm) and refactors how driver modules are organized in PsychXR. This
-    refactor is intended to facilitate possible future additions to the PsychXR
-    driver library.
+    This release mainly adds some new API features introduced to LibOVR
+    refactors how driver modules are organized in PsychXR. The refactor is work
+    is intended to facilitate possible future additions to the PsychXR driver
+    library. There are also new methods added to the `LibOVRPose` class to allow
+    for basic interaction within VR.
 
 New Features:
 
     - Version bump of the Oculus PC SDK to 23.0 (latest as of this release).
-    - Added symbolic constants `HMD_QUEST` and `HMD_QUEST2`, they will be set
-      as `LibOVRHmdInfo.hmdType` when using those devices to identify the
-      hardware. Note that those HMDs need to be tethered to a PC using a link
-      cable use PsychXR.
-    - Added API features related to colorspace data and calibration recently
-      added to LibOVR.
-    - Removed constant `BUILD_NUMBER`, unused now.
-    - Deprecated `resetBoundaryColor` and `setBoundaryColor`. The API calls used
-      by these functions have been deprecated by the Oculus PC SDK and may fail
-      in future versions.
     - The Oculus SDK driver module `psychxr.libovr` has been moved to
       `psychxr.drivers.libovr`. This change is needed to organize things better
       for when other drivers and packages are added (eg. OpenXR). Eventually,
@@ -32,6 +23,16 @@ New Features:
       `psychxr.libovr` to access the Oculus SDK driver interface.
     - Source code for the LibOVR driver has been split across multiple files.
       This should make it easier to navigate the code.
+    - Added symbolic constants `HMD_QUEST` and `HMD_QUEST2`, they will be set
+      as `LibOVRHmdInfo.hmdType` when using those devices to identify the
+      hardware. Note that those HMDs need to be tethered to a PC using a link
+      cable to use PsychXR with them.
+    - Added API features related to colorspace data and calibration recently
+      added to LibOVR.
+    - Removed constant `BUILD_NUMBER`, unused now.
+    - Deprecated `resetBoundaryColor` and `setBoundaryColor`. The API calls used
+      by these functions have been deprecated by the Oculus PC SDK and may fail
+      in future versions.
     - Added `raycastPose` method to `LibOVRPose`, this allows you to perform
       raypicking on bounding boxes belonging to other poses. The method returns
       the position in world space the intersection occurs. Bounding boxes are
