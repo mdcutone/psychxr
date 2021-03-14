@@ -234,7 +234,9 @@ cdef extern from "OVR_CAPI.h":
         ovrHmd_ES09 = 12,
         ovrHmd_ES11 = 13,
         ovrHmd_CV1 = 14,
-        ovrHmd_RiftS = 16
+        ovrHmd_RiftS = 16,
+        ovrHmd_Quest = 19,
+        ovrHmd_Quest2 = 20
 
     ctypedef enum ovrHmdCaps:
         ovrHmdCap_DebugDevice = 0x0010
@@ -613,12 +615,29 @@ cdef extern from "OVR_CAPI.h":
         uintptr_t UserData
         uint32_t ConnectionTimeoutMS
 
+    ctypedef enum ovrColorSpace:
+        ovrColorSpace_Unknown = 0,
+        ovrColorSpace_Unmanaged = 1,
+        ovrColorSpace_Rift_CV1 = 2,
+        ovrColorSpace_Rift_S = 3,
+        ovrColorSpace_Quest = 4,
+        ovrColorSpace_Rec_2020 = 5,
+        ovrColorSpace_Rec_709 = 6,
+        ovrColorSpace_P3 = 7,
+        ovrColorSpace_Adobe_RGB = 8,
+        ovrColorSpace_Count = 9
+
+    ctypedef struct ovrHmdColorDesc:
+        ovrColorSpace ColorSpace
+
     cdef ovrResult ovr_Initialize(const ovrInitParams* params)
     cdef void ovr_Shutdown()
     cdef void ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
     cdef const char* ovr_GetVersionString()
     cdef int ovr_TraceMessage(int level, const char* message)
     cdef ovrResult ovr_IdentifyClient(const char* identity)
+    cdef ovrHmdColorDesc ovr_GetHmdColorDesc(ovrSession session)
+    cdef ovrResult ovr_SetClientColorDesc(ovrSession session, const ovrHmdColorDesc* colorDesc)
     cdef ovrHmdDesc ovr_GetHmdDesc(ovrSession session)
     cdef unsigned int ovr_GetTrackerCount(ovrSession session)
     cdef ovrTrackerDesc ovr_GetTrackerDesc(ovrSession session, unsigned int trackerDescIndex)

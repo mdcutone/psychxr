@@ -226,7 +226,7 @@ __all__ = [
     'MAJOR_VERSION',
     'MINOR_VERSION',
     'PATCH_VERSION',
-    'BUILD_NUMBER',
+    # 'BUILD_NUMBER',
     'DLL_COMPATIBLE_VERSION',
     'MIN_REQUESTABLE_MINOR_VERSION',
     'FEATURE_VERSION',
@@ -263,6 +263,8 @@ __all__ = [
     'HMD_ES11',
     'HMD_CV1',
     'HMD_RIFTS',
+    'HMD_QUEST',
+    'HMD_QUEST2',
     'HAPTICS_BUFFER_SAMPLES_MAX',
     'MIRROR_OPTION_DEFAULT',
     'MIRROR_OPTION_POST_DISTORTION',
@@ -423,7 +425,7 @@ cdef str bytes2str(char* bytesIn):
 # ------------------------------------------------------------------------------
 # Version checker
 
-if capi.OVR_MAJOR_VERSION != 1 or capi.OVR_MINOR_VERSION != 43:
+if capi.OVR_MAJOR_VERSION != 23 or capi.OVR_MINOR_VERSION != 0:
     # raise a warning if the version of the Oculus SDK may be incompatible
     warnings.warn(
         "PsychXR was built using version {major}.{minor} of the Oculus PC SDK "

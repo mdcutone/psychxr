@@ -38,6 +38,8 @@ HMD_ES09 = capi.ovrHmd_ES09
 HMD_ES11 = capi.ovrHmd_ES11
 HMD_CV1 = capi.ovrHmd_CV1
 HMD_RIFTS = capi.ovrHmd_RiftS
+HMD_QUEST = capi.ovrHmd_Quest
+HMD_QUEST2 = capi.ovrHmd_Quest2
 
 cdef capi.ovrHmdDesc _hmdDesc  # HMD information descriptor
 
