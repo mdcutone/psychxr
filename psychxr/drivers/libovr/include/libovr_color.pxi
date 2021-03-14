@@ -51,8 +51,7 @@ cdef Py_ssize_t CHROMA_WHITE_IDX = 3
 chroma_xys[:, :, :] = 0.0
 
 # populate values
-# chroma_xys[COLORSPACE_UNKNOWN, :, :] = [
-#     []]
+
 # chroma_xys[COLORSPACE_UNMANAGED, :, :] = [
 #     []]
 chroma_xys[COLORSPACE_RIFT_CV1, :, :] = [
@@ -61,6 +60,8 @@ chroma_xys[COLORSPACE_RIFT_CV1, :, :] = [
     [0.139, 0.053], # blue
     [0.298, 0.318]  # D75 white point
 ]
+# default for COLORSPACE_UNKNOWN is to use the CV1
+chroma_xys[COLORSPACE_UNKNOWN, :, :] = chroma_xys[COLORSPACE_RIFT_CV1, :, :]
 chroma_xys[COLORSPACE_RIFT_S, :, :] = [
     [0.640, 0.330],
     [0.292, 0.586],
@@ -121,8 +122,8 @@ cdef class LibOVRHmdColorSpace(object):
     lineup (such as the Rift S).
 
     PsychXR provides additional information about these color spaces, such as
-    the chromaticity coordinates used by various devices in the Oculus product
-    lineup. These values can be accessed using properties associated to
+    the chromaticity coordinates used by various devices in the Oculus(tm)
+    product lineup. These values can be accessed using properties associated to
     instances of this class.
 
     """
@@ -235,6 +236,7 @@ def setClientColorSpace(object colorSpace):
 
     """
     global _ptrSession
+    global _hmdDesc
 
     cdef capi.ovrHmdColorDesc desc
 
@@ -245,6 +247,23 @@ def setClientColorSpace(object colorSpace):
     else:
         raise TypeError('Value for `colorSpace` must be type `int` or '
                         '`LibOVRHmdColorSpace`.')
+
+    # deal with unmanaged case
+    if desc.ColorSpace == capi.ovrColorSpace_Unmanaged:
+        if _hmdDesc.Type == capi.ovrHmd_CV1:
+            chroma_xys[COLORSPACE_UNMANAGED, :, :] = \
+                chroma_xys[COLORSPACE_RIFT_CV1, :, :]
+        elif _hmdDesc.Type == capi.ovrHmd_Quest or \
+                _hmdDesc.Type == capi.ovrHmd_Quest2:
+            chroma_xys[COLORSPACE_UNMANAGED, :, :] = \
+                chroma_xys[COLORSPACE_QUEST, :, :]
+        elif _hmdDesc.Type == capi.ovrHmd_RiftS:
+            chroma_xys[COLORSPACE_UNMANAGED, :, :] = \
+                chroma_xys[COLORSPACE_RIFT_S, :, :]
+        else:
+            # assume rec 709 if no color space provided (close to sRBG)
+            chroma_xys[COLORSPACE_UNMANAGED, :, :] = \
+                chroma_xys[COLORSPACE_REC_709, :, :]
 
     cdef capi.ovrResult result = capi.ovr_SetClientColorDesc(
         _ptrSession, &desc)

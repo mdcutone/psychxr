@@ -1,16 +1,25 @@
 This file contains changes introduced to PsychXR for each version. Breaking
-changes may be incompatible with your current code.
+changes may be incompatible with your current code or build environment.
 
 Version 0.2.4 - 2021/03/14
 --------------------------
 
 Overview:
 
-    This release mainly adds some new API features introduced to LibOVR
+    This release mainly adds some new API features introduced to LibOVR and
     refactors how driver modules are organized in PsychXR. The refactor is work
-    is intended to facilitate possible future additions to the PsychXR driver
+    was intended to facilitate possible future additions to the PsychXR driver
     library. There are also new methods added to the `LibOVRPose` class to allow
     for basic interaction within VR.
+
+    A big change this release is the inclusion of color management to ensure
+    content authored on one display appears "correct" on others. This is an
+    important development introduced to the LibOVR API, providing information
+    about the color space in use by the display and some limited capacity to
+    remap it. PsychXR provides the `LibOVRHmdColorSpace` class and API functions
+    to work with this new color management system. Documentation and
+    recommendations are a bit thin at this point, but expect that to change in
+    coming releases.
 
 New Features:
 
