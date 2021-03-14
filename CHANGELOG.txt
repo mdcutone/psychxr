@@ -6,9 +6,10 @@ Version 0.2.4 - 2021/03/14
 
 Overview:
 
-    This release refactors how driver modules are organized in PsychXR, to
-    facilitate possible future additions to the PsychXR driver library. Bumps
-    the Oculus PC SDK version to 23.0.
+    This release mainly adds some new API features introduced to LibOVR by
+    Facebook(tm) and refactors how driver modules are organized in PsychXR. This
+    refactor is intended to facilitate possible future additions to the PsychXR
+    driver library.
 
 New Features:
 
@@ -19,6 +20,10 @@ New Features:
       cable use PsychXR.
     - Added API features related to colorspace data and calibration recently
       added to LibOVR.
+    - Removed constant `BUILD_NUMBER`, unused now.
+    - Deprecated `resetBoundaryColor` and `setBoundaryColor`. The API calls used
+      by these functions have been deprecated by the Oculus PC SDK and may fail
+      in future versions.
     - The Oculus SDK driver module `psychxr.libovr` has been moved to
       `psychxr.drivers.libovr`. This change is needed to organize things better
       for when other drivers and packages are added (eg. OpenXR). Eventually,
@@ -38,7 +43,10 @@ Bug Fixes:
 
 Breaking Changes:
 
-    - None
+    - Oculus PC SDK version 23.0 is needed to build this release of PsychXR.
+      Compilation will likely fail if any older version of the SDK is specified.
+    - Branch `master` has been renamed to `main`. Update your local git branches
+      accordingly.
 
 Known Issues:
 

@@ -89,7 +89,8 @@ cdef class LibOVRBoundaryTestResult(object):
 
 
 def setBoundaryColor(float red, float green, float blue):
-    """Set the boundary color.
+    """Set the boundary color. **Deprecated as of version 0.2.4. Do not use in
+    new applications.**
 
     The boundary is drawn by the compositor which overlays the extents of
     the physical space where the user can safely move.
@@ -127,7 +128,8 @@ def setBoundaryColor(float red, float green, float blue):
 
 
 def resetBoundaryColor():
-    """Reset the boundary color to system default.
+    """Reset the boundary color to system default. **Deprecated as of version
+    0.2.4. Do not use in new applications.**
 
     Returns
     -------

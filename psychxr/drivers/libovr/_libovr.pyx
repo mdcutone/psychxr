@@ -387,7 +387,8 @@ __all__ = [
     'cullPose',
     'checkSessionStarted',
     'LibOVRHmdColorSpace',
-    'getHmdColorSpace'
+    'getHmdColorSpace',
+    'setClientColorSpace'
 ]
 
 from .cimport libovr_capi as capi
