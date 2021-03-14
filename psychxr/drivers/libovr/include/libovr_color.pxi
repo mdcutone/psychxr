@@ -51,9 +51,6 @@ cdef Py_ssize_t CHROMA_WHITE_IDX = 3
 chroma_xys[:, :, :] = 0.0
 
 # populate values
-
-# chroma_xys[COLORSPACE_UNMANAGED, :, :] = [
-#     []]
 chroma_xys[COLORSPACE_RIFT_CV1, :, :] = [
     [0.666, 0.334], # red
     [0.238, 0.714], # green
