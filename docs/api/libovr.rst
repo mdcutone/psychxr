@@ -28,6 +28,7 @@ Classes
     LibOVRTrackingState
     LibOVRBounds
     LibOVRHmdInfo
+    LibOVRHmdColorSpace
     LibOVRTrackerInfo
     LibOVRSessionStatus
     LibOVRBoundaryTestResult
@@ -167,6 +168,11 @@ Classes
     :undoc-members:
     :inherited-members:
 
+.. autoclass:: LibOVRHmdColorSpace
+    :members:
+    :undoc-members:
+    :inherited-members:
+
 .. autoclass:: LibOVRTrackerInfo
     :members:
     :undoc-members:
@@ -220,6 +226,8 @@ Functions
 .. autofunction:: isOculusServiceRunning
 .. autofunction:: isHmdConnected
 .. autofunction:: getHmdInfo
+.. autofunction:: getHmdColorSpace
+.. autofunction:: setClientColorSpace
 .. autofunction:: initialize
 .. autofunction:: create
 .. autofunction:: checkSessionStarted

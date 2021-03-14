@@ -118,8 +118,8 @@ def setClientColorSpace(object colorSpace):
     elif isinstance(colorSpace, int):
         desc.ColorSpace = <capi.ovrColorSpace>colorSpace
     else:
-        raise ValueError('Value for `colorSpace` must be type `int` or '
-                         '`LibOVRHmdColorSpace`')
+        raise TypeError('Value for `colorSpace` must be type `int` or '
+                        '`LibOVRHmdColorSpace`.')
 
     cdef capi.ovrResult result = capi.ovr_SetClientColorDesc(
         _ptrSession, &desc)
