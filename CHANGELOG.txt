@@ -8,13 +8,17 @@ Overview:
 
     This release refactors how driver modules are organized in PsychXR, to
     facilitate possible future additions to the PsychXR driver library. Bumps
-    the Oculus PC SDK version to 23.0. It also adds functions related to timing
-    and object interaction.
+    the Oculus PC SDK version to 23.0.
 
 New Features:
 
-    - Version bump of the Oculus PC SDK to 23.0 (latest as of this release) that
-      adds additional features, such as identifying the Oculus Quest 1 and 2.
+    - Version bump of the Oculus PC SDK to 23.0 (latest as of this release).
+    - Added symbolic constants `HMD_QUEST` and `HMD_QUEST2`, they will be set
+      as `LibOVRHmdInfo.hmdType` when using those devices to identify the
+      hardware. Note that those HMDs need to be tethered to a PC using a link
+      cable use PsychXR.
+    - Added API features related to colorspace data and calibration recently
+      added to LibOVR.
     - The Oculus SDK driver module `psychxr.libovr` has been moved to
       `psychxr.drivers.libovr`. This change is needed to organize things better
       for when other drivers and packages are added (eg. OpenXR). Eventually,

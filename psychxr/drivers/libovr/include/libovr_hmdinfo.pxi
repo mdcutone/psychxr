@@ -43,6 +43,7 @@ HMD_QUEST2 = capi.ovrHmd_Quest2
 
 cdef capi.ovrHmdDesc _hmdDesc  # HMD information descriptor
 
+
 cdef class LibOVRHmdInfo(object):
     """Class for general HMD information and capabilities. An instance of this
     class is returned by calling :func:`~psychxr.libovr.getHmdInfo`.
@@ -110,7 +111,8 @@ cdef class LibOVRHmdInfo(object):
 
         Valid values returned are ``HMD_NONE``, ``HMD_DK1``, ``HMD_DKHD``,
         ``HMD_DK2``, ``HMD_CB``, ``HMD_OTHER``, ``HMD_E3_2015``, ``HMD_ES06``,
-        ``HMD_ES09``, ``HMD_ES11``, `HMD_CV1``, ``HMD_RIFTS``.
+        ``HMD_ES09``, ``HMD_ES11``, `HMD_CV1``, ``HMD_RIFTS``, ``HMD_QUEST``,
+        ``HMD_QUEST2``.
 
         """
         return <int>self.c_data.Type

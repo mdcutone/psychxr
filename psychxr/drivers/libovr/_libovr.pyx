@@ -385,7 +385,9 @@ __all__ = [
     'submitControllerVibration',
     'getControllerPlaybackState',
     'cullPose',
-    'checkSessionStarted'
+    'checkSessionStarted',
+    'LibOVRHmdColorSpace',
+    'getHmdColorSpace'
 ]
 
 from .cimport libovr_capi as capi
@@ -401,7 +403,9 @@ np.import_array()
 import warnings
 
 
-# helper functions and data
+# Helper functions and data, used internally by PsychXR and not exposed to the
+# public Python API.
+#
 RAD_TO_DEGF = <float>180.0 / M_PI
 DEG_TO_RADF = M_PI / <float>180.0
 
@@ -429,7 +433,7 @@ if capi.OVR_MAJOR_VERSION != 23 or capi.OVR_MINOR_VERSION != 0:
     # raise a warning if the version of the Oculus SDK may be incompatible
     warnings.warn(
         "PsychXR was built using version {major}.{minor} of the Oculus PC SDK "
-        "however 1.43 is recommended. This might be perfectly fine if there "
+        "however 23.0 is recommended. This might be perfectly fine if there "
         "aren't any API breaking changes between versions.".format(
             major=capi.OVR_MAJOR_VERSION, minor=capi.OVR_MINOR_VERSION),
         RuntimeWarning)
@@ -463,3 +467,4 @@ include "include/libovr_perfstats.pxi"
 include "include/libovr_input.pxi"
 include "include/libovr_haptics.pxi"
 include "include/libovr_extras.pxi"
+include "include/libovr_color.pxi"
