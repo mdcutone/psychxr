@@ -98,6 +98,8 @@ chroma_xys[COLORSPACE_ADOBE_RGB, :, :] = [
     [0.150, 0.060],
     [0.3127, 0.329]
 ]
+# make sure the user can't overwrite these values by accident
+chroma_xys.flags.writeable = False
 
 
 cdef class LibOVRHmdColorSpace(object):
@@ -118,7 +120,7 @@ cdef class LibOVRHmdColorSpace(object):
 
     When developing an application to run across multiple HMD devices, the
     manufacturer recommends that you target the CV1 or Quest HMDs since the
-    color gamut on those displays are wider than other HMDs in the product
+    color gamut on those displays are wider than other HMDs in their product
     lineup (such as the Rift S).
 
     PsychXR provides additional information about these color spaces, such as
@@ -153,6 +155,12 @@ cdef class LibOVRHmdColorSpace(object):
         ``COLORSPACE_UNMANAGED``, ``COLORSPACE_RIFT_CV1``, ``COLORSPACE_RIFT_S``,
         ``COLORSPACE_QUEST``, ``COLORSPACE_REC_2020``, ``COLORSPACE_REC_709``,
         ``COLORSPACE_P3`` or ``COLORSPACE_ADOBE_RGB``.
+
+        Notes
+        -----
+        If `colorSpace` is set to ``COLORSPACE_UNMANAGED``, the chromaticity
+        coordinates will be set to the defaults for the current HMD. For the
+        DK2, Rec. 709 coordinates will be used (``COLORSPACE_REC_709``).
 
         """
         return <int>self.c_data.ColorSpace
@@ -201,12 +209,29 @@ cdef class LibOVRHmdColorSpace(object):
 def getHmdColorSpace():
     """Get HMD colorspace information.
 
-    Upon starting a new session, the default colorspace used is for the CV1.
+    Upon starting a new session, the default colorspace used is for the CV1. Can
+    only be called after :func:`start` was called.
 
     Returns
     -------
     LibOVRHmdColorSpace
         HMD colorspace information.
+
+    Examples
+    --------
+    Get the current color space in use::
+
+        colorSpaceInfo = getHmdColorSpace()
+
+    Get the color coordinates of the RGB primaries::
+
+        redX, redY = colorSpaceInfo.red
+        greenX, greenY = colorSpaceInfo.red
+        blueX, blueY = colorSpaceInfo.red
+
+    Get the white point in use::
+
+        whiteX, whiteY = colorSpaceInfo.whitePoint
 
     """
     global _ptrSession
@@ -224,7 +249,9 @@ def setClientColorSpace(object colorSpace):
 
     This function is used by the driver to transform color values between
     spaces. The purpose of this is to allow content authored for one model of
-    HMD to appear correctly on others.
+    HMD to appear correctly on others. Can oly be called after `start()` was
+    called. Until this function is not called, the color space will be assumed
+    to be ``COLORSPACE_UNKNOWN`` which defaults to ``COLORSPACE_RIFT_CV1``.
 
     **New as of version 0.2.4**
 
@@ -233,6 +260,18 @@ def setClientColorSpace(object colorSpace):
     colorSpace : LibOVRHmdColorSpace or int
         Color space information descriptor or symbolic constant (e.g.,
         ``COLORSPACE_RIFT_CV1``.
+
+    Returns
+    -------
+    int
+        Return code for the `ovr_SetClientColorDesc` call.
+
+    Examples
+    --------
+    Tell the driver to remap colors for an application authored using the Quest
+    to be displayed correctly on the current device::
+
+        result = setClientColorSpace(COLORSPACE_QUEST)
 
     """
     global _ptrSession
@@ -250,6 +289,7 @@ def setClientColorSpace(object colorSpace):
 
     # deal with unmanaged case
     if desc.ColorSpace == capi.ovrColorSpace_Unmanaged:
+        chroma_xys.flags.writeable = True
         if _hmdDesc.Type == capi.ovrHmd_CV1:
             chroma_xys[COLORSPACE_UNMANAGED, :, :] = \
                 chroma_xys[COLORSPACE_RIFT_CV1, :, :]
@@ -264,6 +304,8 @@ def setClientColorSpace(object colorSpace):
             # assume rec 709 if no color space provided (close to sRBG)
             chroma_xys[COLORSPACE_UNMANAGED, :, :] = \
                 chroma_xys[COLORSPACE_REC_709, :, :]
+
+        chroma_xys.flags.writeable = False
 
     cdef capi.ovrResult result = capi.ovr_SetClientColorDesc(
         _ptrSession, &desc)
