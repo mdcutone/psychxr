@@ -36,9 +36,94 @@ COLORSPACE_REC_709 = capi.ovrColorSpace_Rec_709
 COLORSPACE_P3 = capi.ovrColorSpace_P3
 COLORSPACE_ADOBE_RGB = capi.ovrColorSpace_Adobe_RGB
 
+# internal store for chromaticity values
+cdef np.npy_intp[3] CHROMA_STORE_SHAPE = [capi.ovrColorSpace_Count, 2, 4]
+cdef np.ndarray chroma_xys = np.PyArray_SimpleNew(
+    3, CHROMA_STORE_SHAPE, np.NPY_FLOAT32)
+
+# internal color indices
+cdef Py_ssize_t CHROMA_RED_IDX = 0
+cdef Py_ssize_t CHROMA_GREEN_IDX = 1
+cdef Py_ssize_t CHROMA_BLUE_IDX = 2
+cdef Py_ssize_t CHROMA_WHITE_IDX = 3
+
+# clear store
+chroma_xys[:, :, :] = 0.0
+
+# populate values
+# chroma_xys[COLORSPACE_UNKNOWN, :, :] = [
+#     []]
+# chroma_xys[COLORSPACE_UNMANAGED, :, :] = [
+#     []]
+chroma_xys[COLORSPACE_RIFT_CV1, :, :] = [
+    [0.666, 0.334], # red
+    [0.238, 0.714], # green
+    [0.139, 0.053], # blue
+    [0.298, 0.318]  # D75 white point
+]
+chroma_xys[COLORSPACE_RIFT_S, :, :] = [
+    [0.640, 0.330],
+    [0.292, 0.586],
+    [0.156, 0.058],
+    [0.156, 0.058]
+]
+chroma_xys[COLORSPACE_QUEST, :, :] = [
+    [0.661, 0.338],
+    [0.228, 0.718],
+    [0.142, 0.042],
+    [0.298, 0.318]
+]
+chroma_xys[COLORSPACE_REC_2020, :, :] = [
+    [0.708, 0.292],
+    [0.170, 0.797],
+    [0.131, 0.046],
+    [0.3127, 0.329]
+]
+chroma_xys[COLORSPACE_REC_709, :, :] = [
+    [0.640, 0.330],
+    [0.300, 0.600],
+    [0.150, 0.060],
+    [0.3127, 0.329]
+]
+chroma_xys[COLORSPACE_P3, :, :] = [
+    [0.680, 0.320],
+    [0.265, 0.690],
+    [0.150, 0.060],
+    [0.150, 0.060]  # D65 white point
+]
+chroma_xys[COLORSPACE_ADOBE_RGB, :, :] = [
+    [0.640, 0.330],
+    [0.210, 0.710],
+    [0.150, 0.060],
+    [0.3127, 0.329]
+]
+
 
 cdef class LibOVRHmdColorSpace(object):
     """Class for HMD color space data.
+
+    This class is used to store color space information related to the HMD. The
+    color space value is a symbolic constant accessed through the `colorSpace`
+    property.
+
+    As of version *23.0* of the Oculus PC SDK, the API provides functions for
+    specifying and retrieving data about the color space of the display. This is
+    needed because the chromaticity coordinates of RGB primaries and the white
+    points differ between models, causing differences in perceived color when
+    content authored for one platform is viewed on another. To deal with this,
+    the API allows you to specify the color space the content was intended for
+    and the driver will remap colors to be best represented on the current
+    display.
+
+    When developing an application to run across multiple HMD devices, the
+    manufacturer recommends that you target the CV1 or Quest HMDs since the
+    color gamut on those displays are wider than other HMDs in the product
+    lineup (such as the Rift S).
+
+    PsychXR provides additional information about these color spaces, such as
+    the chromaticity coordinates used by various devices in the Oculus product
+    lineup. These values can be accessed using properties associated to
+    instances of this class.
 
     """
     cdef capi.ovrHmdColorDesc c_data
@@ -48,6 +133,10 @@ cdef class LibOVRHmdColorSpace(object):
         Attributes
         ----------
         colorSpace : int
+        red : ndarray
+        green : ndarray
+        blue : ndarray
+        whitePoint : ndarray
         """
         pass
 
@@ -62,7 +151,7 @@ cdef class LibOVRHmdColorSpace(object):
         Valid values returned are ``COLORSPACE_UNKNOWN``,
         ``COLORSPACE_UNMANAGED``, ``COLORSPACE_RIFT_CV1``, ``COLORSPACE_RIFT_S``,
         ``COLORSPACE_QUEST``, ``COLORSPACE_REC_2020``, ``COLORSPACE_REC_709``,
-        ``COLORSPACE_P3``, ``COLORSPACE_ADOBE_RGB``.
+        ``COLORSPACE_P3`` or ``COLORSPACE_ADOBE_RGB``.
 
         """
         return <int>self.c_data.ColorSpace
@@ -70,6 +159,42 @@ cdef class LibOVRHmdColorSpace(object):
     @colorSpace.setter
     def colorSpace(self, object value):
         self.c_data.ColorSpace = <capi.ovrColorSpace>value
+
+    @property
+    def red(self):
+        """Chromaticity coordinate for the red primary (CIE 1931 xy) used by the
+        display (`ndarray`). This is set by the value of
+        `LibOVRHmdColorSpace.colorSpace`.
+
+        """
+        return chroma_xys[<int>self.c_data.ColorSpace, CHROMA_RED_IDX, :]
+
+    @property
+    def green(self):
+        """Chromaticity coordinate for the green primary (CIE 1931 xy) used by
+        the display (`ndarray`). This is set by the value of
+        `LibOVRHmdColorSpace.colorSpace`.
+
+        """
+        return chroma_xys[<int>self.c_data.ColorSpace, CHROMA_GREEN_IDX, :]
+
+    @property
+    def blue(self):
+        """Chromaticity coordinate for the blue primary (CIE 1931 xy) used by
+        the display (`ndarray`). This is set by the value of
+        `LibOVRHmdColorSpace.colorSpace`.
+
+        """
+        return chroma_xys[<int>self.c_data.ColorSpace, CHROMA_BLUE_IDX, :]
+
+    @property
+    def whitePoint(self):
+        """Chromaticity coordinate for the white point (CIE 1931 xy) used by the
+        display (`ndarray`). This is set by the value of
+        `LibOVRHmdColorSpace.colorSpace`.
+
+        """
+        return chroma_xys[<int>self.c_data.ColorSpace, CHROMA_WHITE_IDX, :]
 
 
 def getHmdColorSpace():
