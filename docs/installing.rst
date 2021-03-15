@@ -53,8 +53,8 @@ extensions on that platform.
 
 Download the `Oculus SDK for Windows
 <https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/>`_
-(version v1.40.0 is recommended) and extract the zip file somewhere accessible
-on your PC. You can download the latest source distribution package for PsychXR
+(version v23.0 is required) and extract the zip file somewhere accessible on
+your PC. You can download the latest source distribution package for PsychXR
 from the `releases <https://github.com/mdcutone/psychxr/releases>`_ page.
 
 .. note:: If you build PsychXR using a version of the Oculus PC SDK other than
@@ -91,7 +91,7 @@ them appropriately. By default, the compiler will assume the SDK is located at
 you extracted it there.
 
 Now we can build the source package using the following command (replacing
-<version> with the current version of the package, which is **0.2.1**)::
+<version> with the current version of the package, which is **0.2.4**)::
 
     python -m pip install psychxr-<version>.tar.gz
 

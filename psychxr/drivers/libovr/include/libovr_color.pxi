@@ -143,6 +143,54 @@ cdef class LibOVRHmdColorSpace(object):
     def __cinit__(self):
         self.c_data.ColorSpace = COLORSPACE_UNKNOWN  # default value to use
 
+    @staticmethod
+    def getRGBPrimaries(int colorSpace):
+        """Get RGB primaries for a given color model.
+
+        Parameters
+        ----------
+        colorSpace : int
+            Symbolic constant representing a color space (e.g.,
+            ``COLORSPACE_RIFT_CV1``).
+
+        Returns
+        -------
+        ndarray
+            3x2 array of RGB primaries corresponding to the specified color
+            model.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=2] to_return = np.zeros(
+            (2, 3), dtype=np.float32)
+
+        to_return[:, :] = chroma_xys[colorSpace, :3, :]
+
+        return to_return
+
+    @staticmethod
+    def getWhitePoint(int colorSpace):
+        """Get RGB primaries for a given color model.
+
+        Parameters
+        ----------
+        colorSpace : int
+            Symbolic constant representing a color space (e.g.,
+            ``COLORSPACE_RIFT_CV1``).
+
+        Returns
+        -------
+        ndarray
+            3x2 array of RGB primaries corresponding to the specified color
+            model.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] to_return = np.zeros(
+            (2,), dtype=np.float32)
+
+        to_return[:] = chroma_xys[colorSpace, 3, :]
+
+        return to_return
+
     @property
     def colorSpace(self):
         """The color space (`int`). A symbolic constant representing a color
