@@ -34,6 +34,7 @@ Contents
    release_notes
    license
    api
+   topics
    examples
 
 Source Code
