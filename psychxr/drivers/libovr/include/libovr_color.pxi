@@ -145,7 +145,8 @@ cdef class LibOVRHmdColorSpace(object):
 
     @staticmethod
     def getRGBPrimaries(int colorSpace):
-        """Get RGB primaries for a given color model.
+        """Get chromaticity coordinates (CIE 1931 xy) RGB primaries for a given
+        color model.
 
         Parameters
         ----------
@@ -169,7 +170,8 @@ cdef class LibOVRHmdColorSpace(object):
 
     @staticmethod
     def getWhitePoint(int colorSpace):
-        """Get RGB primaries for a given color model.
+        """Get chromaticity coordinates (CIE 1931 xy) of te white point for a
+        given color model.
 
         Parameters
         ----------
@@ -180,8 +182,8 @@ cdef class LibOVRHmdColorSpace(object):
         Returns
         -------
         ndarray
-            3x2 array of RGB primaries corresponding to the specified color
-            model.
+            Length 2 array of the white point corresponding to the specified
+            color model.
 
         """
         cdef np.ndarray[np.float32_t, ndim=1] to_return = np.zeros(
