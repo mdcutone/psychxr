@@ -78,19 +78,6 @@ cdef class LibOVRTrackingState(object):
     cdef LibOVRPose _calibratedOrigin
 
     def __init__(self):
-        """
-        Attributes
-        ----------
-        headPose : LibOVRPoseState
-        handPoses : tuple
-        statusFlags : int
-        positionValid : bool
-        orientationValid : bool
-        handStatusFlags : tuple
-        handPositionValid : tuple
-        handOrientationValid : tuple
-        calibratedOrigin : LibOVRPose
-        """
         self._new_struct()
 
     def __cinit__(self):
@@ -258,32 +245,6 @@ cdef class LibOVRTrackerInfo(object):
     cdef LibOVRPose _leveledPose
 
     cdef unsigned int _trackerIndex
-
-    def __init__(self):
-        """
-        Attributes
-        ----------
-        trackerIndex : int
-            Tracker index this objects refers to (read-only).
-        pose : LibOVRPose
-            The pose of the sensor (read-only).
-        leveledPose : LibOVRPose
-            Gravity aligned pose of the sensor (read-only).
-        isConnected : bool
-            True if the sensor is connected and available (read-only).
-        isPoseTracked : bool
-            True if the sensor has a valid pose (read-only).
-        horizontalFov : float
-            Horizontal FOV of the sensor in radians (read-only).
-        verticalFov : float
-            Vertical FOV of the sensor in radians (read-only).
-        nearZ : float
-            Near clipping plane of the sensor frustum in meters (read-only).
-        farZ : float
-            Far clipping plane of the sensor frustum in meters (read-only).
-
-        """
-        pass
 
     def __cinit__(self):
         self._pose = LibOVRPose.fromPtr(&self.c_ovrTrackerPose.Pose)

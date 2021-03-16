@@ -95,6 +95,7 @@ ERROR_MISFORMATTED_BLOCK = capi.ovrError_MisformattedBlock
 # error information
 cdef capi.ovrErrorInfo _errorInfo  # store our last error here
 
+
 # Function to check for errors returned by OVRLib functions
 #
 cdef capi.ovrErrorInfo _last_error_info_  # store our last error here
@@ -103,6 +104,7 @@ def check_result(result):
         capi.ovr_GetLastErrorInfo(&_last_error_info_)
         raise RuntimeError(
             str(result) + ": " + _last_error_info_.ErrorString.decode("utf-8"))
+
 
 def success(int result):
     """Check if an API return indicates success.

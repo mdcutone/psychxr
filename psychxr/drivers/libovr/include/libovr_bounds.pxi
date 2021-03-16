@@ -38,21 +38,6 @@ cdef class LibOVRBoundaryTestResult(object):
     """
     cdef capi.ovrBoundaryTestResult c_data
 
-    def __init__(self):
-        """
-        Attributes
-        ----------
-        isTriggering : bool (read-only)
-        closestDistance : float (read-only)
-        closestPoint : ndarray (read-only)
-        closestPointNormal : ndarray (read-only)
-
-        """
-        pass
-
-    def __cinit__(self):
-        pass
-
     @property
     def isTriggering(self):
         """``True`` if the play area boundary is triggering. Since the boundary

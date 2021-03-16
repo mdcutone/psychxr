@@ -48,26 +48,6 @@ cdef class LibOVRSessionStatus(object):
     """
     cdef capi.ovrSessionStatus c_data
 
-    def __init__(self):
-        """
-        Attributes
-        ----------
-        isVisible : bool
-        hmdPresent : bool
-        hmdMounted : bool
-        displayLost : bool
-        shouldQuit : bool
-        shouldRecenter : bool
-        hasInputFocus : bool
-        overlayPresent : bool
-        depthRequested : bool
-
-        """
-        pass
-
-    def __cinit__(self):
-        pass
-
     def __eq__(self, LibOVRSessionStatus other):
         """Equality test between status objects. Use this to check if the status
         is unchanged between two :func:`getSessionStatus` calls.

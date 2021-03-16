@@ -2168,17 +2168,6 @@ cdef class LibOVRPoseState(object):
                  object linearAcceleration=(0., 0. ,0.),
                  object angularAcceleration=(0., 0., 0.),
                  double timeInSeconds=0.0):
-        """
-        Attributes
-        ----------
-        thePose : LibOVRPose
-        angularVelocity : ndarray
-        linearVelocity : ndarray
-        angularAcceleration : ndarray
-        linearAcceleration : ndarray
-        timeInSeconds : float
-
-        """
         self._new_struct(
             thePose,
             linearVelocity,

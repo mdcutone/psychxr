@@ -128,9 +128,6 @@ cdef class LibOVRHmdColorSpace(object):
     """
     cdef capi.ovrHmdColorDesc c_data
 
-    def __init__(self):
-        pass
-
     def __cinit__(self):
         self.c_data.ColorSpace = COLORSPACE_UNKNOWN  # default value to use
 

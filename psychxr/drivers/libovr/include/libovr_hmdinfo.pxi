@@ -53,26 +53,6 @@ cdef class LibOVRHmdInfo(object):
     cdef bint ptr_owner
 
     def __init__(self):
-        """
-        Attributes
-        ----------
-        hmdType : int
-        hasOrientationTracking : bool
-        hasPositionTracking : bool
-        hasMagYawCorrection : bool
-        isDebugDevice : bool
-        productName : str
-        manufacturer : str
-        serialNumber : str
-        resolution : tuple
-        refreshRate : float
-        hid : tuple
-        firmwareVersion : tuple
-        defaultEyeFov : tuple (ndarray and ndarray)
-        maxEyeFov : tuple (ndarray and ndarray)
-        symmetricEyeFov : tuple (ndarray and ndarray)
-
-        """
         self.newStruct()
 
     def __cinit__(self):

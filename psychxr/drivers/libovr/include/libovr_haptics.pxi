@@ -33,23 +33,6 @@ cdef class LibOVRHapticsInfo(object):
     """
     cdef capi.ovrTouchHapticsDesc c_data
 
-    def __init__(self):
-        """
-        Attributes
-        ----------
-        sampleRateHz : int
-        sampleTime : float
-        sampleSizeInBytes : int
-        queueMinSizeToAvoidStarvation : int
-        submitMinSamples : int
-        submitMaxSamples : int
-        submitOptimalSamples : int
-        """
-        pass
-
-    def __cinit__(self):
-        pass
-
     @property
     def sampleRateHz(self):
         """Haptics engine frequency/sample-rate."""

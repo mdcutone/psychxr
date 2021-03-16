@@ -47,26 +47,6 @@ cdef class LibOVRPerfStatsPerCompositorFrame(object):
     cdef bint ptr_owner
 
     def __init__(self):
-        """
-        Attributes
-        ----------
-        hmdVsyncIndex : int
-        appFrameIndex : int
-        appDroppedFrameCount : int
-        appMotionToPhotonLatency : float
-        appQueueAheadTime : float
-        appCpuElapsedTime : float
-        appGpuElapsedTime : float
-        compositorFrameIndex : float
-        compositorDroppedFrameCount : float
-        compositorLatency : float
-        compositorCpuElapsedTime : float
-        compositorGpuElapsedTime : float
-        compositorCpuStartToGpuEndElapsedTime : float
-        compositorGpuEndToVsyncElapsedTime : float
-        timeToVsync : float
-
-        """
         self._new_struct()
 
     def __cinit__(self):
@@ -253,17 +233,6 @@ cdef class LibOVRPerfStats(object):
     cdef LibOVRPerfStatsPerCompositorFrame compFrame4
 
     def __init__(self):
-        """
-        Attributes
-        ----------
-        frameStats : tuple
-        frameStatsCount : int
-        anyFrameStatsDropped : bool
-        adaptiveGpuPerformanceScale : float
-        aswIsAvailable : bool
-        visibleProcessId : int
-
-        """
         self._new_struct()
 
     def __cinit__(self):

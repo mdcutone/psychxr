@@ -2,6 +2,67 @@
 Release Notes
 =============
 
+Version 0.2.4 - 2021-03-16
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Finally another release of PsychXR after nearly a year! The 0.2.4 release of
+PsychXR introduces new features and significant changes to how the project is
+organized. The library itself has undergone considerable refactoring, intended
+to make PsychXR more modular for a future plugin system to allow features (e.g.,
+other drivers, tools, etc.) to augment the core installation.
+
+The LibOVR driver interface has been updated to use version 23.0 (1.55) of the
+Oculus PC SDK. This version of LibOVR introduces a new color management API to
+help ensure content appears correct between headsets whose displays have
+different color models. The :class:`~psychxr.drivers.libovr.LibOVRHmdColorSpace`
+class has been added to the `libovr` module to work with this API. As a bonus,
+the class provides chromaticity coordinates of the RGB primaries and the white
+point for each display type specified. The color management stuff is pretty new,
+if you plan on using this feature test it out and provide feedback if something
+unexpected happens or the documentation is unclear.
+
+Interaction is a very important aspect of VR, therefore having some basic
+facility for that within PsychXR is appreciated. The
+:class:`~psychxr.drivers.libovr.LibOVRPose` class has a new
+:meth:`~psychxr.drivers.libovr.LibOVRPose.raycastPose` method for interacting
+with the bounding boxes associated with poses. This allows for basic interaction
+between the user and objects in the scene without needing to figure that stuff
+out yourself.
+
+See CHANGELOG for more information regarding changes this release.
+
+**General**
+
+* Major reorganization of the codebase. Driver interfaces have been moved to the
+  :mod:`psychxr.drivers` sub-package. For backwards compatibility you can still
+  access the `libovr` driver by invoking ``import psychxr.libovr as libovr``,
+  but the proper way now is ``import psychxr.drivers.libovr as libovr``. The
+  reason for this change is to facilitate a plugin system where new interface
+  libraries will appear under :mod:`~psychxr.drivers`.
+
+**Oculus Rift Support (libovr)**
+
+* Version bump of the LibOVR PC SDK to 23.0 (internally 1.55 for some reason).
+  This is the minimum version **REQUIRED** to build PsychXR 0.2.4 with LibOVR
+  support (absolutely needed at this point).
+* Added support for the Oculus color management API:
+    - A new class called :class:`~psychxr.drivers.libovr.LibOVRHmdColorSpace`.
+      Properties of this class can be used to get chromaticity coordinates for
+      the RGB primaries and white point of the target color space. These values
+      are provided by the manufacturer in their documentation but are made
+      available for convenience.
+    - New functions :func:`~psychxr.drivers.libovr.getHmdColorSpace` and
+      :func:`~psychxr.drivers.libovr.setClientColorSpace`.
+    - Symbolic constants added for ``COLORSPACE_UNKNOWN``,
+      ``COLORSPACE_UNMANAGED``, ``COLORSPACE_RIFT_CV1``, ``COLORSPACE_RIFT_S``,
+      ``COLORSPACE_QUEST``, ``COLORSPACE_REC_2020``, ``COLORSPACE_REC_709``,
+      ``COLORSPACE_P3`` and ``COLORSPACE_ADOBE_RGB``.
+* Added :meth:`~psychxr.drivers.libovr.LibOVRPose.raycastPose` for interaction
+  with bounding boxes around other poses.
+* Removed the ``BUILD_VERSION`` variable from the namespace of `libovr`.
+
+`Click here to download PsychXR 0.2.4 <https://github.com/mdcutone/psychxr/releases>`_
+
 Version 0.2.3 - 2019-12-10
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
