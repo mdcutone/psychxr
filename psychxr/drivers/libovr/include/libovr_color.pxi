@@ -37,7 +37,7 @@ COLORSPACE_P3 = capi.ovrColorSpace_P3
 COLORSPACE_ADOBE_RGB = capi.ovrColorSpace_Adobe_RGB
 
 # internal store for chromaticity values
-cdef np.npy_intp[3] CHROMA_STORE_SHAPE = [capi.ovrColorSpace_Count, 2, 4]
+cdef np.npy_intp[3] CHROMA_STORE_SHAPE = [capi.ovrColorSpace_Count, 4, 2]
 cdef np.ndarray chroma_xys = np.PyArray_SimpleNew(
     3, CHROMA_STORE_SHAPE, np.NPY_FLOAT32)
 
@@ -129,15 +129,6 @@ cdef class LibOVRHmdColorSpace(object):
     cdef capi.ovrHmdColorDesc c_data
 
     def __init__(self):
-        """
-        Attributes
-        ----------
-        colorSpace : int
-        red : ndarray
-        green : ndarray
-        blue : ndarray
-        whitePoint : ndarray
-        """
         pass
 
     def __cinit__(self):
@@ -162,7 +153,7 @@ cdef class LibOVRHmdColorSpace(object):
 
         """
         cdef np.ndarray[np.float32_t, ndim=2] to_return = np.zeros(
-            (2, 3), dtype=np.float32)
+            (3, 2), dtype=np.float32)
 
         to_return[:, :] = chroma_xys[colorSpace, :3, :]
 
