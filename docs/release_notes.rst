@@ -39,12 +39,20 @@ See CHANGELOG for more information regarding changes this release.
   but the proper way now is ``import psychxr.drivers.libovr as libovr``. The
   reason for this change is to facilitate a plugin system where new interface
   libraries will appear under :mod:`~psychxr.drivers`.
+* The `setup.py` script has been reworked. You can now use relative paths when
+  specifying ``PSYCHXR_LIBOVR_SDK_PATH`` environment variable. This allows you
+  to put the SDK files in your project directory (ex.
+  ``set PSYCHXR_LIBOVR_SDK_PATH=cohorts\OculusSDK``. By default, the setup
+  script will now look for SDK files in the present working directory instead of
+  `C:\OculusSDK`.
 
 **Oculus Rift Support (libovr)**
 
-* Version bump of the LibOVR PC SDK to 23.0 (internally 1.55 for some reason).
-  This is the minimum version **REQUIRED** to build PsychXR 0.2.4 with LibOVR
-  support (absolutely needed at this point).
+* Version bump of the LibOVR PC SDK to 23.0. This is the minimum version
+  **REQUIRED** to build PsychXR 0.2.4 with LibOVR support (absolutely needed at
+  this point). For some reason the LibOVR version is specified as `1.55`
+  internally, so the values of ``MAJOR_VERSION`` and ``MINOR_VERSION`` will be
+  `1` and `55`, respectively.
 * Added support for the Oculus color management API:
     - A new class called :class:`~psychxr.drivers.libovr.LibOVRHmdColorSpace`.
       Properties of this class can be used to get chromaticity coordinates for

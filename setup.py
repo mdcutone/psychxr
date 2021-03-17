@@ -47,9 +47,6 @@ _lib_dirs_ = []
 _libraries_ = []
 _build_ext_ = []
 
-# build flags
-_build_libovr_ = '0'  # Oculus PC SDK extensions
-
 # additional package data
 PACKAGES = ['psychxr']
 DATA_FILES = []
@@ -57,22 +54,21 @@ DATA_FILES = []
 # list of built extensions
 ext_modules = []
 
+# setup build environments on supported platforms
 if platform.system() == 'Windows':
-    # This makes sure the correct compiler is used, even if not explicitly
-    # specified.
-    os.environ["MSSdk"] = '1'
+    os.environ["MSSdk"] = '1'  # this makes sure the correct compiler is used
     os.environ["DISTUTILS_USE_SDK"] = '1'
     _libraries_.extend(['opengl32', 'User32'])  # required Windows libraries
 else:
-    raise Exception("Trying to install `PsychXR` on an unsupported operating "
-                    "system. Exiting.")
+    raise Exception(
+        "Trying to install `PsychXR` on an unsupported operating system. "
+        "Exiting.")
 
 # check if which HMD were building libraries for and build the extensions
-if os.environ.get('PSYCHXR_BUILD_LIBOVR', '1') == '1':  # build libovr extension
+if os.environ.get('PSYCHXR_BUILD_LIBOVR', '1') == '1':
     print("building `libovr` extension modules ...")
 
-    # Build parameters for LibOVR. These are passed to the compiler an
-    # linker.
+    # build parameters for LibOVR passed to the compiler and linker
     libovr_package_data = {
         'psychxr.drivers.libovr': ['*.pxi', '*.pxd', '*.pyx', '*.cpp']}
     libovr_data_files = {'psychxr/drivers/libovr': ['*.pyd', '*.pxi']}
@@ -93,8 +89,9 @@ if os.environ.get('PSYCHXR_BUILD_LIBOVR', '1') == '1':  # build libovr extension
     # check if the path is a directory
     if not libovr_sdk_path.is_dir():
         raise NotADirectoryError(
-            "Cannot find the Oculus PC SDK at the specified location: "
-            "'{}'".format(str(libovr_sdk_path)))
+            "ERROR: Cannot find the Oculus PC SDK at the specified location "
+            "'{}'. Make sure `PSYCHXR_LIBOVR_SDK_PATH` is set.".format(
+                str(libovr_sdk_path)))
 
     # tell the user where the setup is looking for the SDK
     print(r"Using `PSYCHXR_LIBOVR_SDK_PATH={}`".format(str(libovr_sdk_path)))
@@ -152,9 +149,10 @@ setup_pars = {
         'Operating System :: Microsoft :: Windows :: Windows 10',
         'Operating System :: Microsoft :: Windows :: Windows 8.1',
         'Operating System :: Microsoft :: Windows :: Windows 7',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3',
         'Programming Language :: Cython',
+        'Programming Language :: Python :: 3 :: Only',
+        'License :: OSI Approved :: MIT License',
+        'Topic :: Scientific/Engineering :: Human Machine Interfaces',
         'Intended Audience :: Science/Research'],
     "ext_modules": ext_modules,
     "install_requires": ["Cython>=0.29.3", "numpy>=1.13.3"],
