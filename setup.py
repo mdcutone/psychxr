@@ -39,6 +39,7 @@ from setuptools import setup
 from setuptools.extension import Extension
 from Cython.Build import cythonize, build_ext
 import numpy
+from pathlib import Path, PureWindowsPath
 
 # compiler related data
 _include_dir_ = [numpy.get_include()]
@@ -56,6 +57,10 @@ _sdk_data_ = {}
 PACKAGES = ['psychxr']
 DATA_FILES = []
 
+# list of built extensions
+ext_modules = []
+
+
 if platform.system() == 'Windows':
     # This makes sure the correct compiler is used, even if not explicitly
     # specified.
@@ -67,56 +72,74 @@ if platform.system() == 'Windows':
     _build_libovr_ = os.environ.get('PSYCHXR_BUILD_LIBOVR', '1')
 
     if _build_libovr_ == '1':  # build libovr extensions
-        print("building libovr extension modules ...")
-        _sdk_data_['libovr'] = {}
-        _sdk_data_['libovr']['libs'] = ['LibOVR']
-        env_sdk_path = os.environ.get('PSYCHXR_LIBOVR_SDK_PATH', None)
-        if env_sdk_path is not None:
-            _sdk_data_['libovr']['include'] = [
-                os.path.join(env_sdk_path, 'LibOVR', 'Include'),
-                os.path.join(env_sdk_path, 'LibOVR', 'Include', 'Extras')]
-            _sdk_data_['libovr']['lib_dir'] = [
-                os.path.join(
-                    env_sdk_path, 'LibOVR', 'Lib', 'Windows', 'x64', 'Release',
-                    'VS2017')]
-            _sdk_data_['libovr']['libs'] = []
-        else:
-            # use a default
-            _sdk_data_['libovr']['include'] = \
-                [r"C:\OculusSDK\LibOVR\Include",
-                 r"C:\OculusSDK\LibOVR\Include\Extras"]
-            _sdk_data_['libovr']['lib_dir'] = \
-                [r"C:\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2017"]
+        print("building `libovr` extension modules ...")
 
-        # package data
-        _sdk_data_['libovr']['packages'] = ['psychxr.drivers.libovr']
-        _sdk_data_['libovr']['package_data'] = \
-            {'psychxr.drivers.libovr': ['*.pxi', '*.pxd', '*.pyx', '*.cpp']}
-        _sdk_data_['libovr']['data_files'] = {
-            'psychxr/drivers/libovr': ['*.pyd', '*.pxi']}
+        # Build parameters for LibOVR. These are passed to the compiler an
+        # linker.
+        libovr_package_data = {
+            'psychxr.drivers.libovr': ['*.pxi', '*.pxd', '*.pyx', '*.cpp']}
+        libovr_data_files = {'psychxr/drivers/libovr': ['*.pyd', '*.pxi']}
+        libovr_build_params = {
+            'libs': ['LibOVR'],
+            'lib_dir': [],
+            'include': [],
+            'packages': ['psychxr.drivers.libovr'],
+            'package_data': libovr_package_data,
+            'data_files': libovr_data_files}
 
+        # get the path to the SDK, uses the relative path if not defined
+        env_libovr_sdk_path = os.environ.get('PSYCHXR_LIBOVR_SDK_PATH', '.')
+
+        # convert to a path object, make absolute
+        libovr_sdk_path = Path(PureWindowsPath(env_libovr_sdk_path)).absolute()
+
+        # check if the path is a directory
+        if not libovr_sdk_path.is_dir():
+            raise NotADirectoryError(
+                "Cannot find the Oculus PC SDK at the specified location: "
+                "'{}'".format(str(libovr_sdk_path)))
+
+        # tell the user where the setup is looking for the SDK
+        print(r"Using `PSYCHXR_LIBOVR_SDK_PATH={}`".format(
+            str(libovr_sdk_path)))
+
+        # base paths within the SDK
+        libovr_base_path = libovr_sdk_path.joinpath('LibOVR')
+        libovr_include_path = libovr_base_path.joinpath('Include')
+        libovr_lib_path = libovr_base_path.joinpath('Lib')
+
+        # add paths
+        libovr_build_params['include'] = [
+            str(libovr_include_path),
+            str(libovr_include_path.joinpath('Extras'))]
+        libovr_build_params['lib_dir'] = [
+            str(libovr_lib_path.joinpath(
+                'Windows', 'x64', 'Release', 'VS2017'))]
+
+        # data to forward to the compile routine
+        _sdk_data_['libovr'] = libovr_build_params
+
+        # compile the `libovr` extension
+        cythonize(
+            "psychxr/drivers/libovr/_libovr.pyx",
+            include_path=libovr_build_params['include'],
+            compiler_directives={
+                'embedsignature': True,
+                'language_level': 3})
+        ext_modules.extend([
+            Extension(
+                "psychxr.drivers.libovr._libovr",
+                ["psychxr/drivers/libovr/_libovr" + ".cpp"],
+                include_dirs=_include_dir_ + libovr_build_params['include'],
+                libraries=_libraries_ + libovr_build_params['libs'],
+                library_dirs=_lib_dirs_ + libovr_build_params['lib_dir'],
+                language="c++",
+                extra_compile_args=[''])
+        ])
+        PACKAGES.extend(libovr_build_params['packages'])
 else:
-    raise Exception("Trying to install PsychXR on an unsupported operating "
+    raise Exception("Trying to install `PsychXR` on an unsupported operating "
                     "system. Exiting.")
-
-# add configured extensions
-ext_modules = []
-if _build_libovr_ == '1':
-    cythonize("psychxr/drivers/libovr/_libovr.pyx",
-              include_path=_sdk_data_['libovr']['include'],
-              compiler_directives = {'embedsignature': True,
-                                     'language_level': 3})
-    ext_modules.extend([
-        Extension(
-            "psychxr.drivers.libovr._libovr",
-            ["psychxr/drivers/libovr/_libovr" + ".cpp"],
-            include_dirs=_include_dir_ + _sdk_data_['libovr']['include'],
-            libraries=_libraries_ + _sdk_data_['libovr']['libs'],
-            library_dirs=_lib_dirs_ + _sdk_data_['libovr']['lib_dir'],
-            language="c++",
-            extra_compile_args=[''])
-    ])
-    PACKAGES.extend(_sdk_data_['libovr']['packages'])
 
 setup_pars = {
     "name": "psychxr",
@@ -153,5 +176,3 @@ setup_pars = {
 }
 
 setup(**setup_pars)
-
-

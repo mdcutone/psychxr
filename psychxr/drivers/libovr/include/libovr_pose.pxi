@@ -2130,7 +2130,7 @@ cdef class LibOVRPoseState(object):
     compute forces applied to rigid bodies and predict the future positions of
     objects (see :py:meth:`~psychxr.libovr.LibOVRPoseState.timeIntegrate`). You
     can create `LibOVRPoseState` objects using data from other sources, such as
-    *n*DOF IMUs for use with VR environments.
+    nDOF IMUs for use with VR environments.
 
     Parameters
     ----------
