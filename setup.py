@@ -35,11 +35,11 @@ how to build from source.
 """
 import os
 import platform
+from pathlib import Path, PureWindowsPath
 from setuptools import setup
 from setuptools.extension import Extension
 from Cython.Build import cythonize, build_ext
 import numpy
-from pathlib import Path, PureWindowsPath
 
 # compiler related data
 _include_dir_ = [numpy.get_include()]
@@ -80,8 +80,10 @@ if os.environ.get('PSYCHXR_BUILD_LIBOVR', '1') == '1':
         'package_data': libovr_package_data,
         'data_files': libovr_data_files}
 
-    # get the path to the SDK, uses the relative path if not defined
-    env_libovr_sdk_path = os.environ.get('PSYCHXR_LIBOVR_SDK_PATH', '.')
+    # get the path to the SDK, uses the `cohorts` folder if not defined
+    env_libovr_sdk_path = os.environ.get(
+        'PSYCHXR_LIBOVR_SDK_PATH',
+        r'cohorts\LibOVR')
 
     # convert to a path object, make absolute
     libovr_sdk_path = Path(PureWindowsPath(env_libovr_sdk_path)).absolute()
@@ -151,6 +153,10 @@ setup_pars = {
         'Operating System :: Microsoft :: Windows :: Windows 7',
         'Programming Language :: Cython',
         'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'License :: OSI Approved :: MIT License',
         'Topic :: Scientific/Engineering :: Human Machine Interfaces',
         'Intended Audience :: Science/Research'],

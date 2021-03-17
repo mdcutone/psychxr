@@ -68,8 +68,7 @@ Setting up the build environment
 If you choose to build *PsychXR* from source, you must have the appropriate
 environment setup on your computer. The software requires a C++ compiler to
 build. Microsoft Windows does not usually ship with the tools to build C++
-applications,
-therefore you must use the `Microsoft Visual Studio
+applications, therefore you must use the `Microsoft Visual Studio
 <https://visualstudio.microsoft.com/downloads/>`_ installer to get those
 features (the free "Community" edition will suffice). Upon downloading and
 running the "Visual Studio Installer" application, you will be presented with a
@@ -82,16 +81,21 @@ feature and start the installation (see below).
     :align: center
 
 Now create a folder somewhere accessible on your PC. For this example, we'll
-create a folder on our desktop called `PsychXRBuild`.
-
-Download the `Oculus SDK for Windows
+create a folder on our desktop called `PsychXRBuild` (the full path being
+``C:\Users\matth\Desktop\PsychXRBuild`` for this example). Download the `Oculus
+SDK for Windows
 <https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/>`_
-(version v23.0 is required) and extract the zip file to the `PsychXRBuild`
-folder we just created. You also need a copy of the latest source distribution
-package for *PsychXR* which can be downloaded from the
-`releases <https://github.com/mdcutone/psychxr/releases>`_ page. Place that too
-into the `PsychXRBuild` folder. When you open the folder in "Explorer" it should
-look something like what's shown below.
+(version v23.0 is required) and extract the contents of the zip file to a folder
+inside the `PsychXRBuild` called `OculusSDK`.
+
+.. note:: Due to licensing restrictions the Oculus Rift PC SDK cannot be shipped
+          with *PsychXR*.
+
+Finally get a copy of the latest source distribution package for *PsychXR* which
+can be downloaded from the `releases
+<https://github.com/mdcutone/psychxr/releases>`_ page. Place that too into the
+`PsychXRBuild` folder. When you open the `PsychXRBuild` folder in Explorer it
+should look something like what's shown below.
 
 .. image:: ./_static/psychxr_build_windows4.PNG
     :alt: Feature "Desktop development with C++" selected in the Visual Studio
@@ -103,53 +107,54 @@ look something like what's shown below.
           software should work fine if the SDK version is newer and has no
           breaking changes. However, this may result in unexpected behaviour!
 
-Now open the "x64 Native Tools Command Prompt for VS 2019" (check your Start
-menu under "Visual Studio 2019" as shown below).
+Building from a source distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now that we have our build environment setup, we can now build *PsychXR* from
+its source distribution. To do so, open the "x64 Native Tools Command Prompt for
+VS 2019" (to find it, check your Start menu under "Visual Studio 2019" as shown
+below).
 
 .. image:: ./_static/build_on_windows2.png
     :alt: Start menu item showing the "x64 Native Tools Command Prompt for VS
           2019" icon.
     :align: center
 
-You will presented with the following command prompt window.
+You should see the following a command prompt appear on-screen.
 
 .. image:: ./_static/build_on_windows3.PNG
-    :width: 640px
     :align: center
 
-Now we need to configure the build using environment variables. The build script
-needs these values to know which SDK we're building extensions for and where the
-SDK files are located.
+Within the prompt, change the directory to the `PsychXRBuild` folder created
+earlier using the `cd` command, making it the present working directory::
 
-We tell the installer to build extensions for the Oculus SDK (LibOVR) by issuing
-the following command::
+    cd C:\Users\matth\Desktop\PsychXRBuild
+
+Now we need to configure the build script by setting environment variables. The
+build script needs these values to know which SDK we're building extensions for
+and where any required files are located. We tell the installer to build
+extensions for the Oculus SDK (LibOVR) by issuing the following command::
 
     set PSYCHXR_BUILD_LIBOVR=1
 
-Issuing the above command is redundant at this time. Since LibOVR is the only
-supported interface and *PsychXR* would be pretty useless without it,
+The above command is redundant at this time. Since LibOVR is the only supported
+interface and *PsychXR* would be pretty useless without it,
 ``PSYCHXR_BUILD_LIBOVR`` defaults to ``1`` even without specifying the above
 command. In the future, other interfaces may be installed selectively this way.
 
-To build LibOVR extensions, the installer needs to know where the Oculus PC SDK
-files are located. You specify the path to the SDK by entering the following
-command::
+The installer needs to know where the Oculus PC SDK files are located to build
+the LibOVR extension. The SDK contains files needed to compile the interface
+which are provided by the manufacturer. It does this by looking at the value of
+the environment variable ``PSYCHXR_LIBOVR_SDK_PATH``. Since we placed the SDK
+files in a folder called `OculusSDK` located inside `PsychXRBuild`, we simply
+need to enter the following command::
 
-    set PSYCHXR_LIBOVR_SDK_PATH=C:\path\to\OculusSDK
+    set PSYCHXR_LIBOVR_SDK_PATH=C:\Users\matth\Desktop\PsychXRBuild\OculusSDK
 
-The settings above depend on where you unpacked the Oculus SDK files, so set
-them appropriately. By default, the compiler will assume the SDK is located at
-``C:\OculusSDK``, so you don't need to set the above environment variables if
-you extracted it there.
-
-.. note:: Due to licensing restrictions the Oculus Rift PC SDK cannot be shipped
-          with *PsychXR*.
-
-Now we can build the source package using the following command (replacing
+Now we can build the source package by entering the following command (replacing
 <version> with the current version of the package, which is **0.2.4**)::
 
     python -m pip install psychxr-<version>.tar.gz
-
 
 Testing the Installation
 ------------------------
@@ -161,5 +166,4 @@ interpreter::
     >>> import psychxr.libovr as libovr
     >>> libovr.isHmdConnected()
     True
-
 
