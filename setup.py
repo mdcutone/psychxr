@@ -66,7 +66,7 @@ else:
 
 # check if which HMD were building libraries for and build the extensions
 if os.environ.get('PSYCHXR_BUILD_LIBOVR', '1') == '1':
-    print("building `libovr` extension modules ...")
+    print("building `LibOVR` extension modules ...")
 
     # build parameters for LibOVR passed to the compiler and linker
     libovr_package_data = {
@@ -129,6 +129,22 @@ if os.environ.get('PSYCHXR_BUILD_LIBOVR', '1') == '1':
             extra_compile_args=[''])
     ])
     PACKAGES.extend(libovr_build_params['packages'])
+
+# build the OpenHMD driver
+if os.environ.get('PSYCHXR_BUILD_OPENHMD', '1') == '1':
+    print("building `OpenHMD` extension modules ...")
+
+    ohmd_package_data = {
+        'psychxr.drivers.libovr': ['*.pxi', '*.pxd', '*.pyx', '*.cpp']}
+    ohmd_data_files = {'psychxr/drivers/openhmd': ['*.pyd', '*.pxi']}
+    ohmd_build_params = {
+        'libs': ['LibOVR'],
+        'lib_dir': [],
+        'include': [],
+        'packages': ['psychxr.drivers.openhmd'],
+        'package_data': ohmd_package_data,
+        'data_files': ohmd_data_files}
+
 
 setup_pars = {
     "name": "psychxr",

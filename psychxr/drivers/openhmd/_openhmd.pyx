@@ -28,6 +28,10 @@
 """This extension module exposes the LibOVR API to Python using the FOSS OpenHMD
 driver interface.
 
+OpenHMD is a project aimed at providing free and open source drivers for many
+commercial HMDs. The driver interface is portable and cross-platform, however
+feature support varies depending on the HMD used.
+
 """
 # ------------------------------------------------------------------------------
 # Module information
@@ -40,6 +44,10 @@ __version__ = "0.2.4"
 __status__ = "Stable"
 __maintainer__ = "Matthew D. Cutone"
 __email__ = "mcutone@opensciencetools.com"
+
+# ------------------------------------------------------------------------------
+# Module information
+#
 
 __all__ = [
     "OHMD_STR_SIZE",
@@ -119,6 +127,8 @@ __all__ = [
     "destroy"
 ]
 
+cimport numpy as np
+import numpy as np
 from . cimport openhmd_capi as ohmd
 
 # ------------------------------------------------------------------------------
@@ -219,14 +229,67 @@ OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER = ohmd.OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER
 #
 cdef ohmd.ohmd_context* _ctx = NULL
 
+
+# ------------------------------------------------------------------------------
+# C-API for OpenHMD
+#
+
+def getError():
+    """Get the error message."""
+    cdef const char* err_msg = ohmd.ohmd_ctx_get_error(_ctx)
+
+    # return as a python string
+
+
 cdef class OpenHMDPose(object):
-    """Class representing a pose in space."""
-    pass
+    """Class representing a 3D pose in space.
+
+    Parameters
+    ----------
+    pos : ArrayLike
+        Position vector (x, y, z).
+    ori : ArrayLike
+        Orientation quaternion (x, y, z, w), where x, y, z are real and w is
+        imaginary.
+
+    See Also
+    --------
+    psychxr.drivers.libovr.LibOVRPose
+
+    """
+    cdef np.ndarray _pos
+    cdef np.ndarray _ori
+
+    def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+        self._pos[:] = pos
+        self._ori[:] = ori
+
+    def __cinit__(self, *args, **kwargs):
+        # define the storage arrays here
+        self._pos = np.empty((3,), dtype=np.float32)
+        self._ori = np.empty((4,), dtype=np.float32)
+
+    @property
+    def pos(self):
+        return self._pos
+
+    @pos.setter
+    def pos(self, object value):
+        self._pos[:] = value
+
+    @property
+    def ori(self):
+        return self._ori
+
+    @ori.setter
+    def ori(self, object value):
+        self._ori[:] = value
 
 
 cdef class OpenHMDDeviceInfo(object):
     """Device information class."""
-    pass
+    cdef np.ndarray _fov
+    cdef np.ndarray _aspect
 
 
 def getDeviceInfo():
@@ -235,7 +298,12 @@ def getDeviceInfo():
 
 
 def create():
-    """Create a new OpenHMD context/session."""
+    """Create a new OpenHMD context/session.
+
+    At this time only a single context can be created per session. You must call
+    this function prior to using any other API calls.
+
+    """
     global _ctx
     _ctx = ohmd.ohmd_ctx_create()
 
