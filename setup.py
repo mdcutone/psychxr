@@ -3,7 +3,7 @@
 #
 #  setup.py
 #
-#  Copyright 2017 Matthew D. Cutone <cutonem (at) yorku.ca>
+#  Copyright 2021 Matthew D. Cutone <mcutone(at)opensciencetools.com>
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@ CYTHON_INCLUDE_DIRS = [numpy.get_include(), '.']
 CPP_INCLUDE_DIRS = CYTHON_INCLUDE_DIRS + ['include/']
 
 # library directories and library names
-LIB_DIRS = ['lib/']
+LIBRARY_DIRS = LIB_DIRS = ['lib/']
 LIBRARIES = []  # required
 
 # extension modules to add to the package
@@ -58,23 +58,25 @@ EXT_MODULES = []
 
 # additional package data
 PACKAGES = ['psychxr']
-PACKAGE_DATA = ['*.pxi', '*.pxd', '*.pyx', '*.cpp']
-DATA_FILES = ['*.pyd', '*.pxi']
-
-# ------------------------------------------------------------------------------
-# Setup build environment
-#
+PACKAGE_DATA = ['*.pxi', '*.pxd', '*.pyx', '*.cpp', '*.h']
+DATA_FILES = ['*.pyd', '*.pxi', '*.dll', '*.lib']
 
 # platform and build information
 THIS_PLATFORM = platform.system()
 BUILD_LIBOVR = os.environ.get('PSYCHXR_BUILD_LIBOVR', ENV_TRUE) == ENV_TRUE
 BUILD_OPENHMD = os.environ.get('PSYCHXR_BUILD_OPENHMD', ENV_TRUE) == ENV_TRUE
 
+
+# ------------------------------------------------------------------------------
+# Setup build environment
+#
+
 # setup build environments on supported platforms
 if THIS_PLATFORM == 'Windows':
     os.environ["MSSdk"] = ENV_TRUE  # ensure correct compiler is used
     os.environ["DISTUTILS_USE_SDK"] = ENV_TRUE
     LIBRARIES.extend(['opengl32', 'User32'])  # required Windows libraries
+    LIBRARY_DIRS.extend([os.path.join('lib', 'win', 'x64')])
 else:
     raise Exception(
         "Trying to install `PsychXR` on an unsupported operating system. "
@@ -82,25 +84,81 @@ else:
 
 # print out the build configuration
 if BUILD_LIBOVR:
-    print("Configured to build `LibOVR` extension modules.")
+    print("Configured to build `LibOVR` extension modules "
+          "(`PSYCHXR_BUILD_LIBOVR=1`).")
 
 if BUILD_OPENHMD:
-    print("Configured to build `OpenHMD` extension modules.")
+    print("Configured to build `OpenHMD` extension modules "
+          "(`PSYCHXR_BUILD_OPENHMD=1`).")
+
+
+# ------------------------------------------------------------------------------
+# Helper functions for the installer
+#
+
+def fix_path(path):
+    if THIS_PLATFORM == 'Windows':
+        path = PureWindowsPath(path)
+
+    return str(Path(path).absolute())
+
+
+def build_extension(name, **kwargs):
+    """Build an extension.
+
+    Parameters
+    ----------
+    name : str
+        FQN of the extension module.
+
+    Returns
+    -------
+    Extension
+        Object referencing the build extension module.
+
+    """
+    # build the module and add it to the package directory
+    pyx_file_path = [r"/".join(name.split('.')) + ".pyx"]
+    pxd_include_path = kwargs.get('include_path', []) + CYTHON_INCLUDE_DIRS
+    cpp_file_path = [r"/".join(name.split('.')) + ".cpp"]
+    cpp_include_dirs = kwargs.get('include_dirs', []) + CPP_INCLUDE_DIRS
+    cpp_libraries = kwargs.get('libraries', []) + LIBRARIES
+    cpp_library_dirs = kwargs.get('library_dirs', []) + LIBRARY_DIRS
+
+    cythonize(
+        pyx_file_path,
+        include_path=pxd_include_path,
+        compiler_directives={
+            'embedsignature': True,
+            'language_level': 3})
+
+    ext = Extension(
+        name,
+        cpp_file_path,
+        include_dirs=cpp_include_dirs,
+        libraries=cpp_libraries,
+        library_dirs=cpp_library_dirs,
+        language="c++",
+        extra_compile_args=[''])
+
+    return ext
+
 
 # ------------------------------------------------------------------------------
 # Build driver extension libraries (e.g., libovr, openhmd, etc.)
 #
+
 if BUILD_LIBOVR:
-    print("building `LibOVR` extension modules ...")
+    print("Building `LibOVR` extension modules ...")
 
     # build parameters for LibOVR passed to the compiler and linker
     libovr_package_data = {
         'psychxr.drivers.libovr': PACKAGE_DATA}
     libovr_data_files = {'psychxr/drivers/libovr': DATA_FILES}
     libovr_build_params = {
-        'libs': ['LibOVR'],
-        'lib_dir': [],
-        'include': [],
+        'libraries': ['LibOVR'],
+        'library_dirs': [],
+        'include_dirs': [],
         'packages': ['psychxr.drivers.libovr'],
         'package_data': libovr_package_data,
         'data_files': libovr_data_files}
@@ -129,78 +187,49 @@ if BUILD_LIBOVR:
     libovr_lib_path = libovr_base_path.joinpath('Lib')
 
     # add paths
-    libovr_build_params['include'] = [
-        str(libovr_include_path),
-        str(libovr_include_path.joinpath('Extras'))]
-    libovr_build_params['lib_dir'] = [
-        str(libovr_lib_path.joinpath(
+    libovr_build_params['include_dirs'] = [
+        fix_path(libovr_include_path),
+        fix_path(libovr_include_path.joinpath('Extras'))]
+    libovr_build_params['library_dirs'] = [
+        fix_path(libovr_lib_path.joinpath(
             'Windows', 'x64', 'Release', 'VS2017'))]
 
     # compile the `libovr` extension
-    cythonize(
-        "psychxr/drivers/libovr/_libovr.pyx",
-        include_path=CYTHON_INCLUDE_DIRS + libovr_build_params['include'],
-        compiler_directives={
-            'embedsignature': True,
-            'language_level': 3})
-    EXT_MODULES.extend([
-        Extension(
+    EXT_MODULES.extend(
+        [build_extension(
             "psychxr.drivers.libovr._libovr",
-            ["psychxr/drivers/libovr/_libovr" + ".cpp"],
-            include_dirs=CPP_INCLUDE_DIRS + libovr_build_params['include'],
-            libraries=LIBRARIES + libovr_build_params['libs'],
-            library_dirs=LIB_DIRS + libovr_build_params['lib_dir'],
-            language="c++",
-            extra_compile_args=[''])
-    ])
+            **libovr_build_params)])
     PACKAGES.extend(libovr_build_params['packages'])
 
 # build the OpenHMD driver
 if BUILD_OPENHMD:
     print("building `OpenHMD` extension modules ...")
+
     ohmd_package_data = {
         'psychxr.drivers.openhmd': PACKAGE_DATA}
     ohmd_data_files = {
         'psychxr/drivers/openhmd': DATA_FILES}
-
-    if THIS_PLATFORM == 'Windows':
-        # use the DLLs we shipped with
-        ohmd_libdir = LIB_DIRS + [
-            str(Path(PureWindowsPath(os.path.join('lib', 'win', 'x64'))).absolute())]
-    else:
-        # other platforms will use the system libs
-        ohmd_libdir = LIB_DIRS
-
     ohmd_build_params = {
-        'libs': LIBRARIES + ['hidapi', 'openhmd'],
-        'lib_dir': ohmd_libdir,
-        'include': [
-            str(Path(PureWindowsPath('include/linmath')).absolute()),
-            str(Path(PureWindowsPath('include/openhmd')).absolute())],
+        'libraries': LIBRARIES + ['hidapi', 'openhmd'],
+        'library_dirs': LIBRARY_DIRS,
+        'include_dirs': [  # header files for needed libraries
+            fix_path('include/linmath'),
+            fix_path('include/openhmd')],
         'packages': ['psychxr.drivers.openhmd'],
         'package_data': ohmd_package_data,
         'data_files': ohmd_data_files}
 
-    # compile the `libovr` extension
-    cythonize(
-        "psychxr/drivers/openhmd/_openhmd.pyx",
-        include_path=CYTHON_INCLUDE_DIRS,
-        compiler_directives={
-            'embedsignature': True,
-            'language_level': 3})
-
-    # build the module and add it to the package directory
-    EXT_MODULES.extend([
-        Extension(
+    # compile the `openhmd` extension
+    EXT_MODULES.extend(
+        [build_extension(
             "psychxr.drivers.openhmd._openhmd",
-            ["psychxr/drivers/openhmd/_openhmd" + ".cpp"],
-            include_dirs=CPP_INCLUDE_DIRS + ohmd_build_params['include'],
-            libraries=LIBRARIES + ohmd_build_params['libs'],
-            library_dirs=ohmd_build_params['lib_dir'],
-            language="c++",
-            extra_compile_args=[''])
-    ])
+            **ohmd_build_params)])
     PACKAGES.extend(ohmd_build_params['packages'])
+
+
+# ------------------------------------------------------------------------------
+# Packaging and setup
+#
 
 setup_pars = {
     "name": "psychxr",
