@@ -9,6 +9,9 @@ PsychXR is a collection of [Python](https://www.python.org/) extension libraries
 for interacting with eXtended Reality displays (HMDs), intended for neuroscience 
 and psychology research applications.
 
+While academic researchers are the intended audience for PsychXR, it now sees 
+use in industry for prototyping and development of VR related solutions.
+
 PsychXR is used by PsychoPy v3 (http://www.psychopy.org/) to provide HMD 
 support.
 
@@ -27,8 +30,8 @@ the [Godot Engine](https://godotengine.org/).
 
 ## Supported Devices
 
-Device support varies depending on the driver interface used. PsychXR provides
-access to the following HMD driver interfaces through extension modules.
+Device support varies depending on the extension used. PsychXR provides access 
+to the following HMD driver interfaces through extension modules.
 
 ### LibOVR - `psychxr.drivers.libovr`
 
@@ -111,7 +114,8 @@ for doing the following:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file 
+for details.
 
 ## How To Cite PsychXR
 
