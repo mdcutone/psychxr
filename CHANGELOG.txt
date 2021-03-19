@@ -6,23 +6,53 @@ Version 0.2.4 - 2021/03/14
 
 Overview:
 
-    This release mainly adds some new API features introduced to LibOVR and
-    refactors how driver modules are organized in PsychXR. The refactor is work
-    was intended to facilitate possible future additions to the PsychXR driver
-    library. There are also new methods added to the `LibOVRPose` class to allow
-    for basic interaction within VR.
+    This release adds experimental an OpenHMD driver, some new API features
+    introduced to LibOVR, and refactors how driver modules are organized in
+    PsychXR. The refactor is work was intended to facilitate current and future
+    additions to the PsychXR driver library (e.g., OpenHMD and OpenXR).
 
-    A big change this release is the inclusion of color management to ensure
-    content authored on one display appears "correct" on others. This is an
-    important development introduced to the LibOVR API, providing information
-    about the color space in use by the display and some limited capacity to
-    remap it. PsychXR provides the `LibOVRHmdColorSpace` class and API functions
-    to work with this new color management system. Documentation and
-    recommendations are a bit thin at this point, but expect that to change in
-    coming releases.
+    A significant addition this release is preliminary support for OpenHMD.
+    OpenHMD is a FOSS project which aims to provide completely free drivers for
+    HMDs, already supporting a substantial number of commercial devices.
+    However, OpenHMD is not feature complete (yet) so things like positional
+    tracking and a compositor are not available on all platforms. This requires
+    the user to implement their own solutions for the time being. Ultimately,
+    FOSS drivers provide a net benefit for researchers since the ethical
+    pitfalls around using proprietary frameworks (e.g., third-party collection
+    of biometric data, "finger printing", etc.) are generally avoided and a
+    participant's privacy is respected. There are no demos yet for OpenHMD, and
+    the API is very simple. However, the OpenHMD interface will be expanded to
+    be as close to `LibOVR` as possible in future releases. Furthermore, OpenHMD
+    provides a means to use "homebrew" HMDs which might be helpful for some
+    users. By default, the OpenHMD driver interface is built when building from
+    source and is included with binary packages. Unfortunately, while OpenHMD is
+    cross-platform (runs on Linux and Windows), PsychXR is still exclusive to
+    Windows at this point. Cross-platform (read Linux) support is a priority now
+    that there is a driver available for it.
+
+    The LibOVR driver also got a significant update with the inclusion of color
+    management to ensure content authored on one display appears "correct" on
+    others. This is an important development introduced to the LibOVR API,
+    giving information about the color space in use by the display with some
+    limited capacity to remap it. PsychXR provides the `LibOVRHmdColorSpace`
+    class and API functions to work with this new color management system.
+    Documentation and recommendations are a bit thin at this point, but expect
+    that to change in coming releases.
+
+    Finally, refactoring work has been done to allow PsychXR to accommodate
+    multiple driver extension modules. This means that driver interface have
+    been moved to `psychxr.drivers` from the top-level package. This means that
+    LibOVR extension module `psychxr.libovr` is now at `psychxr.drivers.libovr`.
+    So that there are not any surprises for users, a stub file was added in the
+    original place of the `LibOVR` extension so extant scripts using the old
+    import path (`psychxr.libovr`) will still work for now.
 
 New Features:
 
+    - Experimental OpenHMD driver `psychxr.drivers.openhmd`. The whole OpenHMD
+      API is exposed but much of the extension types the `LibOVR` driver has do
+      not have equivalents yet. Treat this extension as a simple Python binding
+      for the time being.
     - Version bump of the Oculus PC SDK to 23.0 (latest as of this release).
     - The Oculus SDK driver module `psychxr.libovr` has been moved to
       `psychxr.drivers.libovr`. This change is needed to organize things better
@@ -284,24 +314,24 @@ Overview:
 New Features:
 
     - Added LibOVRPose, LibOVRPoseState, LibOVRSessionStatus, LibOVRHmdInfo,
-    etc.
+      etc.
     - Library now exposes vectors, quaternions, and matrices as Numpy arrays.
     - LibOVR version bump to 1.37.
     - Functions which call the LibOVR API return error/success codes, making it
-    easier to write custom error handlers.
+      easier to write custom error handlers.
     - More arguments for 'initialize()', such as 'focusAware'.
     - LibOVRPose handles rigid body pose data like 'ovr.math.Posef' did.
     - Added swap chain names 'LIBOVR_TEXTURE_SWAP_CHAIN*' so you don't need to
-    define them yourself.
+      define them yourself.
     - Added 'setControllerVibration' for haptic feedback.
     - Added 'getDevicePose' to get the absolute poses of tracked objects.
     - Functions can copy data into existing arrays rather than creating new
-    ones.
+      ones.
     - Added functions to compute viewing parameters, such as horizontal FOV and
-    aspect ratio.
+      aspect ratio.
     - LibOVRPoseState objects can be time integrated.
     - Controller states functions return time stamps and states in a single
-    call.
+      call.
     - Tracker/sensor information is now available.
     - Many more ...
 
