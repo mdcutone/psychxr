@@ -1,6 +1,6 @@
 # distutils: language=c++
 
-cdef extern from "OVR_CAPI.h":
+cdef extern from "openhmd.h":
     cdef int OHMD_STR_SIZE = 256
 
     ctypedef enum ohmd_status:
@@ -24,7 +24,7 @@ cdef extern from "OVR_CAPI.h":
         OHMD_GLSL_ES_DISTORTION_VERT_SRC = 4
         OHMD_GLSL_ES_DISTORTION_FRAG_SRC = 5
 
-    ctypedef enum ohmd_string_description:
+    ctypedef enum ohmd_control_hint:
         OHMD_GENERIC = 0
         OHMD_TRIGGER = 1
         OHMD_TRIGGER_CLICK = 2
@@ -109,12 +109,12 @@ cdef extern from "OVR_CAPI.h":
     cdef void ohmd_ctx_update(ohmd_context* ctx)
     cdef int ohmd_ctx_probe(ohmd_context* ctx)
     cdef int ohmd_gets(ohmd_string_description type, const char** out)
-    cdef const char*ohmd_list_gets(ohmd_context* ctx, int index, ohmd_string_value type)
+    cdef const char* ohmd_list_gets(ohmd_context* ctx, int index, ohmd_string_value type)
     cdef int ohmd_list_geti(ohmd_context* ctx, int index, ohmd_int_value type, int*out)
     cdef ohmd_device*ohmd_list_open_device(ohmd_context* ctx, int index)
     cdef ohmd_device*ohmd_list_open_device_s(ohmd_context* ctx, int index, ohmd_device_settings*settings)
     cdef ohmd_status ohmd_device_settings_seti(ohmd_device_settings* settings, ohmd_int_settings key, const int*val)
-    cdef ohmd_device_settings*ohmd_device_settings_create(ohmd_context* ctx)
+    cdef ohmd_device_settings* ohmd_device_settings_create(ohmd_context* ctx)
     cdef void ohmd_device_settings_destroy(ohmd_device_settings* settings)
     cdef int ohmd_close_device(ohmd_device* device)
     cdef int ohmd_device_getf(ohmd_device*, ohmd_float_value, float*)

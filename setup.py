@@ -41,37 +41,62 @@ from setuptools.extension import Extension
 from Cython.Build import cythonize, build_ext
 import numpy
 
-# compiler related data
-_include_dir_ = [numpy.get_include()]
-_lib_dirs_ = []
-_libraries_ = []
-_build_ext_ = []
+# environment variable values
+ENV_TRUE = '1'
+ENV_FALSE = '0'
+
+# Cython and C++ include directories
+CYTHON_INCLUDE_DIRS = [numpy.get_include(), '.']
+CPP_INCLUDE_DIRS = CYTHON_INCLUDE_DIRS + ['include/']
+
+# library directories and library names
+LIB_DIRS = ['lib/']
+LIBRARIES = []  # required
+
+# extension modules to add to the package
+EXT_MODULES = []
 
 # additional package data
 PACKAGES = ['psychxr']
-DATA_FILES = []
+PACKAGE_DATA = ['*.pxi', '*.pxd', '*.pyx', '*.cpp']
+DATA_FILES = ['*.pyd', '*.pxi']
 
-# list of built extensions
-ext_modules = []
+# ------------------------------------------------------------------------------
+# Setup build environment
+#
+
+# platform and build information
+THIS_PLATFORM = platform.system()
+BUILD_LIBOVR = os.environ.get('PSYCHXR_BUILD_LIBOVR', ENV_TRUE) == ENV_TRUE
+BUILD_OPENHMD = os.environ.get('PSYCHXR_BUILD_OPENHMD', ENV_TRUE) == ENV_TRUE
 
 # setup build environments on supported platforms
-if platform.system() == 'Windows':
-    os.environ["MSSdk"] = '1'  # this makes sure the correct compiler is used
-    os.environ["DISTUTILS_USE_SDK"] = '1'
-    _libraries_.extend(['opengl32', 'User32'])  # required Windows libraries
+if THIS_PLATFORM == 'Windows':
+    os.environ["MSSdk"] = ENV_TRUE  # ensure correct compiler is used
+    os.environ["DISTUTILS_USE_SDK"] = ENV_TRUE
+    LIBRARIES.extend(['opengl32', 'User32'])  # required Windows libraries
 else:
     raise Exception(
         "Trying to install `PsychXR` on an unsupported operating system. "
         "Exiting.")
 
-# check if which HMD were building libraries for and build the extensions
-if os.environ.get('PSYCHXR_BUILD_LIBOVR', '1') == '1':
+# print out the build configuration
+if BUILD_LIBOVR:
+    print("Configured to build `LibOVR` extension modules.")
+
+if BUILD_OPENHMD:
+    print("Configured to build `OpenHMD` extension modules.")
+
+# ------------------------------------------------------------------------------
+# Build driver extension libraries (e.g., libovr, openhmd, etc.)
+#
+if BUILD_LIBOVR:
     print("building `LibOVR` extension modules ...")
 
     # build parameters for LibOVR passed to the compiler and linker
     libovr_package_data = {
-        'psychxr.drivers.libovr': ['*.pxi', '*.pxd', '*.pyx', '*.cpp']}
-    libovr_data_files = {'psychxr/drivers/libovr': ['*.pyd', '*.pxi']}
+        'psychxr.drivers.libovr': PACKAGE_DATA}
+    libovr_data_files = {'psychxr/drivers/libovr': DATA_FILES}
     libovr_build_params = {
         'libs': ['LibOVR'],
         'lib_dir': [],
@@ -114,37 +139,68 @@ if os.environ.get('PSYCHXR_BUILD_LIBOVR', '1') == '1':
     # compile the `libovr` extension
     cythonize(
         "psychxr/drivers/libovr/_libovr.pyx",
-        include_path=libovr_build_params['include'],
+        include_path=CYTHON_INCLUDE_DIRS + libovr_build_params['include'],
         compiler_directives={
             'embedsignature': True,
             'language_level': 3})
-    ext_modules.extend([
+    EXT_MODULES.extend([
         Extension(
             "psychxr.drivers.libovr._libovr",
             ["psychxr/drivers/libovr/_libovr" + ".cpp"],
-            include_dirs=_include_dir_ + libovr_build_params['include'],
-            libraries=_libraries_ + libovr_build_params['libs'],
-            library_dirs=_lib_dirs_ + libovr_build_params['lib_dir'],
+            include_dirs=CPP_INCLUDE_DIRS + libovr_build_params['include'],
+            libraries=LIBRARIES + libovr_build_params['libs'],
+            library_dirs=LIB_DIRS + libovr_build_params['lib_dir'],
             language="c++",
             extra_compile_args=[''])
     ])
     PACKAGES.extend(libovr_build_params['packages'])
 
 # build the OpenHMD driver
-if os.environ.get('PSYCHXR_BUILD_OPENHMD', '1') == '1':
+if BUILD_OPENHMD:
     print("building `OpenHMD` extension modules ...")
-
     ohmd_package_data = {
-        'psychxr.drivers.libovr': ['*.pxi', '*.pxd', '*.pyx', '*.cpp']}
-    ohmd_data_files = {'psychxr/drivers/openhmd': ['*.pyd', '*.pxi']}
+        'psychxr.drivers.openhmd': PACKAGE_DATA}
+    ohmd_data_files = {
+        'psychxr/drivers/openhmd': DATA_FILES}
+
+    if THIS_PLATFORM == 'Windows':
+        # use the DLLs we shipped with
+        ohmd_libdir = LIB_DIRS + [
+            str(Path(PureWindowsPath(os.path.join('lib', 'win', 'x64'))).absolute())]
+    else:
+        # other platforms will use the system libs
+        ohmd_libdir = LIB_DIRS
+
     ohmd_build_params = {
-        'libs': ['LibOVR'],
-        'lib_dir': [],
-        'include': [],
+        'libs': LIBRARIES + ['hidapi', 'openhmd'],
+        'lib_dir': ohmd_libdir,
+        'include': [
+            str(Path(PureWindowsPath('include/linmath')).absolute()),
+            str(Path(PureWindowsPath('include/openhmd')).absolute())],
         'packages': ['psychxr.drivers.openhmd'],
         'package_data': ohmd_package_data,
         'data_files': ohmd_data_files}
 
+    # compile the `libovr` extension
+    cythonize(
+        "psychxr/drivers/openhmd/_openhmd.pyx",
+        include_path=CYTHON_INCLUDE_DIRS,
+        compiler_directives={
+            'embedsignature': True,
+            'language_level': 3})
+
+    # build the module and add it to the package directory
+    EXT_MODULES.extend([
+        Extension(
+            "psychxr.drivers.openhmd._openhmd",
+            ["psychxr/drivers/openhmd/_openhmd" + ".cpp"],
+            include_dirs=CPP_INCLUDE_DIRS + ohmd_build_params['include'],
+            libraries=LIBRARIES + ohmd_build_params['libs'],
+            library_dirs=ohmd_build_params['lib_dir'],
+            language="c++",
+            extra_compile_args=[''])
+    ])
+    PACKAGES.extend(ohmd_build_params['packages'])
 
 setup_pars = {
     "name": "psychxr",
@@ -176,7 +232,7 @@ setup_pars = {
         'License :: OSI Approved :: MIT License',
         'Topic :: Scientific/Engineering :: Human Machine Interfaces',
         'Intended Audience :: Science/Research'],
-    "ext_modules": ext_modules,
+    "ext_modules": EXT_MODULES,
     "install_requires": ["Cython>=0.29.3", "numpy>=1.13.3"],
     "requires": [],
     "cmdclass": {"build_ext": build_ext},
