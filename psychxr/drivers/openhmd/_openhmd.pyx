@@ -131,6 +131,7 @@ __all__ = [
     "OHMDDeviceInfo",
     "success",
     "failure",
+    "getVersion",
     "create",
     "destroy",
     "probe",
@@ -348,58 +349,23 @@ cdef class OHMDDeviceInfo(object):
     of this class.
 
     """
-    cdef ohmd.ohmdDeviceInfo* c_data
+    cdef ohmd.ohmdDeviceInfo c_data
     cdef bint ptr_owner
-
-    def __init__(self):
-        self.newStruct()
-
-    def __cinit__(self):
-        self.ptr_owner = False
-
-    @staticmethod
-    cdef OHMDDeviceInfo fromPtr(ohmd.ohmdDeviceInfo* ptr, bint owner=False):
-        # bypass __init__ if wrapping a pointer
-        cdef OHMDDeviceInfo wrapper = OHMDDeviceInfo.__new__(
-            OHMDDeviceInfo)
-        wrapper.c_data = ptr
-        wrapper.ptr_owner = owner
-
-        return wrapper
-
-    cdef void newStruct(self):
-        if self.c_data is not NULL:  # already allocated, __init__ called twice?
-            return
-
-        cdef ohmd.ohmdDeviceInfo* _ptr = \
-            <ohmd.ohmdDeviceInfo*>PyMem_Malloc(
-                sizeof(ohmd.ohmdDeviceInfo))
-
-        if _ptr is NULL:
-            raise MemoryError
-
-        self.c_data = _ptr
-        self.ptr_owner = True
-
-    def __dealloc__(self):
-        if self.c_data is not NULL and self.ptr_owner is True:
-            PyMem_Free(self.c_data)
-            self.c_data = NULL
 
     @property
     def vendorName(self):
         """Device vendor name (`str`)."""
-        return self.c_data[0].vendorName.decode('utf-8')
+        return self.c_data.vendorName.decode('utf-8')
 
     @property
     def manufacturer(self):
         """Device manufacturer name, alias of `vendorName` (`str`)"""
-        return self.c_data[0].vendorName.decode('utf-8')
+        return self.c_data.vendorName.decode('utf-8')
 
     @property
     def productName(self):
         """Device product name (`str`)."""
-        return self.c_data[0].productName.decode('utf-8')
+        return self.c_data.productName.decode('utf-8')
 
     # @property
     # def resolution(self):
@@ -439,27 +405,27 @@ cdef class OHMDDeviceInfo(object):
     @property
     def deviceIdx(self):
         """Enumerated index of the device (`int`)."""
-        return self.c_data[0].deviceIdx
+        return self.c_data.deviceIdx
 
     @property
     def deviceClass(self):
         """Device class identifier (`int`)."""
-        return <int>self.c_data[0].deviceClass
+        return <int>self.c_data.deviceClass
 
     @property
     def isHMD(self):
         """``True`` if this device is an HMD (`bool`)."""
-        return self.c_data[0].deviceClass == ohmd.OHMD_DEVICE_CLASS_HMD
+        return self.c_data.deviceClass == ohmd.OHMD_DEVICE_CLASS_HMD
 
     @property
     def isController(self):
         """``True`` if this device is a controller (`bool`)."""
-        return self.c_data[0].deviceClass == ohmd.OHMD_DEVICE_CLASS_CONTROLLER
+        return self.c_data.deviceClass == ohmd.OHMD_DEVICE_CLASS_CONTROLLER
 
     @property
     def isTracker(self):
         """``True`` if this device is a generic tracker (`bool`)."""
-        return self.c_data[0].deviceClass == \
+        return self.c_data.deviceClass == \
                ohmd.OHMD_DEVICE_CLASS_GENERIC_TRACKER
 
     @property
@@ -477,25 +443,25 @@ cdef class OHMDDeviceInfo(object):
             hasFullTracking = (self.c_data.deviceFlags & flags) == flags
 
         """
-        return <int>self.c_data[0].deviceFlags
+        return <int>self.c_data.deviceFlags
 
     @property
     def hasOrientationTracking(self):
-        """``True`` if the HMD is capable of tracking orientation."""
+        """``True`` if capable of tracking orientation (`bool`)."""
         return (self.c_data.deviceFlags &
                 ohmd.OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING) == \
                ohmd.OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING
 
     @property
     def hasPositionTracking(self):
-        """``True`` if the HMD is capable of tracking position."""
+        """``True`` if capable of tracking position (`bool`)."""
         return (self.c_data.deviceFlags &
                 ohmd.OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING) == \
                ohmd.OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING
 
     @property
     def isDebugDevice(self):
-        """``True`` if the HMD is a virtual debug (null or dummy) device."""
+        """``True`` if a virtual debug (null or dummy) device (`bool`)."""
         return (self.c_data.deviceFlags &
                 ohmd.OHMD_DEVICE_FLAGS_NULL_DEVICE) == \
                ohmd.OHMD_DEVICE_FLAGS_NULL_DEVICE
@@ -533,6 +499,31 @@ def failure(int result):
 
     """
     return ohmd.OHMD_S_OK > result
+
+
+def getVersion():
+    """Get the version of the `OpenHMD` library presently loaded.
+
+    Returns
+    -------
+    tuple
+        Major (`int`), minor (`int`), and patch (`int`) version.
+
+    Examples
+    --------
+    Get the version for the OpenHMD library::
+
+        major_version, minor_version, patch_version = getVersion()
+
+    """
+    cdef:
+        int major_version = 0
+        int minor_version = 0
+        int patch_version = 0
+
+    ohmd.ohmd_get_version(&major_version, &minor_version, &patch_version)
+
+    return major_version, minor_version, patch_version
 
 
 def create():
@@ -600,32 +591,22 @@ def probe():
         raise OpenHMDNoContextError()
 
     # probe for devices
-    cdef int probe_result = ohmd.ohmd_ctx_probe(_ctx)
-    if not probe_result:  # no devices found, just return
-        return probe_result
-
-    print(f"device count: {probe_result}")
-
-    print('before open')
+    cdef int probe_device_count = ohmd.ohmd_ctx_probe(_ctx)
+    if not probe_device_count:  # no devices found, just return
+        return probe_device_count
 
     # inter over devices, open them and get information
     cdef int device_idx = 0
-    cdef ohmd.ohmd_device* this_device
     cdef ohmd.ohmdDeviceInfo* device_info
     cdef OHMDDeviceInfo desc
     cdef list devices_list = []
-    for device_idx in range(probe_result):
-        # open device
-        this_device = ohmd.ohmd_list_open_device(_ctx, device_idx)
-        if this_device is NULL:
-            continue
-
+    for device_idx in range(probe_device_count):
+        # create a new descriptor to hold device information
         desc = OHMDDeviceInfo()
+        device_info = &desc.c_data  # ref to extension class data store
 
-        print('opened device')
-        # populate device info
-        device_info = desc.c_data
-        print(f"set device info for {device_idx}")
+        # populate device info by querying OpenHMD API
+        device_info.deviceIdx = device_idx  # device index
         device_info.productName = ohmd.ohmd_list_gets(  # product name
             _ctx,
             device_idx,
@@ -634,30 +615,23 @@ def probe():
             _ctx,
             device_idx,
             ohmd.OHMD_VENDOR)
-        print("device getter API")
-        device_info[0].deviceIdx = device_idx  # device index
-        ohmd.ohmd_device_geti(  # device class
-            this_device,
+        ohmd.ohmd_list_geti(  # device class
+            _ctx,
+            device_idx,
             ohmd.OHMD_DEVICE_CLASS,
-            <int*>(&device_info.deviceClass))
-        ohmd.ohmd_device_geti(  # device flags
-            this_device,
+            &device_info.deviceClass)
+        ohmd.ohmd_list_geti(  # device flags
+            _ctx,
+            device_idx,
             ohmd.OHMD_DEVICE_FLAGS,
-            <int*>(&device_info.deviceFlags))
-
-        # close the device
-        if ohmd.ohmd_close_device(this_device) < ohmd.OHMD_S_OK:
-            clear_device_info()
-
-            return probe_result
+            &device_info.deviceFlags)
 
         # create a python wrapper around the descriptor
-        print(f'create wrapper for {desc.productName}')
         devices_list.append(desc)  # add to list
 
-    _deviceInfoList = tuple(_deviceInfoList)
+    _deviceInfoList = tuple(devices_list)
 
-    return probe_result
+    return probe_device_count
 
 
 def destroy():
@@ -671,6 +645,28 @@ def destroy():
 
     ohmd.ohmd_ctx_destroy(_ctx)
     _ctx = NULL
+
+
+def getError():
+    """Get the last error as a human readable string.
+
+    Call this after a function returns a code indicating an error to get a
+    string describing what went wrong.
+
+    Returns
+    -------
+    str
+        Human-readable string describing the cause of the last error.
+
+    """
+    cdef const char* err_msg
+
+    if _ctx is NULL:
+        raise OpenHMDNoContextError()
+
+    err_msg = ohmd.ohmd_ctx_get_error(_ctx)
+
+    return err_msg.decode('utf-8')
 
 
 def getDevices(int deviceClass=0):
@@ -697,11 +693,15 @@ def getDevices(int deviceClass=0):
             all_devices = getDevices()
             only_hmds = [dev for dev in all_devices if dev.isHMD]
 
+    The same as above but using the `deviceClass` argument::
+
+        # assume we probed already
+        only_hmds = getDevices(deviceClass=OHMD_DEVICE_CLASS_HMD)
+
     """
     global _deviceCount
+    global _deviceInfoList
     cdef tuple to_return
-
-    print('getting device list')
 
     if deviceClass == 0:
         to_return = _deviceInfoList
@@ -713,31 +713,19 @@ def getDevices(int deviceClass=0):
         if deviceClass == device_info.deviceClass:
             device_list.append(device_info)
 
-    to_return = tuple(device_list)
+    to_return = tuple(device_list)  # must be tuple
 
     return to_return
 
 
-def getError():
-    """Get the last error as a human readable string.
+def openDevice(object device):
+    """Open a device."""
+    pass
 
-    Call this after a function returns a code indicating an error to get a
-    string describing what went wrong.
 
-    Returns
-    -------
-    str
-        Human-readable string describing the cause of the last error.
-
-    """
-    cdef const char* err_msg
-
-    if _ctx is NULL:
-        raise OpenHMDNoContextError()
-
-    err_msg = ohmd.ohmd_ctx_get_error(_ctx)
-
-    return err_msg.decode('utf-8')
+def closeDevice(object device):
+    """Close a device."""
+    pass
 
 
 def update():

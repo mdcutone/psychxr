@@ -1,6 +1,6 @@
-====================================================================
- :mod:`~psychxr.drivers.openhmd` - OpenHMD interface for VR hardware
-====================================================================
+=====================================================================
+ :mod:`~psychxr.drivers.openhmd` - Generic VR interface using OpenHMD
+=====================================================================
 
 .. currentmodule:: psychxr.drivers.openhmd
 
@@ -34,10 +34,12 @@ Functions
 .. autosummary::
     success
     failure
+    getVersion
     create
     destroy
-    probe
     getError
+    probe
+    getDevices
     update
 
 Details
@@ -56,8 +58,10 @@ Functions
 
 .. autofunction:: success
 .. autofunction:: failure
+.. autofunction:: getVersion
 .. autofunction:: create
 .. autofunction:: destroy
 .. autofunction:: getError
 .. autofunction:: probe
+.. autofunction:: getDevices
 .. autofunction:: update

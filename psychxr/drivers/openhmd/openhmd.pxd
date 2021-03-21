@@ -143,7 +143,7 @@ cdef extern from "openhmd.h":
     cdef int ohmd_close_device(ohmd_device* device)
     cdef int ohmd_device_getf(ohmd_device*, ohmd_float_value, float*)
     cdef int ohmd_device_setf(ohmd_device*, ohmd_float_value, const float*)
-    cdef int ohmd_device_geti(ohmd_device*, ohmd_int_value, int*out)
+    cdef int ohmd_device_geti(ohmd_device*, ohmd_int_value, int* out)
     cdef int ohmd_device_seti(ohmd_device*, ohmd_int_value, const int*)
     cdef int ohmd_device_set_data(ohmd_device*, ohmd_data_value, const void*)
     cdef void ohmd_get_version(int* out_major, int* out_minor, int* out_patch)
@@ -157,6 +157,6 @@ ctypedef struct ohmdDeviceInfo:
     const char* productName
     char* path
     int deviceIdx
-    ohmd_device_class deviceClass
-    ohmd_device_flags deviceFlags
+    int deviceClass
+    int deviceFlags
     int isOpened
