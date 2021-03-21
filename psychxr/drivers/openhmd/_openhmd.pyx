@@ -129,6 +129,8 @@ __all__ = [
     "OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER",
     "OHMDPose",
     "OHMDDeviceInfo",
+    "OHMDDisplayInfo",
+    "OHMDControllerInfo",
     "success",
     "failure",
     "getVersion",
@@ -136,9 +138,13 @@ __all__ = [
     "destroy",
     "probe",
     "getDevices",
+    "getDisplayInfo",
+    "openDevice",
     "getError",
     "update",
-    "getString"
+    "getString",
+    "getListString",
+    "getListInt"
 ]
 
 cimport numpy as np
@@ -240,26 +246,52 @@ OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING = ohmd.OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKI
 OHMD_DEVICE_FLAGS_LEFT_CONTROLLER = ohmd.OHMD_DEVICE_FLAGS_LEFT_CONTROLLER
 OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER = ohmd.OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER
 
+# custom enums, used for indexing displays and controllers
+OHMD_EYE_LEFT = ohmd.OHMD_EYE_LEFT
+OHMD_EYE_RIGHT = ohmd.OHMD_EYE_RIGHT
+OHMD_EYE_COUNT = ohmd.OHMD_EYE_COUNT
+OHMD_HAND_LEFT = ohmd.OHMD_HAND_LEFT
+OHMD_HAND_RIGHT = ohmd.OHMD_HAND_RIGHT
+OHMD_HAND_COUNT = ohmd.OHMD_HAND_COUNT
+
+
 # ------------------------------------------------------------------------------
 # OpenHMD specific exceptions
 #
-class OpenHMDNoContextError(RuntimeError):
+class OHMDNoContextError(RuntimeError):
     """Raised if trying to perform an action without having a valid context."""
     pass
 
+
+class OHMDContextNotProbedError(RuntimeError):
+    """Raised if trying to perform an action that requires the context be probed
+    first."""
+    pass
+
+
+class OHMDWrongDeviceClassError(RuntimeError):
+    """Raised if performing an action on a device not belonging to the required
+    class."""
+    pass
+
+
+class OHMDDeviceNotOpenError(RuntimeError):
+    """Raised if performing an action on a device that is closed but needs to
+    be opened."""
+    pass
 
 # ------------------------------------------------------------------------------
 # Initialize module
 #
 cdef ohmd.ohmd_context* _ctx = NULL  # handle for the context
 
-# Keep track of devices found using an array of descriptors. This is populated
-# when `probe` is called and freed when `destroy` is called. Calling `probe`
-# will repopulate this array. The user can call `getDevices` to get a list of
-# device descriptors. Calling `openDevice` using the descriptor will open it.
+# found devices end up here
 cdef Py_ssize_t _deviceCount = 0
-# cdef ohmd.ohmdDeviceInfo** _deviceInfo = NULL
 cdef tuple _deviceInfoList = ()  # stores device info instances
+cdef int _contextProbed = 0
+
+# is auto-update enabled?
+cdef int _automatic_update = 0
 
 # ------------------------------------------------------------------------------
 # Constants and helper functions
@@ -340,92 +372,73 @@ cdef class OHMDPose(object):
 
 
 cdef class OHMDDeviceInfo(object):
-    """Device information class for OpenHMD devices.
+    """Information class for OpenHMD devices.
 
-    This class is used to identify devices enumerated by OpenHMD, such as HMDs,
-    controllers and trackers. OpenHMD manages devices differently from LibOVR,
-    where this class is used for all types of devices, not just HMDs. Therefore,
-    data about an HMD, such as display resolution, are not provided by instances
-    of this class.
+    OpenHMD supports a wide range of devices (to varying degrees), including
+    HMDs, controller, and trackers. This class stores data about a given device,
+    providing the user details (e.g., type of device, vendor/product name,
+    capabilities like tracking, etc.) about it.
+
+    Instances of this class are returned by calling :func:`getDevices`. You can
+    then pass instances to :func:`openDevice` to open them.
 
     """
-    cdef ohmd.ohmdDeviceInfo c_data
-    cdef bint ptr_owner
+    cdef ohmd.ohmd_device* c_device
+    cdef ohmd.ohmdDeviceInfo c_device_info
+
+    def __cinit__(self):
+        self.c_device = NULL
+
+    def __del__(self):
+        # try to close the device if we lost all references to this object
+        if self.c_device is not NULL:
+            ohmd.ohmd_close_device(self.c_device)
+            self.c_device = NULL
+
+    @property
+    def isOpen(self):
+        """Is the device open? (`bool`)."""
+        return self.c_device is not NULL
 
     @property
     def vendorName(self):
         """Device vendor name (`str`)."""
-        return self.c_data.vendorName.decode('utf-8')
+        return self.c_device_info.vendorName.decode('utf-8')
 
     @property
     def manufacturer(self):
         """Device manufacturer name, alias of `vendorName` (`str`)"""
-        return self.c_data.vendorName.decode('utf-8')
+        return self.c_device_info.vendorName.decode('utf-8')
 
     @property
     def productName(self):
         """Device product name (`str`)."""
-        return self.c_data.productName.decode('utf-8')
-
-    # @property
-    # def resolution(self):
-    #     """Horizontal and vertical resolution of the display (`ndarray`)."""
-    #     return np.asarray(
-    #         (self.c_data[0].resolution[0],
-    #          self.c_data[0].resolution[1]), dtype=int)
-    #
-    # @property
-    # def screenSize(self):
-    #     """Horizontal and vertical size of the display in meters (`ndarray`)."""
-    #     return np.asarray(
-    #         (self.c_data[0].screenSize[0],
-    #          self.c_data[0].screenSize[1]), dtype=np.float32)
-    #
-    # @property
-    # def aspect(self):
-    #     """Physical display aspect ratios for the left and right eye (`ndarray`).
-    #     """
-    #     return np.asarray(
-    #         (self.c_data[0].aspect[0],
-    #          self.c_data[0].aspect[1]), dtype=np.float32)
-    #
-    # @property
-    # def eyeFov(self):
-    #     """Physical field of view for each eye in degrees (`ndarray`).
-    #     """
-    #     return np.asarray(
-    #         (self.c_data[0].fov[0],
-    #          self.c_data[0].fov[1]), dtype=np.float32)
-    #
-    # @property
-    # def ipd(self):
-    #     """Interpupilary distance in meters reported by the device (`float`)."""
-    #     return self.c_data[0].ipd
+        return self.c_device_info.productName.decode('utf-8')
 
     @property
     def deviceIdx(self):
         """Enumerated index of the device (`int`)."""
-        return self.c_data.deviceIdx
+        return self.c_device_info.deviceIdx
 
     @property
     def deviceClass(self):
         """Device class identifier (`int`)."""
-        return <int>self.c_data.deviceClass
+        return <int>self.c_device_info.deviceClass
 
     @property
     def isHMD(self):
         """``True`` if this device is an HMD (`bool`)."""
-        return self.c_data.deviceClass == ohmd.OHMD_DEVICE_CLASS_HMD
+        return self.c_device_info.deviceClass == ohmd.OHMD_DEVICE_CLASS_HMD
 
     @property
     def isController(self):
         """``True`` if this device is a controller (`bool`)."""
-        return self.c_data.deviceClass == ohmd.OHMD_DEVICE_CLASS_CONTROLLER
+        return self.c_device_info.deviceClass == ohmd.OHMD_DEVICE_CLASS_CONTROLLER
 
     @property
     def isTracker(self):
         """``True`` if this device is a generic tracker (`bool`)."""
-        return self.c_data.deviceClass == \
+        return self.c_device_info.deviceClass == \
                ohmd.OHMD_DEVICE_CLASS_GENERIC_TRACKER
 
     @property
@@ -443,28 +456,85 @@ cdef class OHMDDeviceInfo(object):
             hasFullTracking = (self.c_data.deviceFlags & flags) == flags
 
         """
-        return <int>self.c_data.deviceFlags
+        return <int>self.c_device_info.deviceFlags
 
     @property
     def hasOrientationTracking(self):
         """``True`` if capable of tracking orientation (`bool`)."""
-        return (self.c_data.deviceFlags &
+        return (self.c_device_info.deviceFlags &
                 ohmd.OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING) == \
                ohmd.OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING
 
     @property
     def hasPositionTracking(self):
         """``True`` if capable of tracking position (`bool`)."""
-        return (self.c_data.deviceFlags &
+        return (self.c_device_info.deviceFlags &
                 ohmd.OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING) == \
                ohmd.OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING
 
     @property
     def isDebugDevice(self):
         """``True`` if a virtual debug (null or dummy) device (`bool`)."""
-        return (self.c_data.deviceFlags &
+        return (self.c_device_info.deviceFlags &
                 ohmd.OHMD_DEVICE_FLAGS_NULL_DEVICE) == \
                ohmd.OHMD_DEVICE_FLAGS_NULL_DEVICE
+
+
+cdef class OHMDDisplayInfo(object):
+    """Class for information about a display device (HMD).
+
+    This class provides additional information about hardware belonging to the
+    HMD device class (i.e. ``OHMD_DEVICE_CLASS_HMD``).
+
+    """
+    cdef ohmd.ohmdDisplayInfo c_data
+
+    @property
+    def resolution(self):
+        """Horizontal and vertical resolution of the display (`ndarray`)."""
+        return np.asarray(
+            (self.c_data.resolution[0],
+             self.c_data.resolution[1]), dtype=int)
+
+    @property
+    def screenSize(self):
+        """Horizontal and vertical size of the display in meters (`ndarray`)."""
+        return np.asarray(
+            (self.c_data.screenSize[0],
+             self.c_data.screenSize[1]), dtype=np.float32)
+
+    @property
+    def aspect(self):
+        """Physical display aspect ratios for the left and right eye (`ndarray`).
+        """
+        return np.asarray(
+            (self.c_data.aspect[0],
+             self.c_data.aspect[1]), dtype=np.float32)
+
+    @property
+    def eyeFov(self):
+        """Physical field of view for each eye in degrees (`ndarray`).
+        """
+        return np.asarray(
+            (self.c_data.fov[0],
+             self.c_data.fov[1]), dtype=np.float32)
+
+    @property
+    def ipd(self):
+        """Interpupilary distance in meters reported by the device (`float`)."""
+        return self.c_data.ipd
+
+
+cdef class OHMDControllerInfo(object):
+    """Class for information about a controller.
+
+    """
+    cdef ohmd.ohmdControllerInfo c_data
+
+    @property
+    def controlCount(self):
+        """Number of analog and digital controls on the device (`int`)."""
+        return self.c_data.controlCount
 
 
 def success(int result):
@@ -557,7 +627,6 @@ def create():
 
     """
     global _ctx
-    global _deviceInfo
 
     if _ctx is not NULL:  # check if a context is already opened
         return ohmd.OHMD_S_USER_RESERVED
@@ -586,27 +655,28 @@ def probe():
     global _ctx
     global _deviceCount
     global _deviceInfoList
+    global _contextProbed
 
     if _ctx is NULL:
-        raise OpenHMDNoContextError()
+        raise OHMDNoContextError()
 
     # probe for devices
     cdef int probe_device_count = ohmd.ohmd_ctx_probe(_ctx)
     if not probe_device_count:  # no devices found, just return
         return probe_device_count
 
+    _contextProbed = 1
+
     # inter over devices, open them and get information
     cdef int device_idx = 0
-    cdef ohmd.ohmdDeviceInfo* device_info
-    cdef OHMDDeviceInfo desc
     cdef list devices_list = []
+    cdef OHMDDeviceInfo desc  # Python descriptor class for the device
+    cdef ohmd.ohmdDeviceInfo* device_info
     for device_idx in range(probe_device_count):
-        # create a new descriptor to hold device information
+        # properties common to all device types
         desc = OHMDDeviceInfo()
-        device_info = &desc.c_data  # ref to extension class data store
-
-        # populate device info by querying OpenHMD API
-        device_info.deviceIdx = device_idx  # device index
+        device_info = &(<OHMDDeviceInfo>desc).c_device_info
+        device_info.deviceIdx = device_idx
         device_info.productName = ohmd.ohmd_list_gets(  # product name
             _ctx,
             device_idx,
@@ -637,6 +707,7 @@ def probe():
 def destroy():
     """Destroy the current context/session."""
     global _ctx
+    global _contextProbed
 
     if _ctx is NULL:  # nop if no context created
         return
@@ -645,6 +716,7 @@ def destroy():
 
     ohmd.ohmd_ctx_destroy(_ctx)
     _ctx = NULL
+    _contextProbed = 0
 
 
 def getError():
@@ -662,7 +734,7 @@ def getError():
     cdef const char* err_msg
 
     if _ctx is NULL:
-        raise OpenHMDNoContextError()
+        raise OHMDNoContextError()
 
     err_msg = ohmd.ohmd_ctx_get_error(_ctx)
 
@@ -719,13 +791,145 @@ def getDevices(int deviceClass=0):
 
 
 def openDevice(object device):
-    """Open a device."""
-    pass
+    """Open a device.
+
+    Parameters
+    ----------
+    device : OHMDDeviceInfo or int
+        Device descriptor or enumerated index to retrieve information from. Must
+        be a device belonging to the ``OHMD_DEVICE_CLASS_HMD`` display class.
+        Best practice is to pass a descriptor instead of an `int`.
+
+    """
+    # must have context and be probed
+    if _ctx is NULL:
+        raise OHMDNoContextError()
+
+    if not _contextProbed:
+        raise OHMDContextNotProbedError()
+
+    cdef int result = ohmd.OHMD_S_OK
+    cdef OHMDDeviceInfo desc
+
+    if isinstance(device, int):  # enum index provided
+        desc = _deviceInfoList[device]
+    elif isinstance(device, OHMDDeviceInfo):  # device object provided
+        desc = OHMDDeviceInfo
+    else:
+        raise ValueError(
+            'Parameter `device` must be type `int` or `OHMDDeviceInfo`.')
+
+    # check if the target object has the correct display class
+    if desc.c_device_info.deviceClass != ohmd.OHMD_DEVICE_CLASS_HMD:
+        raise OHMDWrongDeviceClassError("Device is not a display.")
+
+    # pointer to device handle
+    desc.c_device = ohmd.ohmd_list_open_device(_ctx, desc.deviceIdx)
 
 
 def closeDevice(object device):
     """Close a device."""
     pass
+
+
+def getDisplayInfo(object device):
+    """Get information about a display device (head-mounted display usually)
+    from OpenHMD.
+
+    Parameters
+    ----------
+    device : OHMDDeviceInfo or int
+        Device descriptor or enumerated index to retrieve information from. Must
+        be a device belonging to the ``OHMD_DEVICE_CLASS_HMD`` display class.
+        Best practice is to pass a descriptor instead of an `int`.
+
+    Returns
+    -------
+    OHMDDisplayInfo
+        Descriptor containing information about the display.
+
+    Examples
+    --------
+    Get information about a display, here we attempt to get the physical
+    screen width and height::
+
+        if probe():  # must be called at least once after `create`
+            hmd_devices = getDevices(displayClass=OHMD_DEVICE_CLASS_HMD)
+            if hmd_devices:
+                hmd = hmd_devices[0]  # use the first found
+                openDevice(hmd)   # open the device
+                display_info = getDisplayInfo(hmd)
+                screenWidth, screenHeight = display_info.screenSize
+
+    """
+    # must have context and be probed
+    if _ctx is NULL:
+        raise OHMDNoContextError()
+
+    if not _contextProbed:
+        raise OHMDContextNotProbedError()
+
+    cdef int result = ohmd.OHMD_S_OK
+    cdef OHMDDeviceInfo desc
+
+    if isinstance(device, int):  # enum index provided
+        desc = _deviceInfoList[device]
+    elif isinstance(device, OHMDDeviceInfo):  # device object provided
+        desc = OHMDDeviceInfo
+    else:
+        raise ValueError(
+            'Parameter `device` must be type `int` or `OHMDDeviceInfo`.')
+
+    # check if the target object has the correct display class
+    if desc.c_device_info.deviceClass != ohmd.OHMD_DEVICE_CLASS_HMD:
+        raise OHMDWrongDeviceClassError("Device is not a display.")
+
+    # check if the device has been opened
+    if desc.c_device is NULL:
+        raise OHMDDeviceNotOpenError(
+            "Device is not opened, cannot retrieve information.")
+
+    # pointer to device handle
+    cdef ohmd.ohmd_device* this_device = desc.c_device
+
+    # create a descriptor and populate its fields
+    cdef OHMDDisplayInfo to_return = OHMDDisplayInfo()
+    cdef ohmd.ohmdDisplayInfo* display_info = &to_return.c_data
+
+    display_info.deviceIdx = desc.c_device_info.deviceIdx
+
+    ohmd.ohmd_device_getf(
+        this_device,
+        ohmd.OHMD_SCREEN_HORIZONTAL_SIZE,
+        &display_info.screenSize[0])
+    ohmd.ohmd_device_getf(
+        this_device,
+        ohmd.OHMD_SCREEN_VERTICAL_SIZE,
+        &display_info.screenSize[1])
+    ohmd.ohmd_device_getf(
+        this_device,
+        ohmd.OHMD_EYE_IPD,
+        &display_info.ipd)
+
+    # binocular properties
+    ohmd.ohmd_device_getf(
+        this_device,
+        ohmd.OHMD_LEFT_EYE_FOV,
+        &display_info.eyeFov[0])
+    ohmd.ohmd_device_getf(
+        this_device,
+        ohmd.OHMD_RIGHT_EYE_FOV,
+        &display_info.eyeFov[1])
+    ohmd.ohmd_device_getf(
+        this_device,
+        ohmd.OHMD_LEFT_EYE_ASPECT_RATIO,
+        &display_info.eyeFov[0])
+    ohmd.ohmd_device_getf(
+        this_device,
+        ohmd.OHMD_RIGHT_EYE_ASPECT_RATIO,
+        &display_info.eyeFov[1])
+
+    return desc
 
 
 def update():
@@ -738,21 +942,100 @@ def update():
     global _ctx
 
     if _ctx is NULL:
-        raise OpenHMDNoContextError()
+        raise OHMDNoContextError()
 
     ohmd.ohmd_ctx_update(_ctx)
 
 
 def getString(int stype):
-    """Get a string from the API."""
+    """Get a string from OpenHMD.
+
+    Parameters
+    ----------
+    stype : int
+        Type of string data to fetch, either one of
+        ``OHMD_GLSL_DISTORTION_FRAG_SRC`` or ``OHMD_GLSL_DISTORTION_FRAG_SRC``.
+
+    Returns
+    -------
+    tuple
+        Result of the ``ohmd_gets`` C-API call (`int`) and the description text
+        (`str`).
+
+    """
     cdef int result
     cdef const char* out
     cdef str str_return
-
-    if _ctx is NULL:
-        raise OpenHMDNoContextError()
 
     result = ohmd.ohmd_gets(<ohmd.ohmd_string_description>stype, &out)
     str_return = out.decode('utf-8')
 
     return result, str_return
+
+
+def getListString(int index, int type_):
+    """Get a device description string from an enumeration list index.
+
+    Can only be called after :func:`probe`.
+
+    Parameters
+    ----------
+    index : int
+        An index between 0 and the value returned by calling :func:`probe`.
+    type_ : int
+        Type of string description data to fetch, either one of ``OHMD_VENDOR``,
+        ``OHMD_PRODUCT`` and ``OHMD_PATH``.
+
+    Returns
+    -------
+    tuple
+        The string description text (`str`).
+
+    """
+    cdef const char* result
+    cdef str str_return
+
+    if _ctx is NULL:
+        raise OHMDNoContextError()
+
+    if not _contextProbed:
+        raise OHMDContextNotProbedError()
+
+    result = ohmd.ohmd_list_gets(_ctx, index, <ohmd.ohmd_string_value>type_)
+    str_return = result.decode('utf-8')
+
+    return str_return
+
+
+def getListInt(int index, int type_):
+    """Get an integer value from an enumeration list index.
+
+    Can only be called after :func:`probe`.
+
+    Parameters
+    ----------
+    index : int
+        An index between 0 and the value returned by calling :func:`probe`.
+    type_ : int
+        Type of string description data to fetch.
+
+    Returns
+    -------
+    tuple
+        Result of the ``ohmd_list_geti`` C-API call (`int`) and the value
+        (`int`).
+
+    """
+    cdef int result
+    cdef int int_return
+
+    if _ctx is NULL:
+        raise OHMDNoContextError()
+
+    if not _contextProbed:
+        raise OHMDContextNotProbedError()
+
+    result = ohmd.ohmd_list_geti(_ctx, index, <ohmd.ohmd_int_value>type_, &int_return)
+    str_return = result.decode('utf-8')
+
+    return result, int_return

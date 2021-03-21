@@ -151,12 +151,35 @@ cdef extern from "openhmd.h":
     cdef void ohmd_sleep(double time)
 
 
-# custom descriptors
+# custom descriptors and enums
+ctypedef enum ohmdEyeType:
+    OHMD_EYE_LEFT = 0
+    OHMD_EYE_RIGHT = 1
+    OHMD_EYE_COUNT = 2
+
+ctypedef enum ohmdHandType:
+    OHMD_HAND_LEFT = 0
+    OHMD_HAND_RIGHT = 1
+    OHMD_HAND_COUNT = 2
+
 ctypedef struct ohmdDeviceInfo:
+    int deviceIdx
     const char* vendorName
     const char* productName
     char* path
-    int deviceIdx
     int deviceClass
     int deviceFlags
     int isOpened
+
+ctypedef struct ohmdDisplayInfo:
+    int deviceIdx
+    float ipd
+    float[2] screenResolution
+    float[2] screenSize
+    float[2] eyeFov
+    float[2] eyeAspect
+
+ctypedef struct ohmdControllerInfo:
+    int deviceIdx
+    int controlCount
+
