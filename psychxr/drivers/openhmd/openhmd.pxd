@@ -1,4 +1,28 @@
 # distutils: language=c++
+#  =============================================================================
+#  openhmd.pxd - Cython definitions for `openhmd.h`
+#  =============================================================================
+#
+#  Copyright 2021 Matthew Cutone <mcutone@opensciencetools.com>
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in
+#  all copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#  SOFTWARE.
+#
 
 cdef extern from "openhmd.h":
     cdef int OHMD_STR_SIZE = 256
@@ -105,14 +129,14 @@ cdef extern from "openhmd.h":
 
     cdef ohmd_context* ohmd_ctx_create()
     cdef void ohmd_ctx_destroy(ohmd_context* ctx)
-    cdef const char*ohmd_ctx_get_error(ohmd_context* ctx)
+    cdef const char* ohmd_ctx_get_error(ohmd_context* ctx)
     cdef void ohmd_ctx_update(ohmd_context* ctx)
     cdef int ohmd_ctx_probe(ohmd_context* ctx)
     cdef int ohmd_gets(ohmd_string_description type, const char** out)
     cdef const char* ohmd_list_gets(ohmd_context* ctx, int index, ohmd_string_value type)
     cdef int ohmd_list_geti(ohmd_context* ctx, int index, ohmd_int_value type, int*out)
-    cdef ohmd_device*ohmd_list_open_device(ohmd_context* ctx, int index)
-    cdef ohmd_device*ohmd_list_open_device_s(ohmd_context* ctx, int index, ohmd_device_settings*settings)
+    cdef ohmd_device* ohmd_list_open_device(ohmd_context* ctx, int index)
+    cdef ohmd_device* ohmd_list_open_device_s(ohmd_context* ctx, int index, ohmd_device_settings* settings)
     cdef ohmd_status ohmd_device_settings_seti(ohmd_device_settings* settings, ohmd_int_settings key, const int*val)
     cdef ohmd_device_settings* ohmd_device_settings_create(ohmd_context* ctx)
     cdef void ohmd_device_settings_destroy(ohmd_device_settings* settings)
@@ -122,6 +146,17 @@ cdef extern from "openhmd.h":
     cdef int ohmd_device_geti(ohmd_device*, ohmd_int_value, int*out)
     cdef int ohmd_device_seti(ohmd_device*, ohmd_int_value, const int*)
     cdef int ohmd_device_set_data(ohmd_device*, ohmd_data_value, const void*)
-    cdef void ohmd_get_version(int*out_major, int*out_minor, int*out_patch)
+    cdef void ohmd_get_version(int* out_major, int* out_minor, int* out_patch)
     cdef ohmd_status ohmd_require_version(int major, int minor, int patch)
     cdef void ohmd_sleep(double time)
+
+
+# custom descriptors
+ctypedef struct ohmdDeviceInfo:
+    char* vendorName
+    char* productName
+    char* path
+    int deviceIdx
+    ohmd_device_class deviceClass
+    ohmd_device_flags deviceFlags
+    int isOpened

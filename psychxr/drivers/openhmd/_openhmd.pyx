@@ -3,9 +3,9 @@
 #  _openhmd.pyx - Python Interface Module for OpenHMD
 #  =============================================================================
 #
-#  Copyright 2021 Matthew Cutone <mcutone@opensciencetools.com> and Laurie M. Wilcox
-#  <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York University,
-#  Toronto, Canada
+#  Copyright 2021 Matthew Cutone <mcutone@opensciencetools.com> and Laurie M.
+#  Wilcox <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York
+#  University, Toronto, Canada
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -29,16 +29,22 @@
 driver interface.
 
 OpenHMD is a project aimed at providing free and open source drivers for many
-commercial HMDs. The driver interface is portable and cross-platform, however
-feature support varies depending on the HMD used.
+commercial HMDs and other VR related devices. The driver interface is portable
+and cross-platform, however feature support varies depending on the HMD used.
+
+Unlike `LibOVR`, OpenHMD does not come with a compositor. Therefore, the user
+must implement their own system to present scenes to the display. You can also
+use OpenHMD in conjunction with other drivers. For instance, you can use OpenHMD
+to add controllers and motion trackers to your project not supported by other
+drivers.
 
 """
 # ------------------------------------------------------------------------------
 # Module information
 #
 __author__ = "Matthew D. Cutone"
-__credits__ = ["Laurie M. Wilcox"]
-__copyright__ = "Copyright 2019 Matthew D. Cutone"
+__credits__ = []
+__copyright__ = "Copyright 2021 Matthew D. Cutone"
 __license__ = "MIT"
 __version__ = "0.2.4"
 __status__ = "Stable"
@@ -121,8 +127,8 @@ __all__ = [
     "OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING",
     "OHMD_DEVICE_FLAGS_LEFT_CONTROLLER",
     "OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER",
-    "OpenHMDPose",
-    "OpenHMDDeviceInfo",
+    "OHMDPose",
+    "OHMDDeviceInfo",
     "create",
     "destroy"
 ]
@@ -130,6 +136,9 @@ __all__ = [
 cimport numpy as np
 import numpy as np
 from . cimport openhmd_capi as ohmd
+from libc.time cimport clock, clock_t
+from cpython.mem cimport PyMem_Malloc, PyMem_Free
+
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -223,25 +232,65 @@ OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING = ohmd.OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKI
 OHMD_DEVICE_FLAGS_LEFT_CONTROLLER = ohmd.OHMD_DEVICE_FLAGS_LEFT_CONTROLLER
 OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER = ohmd.OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER
 
-
-# --------------------------------------
-# Initialize module
+# ------------------------------------------------------------------------------
+# OpenHMD specific exceptions
 #
-cdef ohmd.ohmd_context* _ctx = NULL
+class OpenHMDNoContextError(RuntimeError):
+    """Raised if trying to perform an action without having a valid context."""
+    pass
 
 
 # ------------------------------------------------------------------------------
-# C-API for OpenHMD
+# Initialize module
+#
+cdef ohmd.ohmd_context* _ctx = NULL  # handle for the context
+
+# Keep track of devices found using an array of descriptors. This is populated
+# when `probe` is called and freed when `destroy` is called. Calling `probe`
+# will repopulate this array. The user can call `getDevices` to get a list of
+# device descriptors. Calling `openDevice` using the descriptor will open it.
+cdef Py_ssize_t _deviceCount = 0
+cdef ohmd.ohmdDeviceInfo** _deviceInfo = NULL
+cdef list _deviceInfoList = []  # stores device info instances
+
+# ------------------------------------------------------------------------------
+# Constants and helper functions
+#
+cdef double NS_TO_SECS = 1e-9
+
+
+cdef double cpu_time():
+    """Get the current CPU time (ns). Used for timestamping of events.
+    
+    Returns
+    -------
+    double
+        CPU time in seconds.
+    
+    """
+    cdef clock_t time_ns = clock()
+    return <double>time_ns * NS_TO_SECS
+
+
+cdef void clear_device_info():
+    """Clear internal store of device information descriptors.
+    """
+    global _deviceInfo
+    global _deviceCount
+    global _deviceInfoList
+
+    if _deviceInfo is not NULL:  # clean up device info if populated
+        PyMem_Free(_deviceInfo)
+        _deviceInfo = NULL
+        _deviceCount = 0
+        _deviceInfoList = []
+
+
+# ------------------------------------------------------------------------------
+# Python API for OpenHMD
 #
 
-def getError():
-    """Get the error message."""
-    cdef const char* err_msg = ohmd.ohmd_ctx_get_error(_ctx)
-
-    # return as a python string
-
-
-cdef class OpenHMDPose(object):
+cdef class OHMDPose(object):
     """Class representing a 3D pose in space.
 
     Parameters
@@ -286,35 +335,412 @@ cdef class OpenHMDPose(object):
         self._ori[:] = value
 
 
-cdef class OpenHMDDeviceInfo(object):
-    """Device information class."""
-    cdef np.ndarray _fov
-    cdef np.ndarray _aspect
+cdef class OHMDDeviceInfo(object):
+    """Device information class for OpenHMD devices.
+
+    This class is used to identify devices enumerated by OpenHMD, such as HMDs,
+    controllers and trackers. OpenHMD manages devices differently from LibOVR,
+    where this class is used for all types of devices, not just HMDs. Therefore,
+    data about an HMD, such as display resolution, are not provided by instances
+    of this class.
+
+    """
+    cdef ohmd.ohmdDeviceInfo* c_data
+    cdef bint ptr_owner
+
+    def __init__(self):
+        self.newStruct()
+
+    def __cinit__(self):
+        self.ptr_owner = False
+
+    @staticmethod
+    cdef OHMDDeviceInfo fromPtr(ohmd.ohmdDeviceInfo* ptr, bint owner=False):
+        # bypass __init__ if wrapping a pointer
+        cdef OHMDDeviceInfo wrapper = OHMDDeviceInfo.__new__(
+            OHMDDeviceInfo)
+        wrapper.c_data = ptr
+        wrapper.ptr_owner = owner
+
+        return wrapper
+
+    cdef void newStruct(self):
+        if self.c_data is not NULL:  # already allocated, __init__ called twice?
+            return
+
+        cdef ohmd.ohmdDeviceInfo* _ptr = \
+            <ohmd.ohmdDeviceInfo*>PyMem_Malloc(
+                sizeof(ohmd.ohmdDeviceInfo))
+
+        if _ptr is NULL:
+            raise MemoryError
+
+        self.c_data = _ptr
+        self.ptr_owner = True
+
+    def __dealloc__(self):
+        if self.c_data is not NULL and self.ptr_owner is True:
+            PyMem_Free(self.c_data)
+            self.c_data = NULL
+
+    @property
+    def vendorName(self):
+        """Device vendor name (`str`)."""
+        return self.c_data[0].vendorName.decode('utf-8')
+
+    @property
+    def manufacturer(self):
+        """Device manufacturer name, alias of `vendorName` (`str`)"""
+        return self.c_data[0].vendorName.decode('utf-8')
+
+    @property
+    def productName(self):
+        """Device product name (`str`)."""
+        return self.c_data[0].productName.decode('utf-8')
+
+    # @property
+    # def resolution(self):
+    #     """Horizontal and vertical resolution of the display (`ndarray`)."""
+    #     return np.asarray(
+    #         (self.c_data[0].resolution[0],
+    #          self.c_data[0].resolution[1]), dtype=int)
+    #
+    # @property
+    # def screenSize(self):
+    #     """Horizontal and vertical size of the display in meters (`ndarray`)."""
+    #     return np.asarray(
+    #         (self.c_data[0].screenSize[0],
+    #          self.c_data[0].screenSize[1]), dtype=np.float32)
+    #
+    # @property
+    # def aspect(self):
+    #     """Physical display aspect ratios for the left and right eye (`ndarray`).
+    #     """
+    #     return np.asarray(
+    #         (self.c_data[0].aspect[0],
+    #          self.c_data[0].aspect[1]), dtype=np.float32)
+    #
+    # @property
+    # def eyeFov(self):
+    #     """Physical field of view for each eye in degrees (`ndarray`).
+    #     """
+    #     return np.asarray(
+    #         (self.c_data[0].fov[0],
+    #          self.c_data[0].fov[1]), dtype=np.float32)
+    #
+    # @property
+    # def ipd(self):
+    #     """Interpupilary distance in meters reported by the device (`float`)."""
+    #     return self.c_data[0].ipd
+
+    @property
+    def deviceIdx(self):
+        """Enumerated index of the device (`int`)."""
+        return self.c_data[0].deviceIdx
+
+    @property
+    def deviceClass(self):
+        """Device class identifier (`int`)."""
+        return <int>self.c_data[0].deviceClass
+
+    @property
+    def isHMD(self):
+        """``True`` if this device is an HMD (`bool`)."""
+        return self.c_data[0].deviceClass == ohmd.OHMD_DEVICE_CLASS_HMD
+
+    @property
+    def isController(self):
+        """``True`` if this device is a controller (`bool`)."""
+        return self.c_data[0].deviceClass == ohmd.OHMD_DEVICE_CLASS_CONTROLLER
+
+    @property
+    def isTracker(self):
+        """``True`` if this device is a generic tracker (`bool`)."""
+        return self.c_data[0].deviceClass == \
+               ohmd.OHMD_DEVICE_CLASS_GENERIC_TRACKER
+
+    @property
+    def deviceFlags(self):
+        """Device flags (`int`).
+
+        Examples
+        --------
+        Check if a device has positional and orientation tracking support::
+
+            hmdInfo = getHmdInfo()
+            flags = OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING |
+                OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING
+
+            hasFullTracking = (self.c_data.deviceFlags & flags) == flags
+
+        """
+        return <int>self.c_data[0].deviceFlags
+
+    @property
+    def hasOrientationTracking(self):
+        """``True`` if the HMD is capable of tracking orientation."""
+        return (self.c_data.deviceFlags &
+                ohmd.OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING) == \
+               ohmd.OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING
+
+    @property
+    def hasPositionTracking(self):
+        """``True`` if the HMD is capable of tracking position."""
+        return (self.c_data.deviceFlags &
+                ohmd.OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING) == \
+               ohmd.OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING
+
+    @property
+    def isDebugDevice(self):
+        """``True`` if the HMD is a virtual debug (null or dummy) device."""
+        return (self.c_data.deviceFlags &
+                ohmd.OHMD_DEVICE_FLAGS_NULL_DEVICE) == \
+               ohmd.OHMD_DEVICE_FLAGS_NULL_DEVICE
 
 
-def getDeviceInfo():
-    """Get device information."""
-    pass
+def success(int result):
+    """Check if a function returned successfully.
+
+    Parameters
+    ----------
+    result : int
+        Return value of a function.
+
+    Returns
+    -------
+    bool
+        `True` if the return code indicates success.
+
+    """
+    return ohmd.OHMD_S_OK == result
+
+
+def failure(int result):
+    """Check if a function returned an error.
+
+    Parameters
+    ----------
+    result : int
+        Return value of a function.
+
+    Returns
+    -------
+    bool
+        `True` if the return code indicates failure.
+
+    """
+    return ohmd.OHMD_S_OK > result
 
 
 def create():
     """Create a new OpenHMD context/session.
 
+    Calling this will create a context, enumerate devices and open them. Only
+    the first connected HMD will be opened, all other device types that are
+    controllers or external trackers will be opened.
+
     At this time only a single context can be created per session. You must call
-    this function prior to using any other API calls.
+    this function prior to using any other API calls other than
+    :func:`destroy()`.
+
+    Returns
+    -------
+    int
+        Returns value of ``OHMD_S_OK`` if a context was created successfully,
+        else ``OHMD_S_USER_RESERVED``. You can check the result using the
+        :func:`success()` and :func:`failure()` functions.
+
+    Examples
+    --------
+    Create a new OpenHMD context, starting the session::
+
+        import sys
+        import psychxr.drivers.openhmd as openhmd
+
+        result = openhmd.create()  # create a context
+        if failure(result):  # if we failed to create a context, exit with error
+            sys.exit(1)
 
     """
     global _ctx
-    _ctx = ohmd.ohmd_ctx_create()
+    global _deviceInfo
 
-    if _ctx is not NULL:
-        return 0
+    if _ctx is not NULL:  # check if a context is already opened
+        return ohmd.OHMD_S_USER_RESERVED
 
-    return 1
+    _ctx = ohmd.ohmd_ctx_create()  # create the context
+
+    if _ctx is NULL:  # check if context failed to open
+        return ohmd.OHMD_S_USER_RESERVED
+
+    return ohmd.OHMD_S_OK
+
+
+def probe():
+    """Probe for devices.
+
+    Probes for and enumerates supported devices attached to the system. After
+    calling this function you may use :func:`getDevices()` which will return
+    a list of descriptors representing found devices.
+
+    Returns
+    -------
+    int
+        Number of devices found on the system.
+
+    """
+    global _ctx
+    global _deviceInfo
+    global _deviceCount
+    global _deviceInfoList
+
+    if _ctx is NULL:
+        raise OpenHMDNoContextError()
+
+    # probe for devices
+    _deviceCount = ohmd.ohmd_ctx_probe(_ctx)
+    if not _deviceCount:  # no devices found, just return
+        return _deviceCount
+
+    # allocate array for device info structs
+    _deviceInfo = <ohmd.ohmdDeviceInfo*>PyMem_Malloc(
+        _deviceCount * sizeof(ohmd.ohmdDeviceInfo))
+
+    # inter over devices, open them and get information
+    cdef int device_idx
+    cdef ohmd.ohmd_device* this_device
+    cdef ohmd.ohmdDeviceInfo* device_info
+    cdef OHMDDeviceInfo desc
+    for device_idx in range(_deviceCount):
+        # open device
+        this_device = ohmd.ohmd_list_open_device(_ctx, device_idx)
+
+        # populate device info
+        device_info = _deviceInfo[device_idx]
+        device_info.productName = ohmd.ohmd_list_gets(  # product name
+            _ctx, device_idx, ohmd.OHMD_PRODUCT)
+        device_info.vendorName = ohmd.ohmd_list_gets(  # vendor name
+            _ctx, device_idx, ohmd.OHMD_VENDOR)
+        device_info.deviceIdx = device_idx  # device index
+        ohmd.ohmd_device_geti(  # device class
+            this_device, ohmd.OHMD_DEVICE_CLASS, &device_info.deviceClass)
+        ohmd.ohmd_device_geti(  # device flags
+            this_device, ohmd.OHMD_DEVICE_FLAGS, &device_info.deviceFlags)
+
+        # close the device
+        if ohmd.ohmd_close_device(this_device) < ohmd.OHMD_S_OK:
+            clear_device_info()
+
+            return _deviceCount
+
+        # create a python wrapper around the descriptor
+        desc = OHMDDeviceInfo.fromPtr(_deviceInfo[device_idx], owner=False)
+        _deviceInfoList.append(desc)  # add to list
+
+    return _deviceCount
 
 
 def destroy():
     """Destroy the current context/session."""
     global _ctx
+
+    if _ctx is NULL:  # nop if no context created
+        return
+
     ohmd.ohmd_ctx_destroy(_ctx)
     _ctx = NULL
+
+    clear_device_info()
+
+
+def getDevices(int deviceClass=None):
+    """Get devices found during the last call to :func:`probe`.
+
+    Parameters
+    ----------
+    deviceClass : int or None
+        Only get devices belonging to the specified device class. Values can be
+        one of ``OHMD_DEVICE_CLASS_CONTROLLER``, ``OHMD_DEVICE_CLASS_HMD``, or
+        ``OHMD_OHMD_DEVICE_CLASS_GENERIC_TRACKER``.
+
+    Returns
+    -------
+    list
+        List of :class:`OpenHMDDeviceInfo` descriptors.
+
+    Examples
+    --------
+    Get all HMDs found on the system::
+
+        if probe():  # >0 if devices have been found
+            all_devices = getDevices()
+            only_hmds = [dev for dev in all_devices if dev.isHMD]
+
+    """
+    global _deviceCount
+    global _deviceInfo
+    cdef list to_return
+
+    if deviceClass is None:
+        to_return = _deviceInfoList
+        return to_return
+
+    to_return = []
+    cdef OHMDDeviceInfo device_info
+    for device_info in _deviceInfoList:
+        if deviceClass == device_info.deviceClass:
+            to_return.append(device_info)
+
+    return to_return
+
+
+def getError():
+    """Get the last error as a human readable string.
+
+    Call this after a function returns a code indicating an error to get a
+    string describing what went wrong.
+
+    Returns
+    -------
+    str
+        Human-readable string describing the cause of the last error.
+
+    """
+    cdef const char* err_msg
+
+    if _ctx is NULL:
+        raise OpenHMDNoContextError()
+
+    err_msg = ohmd.ohmd_ctx_get_error(_ctx)
+
+    return err_msg.decode('utf-8')
+
+
+def update():
+    """Update the values for the devices handled by a context.
+
+    Call this once per frame. If PsychXR is running in a background thread, it
+    is recommended that you call this every 10-20 milliseconds.
+
+    """
+    global _ctx
+
+    if _ctx is NULL:
+        raise OpenHMDNoContextError()
+
+    ohmd.ohmd_ctx_update(_ctx)
+
+
+def getString(int stype):
+    """Get a string from the API."""
+    cdef int result
+    cdef const char* out
+    cdef str str_return
+
+    if _ctx is NULL:
+        raise OpenHMDNoContextError()
+
+    result = ohmd.ohmd_gets(<ohmd.ohmd_string_description>stype, &out)
+    str_return = out.decode('utf-8')
+
+    return result, str_return

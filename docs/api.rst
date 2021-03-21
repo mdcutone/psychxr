@@ -19,3 +19,4 @@ chose which to use that best suits the requirements of the application.
    :maxdepth: 1
 
    api/libovr
+   api/openhmd
