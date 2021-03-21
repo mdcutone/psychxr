@@ -153,8 +153,8 @@ cdef extern from "openhmd.h":
 
 # custom descriptors
 ctypedef struct ohmdDeviceInfo:
-    char* vendorName
-    char* productName
+    const char* vendorName
+    const char* productName
     char* path
     int deviceIdx
     ohmd_device_class deviceClass

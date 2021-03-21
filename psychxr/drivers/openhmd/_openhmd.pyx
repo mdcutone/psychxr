@@ -129,13 +129,20 @@ __all__ = [
     "OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER",
     "OHMDPose",
     "OHMDDeviceInfo",
+    "success",
+    "failure",
     "create",
-    "destroy"
+    "destroy",
+    "probe",
+    "getDevices",
+    "getError",
+    "update",
+    "getString"
 ]
 
 cimport numpy as np
 import numpy as np
-from . cimport openhmd_capi as ohmd
+from . cimport openhmd as ohmd
 from libc.time cimport clock, clock_t
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
@@ -250,8 +257,8 @@ cdef ohmd.ohmd_context* _ctx = NULL  # handle for the context
 # will repopulate this array. The user can call `getDevices` to get a list of
 # device descriptors. Calling `openDevice` using the descriptor will open it.
 cdef Py_ssize_t _deviceCount = 0
-cdef ohmd.ohmdDeviceInfo** _deviceInfo = NULL
-cdef list _deviceInfoList = []  # stores device info instances
+# cdef ohmd.ohmdDeviceInfo** _deviceInfo = NULL
+cdef tuple _deviceInfoList = ()  # stores device info instances
 
 # ------------------------------------------------------------------------------
 # Constants and helper functions
@@ -275,15 +282,11 @@ cdef double cpu_time():
 cdef void clear_device_info():
     """Clear internal store of device information descriptors.
     """
-    global _deviceInfo
     global _deviceCount
     global _deviceInfoList
 
-    if _deviceInfo is not NULL:  # clean up device info if populated
-        PyMem_Free(_deviceInfo)
-        _deviceInfo = NULL
-        _deviceCount = 0
-        _deviceInfoList = []
+    _deviceCount = 0
+    _deviceInfoList = ()
 
 
 # ------------------------------------------------------------------------------
@@ -590,7 +593,6 @@ def probe():
 
     """
     global _ctx
-    global _deviceInfo
     global _deviceCount
     global _deviceInfoList
 
@@ -598,46 +600,64 @@ def probe():
         raise OpenHMDNoContextError()
 
     # probe for devices
-    _deviceCount = ohmd.ohmd_ctx_probe(_ctx)
-    if not _deviceCount:  # no devices found, just return
-        return _deviceCount
+    cdef int probe_result = ohmd.ohmd_ctx_probe(_ctx)
+    if not probe_result:  # no devices found, just return
+        return probe_result
 
-    # allocate array for device info structs
-    _deviceInfo = <ohmd.ohmdDeviceInfo*>PyMem_Malloc(
-        _deviceCount * sizeof(ohmd.ohmdDeviceInfo))
+    print(f"device count: {probe_result}")
+
+    print('before open')
 
     # inter over devices, open them and get information
-    cdef int device_idx
+    cdef int device_idx = 0
     cdef ohmd.ohmd_device* this_device
     cdef ohmd.ohmdDeviceInfo* device_info
     cdef OHMDDeviceInfo desc
-    for device_idx in range(_deviceCount):
+    cdef list devices_list = []
+    for device_idx in range(probe_result):
         # open device
         this_device = ohmd.ohmd_list_open_device(_ctx, device_idx)
+        if this_device is NULL:
+            continue
 
+        desc = OHMDDeviceInfo()
+
+        print('opened device')
         # populate device info
-        device_info = _deviceInfo[device_idx]
+        device_info = desc.c_data
+        print(f"set device info for {device_idx}")
         device_info.productName = ohmd.ohmd_list_gets(  # product name
-            _ctx, device_idx, ohmd.OHMD_PRODUCT)
+            _ctx,
+            device_idx,
+            ohmd.OHMD_PRODUCT)
         device_info.vendorName = ohmd.ohmd_list_gets(  # vendor name
-            _ctx, device_idx, ohmd.OHMD_VENDOR)
-        device_info.deviceIdx = device_idx  # device index
+            _ctx,
+            device_idx,
+            ohmd.OHMD_VENDOR)
+        print("device getter API")
+        device_info[0].deviceIdx = device_idx  # device index
         ohmd.ohmd_device_geti(  # device class
-            this_device, ohmd.OHMD_DEVICE_CLASS, &device_info.deviceClass)
+            this_device,
+            ohmd.OHMD_DEVICE_CLASS,
+            <int*>(&device_info.deviceClass))
         ohmd.ohmd_device_geti(  # device flags
-            this_device, ohmd.OHMD_DEVICE_FLAGS, &device_info.deviceFlags)
+            this_device,
+            ohmd.OHMD_DEVICE_FLAGS,
+            <int*>(&device_info.deviceFlags))
 
         # close the device
         if ohmd.ohmd_close_device(this_device) < ohmd.OHMD_S_OK:
             clear_device_info()
 
-            return _deviceCount
+            return probe_result
 
         # create a python wrapper around the descriptor
-        desc = OHMDDeviceInfo.fromPtr(_deviceInfo[device_idx], owner=False)
-        _deviceInfoList.append(desc)  # add to list
+        print(f'create wrapper for {desc.productName}')
+        devices_list.append(desc)  # add to list
 
-    return _deviceCount
+    _deviceInfoList = tuple(_deviceInfoList)
+
+    return probe_result
 
 
 def destroy():
@@ -647,21 +667,22 @@ def destroy():
     if _ctx is NULL:  # nop if no context created
         return
 
+    clear_device_info()
+
     ohmd.ohmd_ctx_destroy(_ctx)
     _ctx = NULL
 
-    clear_device_info()
 
-
-def getDevices(int deviceClass=None):
+def getDevices(int deviceClass=0):
     """Get devices found during the last call to :func:`probe`.
 
     Parameters
     ----------
-    deviceClass : int or None
+    deviceClass : int
         Only get devices belonging to the specified device class. Values can be
         one of ``OHMD_DEVICE_CLASS_CONTROLLER``, ``OHMD_DEVICE_CLASS_HMD``, or
-        ``OHMD_OHMD_DEVICE_CLASS_GENERIC_TRACKER``.
+        ``OHMD_OHMD_DEVICE_CLASS_GENERIC_TRACKER``. Set to zero to get all
+        devices (the default).
 
     Returns
     -------
@@ -678,18 +699,21 @@ def getDevices(int deviceClass=None):
 
     """
     global _deviceCount
-    global _deviceInfo
-    cdef list to_return
+    cdef tuple to_return
 
-    if deviceClass is None:
+    print('getting device list')
+
+    if deviceClass == 0:
         to_return = _deviceInfoList
         return to_return
 
-    to_return = []
+    cdef list device_list = []
     cdef OHMDDeviceInfo device_info
     for device_info in _deviceInfoList:
         if deviceClass == device_info.deviceClass:
-            to_return.append(device_info)
+            device_list.append(device_info)
+
+    to_return = tuple(device_list)
 
     return to_return
 
