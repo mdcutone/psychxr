@@ -1925,14 +1925,14 @@ cdef class LibOVRBounds(object):
     --------
     Create a bounding box and add it to a pose::
 
-            # minumum and maximum extents of the bounding box
-            mins = (-.5, -.5, -.5)
-            maxs = (.5, .5, .5)
-            bounds = (mins, maxs)
-            # create the bounding box and add it to a pose
-            bbox = LibOVRBounds(bounds)
-            modelPose = LibOVRPose()
-            modelPose.boundingBox = bbox
+        # minumum and maximum extents of the bounding box
+        mins = (-.5, -.5, -.5)
+        maxs = (.5, .5, .5)
+        bounds = (mins, maxs)
+        # create the bounding box and add it to a pose
+        bbox = LibOVRBounds(bounds)
+        modelPose = LibOVRPose()
+        modelPose.boundingBox = bbox
 
     """
     cdef libovr_math.Bounds3f* c_data

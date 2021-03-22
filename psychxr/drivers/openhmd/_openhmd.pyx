@@ -32,12 +32,6 @@ OpenHMD is a project aimed at providing free and open source drivers for many
 commercial HMDs and other VR related devices. The driver interface is portable
 and cross-platform, however feature support varies depending on the HMD used.
 
-Unlike `LibOVR`, OpenHMD does not come with a compositor. Therefore, the user
-must implement their own system to present scenes to the display. You can also
-use OpenHMD in conjunction with other drivers. For instance, you can use OpenHMD
-to add controllers and motion trackers to your project not supported by other
-drivers.
-
 """
 # ------------------------------------------------------------------------------
 # Module information
@@ -137,10 +131,16 @@ __all__ = [
     "create",
     "destroy",
     "probe",
+    "isContextProbed",
+    "getDeviceCount",
+    "getError",
     "getDevices",
     "getDisplayInfo",
     "openDevice",
-    "getError",
+    "closeDevice",
+    "getDisplayInfo",
+    "getDevicePose",
+    "lastUpdateTimeElapsed",
     "update",
     "getString",
     "getListString",
@@ -150,8 +150,10 @@ __all__ = [
 cimport numpy as np
 import numpy as np
 from . cimport openhmd as ohmd
+from . cimport linmath as lm
 from libc.time cimport clock, clock_t
-from cpython.mem cimport PyMem_Malloc, PyMem_Free
+# from cpython.mem cimport PyMem_Malloc, PyMem_Free
+from libc.math cimport fabs
 
 
 # ------------------------------------------------------------------------------
@@ -292,6 +294,7 @@ cdef int _contextProbed = 0
 
 # is auto-update enabled?
 cdef int _automatic_update = 0
+cdef double _last_update_time = 0.0
 
 # ------------------------------------------------------------------------------
 # Constants and helper functions
@@ -329,38 +332,194 @@ cdef void clear_device_info():
 cdef class OHMDPose(object):
     """Class representing a 3D pose in space.
 
+    This class is an abstract representation of a rigid body pose, where the
+    position of the body in a scene is represented by a vector/coordinate and
+    the orientation with a quaternion.
+
     Parameters
     ----------
     pos : ArrayLike
         Position vector (x, y, z).
     ori : ArrayLike
-        Orientation quaternion (x, y, z, w), where x, y, z are real and w is
-        imaginary.
+        Orientation quaternion `(x, y, z, w)`, where `x`, `y`, `z` are imaginary
+        and `w` is real.
 
     See Also
     --------
     psychxr.drivers.libovr.LibOVRPose
 
     """
+    cdef ohmd.ohmdPosef c_data
+
     cdef np.ndarray _pos
     cdef np.ndarray _ori
+
+    cdef bint _matrixNeedsUpdate
 
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
         self._pos[:] = pos
         self._ori[:] = ori
+        self._matrixNeedsUpdate = True
 
     def __cinit__(self, *args, **kwargs):
-        # define the storage arrays here
-        self._pos = np.empty((3,), dtype=np.float32)
-        self._ori = np.empty((4,), dtype=np.float32)
+        # Define the storage arrays here. These numpy array are memory mapped
+        # to fields in the internal `c_data` struct.
+        cdef np.npy_intp[1] vec3_shape = [3]
+        cdef np.npy_intp[1] quat_shape = [4]
+        self._pos = np.PyArray_SimpleNewFromData(
+            1, vec3_shape, np.NPY_FLOAT32, <void*>&self.c_data.pos)
+        self._ori = np.PyArray_SimpleNewFromData(
+            1, quat_shape, np.NPY_FLOAT32, <void*>&self.c_data.ori)
+
+    def __deepcopy__(self, memo=None):
+        # create a new object with a copy of the data stored in c_data
+        # allocate new struct
+        cdef OHMDPose to_return = OHMDPose()
+
+        # copy over data
+        to_return.c_data = self.c_data
+        if memo is not None:
+            memo[id(self)] = to_return
+
+        return to_return
+
+    def setIdentity(self):
+        """Clear this pose's translation and orientation."""
+        self.c_data.pos.x = self.c_data.pos.y = self.c_data.pos.z = 0.0
+        self.c_data.ori.x = self.c_data.ori.y = self.c_data.ori.z = 0.0
+        self.c_data.ori.w = 1.0
+
+    def copy(self):
+        """Create an independent copy of this object."""
+        cdef OHMDPose toReturn = OHMDPose()
+        toReturn.c_data = self.c_data
+
+        return toReturn
+
+    def isEqual(self, OHMDPose pose, float tolerance=1e-5):
+        """Check if poses are close to equal in position and orientation.
+
+        Same as using the equality operator (==) on poses, but you can specify
+        and arbitrary value for `tolerance`.
+
+        Parameters
+        ----------
+        pose : OHMDPose
+            The other pose.
+        tolerance : float, optional
+            Tolerance for the comparison, default is 1e-5.
+
+        Returns
+        -------
+        bool
+            ``True`` if pose components are within `tolerance` from this pose.
+
+        """
+        cdef ohmd.ohmdPosef* other_pose = &pose.c_data
+        cdef bint to_return = (
+            <float>fabs(other_pose.pos.x - self.c_data.pos.x) < tolerance and
+            <float>fabs(other_pose.pos.y - self.c_data.pos.y) < tolerance and
+            <float>fabs(other_pose.pos.z - self.c_data.pos.z) < tolerance and
+            <float>fabs(other_pose.ori.x - self.c_data.ori.x) < tolerance and
+            <float>fabs(other_pose.ori.y - self.c_data.ori.y) < tolerance and
+            <float>fabs(other_pose.ori.z - self.c_data.ori.z) < tolerance and
+            <float>fabs(other_pose.ori.w - self.c_data.ori.w) < tolerance)
+
+        return to_return
 
     @property
     def pos(self):
+        """ndarray : Position vector [X, Y, Z].
+
+        Examples
+        --------
+
+        Set the position of the pose::
+
+            myPose.pos = [0., 0., -1.5]
+
+        Get the x, y, and z coordinates of a pose::
+
+            x, y, z = myPose.pos
+
+        You can specify a component of a pose's position::
+
+            myPose.pos[2] = -10.0  # z = -10.0
+
+        Assigning `pos` a name will create a reference to that `ndarray` which
+        can edit values in the structure::
+
+            p = myPose.pos
+            p[1] = 1.5  # sets the Y position of 'myPose' to 1.5
+
+        """
+        self._matrixNeedsUpdate = True
         return self._pos
 
     @pos.setter
     def pos(self, object value):
+        self._matrixNeedsUpdate = True
         self._pos[:] = value
+
+    def getPos(self, np.ndarray[np.float32_t, ndim=1] out=None):
+        """Position vector X, Y, Z.
+
+        Parameters
+        ----------
+        out : ndarray or None
+            Optional array to write values to. Must have a float32 data type.
+
+        Returns
+        -------
+        ndarray
+            Position coordinate of this pose.
+
+        Examples
+        --------
+
+        Get the position coordinates::
+
+            x, y, z = myPose.getPos()  # Python float literals
+            # ... or ...
+            pos = myPose.getPos()  # NumPy array shape=(3,) and dtype=float32
+
+        Write the position to an existing array by specifying `out`::
+
+            position = numpy.zeros((3,), dtype=numpy.float32)  # mind the dtype!
+            myPose.getPos(position)  # position now contains myPose.pos
+
+        You can also pass a view/slice to `out`::
+
+            coords = numpy.zeros((100,3,), dtype=numpy.float32)  # big array
+            myPose.getPos(coords[42,:])  # row 42
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
+        toReturn[0] = self.c_data.pos.x
+        toReturn[1] = self.c_data.pos.y
+        toReturn[2] = self.c_data.pos.z
+        self._matrixNeedsUpdate = True
+
+        return toReturn
+
+    def setPos(self, object pos):
+        """Set the position of the pose in a scene.
+
+        Parameters
+        ----------
+        pos : array_like
+            Position vector [X, Y, Z].
+
+        """
+        self.c_data.pos.x = <float>pos[0]
+        self.c_data.pos.y = <float>pos[1]
+        self.c_data.pos.z = <float>pos[2]
+        self._matrixNeedsUpdate = True
 
     @property
     def ori(self):
@@ -369,6 +528,70 @@ cdef class OHMDPose(object):
     @ori.setter
     def ori(self, object value):
         self._ori[:] = value
+
+    def getOri(self, np.ndarray[np.float32_t, ndim=1] out=None):
+        """Orientation quaternion X, Y, Z, W. Components X, Y, Z are imaginary
+        and W is real.
+
+        Parameters
+        ----------
+        out : ndarray  or None
+            Optional array to write values to. Must have a float32 data type.
+
+        Returns
+        -------
+        ndarray
+            Orientation quaternion of this pose.
+
+        Notes
+        -----
+
+        * The orientation quaternion should be normalized.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((4,), dtype=np.float32)
+        else:
+            toReturn = out
+
+        toReturn[0] = self.c_data.ori.x
+        toReturn[1] = self.c_data.ori.y
+        toReturn[2] = self.c_data.ori.z
+        toReturn[3] = self.c_data.ori.w
+
+        self._matrixNeedsUpdate = True
+
+        return toReturn
+
+    def setOri(self, object ori):
+        """Set the orientation of the pose in a scene.
+
+        Parameters
+        ----------
+        ori : array_like
+            Orientation quaternion [X, Y, Z, W].
+
+        """
+        self.c_data.ori.x = <float>ori[0]
+        self.c_data.ori.y = <float>ori[1]
+        self.c_data.ori.z = <float>ori[2]
+        self.c_data.ori.w = <float>ori[3]
+
+        self._matrixNeedsUpdate = True
+
+    @property
+    def posOri(self):
+        """tuple (ndarray, ndarray) : Position vector and orientation
+        quaternion.
+        """
+        self._matrixNeedsUpdate = True
+        return self.pos, self.ori
+
+    @posOri.setter
+    def posOri(self, object value):
+        self.pos = value[0]
+        self.ori = value[1]
 
 
 cdef class OHMDDeviceInfo(object):
@@ -700,8 +923,37 @@ def probe():
         devices_list.append(desc)  # add to list
 
     _deviceInfoList = tuple(devices_list)
+    _deviceCount = probe_device_count
 
     return probe_device_count
+
+
+def isContextProbed():
+    """Check if :func:`probe` was called on the current context.
+
+    Returns
+    -------
+    bool
+        ``True`` if the context was probed since :func:``create`` was called.
+
+    """
+    return <bint>_contextProbed
+
+
+def getDeviceCount():
+    """Number of devices found during the last call to :func:`probe`.
+
+    This function returns the same number that was returned by the last
+    ``probe`` call. If referencing devices by their enumerated index, values
+    from ``0`` to ``getDeviceCount() - 1`` are valid.
+
+    Returns
+    -------
+    int
+        Number of devices found on this system that OpenHMD can use.
+
+    """
+    return _deviceCount
 
 
 def destroy():
@@ -741,7 +993,7 @@ def getError():
     return err_msg.decode('utf-8')
 
 
-def getDevices(int deviceClass=0):
+def getDevices(int deviceClass=-1, bint openOnly=False):
     """Get devices found during the last call to :func:`probe`.
 
     Parameters
@@ -749,8 +1001,12 @@ def getDevices(int deviceClass=0):
     deviceClass : int
         Only get devices belonging to the specified device class. Values can be
         one of ``OHMD_DEVICE_CLASS_CONTROLLER``, ``OHMD_DEVICE_CLASS_HMD``, or
-        ``OHMD_OHMD_DEVICE_CLASS_GENERIC_TRACKER``. Set to zero to get all
+        ``OHMD_OHMD_DEVICE_CLASS_GENERIC_TRACKER``. Set to ``-1`` to get all
         devices (the default).
+    openOnly : bool
+        Only get devices that are currently opened. Default is `False` which
+        will return all devices found during the last `probe` call whether they
+        are opened or not.
 
     Returns
     -------
@@ -780,10 +1036,13 @@ def getDevices(int deviceClass=0):
         return to_return
 
     cdef list device_list = []
-    cdef OHMDDeviceInfo device_info
-    for device_info in _deviceInfoList:
-        if deviceClass == device_info.deviceClass:
-            device_list.append(device_info)
+    cdef OHMDDeviceInfo desc
+    for desc in _deviceInfoList:
+        if openOnly and not desc.c_device_info.isOpened:
+            continue
+
+        if deviceClass == desc.deviceClass:
+            device_list.append(desc)
 
     to_return = tuple(device_list)  # must be tuple
 
@@ -796,9 +1055,8 @@ def openDevice(object device):
     Parameters
     ----------
     device : OHMDDeviceInfo or int
-        Device descriptor or enumerated index to retrieve information from. Must
-        be a device belonging to the ``OHMD_DEVICE_CLASS_HMD`` display class.
-        Best practice is to pass a descriptor instead of an `int`.
+        Descriptor or enumerated index of a device to open. Best practice is to
+        pass a descriptor instead of an `int`.
 
     """
     # must have context and be probed
@@ -814,7 +1072,7 @@ def openDevice(object device):
     if isinstance(device, int):  # enum index provided
         desc = _deviceInfoList[device]
     elif isinstance(device, OHMDDeviceInfo):  # device object provided
-        desc = OHMDDeviceInfo
+        desc = device
     else:
         raise ValueError(
             'Parameter `device` must be type `int` or `OHMDDeviceInfo`.')
@@ -823,13 +1081,44 @@ def openDevice(object device):
     if desc.c_device_info.deviceClass != ohmd.OHMD_DEVICE_CLASS_HMD:
         raise OHMDWrongDeviceClassError("Device is not a display.")
 
-    # pointer to device handle
+    # get pointer to device handle
     desc.c_device = ohmd.ohmd_list_open_device(_ctx, desc.deviceIdx)
+    desc.c_device_info.isOpened = 1  # flag as opened
 
 
 def closeDevice(object device):
-    """Close a device."""
-    pass
+    """Close a device.
+
+    Parameters
+    ----------
+    device : OHMDDeviceInfo or int
+        Descriptor or enumerated index of a device to close. Best practice is to
+        pass a descriptor instead of an `int`.
+
+    """
+    # must have context and be probed
+    if _ctx is NULL:
+        raise OHMDNoContextError()
+
+    if not _contextProbed:
+        raise OHMDContextNotProbedError()
+
+    cdef int result = ohmd.OHMD_S_OK
+    cdef OHMDDeviceInfo desc
+
+    if isinstance(device, int):  # enum index provided
+        desc = _deviceInfoList[device]
+    elif isinstance(device, OHMDDeviceInfo):  # device object provided
+        desc = device
+    else:
+        raise ValueError(
+            'Parameter `device` must be type `int` or `OHMDDeviceInfo`.')
+
+    # actually close the device
+    result = ohmd.ohmd_close_device(desc.c_device)
+    desc.c_device_info.isOpened = 0  # flag as closed
+
+    return result
 
 
 def getDisplayInfo(object device):
@@ -841,7 +1130,6 @@ def getDisplayInfo(object device):
     device : OHMDDeviceInfo or int
         Device descriptor or enumerated index to retrieve information from. Must
         be a device belonging to the ``OHMD_DEVICE_CLASS_HMD`` display class.
-        Best practice is to pass a descriptor instead of an `int`.
 
     Returns
     -------
@@ -875,7 +1163,7 @@ def getDisplayInfo(object device):
     if isinstance(device, int):  # enum index provided
         desc = _deviceInfoList[device]
     elif isinstance(device, OHMDDeviceInfo):  # device object provided
-        desc = OHMDDeviceInfo
+        desc = device
     else:
         raise ValueError(
             'Parameter `device` must be type `int` or `OHMDDeviceInfo`.')
@@ -932,6 +1220,81 @@ def getDisplayInfo(object device):
     return desc
 
 
+def getDevicePose(object device):
+    """Get the pose of a device.
+
+    Parameters
+    ----------
+    device : OHMDDeviceInfo or int
+        Descriptor or enumerated index of a device to open. Best practice is to
+        pass a descriptor instead of an `int`.
+
+    Returns
+    -------
+    OHMDPose
+        Object representing the pose of the device.
+
+    """
+    # must have context and be probed
+    if _ctx is NULL:
+        raise OHMDNoContextError()
+
+    if not _contextProbed:
+        raise OHMDContextNotProbedError()
+
+    cdef OHMDDeviceInfo desc
+
+    if isinstance(device, int):  # enum index provided
+        desc = _deviceInfoList[device]
+    elif isinstance(device, OHMDDeviceInfo):  # device object provided
+        desc = device
+    else:
+        raise ValueError(
+            'Parameter `device` must be type `int` or `OHMDDeviceInfo`.')
+
+    # check if the device is presently opened
+    # NB - maybe we should just return an identity pose?
+    if not desc.c_device_info.isOpened:
+        raise OHMDDeviceNotOpenError(
+            "Trying to obtain the pose of a device that is presently closed.")
+
+    # get the position from the device
+    cdef float[3] device_pos  # position vector [x, y, z]
+    cdef float[4] device_ori  # orientation quaternion [x, y, z, w]
+
+    ohmd.ohmd_device_getf(  # get the position from the device
+        desc.c_device,
+        ohmd.OHMD_POSITION_VECTOR,
+        &device_pos[0])
+    ohmd.ohmd_device_getf(  # get the orientation from the device
+        desc.c_device,
+        ohmd.OHMD_ROTATION_QUAT,
+        &device_ori[0])
+
+    # actual pose object to return
+    cdef OHMDPose the_pose = OHMDPose()
+
+    # set values - find a better way to do this
+    the_pose.pos = (
+        device_pos[0], device_pos[1], device_pos[2])
+    the_pose.ori = (
+        device_ori[0], device_ori[1], device_ori[2], device_ori[3])
+
+    return the_pose
+
+
+def lastUpdateTimeElapsed():
+    """Get the time elapsed in seconds since the last :func:`update` call.
+
+    Returns
+    -------
+    float
+        Elapsed time in seconds.
+
+    """
+    return cpu_time() - _last_update_time
+
+
 def update():
     """Update the values for the devices handled by a context.
 
@@ -940,11 +1303,13 @@ def update():
 
     """
     global _ctx
+    global _last_update_time
 
     if _ctx is NULL:
         raise OHMDNoContextError()
 
     ohmd.ohmd_ctx_update(_ctx)
+    _last_update_time = cpu_time()
 
 
 def getString(int stype):

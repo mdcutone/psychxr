@@ -183,3 +183,20 @@ ctypedef struct ohmdControllerInfo:
     int deviceIdx
     int controlCount
 
+# Vector types, should have the same size as LibOVR equivalents so you can
+# recast these if needed.
+ctypedef struct ohmdVector3f:
+    float x
+    float y
+    float z
+
+ctypedef struct ohmdQuatf:
+    float x
+    float y
+    float z
+    float w
+
+ctypedef struct ohmdPosef:
+    ohmdVector3f pos
+    ohmdQuatf ori
+
