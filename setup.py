@@ -76,7 +76,7 @@ if THIS_PLATFORM == 'Windows':
     os.environ["MSSdk"] = ENV_TRUE  # ensure correct compiler is used
     os.environ["DISTUTILS_USE_SDK"] = ENV_TRUE
     LIBRARIES.extend(['opengl32', 'User32'])  # required Windows libraries
-    LIBRARY_DIRS.extend([os.path.join('lib', 'win', 'x64')])
+    LIBRARY_DIRS.extend([os.path.join('psychxr/drivers/openhmd/lib', 'win', 'x64')])
 else:
     raise Exception(
         "Trying to install `PsychXR` on an unsupported operating system. "

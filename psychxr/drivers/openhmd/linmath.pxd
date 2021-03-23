@@ -26,7 +26,7 @@
 
 cdef extern from "linmath.h":
 
-    ctypedef float vec2[2]  # length 2 vector type
+    ctypedef float[2] vec2  # length 2 vector type
     void vec2_add(vec2 r, vec2 a, vec2 b)
     void vec2_sub(vec2 r, vec2 a, vec2 b)
     void vec2_scale(vec2 r, vec2 a, vec2 b)
@@ -37,7 +37,7 @@ cdef extern from "linmath.h":
     void vec2_max(vec2 r, vec2 a, vec2 b)
     void vec2_dup(vec2 r, vec2 src)
 
-    ctypedef float vec3[3]  # length 3 vector type
+    ctypedef float[3] vec3  # length 3 vector type
     void vec3_add(vec3 r, vec3 a, vec3 b)
     void vec3_sub(vec3 r, vec3 a, vec3 b)
     void vec3_scale(vec3 r, vec3 a, vec3 b)
@@ -50,7 +50,7 @@ cdef extern from "linmath.h":
     void vec3_mul_cross(vec3 r, vec3 a, vec3 b)
     void vec3_reflect(vec3 r, vec3 v, vec3 n)
 
-    ctypedef float vec4[4]  # length 4 vector type
+    ctypedef float[4] vec4  # length 4 vector type
     void vec4_add(vec4 r, vec4 a, vec4 b)
     void vec4_sub(vec4 r, vec4 a, vec4 b)
     void vec4_scale(vec4 r, vec4 a, vec4 b)
@@ -63,7 +63,7 @@ cdef extern from "linmath.h":
     void vec4_mul_cross(vec4 r, vec4 a, vec4 b)
     void vec4_reflect(vec4 r, vec4 v, vec4 n)
 
-    ctypedef vec4 mat4x4[4]  # 4x4 matrices
+    ctypedef vec4[4] mat4x4  # 4x4 matrices
     void mat4x4_identity(mat4x4 M)
     void mat4x4_dup(mat4x4 M, mat4x4 N)
     void mat4x4_row(vec4 r, mat4x4 M, int i)
@@ -89,7 +89,7 @@ cdef extern from "linmath.h":
     void mat4x4_perspective(mat4x4 m, float y_fov, float aspect, float n, float f)
     void mat4x4_look_at(mat4x4 m, vec3 eye, vec3 center, vec3 up)
 
-    ctypedef float quat[4]
+    ctypedef float[4] quat
     void quat_add(quat r, quat a, quat b)
     void quat_sub(quat r, quat a, quat b)
     void quat_norm(quat r, quat n)

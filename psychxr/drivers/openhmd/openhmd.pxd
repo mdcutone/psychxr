@@ -174,7 +174,7 @@ ctypedef struct ohmdDeviceInfo:
 ctypedef struct ohmdDisplayInfo:
     int deviceIdx
     float ipd
-    float[2] screenResolution
+    int[2] resolution
     float[2] screenSize
     float[2] eyeFov
     float[2] eyeAspect

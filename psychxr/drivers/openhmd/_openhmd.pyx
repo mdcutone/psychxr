@@ -149,6 +149,7 @@ __all__ = [
 
 cimport numpy as np
 import numpy as np
+np.import_array()
 from . cimport openhmd as ohmd
 from . cimport linmath as lm
 from libc.time cimport clock, clock_t
@@ -367,9 +368,30 @@ cdef class OHMDPose(object):
         cdef np.npy_intp[1] vec3_shape = [3]
         cdef np.npy_intp[1] quat_shape = [4]
         self._pos = np.PyArray_SimpleNewFromData(
-            1, vec3_shape, np.NPY_FLOAT32, <void*>&self.c_data.pos)
+            1, vec3_shape, np.NPY_FLOAT32, <void*>&self.c_data.pos.x)
         self._ori = np.PyArray_SimpleNewFromData(
-            1, quat_shape, np.NPY_FLOAT32, <void*>&self.c_data.ori)
+            1, quat_shape, np.NPY_FLOAT32, <void*>&self.c_data.ori.x)
+
+    def __repr__(self):
+        return f'OHMDPose(pos={repr(self.pos)}, ori={repr(self.ori)})'
+
+    def __mul__(OHMDPose a, OHMDPose b):
+        """Multiplication operator (*) to combine poses.
+        """
+        cdef float* pos_a = &a.c_data.pos.x
+        cdef float* pos_b = &b.c_data.pos.x
+        cdef float* ori_a = &a.c_data.ori.x
+        cdef float* ori_b = &b.c_data.ori.x
+
+        cdef OHMDPose r = OHMDPose()
+        cdef float* pos_r = &r.c_data.pos.x
+        cdef float* ori_r = &r.c_data.ori.x
+
+        lm.quat_mul(pos_r, ori_a, ori_b)  # combine rotations
+        lm.quat_mul_vec3(pos_r, ori_a, pos_b)  # apply rotation to other
+        lm.vec3_add(pos_r, pos_a, pos_r)  # add translations
+
+        return r
 
     def __deepcopy__(self, memo=None):
         # create a new object with a copy of the data stored in c_data
@@ -727,20 +749,20 @@ cdef class OHMDDisplayInfo(object):
              self.c_data.screenSize[1]), dtype=np.float32)
 
     @property
-    def aspect(self):
+    def eyeAspect(self):
         """Physical display aspect ratios for the left and right eye (`ndarray`).
         """
         return np.asarray(
-            (self.c_data.aspect[0],
-             self.c_data.aspect[1]), dtype=np.float32)
+            (self.c_data.eyeAspect[0],
+             self.c_data.eyeAspect[1]), dtype=np.float32)
 
     @property
     def eyeFov(self):
         """Physical field of view for each eye in degrees (`ndarray`).
         """
         return np.asarray(
-            (self.c_data.fov[0],
-             self.c_data.fov[1]), dtype=np.float32)
+            (self.c_data.eyeFov[0],
+             self.c_data.eyeFov[1]), dtype=np.float32)
 
     @property
     def ipd(self):
@@ -993,7 +1015,7 @@ def getError():
     return err_msg.decode('utf-8')
 
 
-def getDevices(int deviceClass=-1, bint openOnly=False):
+def getDevices(int deviceClass=-1, bint openOnly=False, bint nullDevices=False):
     """Get devices found during the last call to :func:`probe`.
 
     Parameters
@@ -1007,6 +1029,8 @@ def getDevices(int deviceClass=-1, bint openOnly=False):
         Only get devices that are currently opened. Default is `False` which
         will return all devices found during the last `probe` call whether they
         are opened or not.
+    nullDevices : bool
+        Include null/debug devices.
 
     Returns
     -------
@@ -1031,14 +1055,17 @@ def getDevices(int deviceClass=-1, bint openOnly=False):
     global _deviceInfoList
     cdef tuple to_return
 
-    if deviceClass == 0:
+    if deviceClass < 0:
         to_return = _deviceInfoList
         return to_return
 
     cdef list device_list = []
     cdef OHMDDeviceInfo desc
     for desc in _deviceInfoList:
-        if openOnly and not desc.c_device_info.isOpened:
+        if openOnly and not desc.isOpen:
+            continue
+
+        if desc.isDebugDevice and not nullDevices:
             continue
 
         if deviceClass == desc.deviceClass:
@@ -1194,6 +1221,14 @@ def getDisplayInfo(object device):
         this_device,
         ohmd.OHMD_SCREEN_VERTICAL_SIZE,
         &display_info.screenSize[1])
+    ohmd.ohmd_device_geti(
+        this_device,
+        ohmd.OHMD_SCREEN_HORIZONTAL_RESOLUTION,
+        &display_info.resolution[0])
+    ohmd.ohmd_device_geti(
+        this_device,
+        ohmd.OHMD_SCREEN_VERTICAL_RESOLUTION,
+        &display_info.resolution[1])
     ohmd.ohmd_device_getf(
         this_device,
         ohmd.OHMD_EYE_IPD,
@@ -1211,13 +1246,13 @@ def getDisplayInfo(object device):
     ohmd.ohmd_device_getf(
         this_device,
         ohmd.OHMD_LEFT_EYE_ASPECT_RATIO,
-        &display_info.eyeFov[0])
+        &display_info.eyeAspect[0])
     ohmd.ohmd_device_getf(
         this_device,
         ohmd.OHMD_RIGHT_EYE_ASPECT_RATIO,
-        &display_info.eyeFov[1])
+        &display_info.eyeAspect[1])
 
-    return desc
+    return to_return
 
 
 def getDevicePose(object device):

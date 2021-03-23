@@ -1,4 +1,4 @@
-# PsychXR Oculus Rift minimal rendering example. This file is public domain.
+# PsychXR Oculus Rift minimal example. This file is public domain.
 #
 from psychxr.drivers.libovr import *
 import sys
@@ -6,7 +6,7 @@ import sys
 
 def main():
 
-    # create a rift session
+    # create a libovr session
     if failure(initialize()):
         return -1
 

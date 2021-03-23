@@ -170,6 +170,9 @@ cdef class LibOVRPose(object):
                 PyMem_Free(self.c_data)
                 self.c_data = NULL
 
+    def __repr__(self):
+        return f'LibOVRPose(pos={repr(self.pos)}, ori={repr(self.ori)})'
+
     def __mul__(LibOVRPose a, LibOVRPose b):
         """Multiplication operator (*) to combine poses.
         """
