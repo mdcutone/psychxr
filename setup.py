@@ -76,7 +76,8 @@ if THIS_PLATFORM == 'Windows':
     os.environ["MSSdk"] = ENV_TRUE  # ensure correct compiler is used
     os.environ["DISTUTILS_USE_SDK"] = ENV_TRUE
     LIBRARIES.extend(['opengl32', 'User32'])  # required Windows libraries
-    LIBRARY_DIRS.extend([os.path.join('psychxr/drivers/openhmd/lib', 'win', 'x64')])
+    LIBRARY_DIRS.extend(
+        [os.path.join('psychxr/drivers/openhmd/lib', 'win', 'x64')])
 else:
     raise Exception(
         "Trying to install `PsychXR` on an unsupported operating system. "
@@ -97,6 +98,19 @@ if BUILD_OPENHMD:
 #
 
 def fix_path(path):
+    """Fix a path and convert to an absolute location.
+
+    Parameters
+    ----------
+    path : str
+        Path to fix.
+
+    Returns
+    -------
+    str
+        Absolute path.
+
+    """
     if THIS_PLATFORM == 'Windows':
         path = PureWindowsPath(path)
 
@@ -225,6 +239,31 @@ if BUILD_OPENHMD:
             "psychxr.drivers.openhmd._openhmd",
             **ohmd_build_params)])
     PACKAGES.extend(ohmd_build_params['packages'])
+
+
+# ------------------------------------------------------------------------------
+# Build common libraries
+#
+print("Building `vrmath` extension module ...")
+
+vrmath_package_data = {
+    'psychxr.vrmath': PACKAGE_DATA}
+vrmath_data_files = {
+    'psychxr/vrmath': DATA_FILES}
+vrmath_build_params = {
+    'libraries': LIBRARIES + [],
+    'library_dirs': LIBRARY_DIRS,
+    'include_dirs': [fix_path('include/linmath')],
+    'packages': ['psychxr.vrmath'],
+    'package_data': vrmath_package_data,
+    'data_files': vrmath_data_files}
+
+# compile the `vrmath` extension
+EXT_MODULES.extend(
+    [build_extension(
+        "psychxr.vrmath._vrmath",
+        **vrmath_build_params)])
+PACKAGES.extend(vrmath_build_params['packages'])
 
 
 # ------------------------------------------------------------------------------

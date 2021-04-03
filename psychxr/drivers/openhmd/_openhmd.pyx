@@ -418,6 +418,9 @@ cdef class OHMDPose(object):
 
         return toReturn
 
+    def __eq__(OHMDPose this, OHMDPose other):
+        return this.isEqual(other)
+
     def isEqual(self, OHMDPose pose, float tolerance=1e-5):
         """Check if poses are close to equal in position and orientation.
 

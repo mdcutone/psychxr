@@ -70,9 +70,9 @@ cdef class LibOVRPose(object):
     Parameters
     ----------
     pos : array_like
-        Position vector (x, y, z).
+        Initial position vector (x, y, z).
     ori : array_like
-        Orientation quaternion vector (x, y, z, w).
+        Initial orientation quaternion (x, y, z, w).
 
     """
     cdef capi.ovrPosef* c_data
@@ -239,7 +239,14 @@ cdef class LibOVRPose(object):
         return to_return
 
     def copy(self):
-        """Create an independent copy of this object."""
+        """Create an independent copy of this object.
+
+        Returns
+        -------
+        RigidBodyPose
+            Copy of this pose.
+
+        """
         cdef LibOVRPose toReturn = LibOVRPose()
         (<LibOVRPose>toReturn).c_data[0] = self.c_data[0]
 
@@ -510,14 +517,15 @@ cdef class LibOVRPose(object):
 
     @property
     def posOri(self):
-        """tuple (ndarray, ndarray) : Position vector and
-        orientation quaternion.
+        """tuple (ndarray, ndarray) : Position vector and orientation
+        quaternion.
         """
         self._matrixNeedsUpdate = True
         return self.pos, self.ori
 
     @posOri.setter
     def posOri(self, object value):
+        self._matrixNeedsUpdate = True
         self.pos = value[0]
         self.ori = value[1]
 
@@ -1039,11 +1047,18 @@ cdef class LibOVRPose(object):
         return out
 
     @property
+    def viewMatrix(self):
+        """View matrix."""
+        self._updateMatrices()
+
+        return self._viewMatrixArr
+
+    @property
     def inverseViewMatrix(self):
         """View matrix inverse."""
         self._updateMatrices()
 
-        return self._invViewMatrixArr
+        return self._viewMatrixArr
 
     def getViewMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
         """Convert this pose into a view matrix.
