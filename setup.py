@@ -159,6 +159,31 @@ def build_extension(name, **kwargs):
 
 
 # ------------------------------------------------------------------------------
+# Build common libraries
+#
+print("Building `vrmath` extension module ...")
+
+vrmath_package_data = {
+    'psychxr.vrmath': PACKAGE_DATA}
+vrmath_data_files = {
+    'psychxr/vrmath': DATA_FILES}
+vrmath_build_params = {
+    'libraries': LIBRARIES + [],
+    'library_dirs': LIBRARY_DIRS,
+    'include_dirs': [fix_path('include/linmath')],
+    'packages': ['psychxr.vrmath'],
+    'package_data': vrmath_package_data,
+    'data_files': vrmath_data_files}
+
+# compile the `vrmath` extension
+EXT_MODULES.extend(
+    [build_extension(
+        "psychxr.vrmath._vrmath",
+        **vrmath_build_params)])
+PACKAGES.extend(vrmath_build_params['packages'])
+
+
+# ------------------------------------------------------------------------------
 # Build driver extension libraries (e.g., libovr, openhmd, etc.)
 #
 
@@ -239,31 +264,6 @@ if BUILD_OPENHMD:
             "psychxr.drivers.openhmd._openhmd",
             **ohmd_build_params)])
     PACKAGES.extend(ohmd_build_params['packages'])
-
-
-# ------------------------------------------------------------------------------
-# Build common libraries
-#
-print("Building `vrmath` extension module ...")
-
-vrmath_package_data = {
-    'psychxr.vrmath': PACKAGE_DATA}
-vrmath_data_files = {
-    'psychxr/vrmath': DATA_FILES}
-vrmath_build_params = {
-    'libraries': LIBRARIES + [],
-    'library_dirs': LIBRARY_DIRS,
-    'include_dirs': [fix_path('include/linmath')],
-    'packages': ['psychxr.vrmath'],
-    'package_data': vrmath_package_data,
-    'data_files': vrmath_data_files}
-
-# compile the `vrmath` extension
-EXT_MODULES.extend(
-    [build_extension(
-        "psychxr.vrmath._vrmath",
-        **vrmath_build_params)])
-PACKAGES.extend(vrmath_build_params['packages'])
 
 
 # ------------------------------------------------------------------------------

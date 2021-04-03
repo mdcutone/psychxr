@@ -297,9 +297,20 @@ cdef class LibOVRPose(object):
         """
         return self.__deepcopy__()
 
+    def __repr__(self):
+        return \
+            "LibOVRPose(pos=({px}, {py}, {pz}), ori=({rx}, {ry}, {rz}, {rw}))".format(
+                px=self.c_data[0].Position.x,
+                py=self.c_data[0].Position.y,
+                pz=self.c_data[0].Position.z,
+                rx=self.c_data[0].Orientation.x,
+                ry=self.c_data[0].Orientation.y,
+                rz=self.c_data[0].Orientation.z,
+                rw=self.c_data[0].Orientation.w)
+
     def __str__(self):
         return \
-            "LibOVRPose(({px}, {py}, {pz}), ({rx}, {ry}, {rz}, {rw}))".format(
+            "LibOVRPose(pos=({px}, {py}, {pz}), ori=({rx}, {ry}, {rz}, {rw}))".format(
                 px=self.c_data[0].Position.x,
                 py=self.c_data[0].Position.y,
                 pz=self.c_data[0].Position.z,
@@ -1453,7 +1464,7 @@ cdef class LibOVRPose(object):
         Returns
         -------
         ndarray
-            Vector transformed by the pose's position and orientation.
+            Normal vector transformed by the pose's position and orientation.
 
         Notes
         -----
@@ -1491,7 +1502,8 @@ cdef class LibOVRPose(object):
         Returns
         -------
         ndarray
-            Vector transformed by the pose's position and orientation.
+            Normal vector transformed by the inverse of the pose's position and
+            orientation.
 
         Notes
         -----

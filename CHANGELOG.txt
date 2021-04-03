@@ -1,7 +1,7 @@
 This file contains changes introduced to PsychXR for each version. Breaking
 changes may be incompatible with your current code or build environment.
 
-Version 0.2.4 - 2021/03/14
+Version 0.2.4 - 2021/04/XX
 --------------------------
 
 Overview:
@@ -39,6 +39,11 @@ Overview:
     Documentation and recommendations are a bit thin at this point, but expect
     that to change in coming releases.
 
+    Another change is the inclusion of a new `vrmath` library. This is intended
+    to provide FOSS versions of classes included with `LibOVR` for 3D math. This
+    will hopefully result in some degree of interoperability between drivers, by
+    providing a common set of tools of working with VR environments.
+
     Finally, refactoring work has been done to allow PsychXR to accommodate
     multiple driver extension modules. This means that driver interface have
     been moved to `psychxr.drivers` from the top-level package. This means that
@@ -69,6 +74,7 @@ New Features:
     - Added API features related to colorspace data and calibration recently
       added to LibOVR.
     - Removed constant `BUILD_NUMBER`, unused now.
+    - Added the `psychxr.vrmath` library.
     - Deprecated `resetBoundaryColor` and `setBoundaryColor`. The API calls used
       by these functions have been deprecated by the Oculus PC SDK and may fail
       in future versions.
@@ -79,7 +85,7 @@ New Features:
 
 Bug Fixes:
 
-    - None
+    - Added missing `viewMatrix` attribute to `LibOVRPose`.
 
 Breaking Changes:
 

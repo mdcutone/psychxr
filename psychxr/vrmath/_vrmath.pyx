@@ -230,6 +230,18 @@ cdef class RigidBodyPose(object):
     def __repr__(self):
         return f'RigidBodyPose(pos={repr(self.pos)}, ori={repr(self.ori)})'
 
+    def __imul__(self, RigidBodyPose other):
+        """Multiplication operator (*=) to combine poses.
+        """
+
+        self._matrixNeedsUpdate = True
+
+        return self
+
+    def __invert__(self):
+        """Invert operator (~) to invert a pose."""
+        return self.inverted()
+
     def __eq__(self, RigidBodyPose other):
         """Equality operator (==) for two poses.
 
@@ -496,7 +508,6 @@ cdef class RigidBodyPose(object):
 
         Notes
         -----
-
         * The orientation quaternion should be normalized.
 
         """
@@ -560,8 +571,8 @@ cdef class RigidBodyPose(object):
         Parameters
         ----------
         out : ndarray or None
-            Optional array to write values to. Must have shape (3,) and a float32
-            data type.
+            Optional array to write values to. Must have shape (3,) and a
+            float32 data type.
 
         Returns
         -------
@@ -672,6 +683,64 @@ cdef class RigidBodyPose(object):
 
         return to_return
 
+    def invert(self):
+        """Invert this pose.
+        """
+        # inverse the rotation
+        linmath.quat_conj(
+            &self.c_data.Orientation.x,
+            &self.c_data.Orientation.x)
+
+        # inverse the translation
+        linmath.vec3_scale(
+            &self.c_data.Position.x,
+            &self.c_data.Position.x,
+            <float>-1.)
+
+        # apply the rotation
+        linmath.quat_mul_vec3(
+            &self.c_data.Position.x,
+            &self.c_data.Orientation.x,
+            &self.c_data.Position.x)
+
+        self._matrixNeedsUpdate = True
+
+        return self
+
+    def inverted(self):
+        """Get the inverse of the pose.
+
+        Returns
+        -------
+        RigidBodyPose
+            Inverted pose.
+
+        """
+        cdef vrmath.pxrPosef* ptr = <vrmath.pxrPosef*>PyMem_Malloc(
+            sizeof(vrmath.pxrPosef))
+
+        if ptr is NULL:
+            raise MemoryError
+
+        # inverse the rotation
+        linmath.quat_conj(
+            &ptr.Orientation.x,
+            &self.c_data.Orientation.x)
+
+        # inverse the translation
+        linmath.vec3_scale(
+            &ptr.Position.x,
+            &self.c_data.Position.x,
+            <float>-1.)
+
+        # apply the rotation
+        linmath.quat_mul_vec3(
+            &ptr.Position.x,
+            &ptr.Orientation.x,
+            &ptr.Position.x)
+
+        return RigidBodyPose.fromPtr(ptr, True)
+
     def rotate(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
         """Rotate a position vector.
 
@@ -710,6 +779,248 @@ cdef class RigidBodyPose(object):
         toReturn[0] = pos_rotated.x
         toReturn[1] = pos_rotated.y
         toReturn[2] = pos_rotated.z
+
+        return toReturn
+
+    def inverseRotate(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
+        """Inverse rotate a position vector.
+
+        Parameters
+        ----------
+        v : array_like
+            Vector to inverse rotate (x, y, z).
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
+
+        Returns
+        -------
+        ndarray
+            Vector rotated by the pose's inverse orientation.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
+        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
+        cdef vrmath.pxrQuatf ori_inv
+        cdef vrmath.pxrVector3f temp
+
+        temp.x = <float>v[0]
+        temp.y = <float>v[1]
+        temp.z = <float>v[2]
+
+        # inverse the rotation
+        linmath.quat_conj(&ori_inv.x, &pose.Orientation.x)
+
+        # apply it
+        linmath.quat_mul_vec3(
+            &temp.x,
+            &ori_inv.x,
+            &temp.x)
+
+        toReturn[0] = temp.x
+        toReturn[1] = temp.y
+        toReturn[2] = temp.z
+
+        return toReturn
+
+    def translate(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
+        """Translate a position vector.
+
+        Parameters
+        ----------
+        v : array_like
+            Vector to translate [x, y, z].
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
+
+        Returns
+        -------
+        ndarray
+            Vector translated by the pose's position.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
+        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
+        cdef vrmath.pxrVector3f temp
+        cdef vrmath.pxrVector3f translated_pos
+
+        temp.x = <float>v[0]
+        temp.y = <float>v[1]
+        temp.z = <float>v[2]
+
+        linmath.vec3_add(&temp.x, &temp.x, &pose.Position.x)
+
+        toReturn[0] = temp.x
+        toReturn[1] = temp.y
+        toReturn[2] = temp.z
+
+        return toReturn
+
+    def transform(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
+        """Transform a position vector.
+
+        Parameters
+        ----------
+        v : array_like
+            Vector to transform [x, y, z].
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the poses position and orientation.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
+        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
+        cdef vrmath.pxrVector3f temp
+
+        temp.x = <float>v[0]
+        temp.y = <float>v[1]
+        temp.z = <float>v[2]
+
+        linmath.quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
+        linmath.vec3_add(&temp.x, &temp.x, &pose.Position.x)
+
+        toReturn[0] = temp.x
+        toReturn[1] = temp.y
+        toReturn[2] = temp.z
+
+        return toReturn
+
+    def inverseTransform(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
+        """Inverse transform a position vector.
+
+        Parameters
+        ----------
+        v : array_like
+            Vector to transform (x, y, z).
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the inverse of the pose's position and
+            orientation.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
+        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
+        cdef vrmath.pxrQuatf ori_inv
+        cdef vrmath.pxrVector3f temp
+
+        temp.x = <float>v[0]
+        temp.y = <float>v[1]
+        temp.z = <float>v[2]
+
+        # inverse the rotation and transformation
+        linmath.quat_conj(&ori_inv.x, &pose.Orientation.x)
+        linmath.vec3_sub(&temp.x, &temp.x, &pose.Position.x)
+        linmath.quat_mul_vec3(&temp.x, &ori_inv.x, &temp.x)
+
+        toReturn[0] = temp.x
+        toReturn[1] = temp.y
+        toReturn[2] = temp.z
+
+        return toReturn
+
+    def transformNormal(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
+        """Transform a normal vector.
+
+        Parameters
+        ----------
+        v : array_like
+            Vector to transform (x, y, z).
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the pose's position and orientation.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
+        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
+        cdef vrmath.pxrVector3f temp
+
+        temp.x = <float>v[0]
+        temp.y = <float>v[1]
+        temp.z = <float>v[2]
+
+        # inverse the rotation and transformation
+        linmath.quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
+
+        toReturn[0] = temp.x
+        toReturn[1] = temp.y
+        toReturn[2] = temp.z
+
+        return toReturn
+
+    def inverseTransformNormal(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
+        """Inverse transform a normal vector.
+
+        Parameters
+        ----------
+        v : array_like
+            Vector to transform (x, y, z).
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
+
+        Returns
+        -------
+        ndarray
+            Normal vector transformed by the inverse pose's position and
+            orientation.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
+        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
+        cdef vrmath.pxrQuatf ori_inv
+        cdef vrmath.pxrVector3f temp
+
+        temp.x = <float>v[0]
+        temp.y = <float>v[1]
+        temp.z = <float>v[2]
+
+        # inverse the rotation and transformation
+        linmath.quat_conj(&ori_inv.x, &pose.Orientation.x)
+        linmath.quat_mul_vec3(&temp.x, &ori_inv.x, &temp.x)
+
+        toReturn[0] = temp.x
+        toReturn[1] = temp.y
+        toReturn[2] = temp.z
 
         return toReturn
 
@@ -764,7 +1075,8 @@ cdef class RigidBodyPose(object):
         need to convert the matrix to a C-types pointer before passing it to
         `glLoadTransposeMatrixf`::
 
-            M = myPose.getModelMatrix().ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+            M = myPose.getModelMatrix().ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float))
             glMatrixMode(GL_MODELVIEW)
             glPushMatrix()
             glMultTransposeMatrixf(M)
@@ -773,7 +1085,8 @@ cdef class RigidBodyPose(object):
 
         If using fragment shaders, the matrix can be passed on to them as such::
 
-            M = myPose.getModelMatrix().ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+            M = myPose.getModelMatrix().ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float))
             M = M.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
             # after the program was installed in the current rendering state via
             # `glUseProgram` ...
@@ -861,9 +1174,9 @@ cdef class RigidBodyPose(object):
         Compute eye poses from a head pose and compute view matrices::
 
             iod = 0.062  # 63 mm
-            headPose = LibOVRPose((0., 1.5, 0.))  # 1.5 meters up from origin
-            leftEyePose = LibOVRPose((-(iod / 2.), 0., 0.))
-            rightEyePose = LibOVRPose((iod / 2., 0., 0.))
+            headPose = RigidBodyPose((0., 1.5, 0.))  # 1.5 meters up from origin
+            leftEyePose = RigidBodyPose((-(iod / 2.), 0., 0.))
+            rightEyePose = RigidBodyPose((iod / 2., 0., 0.))
 
             # transform eye poses relative to head poses
             leftEyeRenderPose = headPose * leftEyePose

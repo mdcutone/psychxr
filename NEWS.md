@@ -2,17 +2,30 @@ NEWS
 ====
 Development updates and news about PsychXR between releases.
 
-March 19, 2021
+April 03, 2021
 --------------
 
 It's been a while since the last release of PsychXR, however version 0.2.4 is 
-out and introduces substantial changes such as OpenHMD support and color space
-management to `LibOVR`.
+almost and introduces substantial changes such as OpenHMD support and color 
+space management to `LibOVR`.
 
-PsychXR finally got another extension library, this one using OpenHMD which is 
-a FOSS driver interface. While this isn't the OpenXR interface everyone wanted
-(more on that later), it's something that work began on almost two years ago. 
+PsychXR has finally gotten a new driver interface, this one using `OpenHMD` 
+which provides FOSS drivers for HMDs and VR peripherals. While this isn't the 
+OpenXR interface everyone wanted (more on that later), it's something that work 
+began on almost two years ago. The `OpenHMD` extension module isn't a simple 
+wrapper around the library. Effort is being made to make it function similarly 
+to `LibOVR` to make it easier to integrate into existing apps using the `LibOVR`
+interface. 
 
+`OpenXR` support is the next major development target. The specification seems 
+mature enough now to include and has been seeing considerable adoption in 
+industry. `OpenXR` is a big deal since it will provide a standardized interface 
+for a wide variety of HMDs. `OpenXR` shares a lot in common with `LibOVR` (which
+make sense considering how much Facebook contributed to that standard), so the 
+resulting extension may closely resemble the existing one. The inclusion of 
+`OpenXR` will mark the end of the `0.2.x` series of PsychXR. No timeline has 
+been decided for when `OpenXR` will be added, but it's looking very likely to be 
+included near the end of 2021.
 
 May 18, 2020
 ------------
