@@ -230,9 +230,51 @@ cdef class RigidBodyPose(object):
     def __repr__(self):
         return f'RigidBodyPose(pos={repr(self.pos)}, ori={repr(self.ori)})'
 
+    def __mul__(RigidBodyPose a, RigidBodyPose b):
+        """Multiplication operator (*) to combine poses.
+        """
+        cdef vrmath.pxrPosef* ptr = <vrmath.pxrPosef*>PyMem_Malloc(
+            sizeof(vrmath.pxrPosef))
+
+        if ptr is NULL:
+            raise MemoryError
+
+        # multiply the rotations
+        linmath.quat_mul(
+            &ptr.Orientation.x,
+            &a.c_data.Orientation.x,
+            &b.c_data.Orientation.x)
+
+        # apply the transformation
+        linmath.quat_mul_vec3(
+            &ptr.Position.x,
+            &ptr.Orientation.x,
+            &b.c_data.Position.x)
+        linmath.vec3_add(
+            &ptr.Position.x,
+            &a.c_data.Position.x,
+            &ptr.Position.x)
+
+        return RigidBodyPose.fromPtr(ptr, True)
+
     def __imul__(self, RigidBodyPose other):
         """Multiplication operator (*=) to combine poses.
         """
+        # multiply the rotations
+        linmath.quat_mul(
+            &self.c_data.Orientation.x,
+            &self.c_data.Orientation.x,
+            &other.c_data.Orientation.x)
+
+        # apply the transformation
+        linmath.quat_mul_vec3(
+            &self.c_data.Position.x,
+            &self.c_data.Orientation.x,
+            &self.c_data.Position.x)
+        linmath.vec3_add(
+            &self.c_data.Position.x,
+            &other.c_data.Position.x,
+            &self.c_data.Position.x)
 
         self._matrixNeedsUpdate = True
 
@@ -399,14 +441,24 @@ cdef class RigidBodyPose(object):
             p = myPose.pos
             p[1] = 1.5  # sets the Y position of 'myPose' to 1.5
 
+        Do not do this since the intermediate object returned by the
+        multiplication operator will be garbage collected and `pos` will end up
+        being filled with invalid values::
+
+            pos = (myPose * myPose2).pos  # BAD!
+
+            # do this instead ...
+            myPoseCombined = myPose * myPose2  # keep intermediate alive
+            pos = myPoseCombined.pos  # get the pos
+
         """
         self._matrixNeedsUpdate = True
         return self._pos
 
     @pos.setter
     def pos(self, object value):
-        self._matrixNeedsUpdate = True
         self._pos[:] = value
+        self._matrixNeedsUpdate = True
 
     def getPos(self, np.ndarray[np.float32_t, ndim=1] out=None):
         """Position vector X, Y, Z.
@@ -484,9 +536,8 @@ cdef class RigidBodyPose(object):
 
     @ori.setter
     def ori(self, object value):
-        self._matrixNeedsUpdate = True
-
         self._ori[:] = value
+        self._matrixNeedsUpdate = True
 
     def getOri(self, np.ndarray[np.float32_t, ndim=1] out=None):
         """Orientation quaternion X, Y, Z, W. Components X, Y, Z are imaginary
@@ -1216,7 +1267,7 @@ cdef class RigidBodyPose(object):
         --------
         Compute eye poses from a head pose and compute view matrices::
 
-            iod = 0.062  # 63 mm
+            iod = 0.062  # 62 mm
             headPose = RigidBodyPose((0., 1.5, 0.))  # 1.5 meters up from origin
             leftEyePose = RigidBodyPose((-(iod / 2.), 0., 0.))
             rightEyePose = RigidBodyPose((iod / 2., 0., 0.))
