@@ -1024,6 +1024,49 @@ cdef class RigidBodyPose(object):
 
         return toReturn
 
+    def distanceTo(self, object v):
+        """Distance to a point or pose from this pose.
+
+        Parameters
+        ----------
+        v : array_like
+            Vector to transform (x, y, z).
+
+        Returns
+        -------
+        float
+            Distance to a point or RigidBodyPose.
+
+        Examples
+        --------
+
+        Get the distance between poses::
+
+            distance = thisPose.distanceTo(otherPose)
+
+        Get the distance to a point coordinate::
+
+            distance = thisPose.distanceTo([0.0, 0.0, 5.0])
+
+        """
+        cdef vrmath.pxrVector3f temp
+        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
+
+        if isinstance(v, RigidBodyPose):
+            temp = <vrmath.pxrVector3f>((<RigidBodyPose>v).c_data[0]).Position
+        else:
+            temp.x = <float>v[0]
+            temp.y = <float>v[1]
+            temp.z = <float>v[2]
+
+        temp.x -= pose.Position.x
+        temp.y -= pose.Position.y
+        temp.z -= pose.Position.z
+
+        cdef float to_return = linmath.vec3_len(&temp.x)
+
+        return to_return
+
     @property
     def modelMatrix(self):
         """Pose as a 4x4 homogeneous transformation matrix."""
