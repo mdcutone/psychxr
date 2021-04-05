@@ -802,9 +802,11 @@ cdef class RigidBodyPose(object):
 
         """
         cdef vrmath.pxrVector3f vec_axis
-        vec_axis.x = <float>axis[0]
-        vec_axis.y = <float>axis[1]
-        vec_axis.z = <float>axis[2]
+        linmath.vec3_set(
+            &vec_axis.x,
+            <float>axis[0],
+            <float>axis[1],
+            <float>axis[2])
 
         cdef float half_rad
         if degrees:
@@ -1500,6 +1502,102 @@ cdef class RigidBodyPose(object):
         self._updateMatrices()
 
         return self._ptrMatrices
+
+    def raycastSphere(self, object targetPose, float radius=0.5,
+                      object rayDir=(0., 0., -1.), float maxRange=0.0):
+        """Raycast to a sphere.
+
+        Project an invisible ray of finite or infinite length from this pose in
+        `rayDir` and check if it intersects with the `targetPose` bounding
+        sphere.
+
+        This method allows for very basic interaction between objects
+        represented by poses in a scene, including tracked devices.
+
+        Specifying `maxRange` as >0.0 casts a ray of finite length in world
+        units. The distance between the target and ray origin position are
+        checked prior to casting the ray; automatically failing if the ray can
+        never reach the edge of the bounding sphere centered about `targetPose`.
+        This avoids having to do the costly transformations required for
+        picking.
+
+        This raycast implementation can only determine if contact is being made
+        with the object's bounding sphere, not where on the object the ray
+        intersects. This method might not work for irregular or elongated
+        objects since bounding spheres may not approximate those shapes well. In
+        such cases, one may use multiple spheres at different locations and
+        radii to pick the same object.
+
+        Parameters
+        ----------
+        targetPose : array_like
+            Coordinates of the center of the target sphere (x, y, z).
+        radius : float, optional
+            The radius of the target.
+        rayDir : array_like, optional
+            Vector indicating the direction for the ray (default is -Z).
+        maxRange : float, optional
+            The maximum range of the ray. Ray testing will fail automatically if
+            the target is out of range. Ray is infinite if maxRange=0.0.
+
+        Returns
+        -------
+        bool
+            True if the ray intersects anywhere on the bounding sphere, False in
+            every other condition.
+
+        Examples
+        --------
+
+        Basic example to check if the HMD is aligned to some target::
+
+            targetPose = RigidBodyPose((0.0, 1.5, -5.0))
+            targetRadius = 0.5  # 2.5 cm
+            isTouching = hmdPose.raycastSphere(targetPose,
+                                               radius=targetRadius)
+
+        """
+        cdef vrmath.pxrVector3f targetPos
+        cdef vrmath.pxrVector3f _rayDir
+
+        linmath.vec3_set(
+            &targetPos.x,
+            <float>targetPose[0],
+            <float>targetPose[1],
+            <float>targetPose[2])
+        linmath.vec3_set(
+            &_rayDir.x,
+            <float>rayDir[0],
+            <float>rayDir[1],
+            <float>rayDir[2])
+
+        # If the ray is finite, does it ever touch the edge of the sphere? If
+        # not, exit the routine to avoid wasting time calculating the intercept.
+        cdef float targetDist
+        if maxRange != 0.0:
+            targetDist = \
+                linmath.vec3_dist(&targetPos.x, &self.c_data.Position.x) - radius
+            if targetDist > maxRange:
+                return False
+
+        # put the target in the ray caster's local coordinate system
+        cdef vrmath.pxrQuatf ori_inv
+        cdef vrmath.pxrVector3f offset
+
+        # inverse the rotation and transformation
+        linmath.quat_conj(&ori_inv.x, &self.c_data.Orientation.x)
+        linmath.vec3_sub(&offset.x, &offset.x, &self.c_data.Position.x)
+        linmath.quat_mul_vec3(&offset.x, &ori_inv.x, &offset.x)
+        linmath.vec3_scale(&offset.x, &offset.x, <float>-1.)
+
+        # find the discriminant, this is based on the method described here:
+        # http://antongerdelan.net/opengl/raycasting.html
+        cdef float u = linmath.vec3_mul_inner(&_rayDir.x, &offset.x)
+        cdef float v = linmath.vec3_mul_inner(&offset.x, &offset.x)
+        cdef float desc = <float>pow(u, 2.0) - (v - <float>pow(radius, 2.0))
+
+        # one or more roots? if so we are touching the sphere
+        return desc >= 0.0
 
     # def toBytes(self):
     #     """Get the position and orientation struct as bytes.

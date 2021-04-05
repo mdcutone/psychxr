@@ -90,6 +90,17 @@ cdef extern from "linmath.h":
 # Routines below based off those found in linmath.h`, modified to work with
 # row-major matrices.
 #
+cdef inline void vec3_set(vec3 r, float x, float y, float z):
+    r[0] = x
+    r[1] = y
+    r[2] = z
+
+
+cdef inline float vec3_dist(vec3 a, vec3 b):
+    cdef vec3 t
+    vec3_sub(t, b, a)
+    return vec3_len(t)
+
 
 cdef inline void mat4x4_row(vec4 r, mat4x4 M, int i):
     cdef int k
@@ -323,6 +334,12 @@ cdef inline void mat4x4_from_quat(mat4x4 M, quat q):
 
     M[0][3] = M[3][1] = M[3][2] = <float>0.
     M[3][3] = <float>1.
+
+
+cdef inline void quat_imag(vec3 r, quat q):
+    cdef int i
+    for i in range(3):
+        r[i] = q[i]
 
 
 # cdef void mat4x4o_mul_quat(mat4x4 R, mat4x4 M, quat q)
