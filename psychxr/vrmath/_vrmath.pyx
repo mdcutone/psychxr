@@ -48,7 +48,6 @@ __all__ = ['RigidBodyPose', 'BoundingBox', 'calcEyePoses']
 
 import ctypes
 from . cimport vrmath
-from . cimport linmath
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.math cimport pow, sin, cos, M_PI, sqrt, fabs, acos
@@ -253,17 +252,17 @@ cdef class RigidBodyPose(object):
             raise MemoryError
 
         # multiply the rotations
-        linmath.quat_mul(
+        vrmath.quat_mul(
             &ptr.Orientation.x,
             &a.c_data.Orientation.x,
             &b.c_data.Orientation.x)
 
         # apply the transformation
-        linmath.quat_mul_vec3(
+        vrmath.quat_mul_vec3(
             &ptr.Position.x,
             &ptr.Orientation.x,
             &b.c_data.Position.x)
-        linmath.vec3_add(
+        vrmath.vec3_add(
             &ptr.Position.x,
             &a.c_data.Position.x,
             &ptr.Position.x)
@@ -274,17 +273,17 @@ cdef class RigidBodyPose(object):
         """Multiplication operator (*=) to combine poses.
         """
         # multiply the rotations
-        linmath.quat_mul(
+        vrmath.quat_mul(
             &self.c_data.Orientation.x,
             &self.c_data.Orientation.x,
             &other.c_data.Orientation.x)
 
         # apply the transformation
-        linmath.quat_mul_vec3(
+        vrmath.quat_mul_vec3(
             &self.c_data.Position.x,
             &self.c_data.Orientation.x,
             &self.c_data.Position.x)
-        linmath.vec3_add(
+        vrmath.vec3_add(
             &self.c_data.Position.x,
             &other.c_data.Position.x,
             &self.c_data.Position.x)
@@ -403,35 +402,35 @@ cdef class RigidBodyPose(object):
         if not self._matrixNeedsUpdate:
             return
 
-        cdef linmath.mat4x4 m_rotate
-        cdef linmath.mat4x4 m_translate
+        cdef vrmath.mat4x4 m_rotate
+        cdef vrmath.mat4x4 m_translate
 
         # compute model matrix
-        linmath.mat4x4_from_quat(m_rotate, &self.c_data.Orientation.x)
-        linmath.mat4x4_translate(
+        vrmath.mat4x4_from_quat(m_rotate, &self.c_data.Orientation.x)
+        vrmath.mat4x4_translate(
             m_translate,
             self.c_data.Position.x,
             self.c_data.Position.y,
             self.c_data.Position.z)
-        linmath.mat4x4_mul(self._modelMatrix.M, m_translate, m_rotate)
+        vrmath.mat4x4_mul(self._modelMatrix.M, m_translate, m_rotate)
 
         # get its inverse
-        linmath.mat4x4_invert(self._invModelMatrix.M, self._modelMatrix.M)
+        vrmath.mat4x4_invert(self._invModelMatrix.M, self._modelMatrix.M)
 
         # normal matrix
-        linmath.mat4x4_transpose(self._normalMatrix.M, self._invModelMatrix.M)
+        vrmath.mat4x4_transpose(self._normalMatrix.M, self._invModelMatrix.M)
 
-        cdef linmath.vec3 center
-        cdef linmath.vec3 up = [0., 1., 0.]
-        cdef linmath.vec3 forward = [0., 0., -1.]
-        linmath.quat_mul_vec3(
+        cdef vrmath.vec3 center
+        cdef vrmath.vec3 up = [0., 1., 0.]
+        cdef vrmath.vec3 forward = [0., 0., -1.]
+        vrmath.quat_mul_vec3(
             &self._vecUp.x, &self.c_data.Orientation.x, up)
-        linmath.quat_mul_vec3(
+        vrmath.quat_mul_vec3(
             &self._vecForward.x, &self.c_data.Orientation.x, forward)
-        linmath.vec3_add(center, &self.c_data.Position.x, &self._vecForward.x)
-        linmath.mat4x4_look_at(
+        vrmath.vec3_add(center, &self.c_data.Position.x, &self._vecForward.x)
+        vrmath.mat4x4_look_at(
             self._viewMatrix.M, &self.c_data.Position.x, center, &self._vecUp.x)
-        linmath.mat4x4_invert(self._invViewMatrix.M, self._viewMatrix.M)
+        vrmath.mat4x4_invert(self._invViewMatrix.M, self._viewMatrix.M)
 
         self._matrixNeedsUpdate = False
 
@@ -749,7 +748,7 @@ cdef class RigidBodyPose(object):
         q_in.y = self.c_data.Orientation.y
         q_in.z = self.c_data.Orientation.z
         q_in.w = self.c_data.Orientation.w
-        linmath.quat_norm(&q_in.x, &q_in.x)
+        vrmath.quat_norm(&q_in.x, &q_in.x)
 
         cdef double sp = sqrt(
             q_in.x * q_in.x + q_in.y * q_in.y + q_in.z * q_in.z)
@@ -762,7 +761,7 @@ cdef class RigidBodyPose(object):
 
         if non_zero:   # has a rotation
             v = <float>1. / <float>sp
-            linmath.vec3_scale(&axis.x, &q_in.x, v)
+            vrmath.vec3_scale(&axis.x, &q_in.x, v)
             angle = <float>2.0 * <float>acos(q_in.w)
         else:
             axis.x = <float>1.0
@@ -790,7 +789,7 @@ cdef class RigidBodyPose(object):
 
         """
         cdef vrmath.pxrVector3f vec_axis
-        linmath.vec3_set(
+        vrmath.vec3_set(
             &vec_axis.x,
             <float>axis[0],
             <float>axis[1],
@@ -802,7 +801,7 @@ cdef class RigidBodyPose(object):
         else:
             half_rad = <float>angle / <float>2.0
 
-        linmath.vec3_norm(&vec_axis.x, &vec_axis.x)
+        vrmath.vec3_norm(&vec_axis.x, &vec_axis.x)
         cdef bint all_zeros = (
             fabs(vec_axis.x) < 1e-5 and
             fabs(vec_axis.y) < 1e-5 and
@@ -811,7 +810,7 @@ cdef class RigidBodyPose(object):
         if all_zeros:
             raise ValueError("Value for parameter `axis` is zero-length.")
 
-        linmath.vec3_scale(&vec_axis.x, &vec_axis.x, <float>sin(half_rad))
+        vrmath.vec3_scale(&vec_axis.x, &vec_axis.x, <float>sin(half_rad))
         self.c_data.Orientation.x = vec_axis.x
         self.c_data.Orientation.y = vec_axis.y
         self.c_data.Orientation.z = vec_axis.z
@@ -822,7 +821,7 @@ cdef class RigidBodyPose(object):
     def normalize(self):
         """Normalize this pose.
         """
-        linmath.quat_norm(
+        vrmath.quat_norm(
             &self.c_data.Orientation.x, &self.c_data.Orientation.x)
 
         return self
@@ -842,7 +841,7 @@ cdef class RigidBodyPose(object):
         if ptr is NULL:
             raise MemoryError
 
-        linmath.quat_norm(
+        vrmath.quat_norm(
             &ptr.Orientation.x, &self.c_data.Orientation.x)
 
         ptr.Position = self.c_data.Position
@@ -855,18 +854,18 @@ cdef class RigidBodyPose(object):
         """Invert this pose.
         """
         # inverse the rotation
-        linmath.quat_conj(
+        vrmath.quat_conj(
             &self.c_data.Orientation.x,
             &self.c_data.Orientation.x)
 
         # inverse the translation
-        linmath.vec3_scale(
+        vrmath.vec3_scale(
             &self.c_data.Position.x,
             &self.c_data.Position.x,
             <float>-1.)
 
         # apply the rotation
-        linmath.quat_mul_vec3(
+        vrmath.quat_mul_vec3(
             &self.c_data.Position.x,
             &self.c_data.Orientation.x,
             &self.c_data.Position.x)
@@ -891,18 +890,18 @@ cdef class RigidBodyPose(object):
             raise MemoryError
 
         # inverse the rotation
-        linmath.quat_conj(
+        vrmath.quat_conj(
             &ptr.Orientation.x,
             &self.c_data.Orientation.x)
 
         # inverse the translation
-        linmath.vec3_scale(
+        vrmath.vec3_scale(
             &ptr.Position.x,
             &self.c_data.Position.x,
             <float>-1.)
 
         # apply the rotation
-        linmath.quat_mul_vec3(
+        vrmath.quat_mul_vec3(
             &ptr.Position.x,
             &ptr.Orientation.x,
             &ptr.Position.x)
@@ -939,7 +938,7 @@ cdef class RigidBodyPose(object):
         pos_in.y = <float>v[1]
         pos_in.z = <float>v[2]
 
-        linmath.quat_mul_vec3(
+        vrmath.quat_mul_vec3(
             &pos_rotated.x,
             &pose.Orientation.x,
             &pos_in.x)
@@ -981,10 +980,10 @@ cdef class RigidBodyPose(object):
         temp.z = <float>v[2]
 
         # inverse the rotation
-        linmath.quat_conj(&ori_inv.x, &pose.Orientation.x)
+        vrmath.quat_conj(&ori_inv.x, &pose.Orientation.x)
 
         # apply it
-        linmath.quat_mul_vec3(
+        vrmath.quat_mul_vec3(
             &temp.x,
             &ori_inv.x,
             &temp.x)
@@ -1025,7 +1024,7 @@ cdef class RigidBodyPose(object):
         temp.y = <float>v[1]
         temp.z = <float>v[2]
 
-        linmath.vec3_add(&temp.x, &temp.x, &pose.Position.x)
+        vrmath.vec3_add(&temp.x, &temp.x, &pose.Position.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
@@ -1062,8 +1061,8 @@ cdef class RigidBodyPose(object):
         temp.y = <float>v[1]
         temp.z = <float>v[2]
 
-        linmath.quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
-        linmath.vec3_add(&temp.x, &temp.x, &pose.Position.x)
+        vrmath.quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
+        vrmath.vec3_add(&temp.x, &temp.x, &pose.Position.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
@@ -1103,9 +1102,9 @@ cdef class RigidBodyPose(object):
         temp.z = <float>v[2]
 
         # inverse the rotation and transformation
-        linmath.quat_conj(&ori_inv.x, &pose.Orientation.x)
-        linmath.vec3_sub(&temp.x, &temp.x, &pose.Position.x)
-        linmath.quat_mul_vec3(&temp.x, &ori_inv.x, &temp.x)
+        vrmath.quat_conj(&ori_inv.x, &pose.Orientation.x)
+        vrmath.vec3_sub(&temp.x, &temp.x, &pose.Position.x)
+        vrmath.quat_mul_vec3(&temp.x, &ori_inv.x, &temp.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
@@ -1143,7 +1142,7 @@ cdef class RigidBodyPose(object):
         temp.z = <float>v[2]
 
         # inverse the rotation and transformation
-        linmath.quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
+        vrmath.quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
@@ -1183,8 +1182,8 @@ cdef class RigidBodyPose(object):
         temp.z = <float>v[2]
 
         # inverse the rotation and transformation
-        linmath.quat_conj(&ori_inv.x, &pose.Orientation.x)
-        linmath.quat_mul_vec3(&temp.x, &ori_inv.x, &temp.x)
+        vrmath.quat_conj(&ori_inv.x, &pose.Orientation.x)
+        vrmath.quat_mul_vec3(&temp.x, &ori_inv.x, &temp.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
@@ -1231,7 +1230,7 @@ cdef class RigidBodyPose(object):
         temp.y -= pose.Position.y
         temp.z -= pose.Position.z
 
-        cdef float to_return = linmath.vec3_len(&temp.x)
+        cdef float to_return = vrmath.vec3_len(&temp.x)
 
         return to_return
 
@@ -1548,12 +1547,12 @@ cdef class RigidBodyPose(object):
         cdef vrmath.pxrVector3f targetPos
         cdef vrmath.pxrVector3f _rayDir
 
-        linmath.vec3_set(
+        vrmath.vec3_set(
             &targetPos.x,
             <float>targetPose[0],
             <float>targetPose[1],
             <float>targetPose[2])
-        linmath.vec3_set(
+        vrmath.vec3_set(
             &_rayDir.x,
             <float>rayDir[0],
             <float>rayDir[1],
@@ -1564,7 +1563,7 @@ cdef class RigidBodyPose(object):
         cdef float targetDist
         if maxRange != 0.0:
             targetDist = \
-                linmath.vec3_dist(&targetPos.x, &self.c_data.Position.x) - radius
+                vrmath.vec3_dist(&targetPos.x, &self.c_data.Position.x) - radius
             if targetDist > maxRange:
                 return False
 
@@ -1573,15 +1572,15 @@ cdef class RigidBodyPose(object):
         cdef vrmath.pxrVector3f offset
 
         # inverse the rotation and transformation
-        linmath.quat_conj(&ori_inv.x, &self.c_data.Orientation.x)
-        linmath.vec3_sub(&offset.x, &offset.x, &self.c_data.Position.x)
-        linmath.quat_mul_vec3(&offset.x, &ori_inv.x, &offset.x)
-        linmath.vec3_scale(&offset.x, &offset.x, <float>-1.)
+        vrmath.quat_conj(&ori_inv.x, &self.c_data.Orientation.x)
+        vrmath.vec3_sub(&offset.x, &offset.x, &self.c_data.Position.x)
+        vrmath.quat_mul_vec3(&offset.x, &ori_inv.x, &offset.x)
+        vrmath.vec3_scale(&offset.x, &offset.x, <float>-1.)
 
         # find the discriminant, this is based on the method described here:
         # http://antongerdelan.net/opengl/raycasting.html
-        cdef float u = linmath.vec3_mul_inner(&_rayDir.x, &offset.x)
-        cdef float v = linmath.vec3_mul_inner(&offset.x, &offset.x)
+        cdef float u = vrmath.vec3_mul_inner(&_rayDir.x, &offset.x)
+        cdef float v = vrmath.vec3_mul_inner(&offset.x, &offset.x)
         cdef float desc = <float>pow(u, 2.0) - (v - <float>pow(radius, 2.0))
 
         # one or more roots? if so we are touching the sphere
@@ -1796,15 +1795,15 @@ def calcEyePoses(RigidBodyPose headPose, float iod):
         this_pose.Orientation = headPose.c_data.Orientation
 
         # clear the position vector
-        linmath.vec3_zero(&this_pose.Position.x)
+        vrmath.vec3_zero(&this_pose.Position.x)
 
         # apply the transformation
         this_pose.Position.x = eyeOffset[eye]
-        linmath.quat_mul_vec3(
+        vrmath.quat_mul_vec3(
             &this_pose.Position.x,
             &this_pose.Orientation.x,
             &this_pose.Position.x)
-        linmath.vec3_add(
+        vrmath.vec3_add(
             &this_pose.Position.x,
             &headPose.c_data.Position.x,
             &this_pose.Position.x)
