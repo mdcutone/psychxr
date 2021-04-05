@@ -53,11 +53,34 @@ from . cimport vrmath
 from . cimport linmath
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
-from libc.math cimport pow, tan, M_PI, atan2, sqrt, fabs
+from libc.math cimport pow, tan, sin, cos, M_PI, atan2, sqrt, fabs, acos
 
 import numpy as np
 cimport numpy as np
 np.import_array()
+
+# Helper functions and data, used internally by PsychXR and not exposed to the
+# public Python API.
+#
+RAD_TO_DEGF = <float>180.0 / M_PI
+DEG_TO_RADF = M_PI / <float>180.0
+
+
+cdef float maxf(float a, float b):
+    return a if a >= b else b
+
+
+cdef char* str2bytes(str strIn):
+    """Convert UTF-8 encoded strings to bytes."""
+    py_bytes = strIn.encode('UTF-8')
+    cdef char* to_return = py_bytes
+
+    return to_return
+
+
+cdef str bytes2str(char* bytesIn):
+    """Convert UTF-8 encoded strings to bytes."""
+    return bytesIn.decode('UTF-8')
 
 
 cdef np.npy_intp[1] VEC2_SHAPE = [2]
@@ -154,6 +177,8 @@ cdef class RigidBodyPose(object):
     cdef dict _ptrMatrices
 
     cdef bint _matrixNeedsUpdate
+
+    cdef BoundingBox _bbox
 
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
         self._new_struct(pos, ori)
@@ -331,6 +356,15 @@ cdef class RigidBodyPose(object):
         (<RigidBodyPose>toReturn).c_data[0] = self.c_data[0]
 
         return toReturn
+
+    @property
+    def bounds(self):
+        """Bounding object associated with this pose."""
+        return self._bbox
+
+    @bounds.setter
+    def bounds(self, BoundingBox value):
+        self._bbox = value
 
     def isEqual(self, RigidBodyPose pose, float tolerance=1e-5):
         """Check if poses are close to equal in position and orientation.
@@ -610,52 +644,6 @@ cdef class RigidBodyPose(object):
         self._matrixNeedsUpdate = True
 
     @property
-    def at(self):
-        """ndarray : Forward vector of this pose (-Z is forward)
-        (read-only).
-        """
-        return self.getAt()
-
-    def getAt(self, np.ndarray[np.float32_t, ndim=1] out=None):
-        """Get the `at` vector for this pose.
-
-        Parameters
-        ----------
-        out : ndarray or None
-            Optional array to write values to. Must have shape (3,) and a
-            float32 data type.
-
-        Returns
-        -------
-        ndarray
-            The vector for `at`.
-
-        Examples
-        --------
-        Setting the listener orientation for 3D positional audio (PyOpenAL)::
-
-            myListener.set_orientation((*myPose.getAt(), *myPose.getUp()))
-
-        See Also
-        --------
-        getUp : Get the `up` vector.
-
-        """
-        cdef np.ndarray[np.float32_t, ndim=1] toReturn
-        if out is None:
-            toReturn = np.zeros((3,), dtype=np.float32)
-        else:
-            toReturn = out
-
-        self._updateMatrices()
-
-        toReturn[0] = self._vecForward.x
-        toReturn[1] = self._vecForward.y
-        toReturn[2] = self._vecForward.z
-
-        return toReturn
-
-    @property
     def up(self):
         """ndarray : Up vector of this pose (+Y is up) (read-only)."""
         return self.getUp()
@@ -701,6 +689,145 @@ cdef class RigidBodyPose(object):
         toReturn[2] = self._vecUp.z
 
         return toReturn
+
+    @property
+    def at(self):
+        """ndarray : Forward vector of this pose (-Z is forward)
+        (read-only).
+        """
+        return self.getAt()
+
+    def getAt(self, np.ndarray[np.float32_t, ndim=1] out=None):
+        """Get the `at` vector for this pose.
+
+        Parameters
+        ----------
+        out : ndarray or None
+            Optional array to write values to. Must have shape (3,) and a
+            float32 data type.
+
+        Returns
+        -------
+        ndarray
+            The vector for `at`.
+
+        Examples
+        --------
+        Setting the listener orientation for 3D positional audio (PyOpenAL)::
+
+            myListener.set_orientation((*myPose.getAt(), *myPose.getUp()))
+
+        See Also
+        --------
+        getUp : Get the `up` vector.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
+        self._updateMatrices()
+
+        toReturn[0] = self._vecForward.x
+        toReturn[1] = self._vecForward.y
+        toReturn[2] = self._vecForward.z
+
+        return toReturn
+
+    def getOriAxisAngle(self, degrees=True):
+        """The axis and angle of rotation for this pose's orientation.
+
+        Parameters
+        ----------
+        degrees : bool, optional
+            Return angle in degrees. Default is ``True``.
+
+        Returns
+        -------
+        tuple (ndarray, float)
+            Axis and angle.
+
+        """
+        cdef vrmath.pxrQuatf q_in
+        cdef vrmath.pxrVector3f axis
+        cdef float angle = 0.0
+        cdef np.ndarray[np.float32_t, ndim=1] ret_axis = \
+            np.zeros((3,), dtype=np.float32)
+
+        # imaginary components of the quaternion
+        q_in.x = self.c_data.Orientation.x
+        q_in.y = self.c_data.Orientation.y
+        q_in.z = self.c_data.Orientation.z
+        q_in.w = self.c_data.Orientation.w
+        linmath.quat_norm(&q_in.x, &q_in.x)
+
+        cdef double sp = sqrt(
+            q_in.x * q_in.x + q_in.y * q_in.y + q_in.z * q_in.z)
+
+        cdef float v
+        cdef bint non_zero = (
+            fabs(q_in.x) > 1e-5 or
+            fabs(q_in.y) > 1e-5 or
+            fabs(q_in.z) > 1e-5)
+
+        if non_zero:   # has a rotation
+            v = <float>1. / <float>sp
+            linmath.vec3_scale(&axis.x, &q_in.x, v)
+            angle = <float>2.0 * <float>acos(q_in.w)
+        else:
+            axis.x = <float>1.0
+            axis.y = axis.z = 0.0
+
+        ret_axis[:] = (axis.x, axis.y, axis.z)
+
+        if degrees:
+            angle *= RAD_TO_DEGF
+
+        return angle, ret_axis
+
+    def setOriAxisAngle(self, object axis, float angle, bint degrees=True):
+        """Set the orientation of this pose using an axis and angle.
+
+        Parameters
+        ----------
+        axis : array_like
+            Axis of rotation [rx, ry, rz].
+        angle : float
+            Angle of rotation.
+        degrees : bool, optional
+            Specify ``True`` if `angle` is in degrees, or else it will be
+            treated as radians. Default is ``True``.
+
+        """
+        cdef vrmath.pxrVector3f vec_axis
+        vec_axis.x = <float>axis[0]
+        vec_axis.y = <float>axis[1]
+        vec_axis.z = <float>axis[2]
+
+        cdef float half_rad
+        if degrees:
+            half_rad = (DEG_TO_RADF * <float>angle) / <float>2.0
+        else:
+            half_rad = <float>angle / <float>2.0
+
+        linmath.vec3_norm(&vec_axis.x, &vec_axis.x)
+        cdef bint all_zeros = (
+            fabs(vec_axis.x) < 1e-5 and
+            fabs(vec_axis.y) < 1e-5 and
+            fabs(vec_axis.z) < 1e-5)
+
+        if all_zeros:
+            raise ValueError("Value for parameter `axis` is zero-length.")
+
+        linmath.vec3_scale(&vec_axis.x, &vec_axis.x, <float>sin(half_rad))
+        self.c_data.Orientation.x = vec_axis.x
+        self.c_data.Orientation.y = vec_axis.y
+        self.c_data.Orientation.z = vec_axis.z
+        self.c_data.Orientation.w = <float>cos(half_rad)
+
+        self._matrixNeedsUpdate = True
 
     def normalize(self):
         """Normalize this pose.
@@ -1388,8 +1515,150 @@ cdef class RigidBodyPose(object):
     #     pass
 
 
-
 cdef class BoundingBox(object):
-    """Class representing a bounding box."""
-    pass
+    """Class for constructing and representing 3D axis-aligned bounding boxes.
 
+    A bounding box is a construct which represents a 3D rectangular volume
+    about some pose, defined by its minimum and maximum extents in the reference
+    frame of the pose. The axes of the bounding box are aligned to the axes of
+    the world or the associated pose.
+
+    Bounding boxes are primarily used for visibility testing; to determine if
+    the extents of an object associated with a pose (eg. the vertices of a
+    model) falls completely outside of the viewing frustum. If so, the model can
+    be culled during rendering to avoid wasting CPU/GPU resources on objects not
+    visible to the viewer. See :func:`cullPose` for more information.
+
+    Parameters
+    ----------
+    extents : tuple, optional
+        Minimum and maximum extents of the bounding box (`mins`, `maxs`) where
+        `mins` and `maxs` specified as coordinates [x, y, z]. If no extents are
+        specified, the bounding box will be invalid until defined.
+
+    Examples
+    --------
+    Create a bounding box and add it to a pose::
+
+        # minumum and maximum extents of the bounding box
+        mins = (-.5, -.5, -.5)
+        maxs = (.5, .5, .5)
+        bounds = (mins, maxs)
+        # create the bounding box and add it to a pose
+        bbox = BoundingBox(bounds)
+        modelPose = BoundingBox()
+        modelPose.boundingBox = bbox
+
+    """
+    cdef vrmath.pxrBounds3f* c_data
+    cdef bint ptr_owner
+
+    cdef np.ndarray _mins
+    cdef np.ndarray _maxs
+
+    def __init__(self, object extents=None):
+        """
+        Attributes
+        ----------
+        isValid : bool
+        extents : tuple
+        mins : ndarray
+        maxs : ndarray
+        """
+        self._new_struct(extents)
+
+    def __cinit__(self, *args, **kwargs):
+        self.ptr_owner = False
+
+    @staticmethod
+    cdef BoundingBox fromPtr(vrmath.pxrBounds3f* ptr, bint owner=False):
+        cdef BoundingBox wrapper = BoundingBox.__new__(BoundingBox)
+        wrapper.c_data = ptr
+        wrapper.ptr_owner = owner
+
+        wrapper._mins = _wrap_pxrVector3f_as_ndarray(<vrmath.pxrVector3f*>&ptr.b[0])
+        wrapper._maxs = _wrap_pxrVector3f_as_ndarray(<vrmath.pxrVector3f*>&ptr.b[1])
+
+        return wrapper
+
+    cdef void _new_struct(self, object extents):
+        if self.c_data is not NULL:
+            return
+
+        cdef vrmath.pxrBounds3f* ptr = \
+            <vrmath.pxrBounds3f*>PyMem_Malloc(sizeof(vrmath.pxrBounds3f))
+
+        if ptr is NULL:
+            raise MemoryError
+
+        if extents is not None:
+            ptr.b[0].x = <float>extents[0][0]
+            ptr.b[0].y = <float>extents[0][1]
+            ptr.b[0].z = <float>extents[0][2]
+            ptr.b[1].x = <float>extents[1][0]
+            ptr.b[1].y = <float>extents[1][1]
+            ptr.b[1].z = <float>extents[1][2]
+        else:
+            #ptr.Clear()
+            pass
+
+        self.c_data = ptr
+        self.ptr_owner = True
+
+        self._mins = _wrap_pxrVector3f_as_ndarray(<vrmath.pxrVector3f*>&ptr.b[0])
+        self._maxs = _wrap_pxrVector3f_as_ndarray(<vrmath.pxrVector3f*>&ptr.b[1])
+
+    def __dealloc__(self):
+        if self.c_data is not NULL:
+            if self.ptr_owner is True:
+                PyMem_Free(self.c_data)
+                self.c_data = NULL
+
+    @property
+    def extents(self):
+        """The extents of the bounding box (`mins`, `maxs`)."""
+        return self._mins, self._maxs
+
+    @extents.setter
+    def extents(self, object value):
+        self._mins[:] = value[0]
+        self._maxs[:] = value[1]
+
+    @property
+    def mins(self):
+        """Point defining the minimum extent of the bounding box."""
+        return self._mins
+
+    @mins.setter
+    def mins(self, object value):
+        self._mins[:] = value
+
+    @property
+    def maxs(self):
+        """Point defining the maximum extent of the bounding box."""
+        return self._maxs
+
+    @maxs.setter
+    def maxs(self, object value):
+        self._mins[:] = value
+
+    def clear(self):
+        """Clear the bounding box."""
+        pass
+
+    @property
+    def isValid(self):
+        """``True`` if a bounding box is valid. Bounding boxes are valid if all
+        dimensions of `mins` are less than each of `maxs` which is the case
+        after :py:meth:`~LibOVRBounds.clear` is called.
+
+        If a bounding box is invalid, :func:`cullPose` will always return
+        ``True``.
+
+        """
+        if self.c_data.b[1].x <= self.c_data.b[0].x and \
+                self.c_data.b[1].y <= self.c_data.b[0].y and \
+                self.c_data.b[1].z <= self.c_data.b[0].z:
+            return False
+
+        return True

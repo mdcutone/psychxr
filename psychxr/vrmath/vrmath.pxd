@@ -44,3 +44,5 @@ ctypedef struct pxrPosef:
     pxrQuatf Orientation
     pxrVector3f Position
 
+cdef struct pxrBounds3f:
+    pxrVector3f[2] b
