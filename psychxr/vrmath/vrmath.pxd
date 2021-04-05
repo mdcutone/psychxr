@@ -125,6 +125,27 @@ cdef inline void vec3_transform(vec3 r, vec3 p, quat q, vec3 t):
     quat_mul_vec3(r, q, p)
     vec3_add(r, r, t)
 
+
+cdef inline void vec3_inv_transform(vec3 r, vec3 p, quat q, vec3 t):
+    """Inverse transformation of a point.
+
+    Parameters
+    ----------
+    r : vec3
+        Return vector to write transformed values to.
+    p : vec3 
+        Position vector (x, y, z) to transform.
+    q : quat
+        Rotation quaternion (x, y, z, w).
+    t : vec3
+        Transformation vector (x, y, z).
+
+    """
+    cdef quat q_inv
+    vec3_sub(r, t, p)
+    quat_conj(q_inv, q)
+    quat_mul_vec3(r, q_inv, r)
+
 # Routines for working with matrices derived from functions in `linmath.h`.
 # These have been modified to work with matrices whose values are stored in
 # row-major order to avoid the additional transpose.

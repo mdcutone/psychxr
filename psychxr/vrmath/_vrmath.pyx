@@ -260,33 +260,40 @@ cdef class RigidBodyPose(object):
         # apply the transformation
         vrmath.quat_mul_vec3(
             &ptr.Position.x,
-            &ptr.Orientation.x,
+            &a.c_data.Orientation.x,
             &b.c_data.Position.x)
         vrmath.vec3_add(
             &ptr.Position.x,
-            &a.c_data.Position.x,
-            &ptr.Position.x)
+            &ptr.Position.x,
+            &a.c_data.Position.x)
 
         return RigidBodyPose.fromPtr(ptr, True)
 
     def __imul__(self, RigidBodyPose other):
         """Multiplication operator (*=) to combine poses.
         """
+        cdef vrmath.pxrQuatf new_ori
+        cdef vrmath.pxrVector3f new_pos
+        cdef vrmath.pxrQuatf q_temp = self.c_data.Orientation
+
         # multiply the rotations
         vrmath.quat_mul(
-            &self.c_data.Orientation.x,
+            &new_ori.x,
             &self.c_data.Orientation.x,
             &other.c_data.Orientation.x)
 
         # apply the transformation
         vrmath.quat_mul_vec3(
-            &self.c_data.Position.x,
-            &self.c_data.Orientation.x,
-            &self.c_data.Position.x)
+            &new_pos.x,
+            &q_temp.x,
+            &other.c_data.Position.x)
         vrmath.vec3_add(
-            &self.c_data.Position.x,
-            &other.c_data.Position.x,
+            &new_pos.x,
+            &new_pos.x,
             &self.c_data.Position.x)
+
+        self.c_data.Orientation = new_ori
+        self.c_data.Position = new_pos
 
         self._matrixNeedsUpdate = True
 
@@ -1097,7 +1104,6 @@ cdef class RigidBodyPose(object):
             toReturn = out
 
         cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
-        cdef vrmath.pxrQuatf ori_inv
         cdef vrmath.pxrVector3f temp
 
         temp.x = <float>v[0]
@@ -1105,9 +1111,8 @@ cdef class RigidBodyPose(object):
         temp.z = <float>v[2]
 
         # inverse the rotation and transformation
-        vrmath.quat_conj(&ori_inv.x, &pose.Orientation.x)
-        vrmath.vec3_sub(&temp.x, &temp.x, &pose.Position.x)
-        vrmath.quat_mul_vec3(&temp.x, &ori_inv.x, &temp.x)
+        vrmath.vec3_inv_transform(
+            &temp.x, &temp.x, &pose.Orientation.x, &pose.Position.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
