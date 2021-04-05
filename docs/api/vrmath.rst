@@ -4,7 +4,7 @@
 
 .. currentmodule:: psychxr.vrmath
 
-Classes and functions for performing VR related math.
+Toolbox of classes and functions for performing VR related math.
 
 Overview
 ========
@@ -15,6 +15,12 @@ Classes
 .. autosummary::
     RigidBodyPose
     BoundingBox
+
+Functions
+~~~~~~~~~
+
+.. autosummary::
+    calcEyePoses
 
 Details
 =======
@@ -31,3 +37,8 @@ Classes
     :members:
     :undoc-members:
     :inherited-members:
+
+Functions
+~~~~~~~~~
+
+.. autofunction:: calcEyePoses

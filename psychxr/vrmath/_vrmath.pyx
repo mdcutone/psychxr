@@ -1784,7 +1784,7 @@ def calcEyePoses(RigidBodyPose headPose, float iod):
     get the view matrices for rendering::
 
         leftEyePose, rightEyePose = calcEyePoses(headPose, iod=0.062)
-        
+
         leftViewMatrix = leftEyePose.viewMatrix
         rightViewMatrix = rightViewMatrix.viewMatrix
 
