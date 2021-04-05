@@ -106,6 +106,25 @@ cdef inline float vec3_dist(vec3 a, vec3 b):
     vec3_sub(t, b, a)
     return vec3_len(t)
 
+
+cdef inline void vec3_transform(vec3 r, vec3 p, quat q, vec3 t):
+    """Transform a point.
+
+    Parameters
+    ----------
+    r : vec3
+        Return vector to write transformed values to.
+    p : vec3 
+        Position vector (x, y, z) to transform.
+    q : quat
+        Rotation quaternion (x, y, z, w).
+    t : vec3
+        Transformation vector (x, y, z).
+
+    """
+    quat_mul_vec3(r, q, p)
+    vec3_add(r, r, t)
+
 # Routines for working with matrices derived from functions in `linmath.h`.
 # These have been modified to work with matrices whose values are stored in
 # row-major order to avoid the additional transpose.

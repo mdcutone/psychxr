@@ -1061,8 +1061,11 @@ cdef class RigidBodyPose(object):
         temp.y = <float>v[1]
         temp.z = <float>v[2]
 
-        vrmath.quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
-        vrmath.vec3_add(&temp.x, &temp.x, &pose.Position.x)
+        vrmath.vec3_transform(
+            &temp.x, &temp.x, &pose.Orientation.x, &pose.Position.x)
+
+        #vrmath.quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
+        #vrmath.vec3_add(&temp.x, &temp.x, &pose.Position.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
