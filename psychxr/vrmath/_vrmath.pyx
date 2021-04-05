@@ -1,11 +1,9 @@
 # distutils: language=c++
 #  =============================================================================
-#  _openhmd.pyx - Python Interface Module for OpenHMD
+#  _vrmath.pyx - Toolbox of VR math classes and functions
 #  =============================================================================
 #
-#  Copyright 2021 Matthew Cutone <mcutone@opensciencetools.com> and Laurie M.
-#  Wilcox <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York
-#  University, Toronto, Canada
+#  Copyright 2021 Matthew Cutone <mcutone@opensciencetools.com>
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +42,7 @@ __maintainer__ = "Matthew D. Cutone"
 __email__ = "mcutone@opensciencetools.com"
 
 # ------------------------------------------------------------------------------
-# Module information
+# Imports and constants
 #
 __all__ = ['RigidBodyPose', 'BoundingBox', 'calcEyePoses']
 
@@ -53,7 +51,7 @@ from . cimport vrmath
 from . cimport linmath
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
-from libc.math cimport pow, tan, sin, cos, M_PI, atan2, sqrt, fabs, acos
+from libc.math cimport pow, sin, cos, M_PI, sqrt, fabs, acos
 
 import numpy as np
 cimport numpy as np
@@ -68,19 +66,6 @@ DEG_TO_RADF = M_PI / <float>180.0
 
 cdef float maxf(float a, float b):
     return a if a >= b else b
-
-
-cdef char* str2bytes(str strIn):
-    """Convert UTF-8 encoded strings to bytes."""
-    py_bytes = strIn.encode('UTF-8')
-    cdef char* to_return = py_bytes
-
-    return to_return
-
-
-cdef str bytes2str(char* bytesIn):
-    """Convert UTF-8 encoded strings to bytes."""
-    return bytesIn.decode('UTF-8')
 
 
 cdef np.npy_intp[1] VEC2_SHAPE = [2]
@@ -107,6 +92,10 @@ cdef np.ndarray _wrap_pxrMatrix4f_as_ndarray(vrmath.pxrMatrix4f* prtVec):
     return np.PyArray_SimpleNewFromData(
         2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec.M)
 
+
+# ------------------------------------------------------------------------------
+# Classes and functions for VRMATH
+#
 
 cdef class RigidBodyPose(object):
     """Class representing a rigid-body pose.
@@ -214,7 +203,7 @@ cdef class RigidBodyPose(object):
 
         wrapper._pos = _wrap_pxrVector3f_as_ndarray(&ptr.Position)
         wrapper._ori = _wrap_pxrQuatf_as_ndarray(&ptr.Orientation)
-        # wrapper._bbox = None
+        wrapper._bbox = None
         wrapper._matrixNeedsUpdate = True
 
         return wrapper
@@ -243,6 +232,7 @@ cdef class RigidBodyPose(object):
 
         self._pos = _wrap_pxrVector3f_as_ndarray(&ptr.Position)
         self._ori = _wrap_pxrQuatf_as_ndarray(&ptr.Orientation)
+        self._bbox = None
         self._matrixNeedsUpdate = True
 
     def __dealloc__(self):
