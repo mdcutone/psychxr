@@ -68,9 +68,7 @@ cdef float maxf(float a, float b):
     return a if a >= b else b
 
 
-cdef np.npy_intp[1] VEC2_SHAPE = [2]
 cdef np.npy_intp[1] VEC3_SHAPE = [3]
-cdef np.npy_intp[1] FOVPORT_SHAPE = [4]
 cdef np.npy_intp[1] QUAT_SHAPE = [4]
 cdef np.npy_intp[2] MAT4_SHAPE = [4, 4]
 
