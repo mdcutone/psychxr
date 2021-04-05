@@ -46,7 +46,7 @@ __email__ = "mcutone@opensciencetools.com"
 # ------------------------------------------------------------------------------
 # Module information
 #
-__all__ = ['RigidBodyPose']
+__all__ = ['RigidBodyPose', 'BoundingBox', 'calcEyePoses']
 
 import ctypes
 from . cimport vrmath
@@ -1553,8 +1553,8 @@ cdef class RigidBodyPose(object):
 
             targetPose = RigidBodyPose((0.0, 1.5, -5.0))
             targetRadius = 0.5  # 2.5 cm
-            isTouching = hmdPose.raycastSphere(targetPose,
-                                               radius=targetRadius)
+            isAligned = hmdPose.raycastSphere(targetPose.pos,
+                                              radius=targetRadius)
 
         """
         cdef vrmath.pxrVector3f targetPos
@@ -1760,3 +1760,68 @@ cdef class BoundingBox(object):
             return False
 
         return True
+
+
+def calcEyePoses(RigidBodyPose headPose, float iod):
+    """Compute the poses of the viewer's eyes given the tracked head position.
+
+    Parameters
+    ----------
+    headPose : RigidBodyPose
+        Object representing the pose of the head. This should be transformed so
+        that the position is located between the viewer's eyes.
+    iod : float
+        Interocular (or lens) separation of the viewer in meters (m).
+
+    Returns
+    -------
+    tuple
+        Left and right eye poses as `RigidBodyPose` objects.
+
+    Examples
+    --------
+    Calculate the poses of the user's eyes given the tracked head position and
+    get the view matrices for rendering::
+
+        leftEyePose, rightEyePose = calcEyePoses(headPose, iod=0.062)
+        
+        leftViewMatrix = leftEyePose.viewMatrix
+        rightViewMatrix = rightViewMatrix.viewMatrix
+
+    """
+    cdef float[2] eyeOffset
+    cdef float halfIOD = <float>iod / <float>2.0
+    eyeOffset[0] = -halfIOD  # left eye
+    eyeOffset[1] = halfIOD  # right eye
+
+    cdef Py_ssize_t eye = 0
+    cdef Py_ssize_t eye_count = 2
+    cdef vrmath.pxrPosef* eyePoses[2]
+    cdef vrmath.pxrPosef* this_pose = NULL
+    for eye in range(eye_count):
+        # allocate new pose object
+        this_pose = <vrmath.pxrPosef*>PyMem_Malloc(sizeof(vrmath.pxrPosef))
+        if this_pose is NULL:
+            raise MemoryError
+
+        # eyes have the same orientation as the head, facing forward
+        this_pose.Orientation = headPose.c_data.Orientation
+
+        # clear the position vector
+        linmath.vec3_zero(&this_pose.Position.x)
+
+        # apply the transformation
+        this_pose.Position.x = eyeOffset[eye]
+        linmath.quat_mul_vec3(
+            &this_pose.Position.x,
+            &this_pose.Orientation.x,
+            &this_pose.Position.x)
+        linmath.vec3_add(
+            &this_pose.Position.x,
+            &headPose.c_data.Position.x,
+            &this_pose.Position.x)
+
+        eyePoses[eye] = this_pose
+
+    return RigidBodyPose.fromPtr(eyePoses[0], True), \
+           RigidBodyPose.fromPtr(eyePoses[1], True)

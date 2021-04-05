@@ -96,6 +96,10 @@ cdef inline void vec3_set(vec3 r, float x, float y, float z):
     r[2] = z
 
 
+cdef inline void vec3_zero(vec3 r):
+    r[0] = r[1] = r[2] = 0.0
+
+
 cdef inline float vec3_dist(vec3 a, vec3 b):
     cdef vec3 t
     vec3_sub(t, b, a)

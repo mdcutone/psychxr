@@ -1675,8 +1675,8 @@ cdef class LibOVRPose(object):
 
             targetPose = LibOVRPose((0.0, 1.5, -5.0))
             targetRadius = 0.5  # 2.5 cm
-            isTouching = hmdPose.raycastSphere(targetPose,
-                                               radius=targetRadius)
+            isAligned = hmdPose.raycastSphere(targetPose.pos,
+                                              radius=targetRadius)
 
         Check if someone is touching a target with their finger when making a
         pointing gesture while providing haptic feedback::
@@ -1692,7 +1692,7 @@ cdef class LibOVRPose(object):
             if isPointing:
                 # do raycasting operation
                 isTouching = handPose.raycastSphere(
-                    targetPose, radius=targetRadius, maxRange=fingerLength)
+                    targetPose.pos, radius=targetRadius, maxRange=fingerLength)
                 if isTouching:
                     # do something here, like make the controller vibrate
                     setControllerVibration(
