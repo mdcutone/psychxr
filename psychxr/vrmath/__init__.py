@@ -6,7 +6,7 @@
 # ------------------
 #
 __author__ = "Matthew D. Cutone"
-__credits__ = ["Laurie M. Wilcox"]
+__credits__ = []
 __copyright__ = "Copyright 2021 Matthew D. Cutone"
 __license__ = "MIT"
 __version__ = "0.2.4"

@@ -1844,5 +1844,6 @@ def calcEyePoses(RigidBodyPose headPose, float iod):
     return RigidBodyPose.fromPtr(eyePoses[0], True), \
            RigidBodyPose.fromPtr(eyePoses[1], True)
 
+
 if __name__ == "__main__":
     pass
