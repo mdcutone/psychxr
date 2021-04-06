@@ -168,6 +168,7 @@ cdef class RigidBodyPose(object):
 
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
         self._new_struct(pos, ori)
+        self._updateMatrices()
 
     def __cinit__(self, *args, **kwargs):
         self.ptr_owner = False
@@ -191,6 +192,8 @@ cdef class RigidBodyPose(object):
                 ctypes.POINTER(ctypes.c_float)),
             'normalMatrix': self._normalMatrixArr.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))}
+
+        self._matrixNeedsUpdate = True
 
     @staticmethod
     cdef RigidBodyPose fromPtr(vrmath.pxrPosef* ptr, bint owner=False):
@@ -403,6 +406,8 @@ cdef class RigidBodyPose(object):
         self.c_data[0].Orientation.z = 0.0
         self.c_data[0].Orientation.w = 1.0
 
+        self._matrixNeedsUpdate = True
+
     def _updateMatrices(self):
         """Update model, inverse, and normal matrices due to an attribute change.
         """
@@ -419,10 +424,10 @@ cdef class RigidBodyPose(object):
             self.c_data.Position.x,
             self.c_data.Position.y,
             self.c_data.Position.z)
-        vrmath.mat4x4_mul(self._modelMatrix.M, m_translate, m_rotate)
+        vrmath.mat4x4_mul(self._modelMatrix.M, m_rotate, m_translate)
 
         # get its inverse
-        vrmath.mat4x4_invert(self._invModelMatrix.M, self._modelMatrix.M)
+        vrmath.mat4x4_invert_fast(self._invModelMatrix.M, self._modelMatrix.M)
 
         # normal matrix
         vrmath.mat4x4_transpose(self._normalMatrix.M, self._invModelMatrix.M)
@@ -437,7 +442,7 @@ cdef class RigidBodyPose(object):
         vrmath.vec3_add(center, &self.c_data.Position.x, &self._vecForward.x)
         vrmath.mat4x4_look_at(
             self._viewMatrix.M, &self.c_data.Position.x, center, &self._vecUp.x)
-        vrmath.mat4x4_invert(self._invViewMatrix.M, self._viewMatrix.M)
+        vrmath.mat4x4_invert_fast(self._invViewMatrix.M, self._viewMatrix.M)
 
         self._matrixNeedsUpdate = False
 
@@ -1068,11 +1073,8 @@ cdef class RigidBodyPose(object):
         temp.y = <float>v[1]
         temp.z = <float>v[2]
 
-        vrmath.vec3_transform(
-            &temp.x, &temp.x, &pose.Orientation.x, &pose.Position.x)
-
-        #vrmath.quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
-        #vrmath.vec3_add(&temp.x, &temp.x, &pose.Position.x)
+        vrmath.quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
+        vrmath.vec3_add(&temp.x, &temp.x, &pose.Position.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
@@ -1105,14 +1107,16 @@ cdef class RigidBodyPose(object):
 
         cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
         cdef vrmath.pxrVector3f temp
+        cdef vrmath.pxrQuatf q_inv
 
         temp.x = <float>v[0]
         temp.y = <float>v[1]
         temp.z = <float>v[2]
 
         # inverse the rotation and transformation
-        vrmath.vec3_inv_transform(
-            &temp.x, &temp.x, &pose.Orientation.x, &pose.Position.x)
+        vrmath.quat_conj(&q_inv.x, &pose.Orientation.x)
+        vrmath.vec3_sub(&temp.x, &pose.Position.x, &temp.x)
+        vrmath.quat_mul_vec3(&temp.x, &q_inv.x, &temp.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
@@ -1198,6 +1202,25 @@ cdef class RigidBodyPose(object):
         toReturn[2] = temp.z
 
         return toReturn
+
+    def apply(self, object v, np.ndarray[np.float32_t, ndim=1] out=None):
+        """Apply a transform to a position vector. This is similar to
+        `transform`.
+
+        Parameters
+        ----------
+        v : array_like
+            Vector to transform [x, y, z].
+        out : ndarray, optional
+            Optional output array. Must have `dtype=float32` and `shape=(3,)`.
+
+        Returns
+        -------
+        ndarray
+            Vector transformed by the pose's position and orientation.
+
+        """
+        return self.transform(v, out)
 
     def distanceTo(self, object v):
         """Distance to a point or pose from this pose.
@@ -1820,3 +1843,6 @@ def calcEyePoses(RigidBodyPose headPose, float iod):
 
     return RigidBodyPose.fromPtr(eyePoses[0], True), \
            RigidBodyPose.fromPtr(eyePoses[1], True)
+
+if __name__ == "__main__":
+    pass

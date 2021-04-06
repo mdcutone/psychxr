@@ -106,46 +106,6 @@ cdef inline float vec3_dist(vec3 a, vec3 b):
     vec3_sub(t, b, a)
     return vec3_len(t)
 
-
-cdef inline void vec3_transform(vec3 r, vec3 p, quat q, vec3 t):
-    """Transform a point.
-
-    Parameters
-    ----------
-    r : vec3
-        Return vector to write transformed values to.
-    p : vec3 
-        Position vector (x, y, z) to transform.
-    q : quat
-        Rotation quaternion (x, y, z, w).
-    t : vec3
-        Transformation vector (x, y, z).
-
-    """
-    quat_mul_vec3(r, q, p)
-    vec3_add(r, r, t)
-
-
-cdef inline void vec3_inv_transform(vec3 r, vec3 p, quat q, vec3 t):
-    """Inverse transformation of a point.
-
-    Parameters
-    ----------
-    r : vec3
-        Return vector to write transformed values to.
-    p : vec3 
-        Position vector (x, y, z) to transform.
-    q : quat
-        Rotation quaternion (x, y, z, w).
-    t : vec3
-        Transformation vector (x, y, z).
-
-    """
-    cdef quat q_inv
-    vec3_sub(r, t, p)
-    quat_conj(q_inv, q)
-    quat_mul_vec3(r, q_inv, r)
-
 # Routines for working with matrices derived from functions in `linmath.h`.
 # These have been modified to work with matrices whose values are stored in
 # row-major order to avoid the additional transpose.
@@ -192,7 +152,7 @@ cdef inline void mat4x4_mul_vec4(vec4 r, mat4x4 M, vec4 v):
     for i in range(4):
         r[i] = 0.
         for j in range(4):
-            r[j] += M[i][j] * v[i]
+            r[i] += M[j][i] * v[j]
 
 cdef inline void mat4x4_translate(mat4x4 T, float x, float y, float z):
     mat4x4_identity(T)
@@ -287,6 +247,25 @@ cdef inline void mat4x4_invert(mat4x4 T, mat4x4 M):
     T[3][1] = (M[0][2] * s[5] - M[2][2] * s[2] + M[3][2] * s[1]) * idet
     T[3][2] = (-M[0][2] * s[4] + M[1][2] * s[2] - M[3][2] * s[0]) * idet
     T[3][3] = (M[0][2] * s[3] - M[1][2] * s[1] + M[2][2] * s[0]) * idet
+
+
+cdef inline void mat4x4_invert_fast(mat4x4 T, mat4x4 M):
+    # fast invert of translation and rotation matrices, use `mat4x4_invert` for
+    # projection matrices or anything with scaling
+    cdef vec3 temp
+    cdef mat4x4 rot_inv
+    cdef mat4x4 trans_inv
+    mat4x4_transpose(rot_inv, M)
+
+    cdef int i, N
+    N = 3
+    for i in range(N):
+        temp[i] = rot_inv[3][i]
+        rot_inv[3][i] = <float>0.0
+
+    vec3_scale(temp, temp, <float>-1.0)
+    mat4x4_translate(trans_inv, temp[0], temp[1], temp[2])
+    mat4x4_mul(T, rot_inv, trans_inv)
 
 
 cdef inline void mat4x4_orthonormalize(mat4x4 R, mat4x4 M):
