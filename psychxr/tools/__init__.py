@@ -14,10 +14,3 @@ __status__ = "Stable"
 __maintainer__ = "Matthew D. Cutone"
 __email__ = "cutonem@yorku.ca"
 
-# -------
-# Imports
-# -------
-#
-
-# load exported data from the _vrmath extension module into the namespace
-from ._vrmath import *

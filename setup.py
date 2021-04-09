@@ -47,7 +47,7 @@ ENV_FALSE = '0'
 
 # Cython and C++ include directories
 CYTHON_INCLUDE_DIRS = [numpy.get_include(), '.']
-CPP_INCLUDE_DIRS = CYTHON_INCLUDE_DIRS + ['include/']
+CPP_INCLUDE_DIRS = CYTHON_INCLUDE_DIRS + ['include/', 'psychxr/tools/']
 
 # library directories and library names
 LIBRARY_DIRS = LIB_DIRS = ['lib/']
@@ -161,24 +161,24 @@ def build_extension(name, **kwargs):
 # ------------------------------------------------------------------------------
 # Build common libraries
 #
-print("Building `vrmath` extension module ...")
+print("Building `psychxr.tools.vrmath` extension module ...")
 
 vrmath_package_data = {
-    'psychxr.vrmath': PACKAGE_DATA}
+    'psychxr.tools': PACKAGE_DATA}
 vrmath_data_files = {
-    'psychxr/vrmath': DATA_FILES}
+    'psychxr/tools': DATA_FILES}
 vrmath_build_params = {
     'libraries': LIBRARIES + [],
     'library_dirs': LIBRARY_DIRS,
     'include_dirs': [fix_path('include/linmath')],
-    'packages': ['psychxr.vrmath'],
+    'packages': ['psychxr.tools'],
     'package_data': vrmath_package_data,
     'data_files': vrmath_data_files}
 
-# compile the `vrmath` extension
+# compile the `tools` extension
 EXT_MODULES.extend(
     [build_extension(
-        "psychxr.vrmath._vrmath",
+        "psychxr.tools.vrmath",
         **vrmath_build_params)])
 PACKAGES.extend(vrmath_build_params['packages'])
 
@@ -188,7 +188,7 @@ PACKAGES.extend(vrmath_build_params['packages'])
 #
 
 if BUILD_LIBOVR:
-    print("Building `LibOVR` extension modules ...")
+    print("Building `psychxr.drivers.libovr` extension module ...")
 
     # build parameters for LibOVR passed to the compiler and linker
     libovr_package_data = {
@@ -242,7 +242,7 @@ if BUILD_LIBOVR:
 
 # build the OpenHMD driver
 if BUILD_OPENHMD:
-    print("building `OpenHMD` extension modules ...")
+    print("building `psychxr.drivers.openhmd` extension module ...")
 
     ohmd_package_data = {
         'psychxr.drivers.openhmd': PACKAGE_DATA}

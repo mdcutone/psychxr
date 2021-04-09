@@ -1,6 +1,6 @@
 # distutils: language=c++
 #  =============================================================================
-#  _vrmath.pyx - Toolbox of VR math classes and functions
+#  pyx - Toolbox of VR math classes and functions
 #  =============================================================================
 #
 #  Copyright 2021 Matthew Cutone <mcutone@opensciencetools.com>
@@ -47,7 +47,6 @@ __email__ = "mcutone@opensciencetools.com"
 __all__ = ['RigidBodyPose', 'BoundingBox', 'calcEyePoses']
 
 import ctypes
-from . cimport vrmath
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.math cimport pow, sin, cos, M_PI, sqrt, fabs, acos
@@ -72,19 +71,19 @@ cdef np.npy_intp[1] QUAT_SHAPE = [4]
 cdef np.npy_intp[2] MAT4_SHAPE = [4, 4]
 
 
-cdef np.ndarray _wrap_pxrVector3f_as_ndarray(vrmath.pxrVector3f* prtVec):
+cdef np.ndarray _wrap_pxrVector3f_as_ndarray(pxrVector3f* prtVec):
     """Wrap an pxrVector3f object with a NumPy array."""
     return np.PyArray_SimpleNewFromData(
         1, VEC3_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
 
 
-cdef np.ndarray _wrap_pxrQuatf_as_ndarray(vrmath.pxrQuatf* prtVec):
+cdef np.ndarray _wrap_pxrQuatf_as_ndarray(pxrQuatf* prtVec):
     """Wrap an pxrQuatf object with a NumPy array."""
     return np.PyArray_SimpleNewFromData(
         1, QUAT_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
 
 
-cdef np.ndarray _wrap_pxrMatrix4f_as_ndarray(vrmath.pxrMatrix4f* prtVec):
+cdef np.ndarray _wrap_pxrMatrix4f_as_ndarray(pxrMatrix4f* prtVec):
     """Wrap an pxrMatrix4f object with a NumPy array."""
     return np.PyArray_SimpleNewFromData(
         2, MAT4_SHAPE, np.NPY_FLOAT32, <void*>prtVec.M)
@@ -140,32 +139,6 @@ cdef class RigidBodyPose(object):
       LibOVR SDK to use it making it suitable to work with other VR drivers.
 
     """
-    cdef vrmath.pxrPosef* c_data
-    cdef bint ptr_owner
-
-    cdef np.ndarray _pos
-    cdef np.ndarray _ori
-
-    cdef vrmath.pxrMatrix4f _modelMatrix
-    cdef vrmath.pxrMatrix4f _invModelMatrix
-    cdef vrmath.pxrMatrix4f _normalMatrix
-    cdef vrmath.pxrMatrix4f _viewMatrix
-    cdef vrmath.pxrMatrix4f _invViewMatrix
-
-    cdef vrmath.pxrVector3f _vecUp
-    cdef vrmath.pxrVector3f _vecForward
-
-    cdef np.ndarray _modelMatrixArr
-    cdef np.ndarray _invModelMatrixArr
-    cdef np.ndarray _normalMatrixArr
-    cdef np.ndarray _viewMatrixArr
-    cdef np.ndarray _invViewMatrixArr
-    cdef dict _ptrMatrices
-
-    cdef bint _matrixNeedsUpdate
-
-    cdef BoundingBox _bbox
-
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
         self._new_struct(pos, ori)
         self._updateMatrices()
@@ -196,7 +169,7 @@ cdef class RigidBodyPose(object):
         self._matrixNeedsUpdate = True
 
     @staticmethod
-    cdef RigidBodyPose fromPtr(vrmath.pxrPosef* ptr, bint owner=False):
+    cdef RigidBodyPose fromPtr(pxrPosef* ptr, bint owner):
         cdef RigidBodyPose wrapper = RigidBodyPose.__new__(RigidBodyPose)
         wrapper.c_data = ptr
         wrapper.ptr_owner = owner
@@ -212,8 +185,8 @@ cdef class RigidBodyPose(object):
         if self.c_data is not NULL:
             return
 
-        cdef vrmath.pxrPosef* ptr = \
-            <vrmath.pxrPosef*>PyMem_Malloc(sizeof(vrmath.pxrPosef))
+        cdef pxrPosef* ptr = \
+            <pxrPosef*>PyMem_Malloc(sizeof(pxrPosef))
 
         if ptr is NULL:
             raise MemoryError
@@ -248,24 +221,24 @@ cdef class RigidBodyPose(object):
     def __mul__(RigidBodyPose a, RigidBodyPose b):
         """Multiplication operator (*) to combine poses.
         """
-        cdef vrmath.pxrPosef* ptr = <vrmath.pxrPosef*>PyMem_Malloc(
-            sizeof(vrmath.pxrPosef))
+        cdef pxrPosef* ptr = <pxrPosef*>PyMem_Malloc(
+            sizeof(pxrPosef))
 
         if ptr is NULL:
             raise MemoryError
 
         # multiply the rotations
-        vrmath.quat_mul(
+        quat_mul(
             &ptr.Orientation.x,
             &a.c_data.Orientation.x,
             &b.c_data.Orientation.x)
 
         # apply the transformation
-        vrmath.quat_mul_vec3(
+        quat_mul_vec3(
             &ptr.Position.x,
             &a.c_data.Orientation.x,
             &b.c_data.Position.x)
-        vrmath.vec3_add(
+        vec3_add(
             &ptr.Position.x,
             &ptr.Position.x,
             &a.c_data.Position.x)
@@ -275,22 +248,22 @@ cdef class RigidBodyPose(object):
     def __imul__(self, RigidBodyPose other):
         """Multiplication operator (*=) to combine poses.
         """
-        cdef vrmath.pxrQuatf new_ori
-        cdef vrmath.pxrVector3f new_pos
-        cdef vrmath.pxrQuatf q_temp = self.c_data.Orientation
+        cdef pxrQuatf new_ori
+        cdef pxrVector3f new_pos
+        cdef pxrQuatf q_temp = self.c_data.Orientation
 
         # multiply the rotations
-        vrmath.quat_mul(
+        quat_mul(
             &new_ori.x,
             &self.c_data.Orientation.x,
             &other.c_data.Orientation.x)
 
         # apply the transformation
-        vrmath.quat_mul_vec3(
+        quat_mul_vec3(
             &new_pos.x,
             &q_temp.x,
             &other.c_data.Position.x)
-        vrmath.vec3_add(
+        vec3_add(
             &new_pos.x,
             &new_pos.x,
             &self.c_data.Position.x)
@@ -325,8 +298,8 @@ cdef class RigidBodyPose(object):
     def __deepcopy__(self, memo=None):
         # create a new object with a copy of the data stored in c_data
         # allocate new struct
-        cdef vrmath.pxrPosef* ptr = \
-            <vrmath.pxrPosef*>PyMem_Malloc(sizeof(vrmath.pxrPosef))
+        cdef pxrPosef* ptr = \
+            <pxrPosef*>PyMem_Malloc(sizeof(pxrPosef))
 
         if ptr is NULL:
             raise MemoryError
@@ -382,8 +355,8 @@ cdef class RigidBodyPose(object):
             ``True`` if pose components are within `tolerance` from this pose.
 
         """
-        cdef vrmath.pxrVector3f* pos = &pose.c_data.Position
-        cdef vrmath.pxrQuatf* ori = &pose.c_data.Orientation
+        cdef pxrVector3f* pos = &pose.c_data.Position
+        cdef pxrQuatf* ori = &pose.c_data.Orientation
         cdef bint to_return = (
             <float>fabs(pos.x - self.c_data.Position.x) < tolerance and
             <float>fabs(pos.y - self.c_data.Position.y) < tolerance and
@@ -414,35 +387,35 @@ cdef class RigidBodyPose(object):
         if not self._matrixNeedsUpdate:
             return
 
-        cdef vrmath.mat4x4 m_rotate
-        cdef vrmath.mat4x4 m_translate
+        cdef mat4x4 m_rotate
+        cdef mat4x4 m_translate
 
         # compute model matrix
-        vrmath.mat4x4_from_quat(m_rotate, &self.c_data.Orientation.x)
-        vrmath.mat4x4_translate(
+        mat4x4_from_quat(m_rotate, &self.c_data.Orientation.x)
+        mat4x4_translate(
             m_translate,
             self.c_data.Position.x,
             self.c_data.Position.y,
             self.c_data.Position.z)
-        vrmath.mat4x4_mul(self._modelMatrix.M, m_rotate, m_translate)
+        mat4x4_mul(self._modelMatrix.M, m_rotate, m_translate)
 
         # get its inverse
-        vrmath.mat4x4_invert_fast(self._invModelMatrix.M, self._modelMatrix.M)
+        mat4x4_invert_fast(self._invModelMatrix.M, self._modelMatrix.M)
 
         # normal matrix
-        vrmath.mat4x4_transpose(self._normalMatrix.M, self._invModelMatrix.M)
+        mat4x4_transpose(self._normalMatrix.M, self._invModelMatrix.M)
 
-        cdef vrmath.vec3 center
-        cdef vrmath.vec3 up = [0., 1., 0.]
-        cdef vrmath.vec3 forward = [0., 0., -1.]
-        vrmath.quat_mul_vec3(
+        cdef vec3 center
+        cdef vec3 up = [0., 1., 0.]
+        cdef vec3 forward = [0., 0., -1.]
+        quat_mul_vec3(
             &self._vecUp.x, &self.c_data.Orientation.x, up)
-        vrmath.quat_mul_vec3(
+        quat_mul_vec3(
             &self._vecForward.x, &self.c_data.Orientation.x, forward)
-        vrmath.vec3_add(center, &self.c_data.Position.x, &self._vecForward.x)
-        vrmath.mat4x4_look_at(
+        vec3_add(center, &self.c_data.Position.x, &self._vecForward.x)
+        mat4x4_look_at(
             self._viewMatrix.M, &self.c_data.Position.x, center, &self._vecUp.x)
-        vrmath.mat4x4_invert_fast(self._invViewMatrix.M, self._viewMatrix.M)
+        mat4x4_invert_fast(self._invViewMatrix.M, self._viewMatrix.M)
 
         self._matrixNeedsUpdate = False
 
@@ -749,8 +722,8 @@ cdef class RigidBodyPose(object):
             Axis and angle.
 
         """
-        cdef vrmath.pxrQuatf q_in
-        cdef vrmath.pxrVector3f axis
+        cdef pxrQuatf q_in
+        cdef pxrVector3f axis
         cdef float angle = 0.0
         cdef np.ndarray[np.float32_t, ndim=1] ret_axis = \
             np.zeros((3,), dtype=np.float32)
@@ -760,7 +733,7 @@ cdef class RigidBodyPose(object):
         q_in.y = self.c_data.Orientation.y
         q_in.z = self.c_data.Orientation.z
         q_in.w = self.c_data.Orientation.w
-        vrmath.quat_norm(&q_in.x, &q_in.x)
+        quat_norm(&q_in.x, &q_in.x)
 
         cdef double sp = sqrt(
             q_in.x * q_in.x + q_in.y * q_in.y + q_in.z * q_in.z)
@@ -773,7 +746,7 @@ cdef class RigidBodyPose(object):
 
         if non_zero:   # has a rotation
             v = <float>1. / <float>sp
-            vrmath.vec3_scale(&axis.x, &q_in.x, v)
+            vec3_scale(&axis.x, &q_in.x, v)
             angle = <float>2.0 * <float>acos(q_in.w)
         else:
             axis.x = <float>1.0
@@ -800,8 +773,8 @@ cdef class RigidBodyPose(object):
             treated as radians. Default is ``True``.
 
         """
-        cdef vrmath.pxrVector3f vec_axis
-        vrmath.vec3_set(
+        cdef pxrVector3f vec_axis
+        vec3_set(
             &vec_axis.x,
             <float>axis[0],
             <float>axis[1],
@@ -813,7 +786,7 @@ cdef class RigidBodyPose(object):
         else:
             half_rad = <float>angle / <float>2.0
 
-        vrmath.vec3_norm(&vec_axis.x, &vec_axis.x)
+        vec3_norm(&vec_axis.x, &vec_axis.x)
         cdef bint all_zeros = (
             fabs(vec_axis.x) < 1e-5 and
             fabs(vec_axis.y) < 1e-5 and
@@ -822,7 +795,7 @@ cdef class RigidBodyPose(object):
         if all_zeros:
             raise ValueError("Value for parameter `axis` is zero-length.")
 
-        vrmath.vec3_scale(&vec_axis.x, &vec_axis.x, <float>sin(half_rad))
+        vec3_scale(&vec_axis.x, &vec_axis.x, <float>sin(half_rad))
         self.c_data.Orientation.x = vec_axis.x
         self.c_data.Orientation.y = vec_axis.y
         self.c_data.Orientation.z = vec_axis.z
@@ -833,7 +806,7 @@ cdef class RigidBodyPose(object):
     def normalize(self):
         """Normalize this pose.
         """
-        vrmath.quat_norm(
+        quat_norm(
             &self.c_data.Orientation.x, &self.c_data.Orientation.x)
 
         return self
@@ -847,13 +820,13 @@ cdef class RigidBodyPose(object):
             Normalized pose.
 
         """
-        cdef vrmath.pxrPosef* ptr = <vrmath.pxrPosef*>PyMem_Malloc(
-            sizeof(vrmath.pxrPosef))
+        cdef pxrPosef* ptr = <pxrPosef*>PyMem_Malloc(
+            sizeof(pxrPosef))
 
         if ptr is NULL:
             raise MemoryError
 
-        vrmath.quat_norm(
+        quat_norm(
             &ptr.Orientation.x, &self.c_data.Orientation.x)
 
         ptr.Position = self.c_data.Position
@@ -866,18 +839,18 @@ cdef class RigidBodyPose(object):
         """Invert this pose.
         """
         # inverse the rotation
-        vrmath.quat_conj(
+        quat_conj(
             &self.c_data.Orientation.x,
             &self.c_data.Orientation.x)
 
         # inverse the translation
-        vrmath.vec3_scale(
+        vec3_scale(
             &self.c_data.Position.x,
             &self.c_data.Position.x,
             <float>-1.)
 
         # apply the rotation
-        vrmath.quat_mul_vec3(
+        quat_mul_vec3(
             &self.c_data.Position.x,
             &self.c_data.Orientation.x,
             &self.c_data.Position.x)
@@ -895,25 +868,25 @@ cdef class RigidBodyPose(object):
             Inverted pose.
 
         """
-        cdef vrmath.pxrPosef* ptr = <vrmath.pxrPosef*>PyMem_Malloc(
-            sizeof(vrmath.pxrPosef))
+        cdef pxrPosef* ptr = <pxrPosef*>PyMem_Malloc(
+            sizeof(pxrPosef))
 
         if ptr is NULL:
             raise MemoryError
 
         # inverse the rotation
-        vrmath.quat_conj(
+        quat_conj(
             &ptr.Orientation.x,
             &self.c_data.Orientation.x)
 
         # inverse the translation
-        vrmath.vec3_scale(
+        vec3_scale(
             &ptr.Position.x,
             &self.c_data.Position.x,
             <float>-1.)
 
         # apply the rotation
-        vrmath.quat_mul_vec3(
+        quat_mul_vec3(
             &ptr.Position.x,
             &ptr.Orientation.x,
             &ptr.Position.x)
@@ -942,15 +915,15 @@ cdef class RigidBodyPose(object):
         else:
             toReturn = out
 
-        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
-        cdef vrmath.pxrVector3f pos_in
-        cdef vrmath.pxrVector3f pos_rotated
+        cdef pxrPosef* pose = <pxrPosef*>self.c_data
+        cdef pxrVector3f pos_in
+        cdef pxrVector3f pos_rotated
 
         pos_in.x = <float>v[0]
         pos_in.y = <float>v[1]
         pos_in.z = <float>v[2]
 
-        vrmath.quat_mul_vec3(
+        quat_mul_vec3(
             &pos_rotated.x,
             &pose.Orientation.x,
             &pos_in.x)
@@ -983,19 +956,19 @@ cdef class RigidBodyPose(object):
         else:
             toReturn = out
 
-        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
-        cdef vrmath.pxrQuatf ori_inv
-        cdef vrmath.pxrVector3f temp
+        cdef pxrPosef* pose = <pxrPosef*>self.c_data
+        cdef pxrQuatf ori_inv
+        cdef pxrVector3f temp
 
         temp.x = <float>v[0]
         temp.y = <float>v[1]
         temp.z = <float>v[2]
 
         # inverse the rotation
-        vrmath.quat_conj(&ori_inv.x, &pose.Orientation.x)
+        quat_conj(&ori_inv.x, &pose.Orientation.x)
 
         # apply it
-        vrmath.quat_mul_vec3(
+        quat_mul_vec3(
             &temp.x,
             &ori_inv.x,
             &temp.x)
@@ -1028,15 +1001,15 @@ cdef class RigidBodyPose(object):
         else:
             toReturn = out
 
-        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
-        cdef vrmath.pxrVector3f temp
-        cdef vrmath.pxrVector3f translated_pos
+        cdef pxrPosef* pose = <pxrPosef*>self.c_data
+        cdef pxrVector3f temp
+        cdef pxrVector3f translated_pos
 
         temp.x = <float>v[0]
         temp.y = <float>v[1]
         temp.z = <float>v[2]
 
-        vrmath.vec3_add(&temp.x, &temp.x, &pose.Position.x)
+        vec3_add(&temp.x, &temp.x, &pose.Position.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
@@ -1066,15 +1039,15 @@ cdef class RigidBodyPose(object):
         else:
             toReturn = out
 
-        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
-        cdef vrmath.pxrVector3f temp
+        cdef pxrPosef* pose = <pxrPosef*>self.c_data
+        cdef pxrVector3f temp
 
         temp.x = <float>v[0]
         temp.y = <float>v[1]
         temp.z = <float>v[2]
 
-        vrmath.quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
-        vrmath.vec3_add(&temp.x, &temp.x, &pose.Position.x)
+        quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
+        vec3_add(&temp.x, &temp.x, &pose.Position.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
@@ -1105,18 +1078,18 @@ cdef class RigidBodyPose(object):
         else:
             toReturn = out
 
-        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
-        cdef vrmath.pxrVector3f temp
-        cdef vrmath.pxrQuatf q_inv
+        cdef pxrPosef* pose = <pxrPosef*>self.c_data
+        cdef pxrVector3f temp
+        cdef pxrQuatf q_inv
 
         temp.x = <float>v[0]
         temp.y = <float>v[1]
         temp.z = <float>v[2]
 
         # inverse the rotation and transformation
-        vrmath.quat_conj(&q_inv.x, &pose.Orientation.x)
-        vrmath.vec3_sub(&temp.x, &pose.Position.x, &temp.x)
-        vrmath.quat_mul_vec3(&temp.x, &q_inv.x, &temp.x)
+        quat_conj(&q_inv.x, &pose.Orientation.x)
+        vec3_sub(&temp.x, &pose.Position.x, &temp.x)
+        quat_mul_vec3(&temp.x, &q_inv.x, &temp.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
@@ -1146,15 +1119,15 @@ cdef class RigidBodyPose(object):
         else:
             toReturn = out
 
-        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
-        cdef vrmath.pxrVector3f temp
+        cdef pxrPosef* pose = <pxrPosef*>self.c_data
+        cdef pxrVector3f temp
 
         temp.x = <float>v[0]
         temp.y = <float>v[1]
         temp.z = <float>v[2]
 
         # inverse the rotation and transformation
-        vrmath.quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
+        quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
@@ -1185,17 +1158,17 @@ cdef class RigidBodyPose(object):
         else:
             toReturn = out
 
-        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
-        cdef vrmath.pxrQuatf ori_inv
-        cdef vrmath.pxrVector3f temp
+        cdef pxrPosef* pose = <pxrPosef*>self.c_data
+        cdef pxrQuatf ori_inv
+        cdef pxrVector3f temp
 
         temp.x = <float>v[0]
         temp.y = <float>v[1]
         temp.z = <float>v[2]
 
         # inverse the rotation and transformation
-        vrmath.quat_conj(&ori_inv.x, &pose.Orientation.x)
-        vrmath.quat_mul_vec3(&temp.x, &ori_inv.x, &temp.x)
+        quat_conj(&ori_inv.x, &pose.Orientation.x)
+        quat_mul_vec3(&temp.x, &ori_inv.x, &temp.x)
 
         toReturn[0] = temp.x
         toReturn[1] = temp.y
@@ -1247,11 +1220,11 @@ cdef class RigidBodyPose(object):
             distance = thisPose.distanceTo([0.0, 0.0, 5.0])
 
         """
-        cdef vrmath.pxrVector3f temp
-        cdef vrmath.pxrPosef* pose = <vrmath.pxrPosef*>self.c_data
+        cdef pxrVector3f temp
+        cdef pxrPosef* pose = <pxrPosef*>self.c_data
 
         if isinstance(v, RigidBodyPose):
-            temp = <vrmath.pxrVector3f>((<RigidBodyPose>v).c_data[0]).Position
+            temp = <pxrVector3f>((<RigidBodyPose>v).c_data[0]).Position
         else:
             temp.x = <float>v[0]
             temp.y = <float>v[1]
@@ -1261,7 +1234,7 @@ cdef class RigidBodyPose(object):
         temp.y -= pose.Position.y
         temp.z -= pose.Position.z
 
-        cdef float to_return = vrmath.vec3_len(&temp.x)
+        cdef float to_return = vec3_len(&temp.x)
 
         return to_return
 
@@ -1343,7 +1316,7 @@ cdef class RigidBodyPose(object):
             else:
                 return self._invModelMatrixArr.copy()
 
-        cdef vrmath.pxrMatrix4f* m = NULL
+        cdef pxrMatrix4f* m = NULL
 
         if not inverse:
             m = &self._modelMatrix
@@ -1436,7 +1409,7 @@ cdef class RigidBodyPose(object):
             else:
                 return self._invViewMatrixArr.copy()
 
-        cdef vrmath.pxrMatrix4f* m = NULL
+        cdef pxrMatrix4f* m = NULL
 
         if not inverse:
             m = &self._viewMatrix
@@ -1575,15 +1548,15 @@ cdef class RigidBodyPose(object):
                                               radius=targetRadius)
 
         """
-        cdef vrmath.pxrVector3f targetPos
-        cdef vrmath.pxrVector3f _rayDir
+        cdef pxrVector3f targetPos
+        cdef pxrVector3f _rayDir
 
-        vrmath.vec3_set(
+        vec3_set(
             &targetPos.x,
             <float>targetPose[0],
             <float>targetPose[1],
             <float>targetPose[2])
-        vrmath.vec3_set(
+        vec3_set(
             &_rayDir.x,
             <float>rayDir[0],
             <float>rayDir[1],
@@ -1594,24 +1567,24 @@ cdef class RigidBodyPose(object):
         cdef float targetDist
         if maxRange != 0.0:
             targetDist = \
-                vrmath.vec3_dist(&targetPos.x, &self.c_data.Position.x) - radius
+                vec3_dist(&targetPos.x, &self.c_data.Position.x) - radius
             if targetDist > maxRange:
                 return False
 
         # put the target in the ray caster's local coordinate system
-        cdef vrmath.pxrQuatf ori_inv
-        cdef vrmath.pxrVector3f offset
+        cdef pxrQuatf ori_inv
+        cdef pxrVector3f offset
 
         # inverse the rotation and transformation
-        vrmath.quat_conj(&ori_inv.x, &self.c_data.Orientation.x)
-        vrmath.vec3_sub(&offset.x, &offset.x, &self.c_data.Position.x)
-        vrmath.quat_mul_vec3(&offset.x, &ori_inv.x, &offset.x)
-        vrmath.vec3_scale(&offset.x, &offset.x, <float>-1.)
+        quat_conj(&ori_inv.x, &self.c_data.Orientation.x)
+        vec3_sub(&offset.x, &offset.x, &self.c_data.Position.x)
+        quat_mul_vec3(&offset.x, &ori_inv.x, &offset.x)
+        vec3_scale(&offset.x, &offset.x, <float>-1.)
 
         # find the discriminant, this is based on the method described here:
         # http://antongerdelan.net/opengl/raycasting.html
-        cdef float u = vrmath.vec3_mul_inner(&_rayDir.x, &offset.x)
-        cdef float v = vrmath.vec3_mul_inner(&offset.x, &offset.x)
+        cdef float u = vec3_mul_inner(&_rayDir.x, &offset.x)
+        cdef float v = vec3_mul_inner(&offset.x, &offset.x)
         cdef float desc = <float>pow(u, 2.0) - (v - <float>pow(radius, 2.0))
 
         # one or more roots? if so we are touching the sphere
@@ -1666,12 +1639,6 @@ cdef class BoundingBox(object):
         modelPose.boundingBox = bbox
 
     """
-    cdef vrmath.pxrBounds3f* c_data
-    cdef bint ptr_owner
-
-    cdef np.ndarray _mins
-    cdef np.ndarray _maxs
-
     def __init__(self, object extents=None):
         """
         Attributes
@@ -1687,13 +1654,13 @@ cdef class BoundingBox(object):
         self.ptr_owner = False
 
     @staticmethod
-    cdef BoundingBox fromPtr(vrmath.pxrBounds3f* ptr, bint owner=False):
+    cdef BoundingBox fromPtr(pxrBounds3f* ptr, bint owner):
         cdef BoundingBox wrapper = BoundingBox.__new__(BoundingBox)
         wrapper.c_data = ptr
         wrapper.ptr_owner = owner
 
-        wrapper._mins = _wrap_pxrVector3f_as_ndarray(<vrmath.pxrVector3f*>&ptr.b[0])
-        wrapper._maxs = _wrap_pxrVector3f_as_ndarray(<vrmath.pxrVector3f*>&ptr.b[1])
+        wrapper._mins = _wrap_pxrVector3f_as_ndarray(<pxrVector3f*>&ptr.b[0])
+        wrapper._maxs = _wrap_pxrVector3f_as_ndarray(<pxrVector3f*>&ptr.b[1])
 
         return wrapper
 
@@ -1701,8 +1668,8 @@ cdef class BoundingBox(object):
         if self.c_data is not NULL:
             return
 
-        cdef vrmath.pxrBounds3f* ptr = \
-            <vrmath.pxrBounds3f*>PyMem_Malloc(sizeof(vrmath.pxrBounds3f))
+        cdef pxrBounds3f* ptr = \
+            <pxrBounds3f*>PyMem_Malloc(sizeof(pxrBounds3f))
 
         if ptr is NULL:
             raise MemoryError
@@ -1721,8 +1688,8 @@ cdef class BoundingBox(object):
         self.c_data = ptr
         self.ptr_owner = True
 
-        self._mins = _wrap_pxrVector3f_as_ndarray(<vrmath.pxrVector3f*>&ptr.b[0])
-        self._maxs = _wrap_pxrVector3f_as_ndarray(<vrmath.pxrVector3f*>&ptr.b[1])
+        self._mins = _wrap_pxrVector3f_as_ndarray(<pxrVector3f*>&ptr.b[0])
+        self._maxs = _wrap_pxrVector3f_as_ndarray(<pxrVector3f*>&ptr.b[1])
 
     def __dealloc__(self):
         if self.c_data is not NULL:
@@ -1814,11 +1781,11 @@ def calcEyePoses(RigidBodyPose headPose, float iod):
 
     cdef Py_ssize_t eye = 0
     cdef Py_ssize_t eye_count = 2
-    cdef vrmath.pxrPosef* eyePoses[2]
-    cdef vrmath.pxrPosef* this_pose = NULL
+    cdef pxrPosef* eyePoses[2]
+    cdef pxrPosef* this_pose = NULL
     for eye in range(eye_count):
         # allocate new pose object
-        this_pose = <vrmath.pxrPosef*>PyMem_Malloc(sizeof(vrmath.pxrPosef))
+        this_pose = <pxrPosef*>PyMem_Malloc(sizeof(pxrPosef))
         if this_pose is NULL:
             raise MemoryError
 
@@ -1826,15 +1793,15 @@ def calcEyePoses(RigidBodyPose headPose, float iod):
         this_pose.Orientation = headPose.c_data.Orientation
 
         # clear the position vector
-        vrmath.vec3_zero(&this_pose.Position.x)
+        vec3_zero(&this_pose.Position.x)
 
         # apply the transformation
         this_pose.Position.x = eyeOffset[eye]
-        vrmath.quat_mul_vec3(
+        quat_mul_vec3(
             &this_pose.Position.x,
             &this_pose.Orientation.x,
             &this_pose.Position.x)
-        vrmath.vec3_add(
+        vec3_add(
             &this_pose.Position.x,
             &headPose.c_data.Position.x,
             &this_pose.Position.x)

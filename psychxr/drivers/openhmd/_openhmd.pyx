@@ -150,11 +150,11 @@ cimport numpy as np
 import numpy as np
 np.import_array()
 from . cimport openhmd as ohmd
-from . cimport linmath as lm
 from libc.time cimport clock, clock_t
 # from cpython.mem cimport PyMem_Malloc, PyMem_Free
-from libc.math cimport fabs
-import psychxr.vrmath as vrmath
+# from libc.math cimport fabs
+cimport psychxr.tools.vrmath as vrmath
+import psychxr.tools.vrmath as vrmath
 
 
 # ------------------------------------------------------------------------------
@@ -1115,7 +1115,7 @@ def getDevicePose(object device):
 
     You can get the eye poses from the pose (assuming its an HMD)::
 
-        import psychxr.vrmath as vrmath
+        import psychxr.tools.vrmath as vrmath
         leftEyePose, rightEyePose = vrmath.calcEyePoses(device, ipd=0.062)
 
     These can be converted to eye view matrices::
@@ -1161,7 +1161,7 @@ def getDevicePose(object device):
         &device_ori[0])
 
     # actual pose object to return
-    cdef object the_pose = vrmath.RigidBodyPose()
+    cdef vrmath.RigidBodyPose the_pose = vrmath.RigidBodyPose()
 
     # set values - find a better way to do this
     the_pose.pos = (

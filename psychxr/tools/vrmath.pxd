@@ -1,6 +1,6 @@
 # distutils: language=c++
 #  =============================================================================
-#  vrmath.pxd - Cython definitions for the VR math extension library
+#  tools.pxd - Cython definitions for the VR math extension library
 #  =============================================================================
 #
 #  Copyright 2021 Matthew Cutone <mcutone@opensciencetools.com>
@@ -25,6 +25,7 @@
 #
 
 from libc.math cimport cos, sin
+cimport numpy as np
 
 
 cdef extern from "linmath.h":
@@ -362,7 +363,7 @@ cdef inline void quat_imag(vec3 r, quat q):
 
 
 # ------------------------------------------------------------------------------
-# PsychXR types compatible with those in `LibOVR`.
+# PsychXR types compatible with those in `LibOVR`
 #
 
 ctypedef struct pxrQuatf:
@@ -389,3 +390,43 @@ ctypedef struct pxrPosef:
 
 cdef struct pxrBounds3f:
     pxrVector3f[2] b
+
+
+# ------------------------------------------------------------------------------
+# C extension types defined in associated module
+#
+
+cdef class BoundingBox:
+    cdef pxrBounds3f* c_data
+    cdef bint ptr_owner
+    cdef np.ndarray _mins
+    cdef np.ndarray _maxs
+    @staticmethod
+    cdef BoundingBox fromPtr(pxrBounds3f* ptr, bint owner)
+    cdef void _new_struct(self, object extents)
+
+
+cdef class RigidBodyPose:
+    cdef pxrPosef* c_data
+    cdef bint ptr_owner
+    cdef np.ndarray _pos
+    cdef np.ndarray _ori
+    cdef pxrMatrix4f _modelMatrix
+    cdef pxrMatrix4f _invModelMatrix
+    cdef pxrMatrix4f _normalMatrix
+    cdef pxrMatrix4f _viewMatrix
+    cdef pxrMatrix4f _invViewMatrix
+    cdef pxrVector3f _vecUp
+    cdef pxrVector3f _vecForward
+    cdef np.ndarray _modelMatrixArr
+    cdef np.ndarray _invModelMatrixArr
+    cdef np.ndarray _normalMatrixArr
+    cdef np.ndarray _viewMatrixArr
+    cdef np.ndarray _invViewMatrixArr
+    cdef dict _ptrMatrices
+    cdef bint _matrixNeedsUpdate
+    cdef BoundingBox _bbox
+    @staticmethod
+    cdef RigidBodyPose fromPtr(pxrPosef* ptr, bint owner)
+    cdef void _new_struct(self, object pos, object ori)
+
