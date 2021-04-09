@@ -17,16 +17,19 @@ support.
 
 ## Why PsychXR?
 
-PsychXR is intended to provide direct access to driver APIs for HMDs using a 
+PsychXR is intended to provide near direct access to HMD driver APIs using a 
 thin and very fast interface. This can be useful in situations where other tools 
-fail to expose or limit device capabilities.
+fail to expose or limit device capabilities. Furthermore, PsychXR does not 
+require large runtimes and has minimal dependencies, allowing users to more 
+easily share their applications over low-bandwidth connections for easier remote 
+testing.
 
 PsychXR is free and open source, unlike many of the tools widely used by 
 researchers for creating VR experiments. If you'd like to keep the future of VR 
 research as open as possible, consider using or supporting projects like 
 [PsychXR](http://psychxr.org), [PsychoPy](https://www.psychopy.org/), 
 [psychtoolbox](http://psychtoolbox.org/), [OpenHMD](http://www.openhmd.net/) and 
-the [Godot Engine](https://godotengine.org/).  
+the [Godot Engine](https://godotengine.org/). 
 
 ## Supported Devices
 
