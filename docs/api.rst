@@ -21,13 +21,14 @@ chose which to use that best suits the requirements of the application.
    api/libovr
    api/openhmd
 
-:mod:`psychxr.vrmath` - VR math classes and functions
------------------------------------------------------
+:mod:`psychxr.tools` - Tools for working with VR
+------------------------------------------------
 
-This module contains tools for math related to 3D environments, allowing for
-basic interaction and providing data needed for rendering objects. Many of these
-classes are drop-in replacements for those found in the `libovr` driver
-interface.
+This module contains tools that are interoperable with all driver interfaces to
+aid in composing virtual environments and enabling basic interaction within
+virtual spaces. These tools combined with a graphics framework (e.g., GLFW,
+ModernGL, etc.) and audio library (e.g. OpenAL), gives one a complete
+environment for developing rich VR applications.
 
 .. toctree::
    :maxdepth: 1

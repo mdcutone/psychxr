@@ -1,8 +1,8 @@
-===================================================
- :mod:`~psychxr.vrmath` - Tools for VR related math
-===================================================
+=========================================================
+ :mod:`~psychxr.tools.vrmath` - Tools for VR related math
+=========================================================
 
-.. currentmodule:: psychxr.vrmath
+.. currentmodule:: psychxr.tools.vrmath
 
 Toolbox of classes and functions for performing VR related math.
 
