@@ -122,8 +122,6 @@ __all__ = [
     "OHMD_DEVICE_FLAGS_LEFT_CONTROLLER",
     "OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER",
     "OHMDDeviceInfo",
-    "OHMDDisplayInfo",
-    "OHMDControllerInfo",
     "success",
     "failure",
     "getVersion",
@@ -134,12 +132,14 @@ __all__ = [
     "getDeviceCount",
     "getError",
     "getDevices",
-    "getDisplayInfo",
     "openDevice",
     "closeDevice",
-    "getDisplayInfo",
     "getDevicePose",
     "lastUpdateTimeElapsed",
+    "externalSensorFusion",
+    "getEyeViewMatrix",
+    "getEyeProjectionMatrix",
+    "getEyeAspectRatio",
     "update",
     "getString",
     "getListString",
@@ -297,6 +297,33 @@ cdef int _contextProbed = 0
 cdef int _automatic_update = 0
 cdef double _last_update_time = 0.0
 
+# value lengths
+cdef dict float_val_len = {
+    OHMD_ROTATION_QUAT: 4,
+    OHMD_LEFT_EYE_GL_MODELVIEW_MATRIX: 16,
+    OHMD_RIGHT_EYE_GL_MODELVIEW_MATRIX: 16,
+    OHMD_LEFT_EYE_GL_PROJECTION_MATRIX: 16,
+    OHMD_RIGHT_EYE_GL_PROJECTION_MATRIX: 16,
+    OHMD_POSITION_VECTOR: 3,
+    OHMD_SCREEN_HORIZONTAL_SIZE: 1,
+    OHMD_SCREEN_VERTICAL_SIZE: 1,
+    OHMD_LENS_HORIZONTAL_SEPARATION: 1,
+    OHMD_LENS_VERTICAL_POSITION: 1,
+    OHMD_LEFT_EYE_FOV: 1,
+    OHMD_LEFT_EYE_ASPECT_RATIO: 1,
+    OHMD_RIGHT_EYE_FOV: 1,
+    OHMD_RIGHT_EYE_ASPECT_RATIO: 1,
+    OHMD_EYE_IPD: 1,
+    OHMD_PROJECTION_ZFAR: 1,
+    OHMD_PROJECTION_ZNEAR: 1,
+    OHMD_DISTORTION_K: 1,
+    OHMD_EXTERNAL_SENSOR_FUSION: 10,
+    OHMD_UNIVERSAL_DISTORTION_K: 4,
+    OHMD_UNIVERSAL_ABERRATION_K: 3
+    # OHMD_CONTROLS_STATE: 1  - special
+
+}
+
 # ------------------------------------------------------------------------------
 # Constants and helper functions
 #
@@ -326,10 +353,39 @@ cdef void clear_device_info():
     _deviceInfoList = ()
 
 
+cdef ohmd.ohmd_device* get_device_from_param(object dev):
+    """Get a device handle given a descriptor or enumerated index. This is an 
+    internal function.
+
+    Parameters
+    ----------
+    dev : OHMDDeviceInfo or int
+        Descriptor or enumerated index of a device.
+
+    Returns
+    -------
+    ohmd_device*
+        Opaque pointer as a device handle. Value is `NULL` if there is no valid
+        device.
+
+    """
+    cdef ohmd.ohmd_device*to_return = NULL
+    if isinstance(dev, int):  # enum index provided
+        try:
+            to_return = (<OHMDDeviceInfo> _deviceInfoList[dev]).c_device
+        except IndexError:
+            return to_return  # catch this error, just return NULL
+    elif isinstance(dev, OHMDDeviceInfo):  # device object provided
+        to_return = (<OHMDDeviceInfo> dev).c_device
+
+    # anything else will give NULL
+
+    return to_return
+
+
 # ------------------------------------------------------------------------------
 # Python API for OpenHMD
 #
-
 
 cdef class OHMDDeviceInfo(object):
     """Information class for OpenHMD devices.
@@ -438,63 +494,6 @@ cdef class OHMDDeviceInfo(object):
         return (self.c_device_info.deviceFlags &
                 ohmd.OHMD_DEVICE_FLAGS_NULL_DEVICE) == \
                ohmd.OHMD_DEVICE_FLAGS_NULL_DEVICE
-
-
-cdef class OHMDDisplayInfo(object):
-    """Class for information about a display device (HMD).
-
-    This class provides additional information about hardware belonging to the
-    HMD device class (i.e. ``OHMD_DEVICE_CLASS_HMD``).
-
-    """
-    cdef ohmd.ohmdDisplayInfo c_data
-
-    @property
-    def resolution(self):
-        """Horizontal and vertical resolution of the display (`ndarray`)."""
-        return np.asarray(
-            (self.c_data.resolution[0],
-             self.c_data.resolution[1]), dtype=int)
-
-    @property
-    def screenSize(self):
-        """Horizontal and vertical size of the display in meters (`ndarray`)."""
-        return np.asarray(
-            (self.c_data.screenSize[0],
-             self.c_data.screenSize[1]), dtype=np.float32)
-
-    @property
-    def eyeAspect(self):
-        """Physical display aspect ratios for the left and right eye (`ndarray`).
-        """
-        return np.asarray(
-            (self.c_data.eyeAspect[0],
-             self.c_data.eyeAspect[1]), dtype=np.float32)
-
-    @property
-    def eyeFov(self):
-        """Physical field of view for each eye in degrees (`ndarray`).
-        """
-        return np.asarray(
-            (self.c_data.eyeFov[0],
-             self.c_data.eyeFov[1]), dtype=np.float32)
-
-    @property
-    def ipd(self):
-        """Interpupilary distance in meters reported by the device (`float`)."""
-        return self.c_data.ipd
-
-
-cdef class OHMDControllerInfo(object):
-    """Class for information about a controller.
-
-    """
-    cdef ohmd.ohmdControllerInfo c_data
-
-    @property
-    def controlCount(self):
-        """Number of analog and digital controls on the device (`int`)."""
-        return self.c_data.controlCount
 
 
 def success(int result):
@@ -863,33 +862,30 @@ def closeDevice(object device):
     return result
 
 
-def getDisplayInfo(object device):
-    """Get information about a display device (head-mounted display usually)
-    from OpenHMD.
+def externalSensorFusion(object device,
+                         float deltaT,
+                         object linearAcceleration,
+                         object angularAcceleration,
+                         object absRef):
+    """Perform external sensor fusion on the specified device.
+
+    This function allows for external sensor data to be used in pose estimation
+    for a given device. Data can be obtained from an IMU or similar device.
 
     Parameters
     ----------
     device : OHMDDeviceInfo or int
-        Device descriptor or enumerated index to retrieve information from. Must
-        be a device belonging to the ``OHMD_DEVICE_CLASS_HMD`` display class.
-
-    Returns
-    -------
-    OHMDDisplayInfo
-        Descriptor containing information about the display.
-
-    Examples
-    --------
-    Get information about a display, here we attempt to get the physical
-    screen width and height::
-
-        if probe():  # must be called at least once after `create`
-            hmd_devices = getDevices(displayClass=OHMD_DEVICE_CLASS_HMD)
-            if hmd_devices:
-                hmd = hmd_devices[0]  # use the first found
-                openDevice(hmd)   # open the device
-                display_info = getDisplayInfo(hmd)
-                screenWidth, screenHeight = display_info.screenSize
+        Descriptor or enumerated index of a device. Best practice is to pass a
+        descriptor instead of an `int`.
+    deltaT : float
+        Elapsed time in seconds sensor values were sampled since the last
+        :func:`update` call.
+    linearAcceleration : ArrayLike
+        Linear acceleration reading (X, Y, Z) from an accelerometer.
+    angularAcceleration : ArrayLike
+        Angular acceleration reading (X, Y, Z) from a gyro.
+    absRef : ArrayLike
+        Absolute direction reference (X, Y, Z) from a magnetometer or similar.
 
     """
     # must have context and be probed
@@ -900,72 +896,204 @@ def getDisplayInfo(object device):
         raise OHMDContextNotProbedError()
 
     cdef int result = ohmd.OHMD_S_OK
-    cdef OHMDDeviceInfo desc
+    cdef ohmd.ohmd_device* c_device = get_device_from_param(device)
 
-    if isinstance(device, int):  # enum index provided
-        desc = _deviceInfoList[device]
-    elif isinstance(device, OHMDDeviceInfo):  # device object provided
-        desc = device
+    if c_device is NULL:
+        raise ValueError(
+            'Invalid device identifier specified to parameter `device`.')
+
+    # populate the array to pass to the sensor fusion API
+    cdef float[10] sensor_fusion_values
+
+    # time elapsed
+    sensor_fusion_values[0] = deltaT
+
+    # gyro
+    sensor_fusion_values[1] = <float>angularAcceleration[0]
+    sensor_fusion_values[2] = <float>angularAcceleration[1]
+    sensor_fusion_values[3] = <float>angularAcceleration[2]
+
+    # accelerometer
+    sensor_fusion_values[4] = <float>linearAcceleration[0]
+    sensor_fusion_values[5] = <float>linearAcceleration[1]
+    sensor_fusion_values[6] = <float>linearAcceleration[2]
+
+    # magnetometer
+    sensor_fusion_values[7] = <float>absRef[0]
+    sensor_fusion_values[8] = <float>absRef[1]
+    sensor_fusion_values[9] = <float>absRef[2]
+
+    # call the API
+    result = ohmd.ohmd_device_setf(
+        c_device,
+        ohmd.OHMD_EXTERNAL_SENSOR_FUSION,
+        &sensor_fusion_values[0])
+
+    return result
+
+
+def getEyeViewMatrix(object device, int eye, np.ndarray[np.float32_t, ndim=2] out=None):
+    """Get the eye view matrix for a given tracked device and eye. Value
+    returned can be used directly with OpenGL.
+
+    Parameters
+    ----------
+    device : OHMDDeviceInfo or int
+        Descriptor or enumerated index of a device. Best practice is to pass a
+        descriptor instead of an `int`.
+    eye : int
+        Eye index. Either 0 for the left and 1 for the right. You can also use
+        constants `OHMD_LEFT_EYE` or `OHMD_RIGHT_EYE`.
+    out : ndarray
+        Optional output array for the matrix values.
+
+    Returns
+    -------
+    ndarray
+        4x4 view matrix.
+
+    """
+    # must have context and be probed
+    if _ctx is NULL:
+        raise OHMDNoContextError()
+
+    if not _contextProbed:
+        raise OHMDContextNotProbedError()
+
+    cdef int result = ohmd.OHMD_S_OK
+    cdef ohmd.ohmd_device* c_device = get_device_from_param(device)
+
+    if c_device is NULL:
+        raise ValueError(
+            'Invalid device identifier specified to parameter `device`.')
+
+    cdef ohmd.ohmd_float_value matrix_type
+    if eye == ohmd.OHMD_EYE_LEFT:
+        matrix_type = ohmd.OHMD_LEFT_EYE_GL_MODELVIEW_MATRIX
+    elif eye == ohmd.OHMD_EYE_RIGHT:
+        matrix_type = ohmd.OHMD_RIGHT_EYE_GL_MODELVIEW_MATRIX
     else:
         raise ValueError(
-            'Parameter `device` must be type `int` or `OHMDDeviceInfo`.')
+            "Value specified to parameter `eyeIndex` myst be one of "
+            "`OHMD_EYE_LEFT` or `OHMD_EYE_RIGHT`.")
 
-    # check if the target object has the correct display class
-    if desc.c_device_info.deviceClass != ohmd.OHMD_DEVICE_CLASS_HMD:
-        raise OHMDWrongDeviceClassError("Device is not a display.")
+    cdef np.ndarray[np.float32_t, ndim=2] to_return
 
-    # check if the device has been opened
-    if desc.c_device is NULL:
-        raise OHMDDeviceNotOpenError(
-            "Device is not opened, cannot retrieve information.")
+    if out is None:
+        to_return = np.empty((4, 4), dtype=np.float32)
+    else:
+        to_return = out
 
-    # pointer to device handle
-    cdef ohmd.ohmd_device* this_device = desc.c_device
+    result = ohmd.ohmd_device_getf(
+        c_device, matrix_type, <float*>to_return.data)
 
-    # create a descriptor and populate its fields
-    cdef OHMDDisplayInfo to_return = OHMDDisplayInfo()
-    cdef ohmd.ohmdDisplayInfo* display_info = &to_return.c_data
+    return to_return
 
-    display_info.deviceIdx = desc.c_device_info.deviceIdx
 
-    ohmd.ohmd_device_getf(
-        this_device,
-        ohmd.OHMD_SCREEN_HORIZONTAL_SIZE,
-        &display_info.screenSize[0])
-    ohmd.ohmd_device_getf(
-        this_device,
-        ohmd.OHMD_SCREEN_VERTICAL_SIZE,
-        &display_info.screenSize[1])
-    ohmd.ohmd_device_geti(
-        this_device,
-        ohmd.OHMD_SCREEN_HORIZONTAL_RESOLUTION,
-        &display_info.resolution[0])
-    ohmd.ohmd_device_geti(
-        this_device,
-        ohmd.OHMD_SCREEN_VERTICAL_RESOLUTION,
-        &display_info.resolution[1])
-    ohmd.ohmd_device_getf(
-        this_device,
-        ohmd.OHMD_EYE_IPD,
-        &display_info.ipd)
+def getEyeProjectionMatrix(object device, int eye, np.ndarray[np.float32_t, ndim=2] out=None):
+    """Get the projection matrix for the specified device and eye. Value
+    returned can be used directly with OpenGL.
 
-    # binocular properties
-    ohmd.ohmd_device_getf(
-        this_device,
-        ohmd.OHMD_LEFT_EYE_FOV,
-        &display_info.eyeFov[0])
-    ohmd.ohmd_device_getf(
-        this_device,
-        ohmd.OHMD_RIGHT_EYE_FOV,
-        &display_info.eyeFov[1])
-    ohmd.ohmd_device_getf(
-        this_device,
-        ohmd.OHMD_LEFT_EYE_ASPECT_RATIO,
-        &display_info.eyeAspect[0])
-    ohmd.ohmd_device_getf(
-        this_device,
-        ohmd.OHMD_RIGHT_EYE_ASPECT_RATIO,
-        &display_info.eyeAspect[1])
+    Parameters
+    ----------
+    device : OHMDDeviceInfo or int
+        Descriptor or enumerated index of a device. Best practice is to pass a
+        descriptor instead of an `int`.
+    eye : int
+        Eye index. Either 0 for the left and 1 for the right. You can also use
+        constants `OHMD_LEFT_EYE` or `OHMD_RIGHT_EYE`.
+    out : ndarray
+        Optional output array for the matrix values. Needs to have a `dtype` of
+        `float32` and be C contiguous.
+
+    Returns
+    -------
+    ndarray
+        4x4 projection matrix.
+
+    """
+    # must have context and be probed
+    if _ctx is NULL:
+        raise OHMDNoContextError()
+
+    if not _contextProbed:
+        raise OHMDContextNotProbedError()
+
+    cdef int result = ohmd.OHMD_S_OK
+    cdef ohmd.ohmd_device* c_device = get_device_from_param(device)
+
+    if c_device is NULL:
+        raise ValueError(
+            'Invalid device identifier specified to parameter `device`.')
+
+    cdef ohmd.ohmd_float_value matrix_type
+    if eye == ohmd.OHMD_EYE_LEFT:
+        matrix_type = ohmd.OHMD_LEFT_EYE_GL_PROJECTION_MATRIX
+    elif eye == ohmd.OHMD_EYE_RIGHT:
+        matrix_type = ohmd.OHMD_RIGHT_EYE_GL_PROJECTION_MATRIX
+    else:
+        raise ValueError(
+            "Value specified to parameter `eye` must be one of `OHMD_EYE_LEFT` "
+            "or `OHMD_EYE_RIGHT`.")
+
+    cdef np.ndarray[np.float32_t, ndim=2] to_return
+
+    if out is None:
+        to_return = np.empty((4, 4), dtype=np.float32)
+    else:
+        to_return = out
+
+    result = ohmd.ohmd_device_getf(
+        c_device, matrix_type, <float*>to_return.data)
+
+    return to_return
+
+
+def getEyeAspectRatio(object device, int eye):
+    """Get the aspect ratio of an eye.
+
+    Parameters
+    ----------
+    device : OHMDDeviceInfo or int
+        Descriptor or enumerated index of a device. Best practice is to pass a
+        descriptor instead of an `int`.
+    eye : int
+        Eye index. Either 0 for the left and 1 for the right. You can also use
+        constants `OHMD_LEFT_EYE` or `OHMD_RIGHT_EYE`.
+
+    Returns
+    -------
+    float
+        Aspect ratio of the eye's physical display.
+
+    """
+    # must have context and be probed
+    if _ctx is NULL:
+        raise OHMDNoContextError()
+
+    if not _contextProbed:
+        raise OHMDContextNotProbedError()
+
+    cdef int result = ohmd.OHMD_S_OK
+    cdef ohmd.ohmd_device* c_device = get_device_from_param(device)
+
+    if c_device is NULL:
+        raise ValueError(
+            'Invalid device identifier specified to parameter `device`.')
+
+    cdef ohmd.ohmd_float_value aspect_type
+    if eye == ohmd.OHMD_EYE_LEFT:
+        aspect_type = ohmd.OHMD_LEFT_EYE_ASPECT_RATIO
+    elif eye == ohmd.OHMD_EYE_RIGHT:
+        aspect_type = ohmd.OHMD_RIGHT_EYE_ASPECT_RATIO
+    else:
+        raise ValueError(
+            "Value specified to parameter `eye` must be one of `OHMD_EYE_LEFT` "
+            "or `OHMD_EYE_RIGHT`.")
+
+    cdef float to_return = 0.0
+    result = ohmd.ohmd_device_getf(
+        c_device, aspect_type, &to_return)
 
     return to_return
 
@@ -981,8 +1109,25 @@ def getDevicePose(object device):
 
     Returns
     -------
-    OHMDPose
+    RigidBodyPose
         Object representing the pose of the device.
+
+    Examples
+    --------
+    Get the position (vector) and orientation (quaternion) of a device::
+
+        myDevicePose = getDevicePose(myDevice)  # HMD, controller, etc.
+        pos, ori = myDevicePose.posOri
+
+    You can get the eye poses from the pose (assuming its an HMD)::
+
+        import psychxr.vrmath as vrmath
+        leftEyePose, rightEyePose = vrmath.calcEyePoses(device, ipd=0.062)
+
+    These can be converted to eye view matrices::
+
+        leftViewMatrix = leftEyePose.viewMatrix
+        rightViewMatrix = rightViewMatrix.viewMatrix
 
     """
     # must have context and be probed
@@ -1022,7 +1167,7 @@ def getDevicePose(object device):
         &device_ori[0])
 
     # actual pose object to return
-    cdef vrmath.RigidBodyPose the_pose = vrmath.RigidBodyPose()
+    cdef object the_pose = vrmath.RigidBodyPose()
 
     # set values - find a better way to do this
     the_pose.pos = (
