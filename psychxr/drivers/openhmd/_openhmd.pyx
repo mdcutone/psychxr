@@ -257,32 +257,6 @@ OHMD_HAND_LEFT = ohmd.OHMD_HAND_LEFT
 OHMD_HAND_RIGHT = ohmd.OHMD_HAND_RIGHT
 OHMD_HAND_COUNT = ohmd.OHMD_HAND_COUNT
 
-
-# ------------------------------------------------------------------------------
-# OpenHMD specific exceptions
-#
-class OHMDNoContextError(RuntimeError):
-    """Raised if trying to perform an action without having a valid context."""
-    pass
-
-
-class OHMDContextNotProbedError(RuntimeError):
-    """Raised if trying to perform an action that requires the context be probed
-    first."""
-    pass
-
-
-class OHMDWrongDeviceClassError(RuntimeError):
-    """Raised if performing an action on a device not belonging to the required
-    class."""
-    pass
-
-
-class OHMDDeviceNotOpenError(RuntimeError):
-    """Raised if performing an action on a device that is closed but needs to
-    be opened."""
-    pass
-
 # ------------------------------------------------------------------------------
 # Initialize module
 #
@@ -297,32 +271,6 @@ cdef int _contextProbed = 0
 cdef int _automatic_update = 0
 cdef double _last_update_time = 0.0
 
-# value lengths
-cdef dict float_val_len = {
-    OHMD_ROTATION_QUAT: 4,
-    OHMD_LEFT_EYE_GL_MODELVIEW_MATRIX: 16,
-    OHMD_RIGHT_EYE_GL_MODELVIEW_MATRIX: 16,
-    OHMD_LEFT_EYE_GL_PROJECTION_MATRIX: 16,
-    OHMD_RIGHT_EYE_GL_PROJECTION_MATRIX: 16,
-    OHMD_POSITION_VECTOR: 3,
-    OHMD_SCREEN_HORIZONTAL_SIZE: 1,
-    OHMD_SCREEN_VERTICAL_SIZE: 1,
-    OHMD_LENS_HORIZONTAL_SEPARATION: 1,
-    OHMD_LENS_VERTICAL_POSITION: 1,
-    OHMD_LEFT_EYE_FOV: 1,
-    OHMD_LEFT_EYE_ASPECT_RATIO: 1,
-    OHMD_RIGHT_EYE_FOV: 1,
-    OHMD_RIGHT_EYE_ASPECT_RATIO: 1,
-    OHMD_EYE_IPD: 1,
-    OHMD_PROJECTION_ZFAR: 1,
-    OHMD_PROJECTION_ZNEAR: 1,
-    OHMD_DISTORTION_K: 1,
-    OHMD_EXTERNAL_SENSOR_FUSION: 10,
-    OHMD_UNIVERSAL_DISTORTION_K: 4,
-    OHMD_UNIVERSAL_ABERRATION_K: 3
-    # OHMD_CONTROLS_STATE: 1  - special
-
-}
 
 # ------------------------------------------------------------------------------
 # Constants and helper functions
@@ -381,6 +329,52 @@ cdef ohmd.ohmd_device* get_device_from_param(object dev):
     # anything else will give NULL
 
     return to_return
+
+
+# ------------------------------------------------------------------------------
+# OpenHMD specific exceptions
+#
+class OHMDNoContextError(RuntimeError):
+    """Raised if trying to perform an action without having a valid context."""
+    pass
+
+
+class OHMDContextNotProbedError(RuntimeError):
+    """Raised if trying to perform an action that requires the context be probed
+    first."""
+    pass
+
+
+class OHMDWrongDeviceClassError(RuntimeError):
+    """Raised if performing an action on a device not belonging to the required
+    class."""
+    pass
+
+
+class OHMDDeviceNotOpenError(RuntimeError):
+    """Raised if performing an action on a device that is closed but needs to
+    be opened."""
+    pass
+
+
+class OHMDUnknownError(RuntimeError):
+    """Raised if an API call returns `OHMD_S_UNKNOWN_ERROR`."""
+    pass
+
+
+class OHMDInvalidParameterError(RuntimeError):
+    """Raised if an API call returns `OHMD_S_INVALID_PARAMETER`."""
+    pass
+
+
+class OHMDUnsupportedError(RuntimeError):
+    """Raised if an API call returns `OHMD_S_UNSUPPORTED`."""
+    pass
+
+
+class OHMDInvalidOperationError(RuntimeError):
+    """Raised if an API call returns `OHMD_S_INVALID_OPERATION`."""
+    pass
 
 
 # ------------------------------------------------------------------------------
@@ -1176,6 +1170,85 @@ def getDevicePose(object device):
         device_ori[0], device_ori[1], device_ori[2], device_ori[3])
 
     return the_pose
+
+
+def getDistortionCoefs(object device, int coefType, np.ndarray[np.float32_t, ndim=1] out=None):
+    """Get the distortion and aberration coefficients for the device.
+
+    Distortion coefficients are used by the shaders to apply barrel distortion
+    to for lens correction. You may specify one of the following values to the
+    parameter `coefType`:
+
+    * ``OHMD_DISTORTION_K`` - Device specific distortion values, returns an
+      array of 6 values.
+    * ``OHMD_UNIVERSAL_DISTORTION_K`` - Universal shader distortion coefficients
+      following the PanoTools lens correction model. Returns an array of 4
+      values (`a`, `b`, `c`, `d`).
+    * ``OHMD_UNIVERSAL_ABERRATION_K`` - Universal shader aberration coefficients
+      for post-warp scaling of RGB channels. Returns 3 values specifying the
+      `r`, `g`, and `b` scaling coefficients.
+
+    Parameters
+    ----------
+    device : OHMDDeviceInfo or int
+        Descriptor or enumerated index of a device. Best practice is to pass a
+        descriptor instead of an `int`.
+    coefType : int
+        Symbolic constant specifiying the coefficient type to retrieve, can be
+        either one of ``OHMD_DISTORTION_K``, ``OHMD_UNIVERSAL_DISTORTION_K`` or
+        ``OHMD_UNIVERSAL_ABERRATION_K``.
+    out : ndarray or None
+        Optional output array for the matrix values. Must be the same length as
+        what would be expected to be returned by this function given `coefType`.
+
+    Returns
+    -------
+    ndarray
+        Array of coefficients. Same object as `out` if that was specified.
+
+    """
+    # must have context and be probed
+    if _ctx is NULL:
+        raise OHMDNoContextError()
+
+    if not _contextProbed:
+        raise OHMDContextNotProbedError()
+
+    cdef int result = ohmd.OHMD_S_OK
+    cdef ohmd.ohmd_device* c_device = get_device_from_param(device)
+
+    if c_device is NULL:
+        raise ValueError(
+            'Invalid device identifier specified to parameter `device`.')
+
+    cdef np.ndarray[np.float32_t, ndim=1] to_return
+    cdef Py_ssize_t ret_len
+    if coefType == ohmd.OHMD_DISTORTION_K:
+        ret_len = 6
+    elif coefType == ohmd.OHMD_UNIVERSAL_DISTORTION_K:
+        ret_len = 4
+    elif coefType == ohmd.OHMD_UNIVERSAL_ABERRATION_K:
+        ret_len = 3
+    else:
+        raise ValueError("Invalid value specified tp parameter `coefType`.")
+
+    if out is None:
+        to_return = np.empty((ret_len,), dtype=np.float32)
+    else:
+        to_return = out
+        # make sure we are using the correct size
+        if len(to_return) != ret_len:
+            raise ValueError(
+                "Array specified to parameter `out` must have length {} for the"
+                " given `coefType`.".format(ret_len))
+
+    result = ohmd.ohmd_device_getf(
+        c_device, <ohmd.ohmd_float_value>coefType, <float*>to_return.data)
+
+    if result < 0:
+        raise RuntimeError("Error getting value from `ohmd_device_getf`.")
+
+    return to_return
 
 
 def lastUpdateTimeElapsed():
