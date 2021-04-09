@@ -3,8 +3,8 @@ API Reference
 
 These pages provide developers detailed documentation about functions and
 classes within the latest release of the PsychXR library. Please submit an issue
-to the issue tracker `here <https://github.com/mdcutone/psychxr/issues>`_ to
-report any errata.
+to the tracker `here <https://github.com/mdcutone/psychxr/issues>`_ to report
+any errata.
 
 :mod:`psychxr.drivers` - VR hardware interfaces
 -----------------------------------------------
