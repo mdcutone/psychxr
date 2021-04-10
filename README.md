@@ -105,10 +105,11 @@ For updates on PsychXR's development, see
 ## Contributing
 
 If you would like to expand on PsychXR, feel free to submit pull requests. Help 
-for doing the following:
+for doing the following would be greatly appreciated:
 
 * OpenXR or OpenVR support
-* OpenHMD support
+* Driver access for other VR related tools such as OptiTrack(tm) and Leap Motion
+  devices.
 
 ## Authors
 

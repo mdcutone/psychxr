@@ -50,6 +50,7 @@ import ctypes
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.math cimport pow, sin, cos, M_PI, sqrt, fabs, acos
+from libc.float cimport FLT_MAX
 
 import numpy as np
 cimport numpy as np
@@ -917,20 +918,16 @@ cdef class RigidBodyPose(object):
 
         cdef pxrPosef* pose = <pxrPosef*>self.c_data
         cdef pxrVector3f pos_in
-        cdef pxrVector3f pos_rotated
+        # cdef pxrVector3f pos_rotated
 
         pos_in.x = <float>v[0]
         pos_in.y = <float>v[1]
         pos_in.z = <float>v[2]
 
         quat_mul_vec3(
-            &pos_rotated.x,
+            <float*>toReturn.data,
             &pose.Orientation.x,
             &pos_in.x)
-
-        toReturn[0] = pos_rotated.x
-        toReturn[1] = pos_rotated.y
-        toReturn[2] = pos_rotated.z
 
         return toReturn
 
@@ -969,13 +966,9 @@ cdef class RigidBodyPose(object):
 
         # apply it
         quat_mul_vec3(
-            &temp.x,
+            <float*>toReturn.data,
             &ori_inv.x,
             &temp.x)
-
-        toReturn[0] = temp.x
-        toReturn[1] = temp.y
-        toReturn[2] = temp.z
 
         return toReturn
 
@@ -1009,11 +1002,7 @@ cdef class RigidBodyPose(object):
         temp.y = <float>v[1]
         temp.z = <float>v[2]
 
-        vec3_add(&temp.x, &temp.x, &pose.Position.x)
-
-        toReturn[0] = temp.x
-        toReturn[1] = temp.y
-        toReturn[2] = temp.z
+        vec3_add(<float*>toReturn.data, &temp.x, &pose.Position.x)
 
         return toReturn
 
@@ -1089,11 +1078,7 @@ cdef class RigidBodyPose(object):
         # inverse the rotation and transformation
         quat_conj(&q_inv.x, &pose.Orientation.x)
         vec3_sub(&temp.x, &pose.Position.x, &temp.x)
-        quat_mul_vec3(&temp.x, &q_inv.x, &temp.x)
-
-        toReturn[0] = temp.x
-        toReturn[1] = temp.y
-        toReturn[2] = temp.z
+        quat_mul_vec3(<float*>toReturn.data, &q_inv.x, &temp.x)
 
         return toReturn
 
@@ -1127,11 +1112,7 @@ cdef class RigidBodyPose(object):
         temp.z = <float>v[2]
 
         # inverse the rotation and transformation
-        quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
-
-        toReturn[0] = temp.x
-        toReturn[1] = temp.y
-        toReturn[2] = temp.z
+        quat_mul_vec3(<float*>toReturn.data, &pose.Orientation.x, &temp.x)
 
         return toReturn
 
@@ -1168,11 +1149,7 @@ cdef class RigidBodyPose(object):
 
         # inverse the rotation and transformation
         quat_conj(&ori_inv.x, &pose.Orientation.x)
-        quat_mul_vec3(&temp.x, &ori_inv.x, &temp.x)
-
-        toReturn[0] = temp.x
-        toReturn[1] = temp.y
-        toReturn[2] = temp.z
+        quat_mul_vec3(<float*>toReturn.data, &ori_inv.x, &temp.x)
 
         return toReturn
 
@@ -1605,18 +1582,22 @@ cdef class RigidBodyPose(object):
 
 
 cdef class BoundingBox(object):
-    """Class for constructing and representing 3D axis-aligned bounding boxes.
+    """Class for constructing and representing 3D bounding boxes.
 
     A bounding box is a construct which represents a 3D rectangular volume
     about some pose, defined by its minimum and maximum extents in the reference
-    frame of the pose. The axes of the bounding box are aligned to the axes of
-    the world or the associated pose.
+    frame of the pose or world coordinate system. The axes of the bounding box
+    are aligned to the axes of the world or the associated pose.
 
     Bounding boxes are primarily used for visibility testing; to determine if
     the extents of an object associated with a pose (eg. the vertices of a
     model) falls completely outside of the viewing frustum. If so, the model can
     be culled during rendering to avoid wasting CPU/GPU resources on objects not
     visible to the viewer. See :func:`cullPose` for more information.
+
+    Bounding boxes on their own are axis-aligned. When associated with a
+    :class:`RigidBodyPose` class, they become object-aligned and are transformed
+    by their parent pose during visibility checks.
 
     Parameters
     ----------
@@ -1682,8 +1663,9 @@ cdef class BoundingBox(object):
             ptr.b[1].y = <float>extents[1][1]
             ptr.b[1].z = <float>extents[1][2]
         else:
-            #ptr.Clear()
-            pass
+            # just clear
+            ptr.b[0].x = ptr.b[0].y = ptr.b[0].z = FLT_MAX
+            ptr.b[1].x = ptr.b[1].y = ptr.b[1].z = -FLT_MAX
 
         self.c_data = ptr
         self.ptr_owner = True
@@ -1726,8 +1708,14 @@ cdef class BoundingBox(object):
         self._mins[:] = value
 
     def clear(self):
-        """Clear the bounding box."""
-        pass
+        """Clear the bounding box.
+
+        After calling, the `isValid` property will be `False` until either
+        `mins` and `maxs` is specified or new points are provided.
+
+        """
+        self.c_data.b[0].x = self.c_data.b[0].y = self.c_data.b[0].z = FLT_MAX
+        self.c_data.b[1].x = self.c_data.b[1].y = self.c_data.b[1].z = -FLT_MAX
 
     @property
     def isValid(self):
@@ -1810,6 +1798,151 @@ def calcEyePoses(RigidBodyPose headPose, float iod):
 
     return RigidBodyPose.fromPtr(eyePoses[0], True), \
            RigidBodyPose.fromPtr(eyePoses[1], True)
+
+
+def cullPose(np.ndarray[np.float32_t, ndim=2] eyeViewMatrix,
+             np.ndarray[np.float32_t, ndim=2] eyeProjectionMatrix,
+             RigidBodyPose pose):
+    """Test if a pose's bounding box or position falls outside of an eye's view
+    frustum.
+
+    Poses can be assigned bounding boxes which enclose any 3D models associated
+    with them. A model is not visible if all the corners of the bounding box
+    fall outside the viewing frustum. Therefore any primitives (i.e. triangles)
+    associated with the pose can be culled during rendering to reduce CPU/GPU
+    workload.
+
+    If `pose` does not have a valid bounding box (:py:class:`BoundingBox`)
+    assigned to its :py:attr:`~RigidBodyPose.bounds` attribute, this function
+    will test is if the position of `pose` is outside the view frustum.
+
+    Parameters
+    ----------
+    eyeViewMatrix : ndarray
+        View matrix of the eye viewing the scene.
+    eyeProjectionMatrix : ndarray
+        Projection matrix of the eye viewing the scene.
+    pose : RigidBodyPose
+        Pose to test.
+
+    Returns
+    -------
+    bool
+        ``True`` if the pose's bounding box is not visible to the given `eye`
+        and should be culled during rendering.
+
+    Examples
+    --------
+    Check if a pose should be culled (needs to be done for each eye)::
+
+        cullModel = cullPose(eyePose.viewMatrix, projectionMatrix, pose)
+        if not cullModel:
+            # ... OpenGL calls to draw the model here ...
+
+    Notes
+    -----
+    * This function does not test if an object is occluded by another within the
+      frustum. If an object is completely occluded, it will still be fully
+      rendered, and nearer object will be drawn on-top of it. A trick to
+      improve performance in this case is to use ``glDepthFunc(GL_LEQUAL)`` with
+      ``glEnable(GL_DEPTH_TEST)`` and render objects from nearest to farthest
+      from the head pose. This will reject fragment color calculations for
+      occluded locations.
+
+    """
+    # This is based on OpenXR's function `XrMatrix4x4f_CullBounds` found in
+    # `xr_linear.h`
+    global _eyeViewProjectionMatrix
+
+    cdef pxrBounds3f* bbox
+    cdef pxrVector4f test_point
+    cdef pxrVector4f[8] corners
+    cdef Py_ssize_t i
+
+    # compute the MVP matrix to transform poses into HCS
+    cdef pxrMatrix4f mvp
+    mat4x4_mul(&mvp.M[0], <vec4*>eyeProjectionMatrix.data, <vec4*>eyeViewMatrix.data)
+    mat4x4_mul(&mvp.M[0], <vec4*>eyeProjectionMatrix.data, &mvp.M[0])
+
+    if pose.bounds is not None:
+        # has a bounding box
+        bbox = pose._bbox.c_data
+
+        # bounding box is cleared/not valid, don't cull
+        if bbox.b[1].x <= bbox.b[0].x and \
+                bbox.b[1].y <= bbox.b[0].y and \
+                bbox.b[1].z <= bbox.b[0].z:
+            return False
+
+        # compute the corners of the bounding box
+        for i in range(8):
+            test_point.x = bbox.b[1].x if (i & 1) else bbox.b[0].x
+            test_point.y = bbox.b[1].y if (i & 2) else bbox.b[0].y
+            test_point.z = bbox.b[1].z if (i & 4) else bbox.b[0].z
+            test_point.w = 1.0
+
+            mat4x4_mul_vec4(&corners[i].x, &mvp.M[0], &test_point.x)
+
+        # If any of these loops exit normally, the bounding box is completely
+        # off to one side of the viewing frustum
+        for i in range(8):
+            if corners[i].x > -corners[i].w:
+                break
+        else:
+            return True
+
+        for i in range(8):
+            if corners[i].x < corners[i].w:
+                break
+        else:
+            return True
+
+        for i in range(8):
+            if corners[i].y > -corners[i].w:
+                break
+        else:
+            return True
+
+        for i in range(8):
+            if corners[i].y < corners[i].w:
+                break
+        else:
+            return True
+
+        for i in range(8):
+            if corners[i].z > -corners[i].w:
+                break
+        else:
+            return True
+
+        for i in range(8):
+            if corners[i].z < corners[i].w:
+                break
+        else:
+            return True
+    else:
+        # no bounding box, cull position of the pose
+        test_point.x = pose.c_data.Position.x
+        test_point.y = pose.c_data.Position.y
+        test_point.z = pose.c_data.Position.z
+        test_point.w = 1.0
+
+        mat4x4_mul_vec4(&test_point.x, &mvp.M[0], &test_point.x)
+
+        if test_point.x <= -test_point.w:
+            return True
+        elif test_point.x >= test_point.w:
+            return True
+        elif test_point.y <= -test_point.w:
+            return True
+        elif test_point.y >= test_point.w:
+            return True
+        elif test_point.z <= -test_point.w:
+            return True
+        elif test_point.z >= test_point.w:
+            return True
+
+    return False
 
 
 if __name__ == "__main__":

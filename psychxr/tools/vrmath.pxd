@@ -379,6 +379,13 @@ ctypedef struct pxrVector3f:
     float z
 
 
+ctypedef struct pxrVector4f:
+    float x
+    float y
+    float z
+    float w
+
+
 ctypedef struct pxrMatrix4f:
     float[4][4] M
 
