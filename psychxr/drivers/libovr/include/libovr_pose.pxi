@@ -664,7 +664,7 @@ cdef class LibOVRPose(object):
         if degrees:
             angle *= RAD_TO_DEGF
 
-        return angle, ret_axis
+        return ret_axis, angle
 
     def setOriAxisAngle(self, object axis, float angle, bint degrees=True):
         """Set the orientation of this pose using an axis and angle.

@@ -82,10 +82,12 @@ New Features:
       raypicking on bounding boxes belonging to other poses. The method returns
       the position in world space the intersection occurs. Bounding boxes are
       oriented by the poses they belong to.
+    - Added some automated tests for `vrmath`.
 
 Bug Fixes:
 
     - Added missing `viewMatrix` attribute to `LibOVRPose`.
+    - Fixed wrong order of return values for `LibOVRPose.getOriAxisAngle`.
 
 Breaking Changes:
 

@@ -758,7 +758,7 @@ cdef class RigidBodyPose(object):
         if degrees:
             angle *= RAD_TO_DEGF
 
-        return angle, ret_axis
+        return ret_axis, angle
 
     def setOriAxisAngle(self, object axis, float angle, bint degrees=True):
         """Set the orientation of this pose using an axis and angle.
@@ -1036,11 +1036,7 @@ cdef class RigidBodyPose(object):
         temp.z = <float>v[2]
 
         quat_mul_vec3(&temp.x, &pose.Orientation.x, &temp.x)
-        vec3_add(&temp.x, &temp.x, &pose.Position.x)
-
-        toReturn[0] = temp.x
-        toReturn[1] = temp.y
-        toReturn[2] = temp.z
+        vec3_add(<float*>toReturn.data, &temp.x, &pose.Position.x)
 
         return toReturn
 
@@ -1852,8 +1848,6 @@ def cullPose(np.ndarray[np.float32_t, ndim=2] eyeViewMatrix,
     """
     # This is based on OpenXR's function `XrMatrix4x4f_CullBounds` found in
     # `xr_linear.h`
-    global _eyeViewProjectionMatrix
-
     cdef pxrBounds3f* bbox
     cdef pxrVector4f test_point
     cdef pxrVector4f[8] corners
