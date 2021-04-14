@@ -1939,5 +1939,46 @@ def cullPose(np.ndarray[np.float32_t, ndim=2] eyeViewMatrix,
     return False
 
 
+cdef void mult_quat(float* a, float* b, float* out):
+    """Multiply two quaternions.
+    """
+    out[0] = (a[1] * b[2] - a[2] * b[1]) + a[0] * b[3] + b[0] * a[3]
+    out[1] = (a[2] * b[0] - a[0] * b[2]) + a[1] * b[3] + b[1] * a[3]
+    out[2] = (a[0] * b[1] - a[1] * b[0]) + a[2] * b[3] + b[2] * a[3]
+    out[3] = a[3] * b[3] - (b[0] * a[0] + b[1] * a[1] + b[2] * a[2])
+
+
+def multQuat(object q1, object q2, np.ndarray[np.float32_t, ndim=1] out=None):
+    """Multiply two quaternions, combining their rotations.
+
+    Parameters
+    ----------
+    q1, q2 : ArrayLike
+        Quaternions (x, y, z, w) to multiply.
+    out : ndarray
+        Optional output array for values. Must be length 4 and have a dtype of
+        np.float32.
+
+    Returns
+    -------
+    ndarray
+        Quaternion (x, y, z, w).
+
+    """
+    cdef np.ndarray[np.float32_t, ndim=1] a = np.asarray(q1, dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] b = np.asarray(q2, dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] toReturn
+
+    if out is None:
+        toReturn = np.empty((4,), dtype=np.float32)
+    else:
+        assert len(out) == 4
+        toReturn = out
+
+    mult_quat(<float*>a.data, <float*>b.data, <float*>toReturn.data)
+
+    return toReturn
+
+
 if __name__ == "__main__":
     pass
