@@ -15,6 +15,8 @@ use in industry for prototyping and development of VR related solutions.
 PsychXR is used by PsychoPy v3 (http://www.psychopy.org/) to provide HMD 
 support.
 
+**Note that this README refers to the development version of PsychXR.**
+
 ## Why PsychXR?
 
 PsychXR is intended to provide near direct access to HMD driver APIs using a 
