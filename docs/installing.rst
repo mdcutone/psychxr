@@ -36,8 +36,8 @@ environment variables or compilers needed)::
     python -m pip install psychxr-<version>.whl
 
 Note that the pre-compiled binaries are built on Windows 10 64-bit using the
-MSVC++ 19.0 against Python 3.6 64-bit. If your configuration differs, consider
-building from source.
+MSVC++ 19.0 64-bit, supporting versions 3.6 to 3.9. If your configuration
+differs, consider building from source.
 
 Building from Source
 --------------------
@@ -58,8 +58,7 @@ Python and HMD drivers. Unlike regular Python code, Cython libraries must be
 any other Python library.
 
 .. note:: Since the Oculus Rift on Microsoft Windows is the only supported HMD
-          at this time, this guide will only cover building LibOVR extension
-          library on that platform.
+          at this time, this guide will only cover building on that platform.
 
 Setting up the build environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -155,7 +154,8 @@ Building the Preview OpenHMD Extension
 
 A preview version of the OpenHMD extension is available as of version 0.2.4 of
 PsychXR. If you want to try it out, you can tell the installer to build it by
-setting the following environment variable::
+setting the following environment variable prior to building the source
+distribution::
 
     set PSYCHXR_BUILD_OPENHMD=1
 
@@ -166,7 +166,7 @@ If everything goes well, PsychXR should be installed and ready to use. You can
 test it by plugging in your HMD issuing the following command into your Python
 interpreter::
 
-    >>> import psychxr.libovr as libovr
+    >>> import psychxr.drivers.libovr as libovr
     >>> libovr.isHmdConnected()
     True
 
@@ -181,5 +181,7 @@ Help! PsychXR failed to install!
 
 If this happens try the above steps again or another installation method. If you
 are really stuck, consider submitting an issue to the project's GitHub page
-detailing the steps you took. It is likely that the problem is not your fault
-and might be due to unclear or erroneous documentation.
+detailing the steps you took and were things began to fail. It is likely that
+the any difficulty encountered is not your fault and might be due to unclear or
+erroneous documentation. Suggestions and fixes are always welcome to make the
+process smoother for everyone.

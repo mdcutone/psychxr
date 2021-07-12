@@ -24,10 +24,10 @@ more effort on behalf of the user than `LibOVR`, but may offer greater
 flexibility for those that need it by removing the "black box" between the
 application and the display.
 
-This library is only available if PsychXR was built with the environment
+**This library is only available if PsychXR was built with the environment
 variable ``PSYCHXR_BUILD_OPENHMD=1`` being previously set. Be aware that this
-module is currently in the alpha phase of development and may not function as
-intended.
+module is currently in the alpha phase of development and may be incomplete and
+buggy.**
 
 Overview
 ========
@@ -59,6 +59,7 @@ Functions
     lastUpdateTimeElapsed
     update
     getDeviceParamf
+    setDeviceParamf
     getDeviceParami
     getString
     getListString
@@ -94,6 +95,7 @@ Functions
 .. autofunction:: lastUpdateTimeElapsed
 .. autofunction:: update
 .. autofunction:: getDeviceParamf
+.. autofunction:: setDeviceParamf
 .. autofunction:: getDeviceParami
 .. autofunction:: getString
 .. autofunction:: getListString

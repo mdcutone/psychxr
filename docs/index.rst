@@ -35,8 +35,8 @@ Contents
    license
    faq
    api
-   topics
    examples
+   topics
 
 Source Code
 -----------
