@@ -54,8 +54,7 @@ Overview:
 
 New Features:
 
-    - Experimental OpenHMD driver `psychxr.drivers.openhmd`. This is available
-      for preview only and is only available when building from source.
+    - Experimental OpenHMD driver `psychxr.drivers.openhmd`.
     - Version bump of the Oculus PC SDK to 23.0 (latest as of this release).
     - The Oculus SDK driver module `psychxr.libovr` has been moved to
       `psychxr.drivers.libovr`. This change is needed to organize things better
