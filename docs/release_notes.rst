@@ -5,7 +5,7 @@ Release Notes
 Version 0.2.4 - 2021-03-16
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Finally another release of PsychXR after nearly a year! The 0.2.4 release of
+Finally another release of PsychXR after more than a year! The 0.2.4 release of
 PsychXR introduces new features and significant changes to how the project is
 organized. The library itself has undergone considerable refactoring, intended
 to make PsychXR more modular for a future plugin system to allow features (e.g.,
@@ -29,6 +29,14 @@ with the bounding boxes associated with poses. This allows for basic interaction
 between the user and objects in the scene without needing to figure that stuff
 out yourself.
 
+Furthermore, initial support for OpenHMD has been added. Doesn't quite work yet
+but the driver extension module can be built and tested
+:mod:`~psychxr.drivers.openhmd`. Some critical functionality may be missing as
+of this release, such as the ability to get controller input states (for
+buttons). While the OpenHMD extension ships with this release, it is very much
+in the alpha stage of development and is only available when building PsychXR
+from source.
+
 See CHANGELOG for more information regarding changes this release.
 
 **General**
@@ -45,6 +53,8 @@ See CHANGELOG for more information regarding changes this release.
   ``set PSYCHXR_LIBOVR_SDK_PATH=cohorts\OculusSDK``. By default, the setup
   script will now look for SDK files in the present working directory instead of
   `C:\OculusSDK`.
+* Added :mod:`~psychxr.tools.vrmath` providing a common toolset for specifying
+  the spatial configuration of objects in a VR scene.
 
 **Oculus Rift Support (libovr)**
 
@@ -68,6 +78,11 @@ See CHANGELOG for more information regarding changes this release.
 * Added :meth:`~psychxr.drivers.libovr.LibOVRPose.raycastPose` for interaction
   with bounding boxes around other poses.
 * Removed the ``BUILD_VERSION`` variable from the namespace of `libovr`.
+
+**OpenHMD Support (openhmd)**
+
+* Added the :mod:`~psychxr.drivers.openhmd` extension module. Not fully featured
+  but is available as a preview if PsychXR is built from source.
 
 `Click here to download PsychXR 0.2.4 <https://github.com/mdcutone/psychxr/releases>`_
 
