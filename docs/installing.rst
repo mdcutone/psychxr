@@ -8,9 +8,9 @@ PsychXR requires Python 3.6 and above, download it
 `here <https://python.org/>`_. Since PsychXR will only build in 64-bit, ensure
 that the version of Python you install is also 64-bit.
 
-The PsychXR installer will automatically pull any dependencies, such as
-`Cython <https://cython.org/>`_ and `NumPy <https://www.numpy.org/>`_, prior to
-installation.
+The PsychXR installer will automatically pull any Python package dependencies,
+such as `Cython <https://cython.org/>`_ and `NumPy <https://www.numpy.org/>`_,
+prior to installation.
 
 Installing from PyPI
 --------------------
@@ -76,7 +76,7 @@ feature and start the installation (see below).
 
 .. image:: ./_static/build_on_windows1.png
     :alt: Feature "Desktop development with C++" selected in the Visual Studio
-          Installer.
+          Installer window.
     :align: center
 
 Now create a folder somewhere accessible on your PC. For this example, we'll
@@ -98,7 +98,7 @@ should look something like what's shown below.
 
 .. image:: ./_static/psychxr_build_windows4.PNG
     :alt: Feature "Desktop development with C++" selected in the Visual Studio
-          Installer.
+          Installer window.
     :align: center
 
 .. note:: If you build PsychXR using a version of the Oculus PC SDK other than
@@ -176,10 +176,10 @@ you just have the runtime installed but no HMD connected. That will still
 indicate a successful installation. If you get any exception raised when
 entering the above commands, the installation has likely failed at some point.
 
-Help! PsychXR failed to install
--------------------------------
+Help! PsychXR failed to install!
+--------------------------------
 
 If this happens try the above steps again or another installation method. If you
 are really stuck, consider submitting an issue to the project's GitHub page
-detailing the steps you took. It's likely that the problem is not you're fault
+detailing the steps you took. It is likely that the problem is not your fault
 and might be due to unclear or erroneous documentation.
