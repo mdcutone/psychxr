@@ -4,12 +4,9 @@ Getting PsychXR
 Preparing for Installation
 --------------------------
 
-PsychXR requires `Python 3.6
-<https://www.python.org/downloads/release/python-366/>`_ 64-bit to run and was
-extensively tested using version 3.6.6. It should be possible to build and run
-PsychXR on newer versions of Python, but the 3.6 series is preferred at this
-time. Since PsychXR will only build in 64-bit, ensure that the version of Python
-you install is also 64-bit.
+PsychXR requires Python 3.6 and above, download it
+`here <https://python.org/>`_. Since PsychXR will only build in 64-bit, ensure
+that the version of Python you install is also 64-bit.
 
 The PsychXR installer will automatically pull any dependencies, such as
 `Cython <https://cython.org/>`_ and `NumPy <https://www.numpy.org/>`_, prior to
@@ -25,8 +22,9 @@ installed by issuing the following command::
     python -m pip install psychxr
 
 If the binaries are not available for some reason (eg. your version of Python is
-too new), pip will try to build the source distribution (it will likely fail).
-In that case, see the "Building from Source" section for more information.
+too new), pip will try to build the source distribution, it will likely fail
+since you need to setup your build environment. In that case, see the "Building
+from Source" section for more information.
 
 Installing Pre-Compiled Binaries
 --------------------------------
@@ -46,11 +44,12 @@ Building from Source
 
 Usually, you can simply download and install pre-built binaries which require no
 additional steps like regular Python packages. However, if you plan on
-developing *PsychXR*, or wish to run *PsychXR* on Python versions which do not
-have official packages up on PyPI or GitHub yet, you will need to build
-*PsychXR* from source. Doing so requires some preparation to setup a suitable
-build environment on your computer. However, once the environment is setup the
-process to actually build *PsychXR* is fairly straightforward.
+developing *PsychXR*, use preview features (e.g., OpenHMD) or wish to run
+*PsychXR* on Python versions which do not have official packages up on PyPI or
+GitHub yet, you will need to build *PsychXR* from source. Doing so requires some
+preparation to setup a suitable build environment on your computer. However,
+once the environment is setup the process to actually build *PsychXR* is fairly
+straightforward.
 
 *PsychXR* is (mostly) written in `Cython <https://cython.org/>`_, a superset of
 the Python programming language, which is used to write the interface between
@@ -137,11 +136,6 @@ extensions for the Oculus SDK (LibOVR) by issuing the following command::
 
     set PSYCHXR_BUILD_LIBOVR=1
 
-The above command is redundant at this time. Since LibOVR is the only supported
-interface and *PsychXR* would be pretty useless without it,
-``PSYCHXR_BUILD_LIBOVR`` defaults to ``1`` even without specifying the above
-command. In the future, other interfaces may be installed selectively this way.
-
 The installer needs to know where the Oculus PC SDK files are located to build
 the LibOVR extension. The SDK contains files needed to compile the interface
 which are provided by the manufacturer. It does this by looking at the value of
@@ -156,6 +150,15 @@ Now we can build the source package by entering the following command (replacing
 
     python -m pip install psychxr-<version>.tar.gz
 
+Building OpenHMD
+~~~~~~~~~~~~~~~~
+
+A preview version of the OpenHMD extension is available as of version 0.2.4 of
+PsychXR. If you want to try it out, you can tell the installer to build it by
+setting the following environment variable::
+
+    set PSYCHXR_BUILD_OPENHMD=1
+
 Testing the Installation
 ------------------------
 
@@ -167,3 +170,16 @@ interpreter::
     >>> libovr.isHmdConnected()
     True
 
+If you have an HMD connected and the Oculus runtime installed on your PC, the
+above statements will result in `True` being returned. `False` is returned if
+you just have the runtime installed but no HMD connected. That will still
+indicate a successful installation. If you get any exception raised when
+entering the above commands, the installation has likely failed at some point.
+
+Help! PsychXR failed to install
+-------------------------------
+
+If this happens try the above steps again or another installation method. If you
+are really stuck, consider submitting an issue to the project's GitHub page
+detailing the steps you took. It's likely that the problem is not you're fault
+and might be due to unclear or erroneous documentation.

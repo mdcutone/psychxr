@@ -33,6 +33,7 @@ Contents
    installing
    release_notes
    license
+   faq
    api
    topics
    examples
@@ -46,14 +47,20 @@ modification. The source code repository is hosted on
 reports and pull requests.
 
 PsychXR is mostly written in `Cython <https://cython.org/>`_ a superset of the
-Python language.
+Python language. If you plan on adding features to PsychXR, knowledge of Cython
+is highly recommended.
 
 Hardware Support
 ----------------
 
 As of now, only the Oculus Rift series of HMDs are supported (DK2, CV1, S) via
 the `~psychxr.drivers.libovr` driver interface which uses the official PC SDK.
-However, additional drivers are being considered to be included in the future.
+However, additional drivers are being considered to be included in the future
+using `OpenXR <https://www.khronos.org/openxr/>`_ and
+`OpenHMD <http://www.openhmd.net/>`_.
+
+A preview for the OpenHMD interface is available as of version 0.2.4 which is
+accessible if you build PsychXR from source.
 
 Related Projects
 ----------------
@@ -74,7 +81,7 @@ How to Cite PsychXR
 If you use PsychXR in one of your projects, please consider citing it using the
 following:
 
-   Cutone, M. D. & Wilcox, L. M. (2018). PsychXR (Version 0.2) [Software].
+   Cutone, M. D. & Wilcox, L. M. (2021). PsychXR (Version 0.2.4) [Software].
    Available from https://github.com/mdcutone/psychxr.
 
 Site Index
