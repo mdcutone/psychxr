@@ -58,6 +58,8 @@ Functions
     getDevicePose
     lastUpdateTimeElapsed
     update
+    getDeviceParamf
+    getDeviceParami
     getString
     getListString
     getListInt
@@ -91,6 +93,8 @@ Functions
 .. autofunction:: getDevicePose
 .. autofunction:: lastUpdateTimeElapsed
 .. autofunction:: update
+.. autofunction:: getDeviceParamf
+.. autofunction:: getDeviceParami
 .. autofunction:: getString
 .. autofunction:: getListString
 .. autofunction:: getListInt

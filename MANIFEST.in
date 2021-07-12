@@ -1,2 +1,2 @@
 include LICENSE MANIFEST.in README.md CHANGELOG.txt
-recursive-include psychxr *.pxd *.pyx *.py *.cpp *.pxi *.h
+recursive-include psychxr *.pxd *.pyx *.py *.cpp *.pxi *.h *.dll *.lib

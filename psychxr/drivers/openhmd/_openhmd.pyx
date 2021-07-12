@@ -1191,7 +1191,33 @@ def getDeviceParamf(object device, int param):
         Descriptor or enumerated index of a device. Best practice is to pass a
         descriptor instead of an `int`.
     param : int
-        Symbolic constant representing the parameter to retrieve.
+        Symbolic constant representing the parameter to retrieve. Parameters can
+        be one of the following constants (return type and length if applicable
+        in parentheses):
+
+            - ``OHMD_ROTATION_QUAT`` (ndarray, length 4)
+            - ``OHMD_LEFT_EYE_GL_MODELVIEW_MATRIX`` (ndarray, length 16)
+            - ``OHMD_RIGHT_EYE_GL_MODELVIEW_MATRIX`` (ndarray, length 16)
+            - ``OHMD_LEFT_EYE_GL_PROJECTION_MATRIX`` (ndarray, length 16)
+            - ``OHMD_RIGHT_EYE_GL_PROJECTION_MATRIX`` (ndarray, length 16)
+            - ``OHMD_POSITION_VECTOR`` (ndarray, length 3)
+            - ``OHMD_SCREEN_HORIZONTAL_SIZE`` (float)
+            - ``OHMD_SCREEN_VERTICAL_SIZE`` (float)
+            - ``OHMD_LENS_HORIZONTAL_SEPARATION`` (float)
+            - ``OHMD_LENS_VERTICAL_POSITION`` (float)
+            - ``OHMD_LEFT_EYE_FOV`` (float)
+            - ``OHMD_LEFT_EYE_ASPECT_RATIO`` (float)
+            - ``OHMD_RIGHT_EYE_FOV`` (float)
+            - ``OHMD_RIGHT_EYE_ASPECT_RATIO`` (float)
+            - ``OHMD_EYE_IPD`` (float)
+            - ``OHMD_PROJECTION_ZFAR`` (float)
+            - ``OHMD_PROJECTION_ZNEAR`` (float)
+            - ``OHMD_DISTORTION_K`` (ndarray, length 6)
+            - ``OHMD_EXTERNAL_SENSOR_FUSION`` (ndarray, length 10)
+            - ``OHMD_UNIVERSAL_DISTORTION_K`` (ndarray, length 4)
+            - ``OHMD_UNIVERSAL_ABERRATION_K``  (ndarray, length 3)
+            - ``OHMD_CONTROLS_STATE`` (ndarray, length is the value of
+              ``OHMD_CONTROL_COUNT`` returned by the API)
 
     Returns
     -------
