@@ -150,8 +150,8 @@ Now we can build the source package by entering the following command (replacing
 
     python -m pip install psychxr-<version>.tar.gz
 
-Building OpenHMD
-~~~~~~~~~~~~~~~~
+Building the Preview OpenHMD Extension
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A preview version of the OpenHMD extension is available as of version 0.2.4 of
 PsychXR. If you want to try it out, you can tell the installer to build it by
