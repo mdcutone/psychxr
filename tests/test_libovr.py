@@ -22,15 +22,19 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 #
+"""Simple tests for the `libovr` extension module.
 
-"""Simple tests for the `libovr` extension module."""
+These test require a PC with a supported HMD connected and the Oculus runtime
+installed.
+
+"""
 
 import psychxr.drivers.libovr as libovr
 
 
 def test_hmd_connected():
     """Simple test to show that we can interact with the OVR runtime. This
-    requires the HMD to be connected.
+    requires the HMD to be connected, really only called from the test rig.
     """
     assert libovr.isHmdConnected()
 
