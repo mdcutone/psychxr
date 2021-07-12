@@ -4,7 +4,9 @@
 
 .. currentmodule:: psychxr.tools.vrmath
 
-Toolbox of classes and functions for performing VR related math.
+Toolbox of classes and functions for performing VR related math. These are used
+to describe and compute the spatial configuration of objects in a VR scene for
+the purpose of rendering and interaction.
 
 Overview
 ========

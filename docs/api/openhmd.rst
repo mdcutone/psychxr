@@ -24,6 +24,11 @@ more effort on behalf of the user than `LibOVR`, but may offer greater
 flexibility for those that need it by removing the "black box" between the
 application and the display.
 
+This library is only available if PsychXR was built with the environment
+variable ``PSYCHXR_BUILD_OPENHMD=1`` being previously set. Be aware that this
+module is currently in the alpha phase of development and may not function as
+intended.
+
 Overview
 ========
 
@@ -32,15 +37,12 @@ Classes
 
 .. autosummary::
     OHMDDeviceInfo
-    OHMDPose
-    OHMDDeviceInfo
-    OHMDDisplayInfo
-    OHMDControllerInfo
 
 Functions
 ~~~~~~~~~
 
 .. autosummary::
+    OHMDDeviceInfo
     success
     failure
     getVersion
@@ -51,10 +53,8 @@ Functions
     getDeviceCount
     getError
     getDevices
-    getDisplayInfo
     openDevice
     closeDevice
-    getDisplayInfo
     getDevicePose
     lastUpdateTimeElapsed
     update
@@ -68,22 +68,7 @@ Details
 Classes
 ~~~~~~~
 
-.. autoclass:: OHMDPose
-    :members:
-    :undoc-members:
-    :inherited-members:
-
 .. autoclass:: OHMDDeviceInfo
-    :members:
-    :undoc-members:
-    :inherited-members:
-
-.. autoclass:: OHMDDisplayInfo
-    :members:
-    :undoc-members:
-    :inherited-members:
-
-.. autoclass:: OHMDControllerInfo
     :members:
     :undoc-members:
     :inherited-members:
@@ -101,10 +86,8 @@ Functions
 .. autofunction:: getDeviceCount
 .. autofunction:: getError
 .. autofunction:: getDevices
-.. autofunction:: getDisplayInfo
 .. autofunction:: openDevice
 .. autofunction:: closeDevice
-.. autofunction:: getDisplayInfo
 .. autofunction:: getDevicePose
 .. autofunction:: lastUpdateTimeElapsed
 .. autofunction:: update
