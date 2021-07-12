@@ -27,10 +27,13 @@ hmd_device = found_hmds[0]  # use the first HMD found
 ohmd.openDevice(hmd_device)
 
 # get HMD display info
-hmd_display_info = ohmd.getDisplayInfo(hmd_device)
+res_horiz = ohmd.getDeviceParami(
+    hmd_device, ohmd.OHMD_SCREEN_HORIZONTAL_RESOLUTION)
+res_vert = ohmd.getDeviceParami(
+    hmd_device, ohmd.OHMD_SCREEN_VERTICAL_RESOLUTION)
 
 # print the resolution of the display
-print(hmd_display_info.resolution)
+print((res_horiz, res_vert))
 
 # close the device
 ohmd.closeDevice(hmd_device)

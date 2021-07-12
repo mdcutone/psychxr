@@ -140,6 +140,8 @@ __all__ = [
     "getEyeViewMatrix",
     "getEyeProjectionMatrix",
     "getEyeAspectRatio",
+    "getDeviceParamf",
+    "getDeviceParami",
     "update",
     "getString",
     "getListString",
@@ -151,7 +153,7 @@ import numpy as np
 np.import_array()
 from . cimport openhmd as ohmd
 from libc.time cimport clock, clock_t
-# from cpython.mem cimport PyMem_Malloc, PyMem_Free
+from cpython.mem cimport PyMem_Malloc, PyMem_Free
 # from libc.math cimport fabs
 cimport psychxr.tools.vrmath as vrmath
 import psychxr.tools.vrmath as vrmath
@@ -1092,6 +1094,358 @@ def getEyeAspectRatio(object device, int eye):
     return to_return
 
 
+# These control how we can specify and retrieve each parameter. We subtract 1
+# from the value of the symbolic constant and look up the required value in the
+# following arrays.
+
+cdef Py_ssize_t _ohmd_float_value_sz[22]  # for float parameters
+_ohmd_float_value_sz[:] = [
+    4,   # OHMD_ROTATION_QUAT
+    16,  # OHMD_LEFT_EYE_GL_MODELVIEW_MATRIX
+    16,  # OHMD_RIGHT_EYE_GL_MODELVIEW_MATRIX
+    16,  # OHMD_LEFT_EYE_GL_PROJECTION_MATRIX
+    16,  # OHMD_RIGHT_EYE_GL_PROJECTION_MATRIX
+    3,   # OHMD_POSITION_VECTOR
+    1,   # OHMD_SCREEN_HORIZONTAL_SIZE
+    1,   # OHMD_SCREEN_VERTICAL_SIZE
+    1,   # OHMD_LENS_HORIZONTAL_SEPARATION
+    1,   # OHMD_LENS_VERTICAL_POSITION
+    1,   # OHMD_LEFT_EYE_FOV
+    1,   # OHMD_LEFT_EYE_ASPECT_RATIO
+    1,   # OHMD_RIGHT_EYE_FOV
+    1,   # OHMD_RIGHT_EYE_ASPECT_RATIO
+    1,   # OHMD_EYE_IPD
+    1,   # OHMD_PROJECTION_ZFAR
+    1,   # OHMD_PROJECTION_ZNEAR
+    6,   # OHMD_DISTORTION_K
+    10,  # OHMD_EXTERNAL_SENSOR_FUSION
+    4,   # OHMD_UNIVERSAL_DISTORTION_K
+    3,   # OHMD_UNIVERSAL_ABERRATION_K
+    0    # OHMD_CONTROLS_STATE (unused)
+]
+
+cdef Py_ssize_t _ohmd_int_value_sz[7]  # for integer parameters, start at 0
+_ohmd_int_value_sz[:] = [
+    1,   # OHMD_SCREEN_HORIZONTAL_RESOLUTION
+    1,   # OHMD_SCREEN_VERTICAL_RESOLUTION
+    1,   # OHMD_DEVICE_CLASS
+    1,   # OHMD_DEVICE_FLAGS
+    1,   # OHMD_CONTROL_COUNT
+    # special handling for these so they are unfilled ...
+    0,   # OHMD_CONTROLS_HINTS
+    0    # OHMD_CONTROLS_TYPES
+]
+
+# Are the parameters settable? We check using the access flags below.
+# 0 = read-only (get)
+# 1 = write (set)
+# 2 = read/write (get/set)
+cdef Py_ssize_t _ohmd_float_value_access_flags[22]  # floats
+_ohmd_float_value_access_flags[:] = [
+    0,   # OHMD_ROTATION_QUAT
+    0,   # OHMD_LEFT_EYE_GL_MODELVIEW_MATRIX
+    0,   # OHMD_RIGHT_EYE_GL_MODELVIEW_MATRIX
+    0,   # OHMD_LEFT_EYE_GL_PROJECTION_MATRIX
+    0,   # OHMD_RIGHT_EYE_GL_PROJECTION_MATRIX
+    0,   # OHMD_POSITION_VECTOR
+    0,   # OHMD_SCREEN_HORIZONTAL_SIZE
+    0,   # OHMD_SCREEN_VERTICAL_SIZE
+    0,   # OHMD_LENS_HORIZONTAL_SEPARATION
+    0,   # OHMD_LENS_VERTICAL_POSITION
+    0,   # OHMD_LEFT_EYE_FOV
+    0,   # OHMD_LEFT_EYE_ASPECT_RATIO
+    0,   # OHMD_RIGHT_EYE_FOV
+    0,   # OHMD_RIGHT_EYE_ASPECT_RATIO
+    2,   # OHMD_EYE_IPD
+    2,   # OHMD_PROJECTION_ZFAR
+    2,   # OHMD_PROJECTION_ZNEAR
+    0,   # OHMD_DISTORTION_K
+    1,   # OHMD_EXTERNAL_SENSOR_FUSION
+    0,   # OHMD_UNIVERSAL_DISTORTION_K
+    0,   # OHMD_UNIVERSAL_ABERRATION_K
+    0    # OHMD_CONTROLS_STATE
+]
+
+cdef Py_ssize_t _ohmd_int_value_access_flags[7]  # for integer parameters
+_ohmd_int_value_sz[:] = [
+    0,   # OHMD_SCREEN_HORIZONTAL_RESOLUTION
+    0,   # OHMD_SCREEN_VERTICAL_RESOLUTION
+    0,   # OHMD_DEVICE_CLASS
+    0,   # OHMD_DEVICE_FLAGS
+    0,   # OHMD_CONTROL_COUNT
+    # special handling for these so they are unfilled ...
+    0,   # OHMD_CONTROLS_HINTS
+    0    # OHMD_CONTROLS_TYPES
+]
+
+
+def getDeviceParamf(object device, int param):
+    """Get a floating point parameter from a device.
+
+    This calls to `ohmd_device_getf` on the specified `device`, retrieving the
+    value requested by `param`.
+
+    Parameters
+    ----------
+    device : OHMDDeviceInfo or int
+        Descriptor or enumerated index of a device. Best practice is to pass a
+        descriptor instead of an `int`.
+    param : int
+        Symbolic constant representing the parameter to retrieve.
+
+    Returns
+    -------
+    float or ndarray
+        Single floating-point value or array. The return value data type and
+        size is automatically determined by the type of parameter.
+
+    Examples
+    --------
+    Get the horizontal and vertical screen size for a device::
+
+        physical_horiz_size = ohmd.getDeviceParamf(
+            hmd_device,
+            ohmd.OHMD_SCREEN_HORIZONTAL_SIZE)
+        physical_vert_size = ohmd.getDeviceParamf(
+            hmd_device,
+            ohmd.OHMD_SCREEN_VERTICAL_SIZE)
+
+    Get the left eye model/view matrix::
+
+        left_modelview_matrix = ohmd.getDeviceParamf(
+            hmd_device,
+            ohmd.OHMD_LEFT_EYE_GL_MODELVIEW_MATRIX)
+
+        # you may want to reshape it
+        left_modelview_matrix = left_modelview_matrix.reshape((4, 4))
+
+    """
+    # must have context and be probed
+    if _ctx is NULL:
+        raise OHMDNoContextError()
+
+    if not _contextProbed:
+        raise OHMDContextNotProbedError()
+
+    cdef OHMDDeviceInfo desc
+
+    if isinstance(device, int):  # enum index provided
+        desc = _deviceInfoList[device]
+    elif isinstance(device, OHMDDeviceInfo):  # device object provided
+        desc = device
+    else:
+        raise ValueError(
+            "Parameter `device` must be type `int` or `OHMDDeviceInfo`.")
+
+    # check if the device is presently opened
+    if not desc.c_device_info.isOpened:
+        raise OHMDDeviceNotOpenError(
+            "Trying to obtain the pose of a device that is presently closed.")
+
+    if 1 > param > 22:  # equal to the length of `_ohmd_float_value_sz`
+        raise ValueError("Value for `param` is not valid.")
+
+    # check if the parameter is write only
+    if _ohmd_float_value_access_flags[param-1] == 1:
+        raise OHMDInvalidParameterError(
+            "Specified parameter is not readable (write-only).")
+
+    # this is pretty messy for now, it works... but a better solution may be
+    # required to avoid hard-coded indices
+    cdef Py_ssize_t ret_sz
+    cdef Py_ssize_t i
+    cdef int ctrl_count  # used if `param` == `OHMD_CONTROLS_STATE`
+    cdef int result  # API call result
+    cdef object to_return  # returned to the user in Python land
+
+    # array allocated to hold the returned data from the API call
+    cdef float* api_ret_val
+    if param == ohmd.OHMD_CONTROLS_STATE:
+        # getting a controller button state requires getting
+        # `OHMD_CONTROL_COUNT` first
+        result = ohmd.ohmd_list_geti(
+            _ctx,
+            desc.c_device_info.deviceIdx,
+            <ohmd.ohmd_int_value>ohmd.OHMD_CONTROL_COUNT,
+            &ctrl_count)
+
+        # caught an error getting this parameter
+        if result < ohmd.OHMD_S_OK:
+            if result == ohmd.OHMD_S_INVALID_PARAMETER:
+                raise OHMDInvalidParameterError()
+            elif result == ohmd.OHMD_S_UNSUPPORTED:
+                raise OHMDUnsupportedError()
+            elif result == ohmd.OHMD_S_INVALID_OPERATION:
+                raise OHMDInvalidOperationError()
+            else:  # catchall
+                raise OHMDUnknownError()
+
+        ret_sz = ctrl_count
+    else:
+        ret_sz = _ohmd_float_value_sz[param-1]
+
+    # all params are handled here
+    api_ret_val = <float*>PyMem_Malloc(ret_sz * sizeof(float))
+    if not api_ret_val:
+        raise MemoryError()
+
+    # make the APi call to get the required data
+    result = ohmd.ohmd_device_getf(  # get the data from the API
+        desc.c_device,
+        <ohmd.ohmd_float_value>param,
+        &api_ret_val[0])
+
+    # caught an error
+    if result < ohmd.OHMD_S_OK:
+        PyMem_Free(api_ret_val)
+        if result == ohmd.OHMD_S_INVALID_PARAMETER:
+            raise OHMDInvalidParameterError()
+        elif result == ohmd.OHMD_S_UNSUPPORTED:
+            raise OHMDUnsupportedError()
+        elif result == ohmd.OHMD_S_INVALID_OPERATION:
+            raise OHMDInvalidOperationError()
+        else:  # catchall
+            raise OHMDUnknownError()
+
+    # handle the return value
+    if ret_sz > 1:  # requires an array to be returned
+        to_return = np.empty((ret_sz,), dtype=np.float32)
+        for i in range(ret_sz):
+            to_return[i] = api_ret_val[i]
+    else:
+        to_return = <float>api_ret_val[0]  # just a Python float
+
+    PyMem_Free(api_ret_val)  # clean up
+    return to_return
+
+
+def getDeviceParami(object device, int param):
+    """Get an integer parameter from a device.
+
+    This calls to `ohmd_device_geti` on the specified `device`, retrieving the
+    value requested by `param`.
+
+    Parameters
+    ----------
+    device : OHMDDeviceInfo or int
+        Descriptor or enumerated index of a device. Best practice is to pass a
+        descriptor instead of an `int`.
+    param : int
+        Symbolic constant representing the parameter to retrieve.
+
+    Returns
+    -------
+    float or ndarray
+        Single integer value or array. The return value data type and
+        size is automatically determined by the type of parameter.
+
+    Examples
+    --------
+    Get the horizontal and vertical screen resolution for a device::
+
+        hres = ohmd.getDeviceParamf(
+            hmd_device,
+            ohmd.OHMD_SCREEN_HORIZONTAL_RESOLUTION)
+        vres = ohmd.getDeviceParamf(
+            hmd_device,
+            ohmd.OHMD_SCREEN_VERTICAL_RESOLUTION)
+
+    """
+    # must have context and be probed
+    if _ctx is NULL:
+        raise OHMDNoContextError()
+
+    if not _contextProbed:
+        raise OHMDContextNotProbedError()
+
+    cdef OHMDDeviceInfo desc
+
+    if isinstance(device, int):  # enum index provided
+        desc = _deviceInfoList[device]
+    elif isinstance(device, OHMDDeviceInfo):  # device object provided
+        desc = device
+    else:
+        raise ValueError(
+            "Parameter `device` must be type `int` or `OHMDDeviceInfo`.")
+
+    # check if the device is presently opened
+    if not desc.c_device_info.isOpened:
+        raise OHMDDeviceNotOpenError(
+            "Trying to obtain the pose of a device that is presently closed.")
+
+    if 0 > param > 6:  # equal to the length of `_ohmd_int_value_sz`
+        raise ValueError("Value for `param` is not valid.")
+
+    # check if the parameter is write only
+    if _ohmd_int_value_access_flags[param] == 1:
+        raise OHMDInvalidParameterError(
+            "Specified parameter is not readable (write-only).")
+
+    cdef Py_ssize_t ret_sz
+    cdef Py_ssize_t i
+    cdef int ctrl_count  # used if `param` == `OHMD_CONTROLS_STATE`
+    cdef int result  # API call result
+    cdef object to_return  # returned to the user in Python land
+
+    # array allocated to hold the returned data from the API call
+    cdef int* api_ret_val
+    if param == ohmd.OHMD_CONTROLS_HINTS or param == ohmd.OHMD_CONTROLS_TYPES:
+        result = ohmd.ohmd_list_geti(
+            _ctx,
+            desc.c_device_info.deviceIdx,
+            <ohmd.ohmd_int_value>ohmd.OHMD_CONTROL_COUNT,
+            &ctrl_count)
+
+        # caught an error getting this parameter
+        if result < ohmd.OHMD_S_OK:
+            if result == ohmd.OHMD_S_INVALID_PARAMETER:
+                raise OHMDInvalidParameterError()
+            elif result == ohmd.OHMD_S_UNSUPPORTED:
+                raise OHMDUnsupportedError()
+            elif result == ohmd.OHMD_S_INVALID_OPERATION:
+                raise OHMDInvalidOperationError()
+            else:  # catchall
+                raise OHMDUnknownError()
+
+        ret_sz = ctrl_count
+    else:
+        ret_sz = _ohmd_int_value_sz[param]
+
+    # all params are handled here
+    api_ret_val = <int*>PyMem_Malloc(ret_sz * sizeof(int))
+    if not api_ret_val:
+        raise MemoryError()
+
+    # make the APi call to get the required data
+    result = ohmd.ohmd_device_geti(  # get the data from the API
+        desc.c_device,
+        <ohmd.ohmd_int_value>param,
+        &api_ret_val[0])
+
+    # caught an error
+    if result < ohmd.OHMD_S_OK:
+        PyMem_Free(api_ret_val)
+        if result == ohmd.OHMD_S_INVALID_PARAMETER:
+            raise OHMDInvalidParameterError()
+        elif result == ohmd.OHMD_S_UNSUPPORTED:
+            raise OHMDUnsupportedError()
+        elif result == ohmd.OHMD_S_INVALID_OPERATION:
+            raise OHMDInvalidOperationError()
+        else:  # catchall
+            raise OHMDUnknownError()
+
+    # handle the return value
+    if ret_sz > 1:  # requires an array to be returned
+        to_return = np.empty((ret_sz,), dtype=int)
+        for i in range(ret_sz):
+            to_return[i] = api_ret_val[i]
+    else:
+        to_return = <int>api_ret_val[0]  # just a Python int
+
+    PyMem_Free(api_ret_val)  # clean up
+    return to_return
+
+
 def getDevicePose(object device):
     """Get the pose of a device.
 
@@ -1369,6 +1723,5 @@ def getListInt(int index, int type_):
         raise OHMDContextNotProbedError()
 
     result = ohmd.ohmd_list_geti(_ctx, index, <ohmd.ohmd_int_value>type_, &int_return)
-    str_return = result.decode('utf-8')
 
     return result, int_return
