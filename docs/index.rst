@@ -54,13 +54,12 @@ Hardware Support
 ----------------
 
 As of now, only the Oculus Rift series of HMDs are supported (DK2, CV1, S) via
-the `~psychxr.drivers.libovr` driver interface which uses the official PC SDK.
-However, additional drivers are being considered to be included in the future
-using `OpenXR <https://www.khronos.org/openxr/>`_ and
+the :mod:`~psychxr.drivers.libovr` driver interface which uses the official PC
+SDK. However, additional drivers are being considered to be included in the
+future using `OpenXR <https://www.khronos.org/openxr/>`_ and
 `OpenHMD <http://www.openhmd.net/>`_.
 
-A preview for the OpenHMD interface is available as of version 0.2.4 which is
-accessible if you build PsychXR from source.
+A preview for the OpenHMD interface is available as of version 0.2.4.
 
 Related Projects
 ----------------

@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'PsychXR'
-copyright = '2019, Matthew D. Cutone'
+copyright = '2021, Matthew D. Cutone'
 author = 'Matthew D. Cutone'
 
 # The short X.Y version
@@ -168,7 +168,9 @@ man_pages = [
 texinfo_documents = [
     (master_doc, 'PsychXR', 'PsychXR Documentation',
      author, 'PsychXR',
-     'PsychXR is a collection of Python extension libraries for interacting with eXtended Reality displays (HMDs), intended for neuroscience and psychology research applications.',
+     'PsychXR is a collection of Python extension libraries for interacting '
+     'with eXtended Reality displays (HMDs), intended for neuroscience and '
+     'psychology research applications.',
      'Miscellaneous'),
 ]
 

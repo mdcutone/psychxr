@@ -29,9 +29,11 @@ from Source" section for more information.
 Installing Pre-Compiled Binaries
 --------------------------------
 
-Pre-compiled binaries for PsychXR are available as a Wheel package and which can
-be installed via pip. You can install the package with the following command (no
-environment variables or compilers needed)::
+Pre-compiled binaries for PsychXR are available as a Wheel packages which can
+be installed via pip. You may download these from the
+`releases page on GitHub <https://github.com/mdcutone/psychxr/releases>`_. You
+can install the package with the following command (no environment variables or
+compilers needed)::
 
     python -m pip install psychxr-<version>.whl
 
