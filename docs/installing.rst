@@ -15,13 +15,12 @@ prior to installation.
 System Requirements
 -------------------
 
-*PsychXR* requires Windows 7, 8.1 or 10 (Windows 10 is recommended) and Python
-(64-bit) versions 3.6 and above. If using the *LibOVR* driver, you must install
-the `Oculus Desktop <https://support.oculus.com/articles/getting-started/
-getting-started-with-rift-s/install-oculus-app-pc-rift-s-setup/>`_ application
-and have an Oculus or Facebook account. If your PC hardware configuration is
-supported by the HMD you are using, then it should be adequate for running
-solutions which incorporate *PsychXR*.
+*PsychXR* requires Windows 7, 8.1 or 10 (Windows 10 is recommended). If using
+the *LibOVR* driver, you must install the `Oculus Desktop <https://support.
+oculus.com/articles/getting-started/getting-started-with-rift-s/install-oculus-
+app-pc-rift-s-setup/>`_ application and have an Oculus or Facebook account. If
+your PC hardware configuration is supported by the HMD you are using, then it
+should be adequate for running solutions which incorporate *PsychXR*.
 
 Installing from PyPI
 --------------------
