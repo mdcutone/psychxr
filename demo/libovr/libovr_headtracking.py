@@ -84,7 +84,7 @@ def main():
 
     projectionMatrix = []
     for eye in range(EYE_COUNT):
-         projectionMatrix.append(getEyeProjectionMatrix(eye))
+        projectionMatrix.append(getEyeProjectionMatrix(eye))
 
     planePose = LibOVRPose((0., 0., -2.))
 
