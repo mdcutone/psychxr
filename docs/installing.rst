@@ -12,6 +12,17 @@ The PsychXR installer will automatically pull any Python package dependencies,
 such as `Cython <https://cython.org/>`_ and `NumPy <https://www.numpy.org/>`_,
 prior to installation.
 
+System Requirements
+-------------------
+
+*PsychXR* requires Windows 7, 8.1 or 10 (Windows 10 is recommended) and Python
+(64-bit) versions 3.6 and above. If using the *LibOVR* driver, you must install
+the `Oculus Desktop <https://support.oculus.com/articles/getting-started/
+getting-started-with-rift-s/install-oculus-app-pc-rift-s-setup/>`_ application
+and have an Oculus or Facebook account. If your PC hardware configuration is
+supported by the HMD you are using, then it should be adequate for running
+solutions which incorporate *PsychXR*.
+
 Installing from PyPI
 --------------------
 
@@ -30,15 +41,16 @@ Installing Pre-Compiled Binaries
 --------------------------------
 
 Pre-compiled binaries for PsychXR are available as a Wheel packages which can
-be installed via pip. You may download these from the
-`releases page on GitHub <https://github.com/mdcutone/psychxr/releases>`_. You
-can install the package with the following command (no environment variables or
+be installed via pip. These releases are usually newer than those on PyPI. You
+may download these packages from the `releases page on GitHub
+<https://github.com/mdcutone/psychxr/releases>`_. After downloading, you can
+install *PsychXR* with the following command (no environment variables or
 compilers needed)::
 
     python -m pip install psychxr-<version>.whl
 
 Note that the pre-compiled binaries are built on Windows 10 64-bit using the
-MSVC++ 19.0 64-bit, supporting versions 3.6 to 3.9. If your configuration
+MSVC++ 19.0 64-bit, supporting Python versions 3.6 to 3.9. If your configuration
 differs, consider building from source.
 
 Building from Source
@@ -49,9 +61,9 @@ additional steps like regular Python packages. However, if you plan on
 developing *PsychXR*, use preview features (e.g., OpenHMD) or wish to run
 *PsychXR* on Python versions which do not have official packages up on PyPI or
 GitHub yet, you will need to build *PsychXR* from source. Doing so requires some
-preparation to setup a suitable build environment on your computer. However,
-once the environment is setup the process to actually build *PsychXR* is fairly
-straightforward.
+preparation to create a suitable build environment on your computer. However,
+the process to actually build *PsychXR* is fairly straightforward once the
+environment is setup.
 
 *PsychXR* is (mostly) written in `Cython <https://cython.org/>`_, a superset of
 the Python programming language, which is used to write the interface between
@@ -151,8 +163,8 @@ Now we can build the source package by entering the following command (replacing
 
     python -m pip install psychxr-<version>.tar.gz
 
-Building the Preview OpenHMD Extension
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Building the OpenHMD Extension
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A preview version of the OpenHMD extension is available as of version 0.2.4 of
 PsychXR. If you want to try it out, you can tell the installer to build it by
@@ -160,6 +172,9 @@ setting the following environment variable prior to building the source
 distribution::
 
     set PSYCHXR_BUILD_OPENHMD=1
+
+You do not need to specify an SDK of OpenHMD path as *PsychXR* ships with the
+required files and the installer knows where to find them.
 
 Testing the Installation
 ------------------------
@@ -178,12 +193,12 @@ you just have the runtime installed but no HMD connected. That will still
 indicate a successful installation. If you get any exception raised when
 entering the above commands, the installation has likely failed at some point.
 
-Help! PsychXR failed to install!
---------------------------------
+Help! I can't get PsychXR installed
+-----------------------------------
 
 If this happens try the above steps again or another installation method. If you
 are really stuck, consider submitting an issue to the project's GitHub page
-detailing the steps you took and were things began to fail. It is likely that
-the any difficulty encountered is not your fault and might be due to unclear or
-erroneous documentation. Suggestions and fixes are always welcome to make the
-process smoother for everyone.
+detailing the steps you took and were things began to fail. It is also likely
+that the any difficulty encountered is not your fault and might be due to
+unclear or erroneous documentation. Suggestions and fixes are always welcome to
+make the process smoother for everyone.
