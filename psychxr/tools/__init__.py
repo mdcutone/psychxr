@@ -12,5 +12,5 @@ __license__ = "MIT"
 __version__ = "0.2.4"
 __status__ = "Stable"
 __maintainer__ = "Matthew D. Cutone"
-__email__ = "cutonem@yorku.ca"
+__email__ = "mcutone@opensciencetools.org"
 
