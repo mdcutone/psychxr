@@ -1713,6 +1713,68 @@ cdef class BoundingBox(object):
         self.c_data.b[0].x = self.c_data.b[0].y = self.c_data.b[0].z = FLT_MAX
         self.c_data.b[1].x = self.c_data.b[1].y = self.c_data.b[1].z = -FLT_MAX
 
+    def fit(self, object points, bint clear=True):
+        """Fit an axis aligned bounding box to enclose specified points. The
+        resulting bounding box is guaranteed to enclose all points, however
+        volume is not necessarily minimized or optimal.
+
+        Parameters
+        ----------
+        points : array_like
+            2D array of points [x, y, z] to fit, can be a list of vertices from
+            a 3D model associated with the bounding box.
+        clear : bool, optional
+            Clear the bounding box prior to fitting. If ``False`` the current
+            bounding box will be re-sized to fit new points.
+
+        Examples
+        --------
+        Create a bounding box around vertices specified in a list::
+
+            # model vertices
+            vertices = [[-1.0, -1.0, 0.0],
+                        [-1.0, 1.0, 0.0],
+                        [1.0, 1.0, 0.0],
+                        [1.0, -1.0, 0.0]]
+
+            # create an empty bounding box
+            bbox = BoundingBox()
+            bbox.fit(vertices)
+
+            # associate the bounding box to a pose
+            modelPose = RigidBodyPose()
+            modelPose.bounds = bbox
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=2] points_in = np.asarray(
+            points, dtype=np.float32)
+
+        if clear:
+            self.clear()
+
+        cdef Py_ssize_t i, N
+        cdef float px, py, pz
+        cdef float[:, :] mv_points = points_in  # memory view
+        N = <Py_ssize_t>points_in.shape[0]
+        for i in range(N):
+            px = mv_points[i, 0]
+            py = mv_points[i, 1]
+            pz = mv_points[i, 2]
+
+            # expand the bounding box if the point falls outside it
+            self.c_data.b[0].x = \
+                self.c_data.b[0].x if self.c_data.b[0].x < px else px
+            self.c_data.b[0].y = \
+                self.c_data.b[0].y if self.c_data.b[0].y < py else py
+            self.c_data.b[0].z = \
+                self.c_data.b[0].z if self.c_data.b[0].z < pz else pz
+            self.c_data.b[1].x = \
+                self.c_data.b[1].x if px < self.c_data.b[1].x else px
+            self.c_data.b[1].y = \
+                self.c_data.b[1].y if py < self.c_data.b[1].y else py
+            self.c_data.b[1].z = \
+                self.c_data.b[1].z if pz < self.c_data.b[1].z else pz
+
     @property
     def isValid(self):
         """``True`` if a bounding box is valid. Bounding boxes are valid if all
