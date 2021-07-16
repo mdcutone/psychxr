@@ -416,7 +416,10 @@ cdef class RigidBodyPose(object):
         vec3_add(center, &self.c_data.Position.x, &self._vecForward.x)
         mat4x4_look_at(
             self._viewMatrix.M, &self.c_data.Position.x, center, &self._vecUp.x)
-        mat4x4_invert_fast(self._invViewMatrix.M, self._viewMatrix.M)
+
+        cdef mat4x4 temp_m_inv_view
+        mat4x4_invert_fast(temp_m_inv_view, self._viewMatrix.M)
+        mat4x4_transpose(self._invViewMatrix.M, temp_m_inv_view)
 
         self._matrixNeedsUpdate = False
 

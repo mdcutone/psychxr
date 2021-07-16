@@ -25,6 +25,7 @@
 
 import numpy as np
 from psychxr.tools.vrmath import *
+from psychxr.drivers.libovr import LibOVRPose
 
 
 def test_get_and_set():
@@ -91,6 +92,73 @@ def test_pose_operators():
     assert np.allclose(rbp3.modelMatrix @ inverseModelMatrix, ident)
 
 
+def test_compare_rigid_body_types():
+    """Tests to ensure the LibOVR and VRTools versions of the rigid body classes
+    are equivalent.
+    """
+    # create test instances for rigid body types
+    pose_libovr = LibOVRPose()
+    pose_vrmath = RigidBodyPose()
+
+    # test `setOriAxisAngle` and other properties
+    np.random.seed(12345)
+    N = 5000
+    angles = np.random.uniform(low=-360., high=360., size=(N,))
+    axes = np.random.uniform(low=-1., high=1., size=(N, 3))
+
+    for i in range(N):
+        pose_libovr.setOriAxisAngle(axes[i], angles[i], degrees=True)
+        pose_vrmath.setOriAxisAngle(axes[i], angles[i], degrees=True)
+
+        # test properties and getter/setter methods (e.g., `pos`, `ori`, etc.)
+        assert np.allclose(pose_vrmath.pos, pose_libovr.pos)
+        assert np.allclose(pose_vrmath.getPos(), pose_libovr.getPos())
+        assert np.allclose(pose_vrmath.ori, pose_libovr.ori)
+        assert np.allclose(pose_vrmath.getOri(), pose_libovr.getOri())
+        assert np.allclose(pose_vrmath.at, pose_libovr.at, atol=1e-5)
+        assert np.allclose(pose_vrmath.getAt(), pose_libovr.getAt(), atol=1e-5)
+        assert np.allclose(pose_vrmath.up, pose_libovr.up, atol=1e-5)
+        assert np.allclose(pose_vrmath.getUp(), pose_libovr.getUp(), atol=1e-5)
+
+        # test `inverted`
+        assert np.allclose(
+            pose_vrmath.inverted().pos, pose_libovr.inverted().pos, atol=1e-5)
+        assert np.allclose(
+            pose_vrmath.inverted().ori, pose_libovr.inverted().ori, atol=1e-5)
+
+        # test matrix conversion
+        assert np.allclose(  # model matrix
+            pose_vrmath.modelMatrix,
+            pose_libovr.modelMatrix,
+            atol=1e-5)
+        assert np.allclose(  # inverse model matrix
+            pose_vrmath.inverseModelMatrix,
+            pose_libovr.inverseModelMatrix,
+            atol=1e-5)
+        assert np.allclose(  # view matrix
+            pose_vrmath.viewMatrix,
+            pose_libovr.viewMatrix,
+            atol=1e-5)
+        assert np.allclose(  # inverse view matrix
+            pose_vrmath.inverseViewMatrix,
+            pose_libovr.inverseViewMatrix,
+            atol=1e-5)
+        assert np.allclose(  # normal matrix
+            pose_vrmath.normalMatrix,
+            pose_libovr.normalMatrix,
+            atol=1e-5)
+
+    # reset
+    pose_libovr.setIdentity()
+    pose_vrmath.setIdentity()
+
+    assert np.allclose(pose_vrmath.pos, pose_libovr.pos)
+    assert np.allclose(pose_vrmath.ori, pose_libovr.ori)
+
+
+
+
 if __name__ == "__main__":
     test_get_and_set()
     test_pose_operators()
+    test_compare_rigid_body_types()
