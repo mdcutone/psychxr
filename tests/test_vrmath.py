@@ -94,7 +94,7 @@ def test_pose_operators():
 
 def test_compare_rigid_body_types():
     """Tests to ensure the LibOVR and VRTools versions of the rigid body classes
-    are equivalent.
+    are equivalent in function.
     """
     # create test instances for rigid body types
     pose_libovr = LibOVRPose()
@@ -154,8 +154,6 @@ def test_compare_rigid_body_types():
 
     assert np.allclose(pose_vrmath.pos, pose_libovr.pos)
     assert np.allclose(pose_vrmath.ori, pose_libovr.ori)
-
-
 
 
 if __name__ == "__main__":
