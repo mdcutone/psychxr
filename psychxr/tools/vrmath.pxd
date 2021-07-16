@@ -1,6 +1,6 @@
 # distutils: language=c++
 #  =============================================================================
-#  tools.pxd - Cython definitions for the VR math extension library
+#  vrmath.pxd - Cython definitions for the VR math extension library
 #  =============================================================================
 #
 #  Copyright 2021 Matthew Cutone <mcutone@opensciencetools.com>
