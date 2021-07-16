@@ -16,7 +16,7 @@ New Features:
 
 Bug Fixes:
 
-    - Fixed `RigidBodyPose.invViewMatrix` not being transposed correctly.
+    - Fixed `LibOVRPose.invViewMatrix` not being returned correctly.
 
 Breaking Changes:
 

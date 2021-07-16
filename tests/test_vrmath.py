@@ -102,11 +102,14 @@ def test_compare_rigid_body_types():
 
     # test `setOriAxisAngle` and other properties
     np.random.seed(12345)
-    N = 5000
+    N = 1000
     angles = np.random.uniform(low=-360., high=360., size=(N,))
     axes = np.random.uniform(low=-1., high=1., size=(N, 3))
+    pos = np.random.uniform(low=-10., high=10., size=(N, 3))
 
     for i in range(N):
+        pose_libovr.setPos(pos[i])
+        pose_vrmath.setPos(pos[i])
         pose_libovr.setOriAxisAngle(axes[i], angles[i], degrees=True)
         pose_vrmath.setOriAxisAngle(axes[i], angles[i], degrees=True)
 
@@ -125,8 +128,6 @@ def test_compare_rigid_body_types():
             pose_vrmath.inverted().pos, pose_libovr.inverted().pos, atol=1e-5)
         assert np.allclose(
             pose_vrmath.inverted().ori, pose_libovr.inverted().ori, atol=1e-5)
-
-        # test matrix conversion
         assert np.allclose(  # model matrix
             pose_vrmath.modelMatrix,
             pose_libovr.modelMatrix,

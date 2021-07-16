@@ -11,7 +11,7 @@ See CHANGELOG for more information regarding changes this release.
 
 **General**
 
-* Fixed `RigidBodyPose.invViewMatrix` not being transposed correctly.
+* Fixed `LibOVRPose.invViewMatrix` not being returned correctly.
 * Added some additional unit tests to check if `vrmath.RigidBodyPose` functions
   the same as `drivers.libovr.LibOVRPose`.
 

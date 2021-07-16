@@ -1069,7 +1069,7 @@ cdef class LibOVRPose(object):
         """View matrix inverse."""
         self._updateMatrices()
 
-        return self._viewMatrixArr
+        return self._invViewMatrixArr
 
     def getViewMatrix(self, bint inverse=False, np.ndarray[np.float32_t, ndim=2] out=None):
         """Convert this pose into a view matrix.
