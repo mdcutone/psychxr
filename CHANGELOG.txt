@@ -1,6 +1,32 @@
 This file contains changes introduced to PsychXR for each version. Breaking
 changes may be incompatible with your current code or build environment.
 
+Version 0.2.5 - TBD
+-------------------
+
+Overview:
+
+    This is bugfix release of *PsychXR*. In addition to fixing bugs some new
+    unit tests have been added.
+
+New Features:
+
+    - Added unit tests to check if `LibOVRPose` and `RigidBodyPose` are
+      equivalent (i.e. give the same values).
+
+Bug Fixes:
+
+    - Fixed `RigidBodyPose.invViewMatrix` not being transposed correctly.
+
+Breaking Changes:
+
+    - None
+
+Known Issues:
+
+    - None
+
+
 Version 0.2.4 - 2021/07/12
 --------------------------
 
@@ -98,6 +124,7 @@ Known Issues:
 
     - OpenHMD support is incomplete, available only for preview and not
       available for general use.
+    - `RigidBodyPose.invViewMatrix` needs to be transposed to be correct.
 
 Version 0.2.3 - 2019/12/10
 --------------------------
