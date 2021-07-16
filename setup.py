@@ -71,6 +71,16 @@ BUILD_OPENHMD = os.environ.get('PSYCHXR_BUILD_OPENHMD', ENV_TRUE) == ENV_TRUE
 # Setup build environment
 #
 
+# print out the build configuration
+if BUILD_LIBOVR:
+    print("Configured to build `LibOVR` extension modules "
+          "(`PSYCHXR_BUILD_LIBOVR=1`).")
+
+if BUILD_OPENHMD:
+    print("Configured to build `OpenHMD` extension modules "
+          "(`PSYCHXR_BUILD_OPENHMD=1`).")
+
+
 # setup build environments on supported platforms
 if THIS_PLATFORM == 'Windows':
     os.environ["MSSdk"] = ENV_TRUE  # ensure correct compiler is used
@@ -82,15 +92,6 @@ else:
     raise Exception(
         "Trying to install `PsychXR` on an unsupported operating system. "
         "Exiting.")
-
-# print out the build configuration
-if BUILD_LIBOVR:
-    print("Configured to build `LibOVR` extension modules "
-          "(`PSYCHXR_BUILD_LIBOVR=1`).")
-
-if BUILD_OPENHMD:
-    print("Configured to build `OpenHMD` extension modules "
-          "(`PSYCHXR_BUILD_OPENHMD=1`).")
 
 
 # ------------------------------------------------------------------------------
@@ -279,7 +280,7 @@ setup_pars = {
     "packages": PACKAGES,
     "url": "http://psychxr.org",
     "include_package_data": True,
-    "version": "0.2.4",
+    "version": "0.2.4rc2",
     "license": "MIT",
     "description":
         "Python extension library for interacting with eXtended Reality "
