@@ -1,32 +1,6 @@
 This file contains changes introduced to PsychXR for each version. Breaking
 changes may be incompatible with your current code or build environment.
 
-Version 0.2.5 - TBD
--------------------
-
-Overview:
-
-    This is bugfix release of *PsychXR*. In addition to fixing bugs some new
-    unit tests have been added.
-
-New Features:
-
-    - Added unit tests to check if `LibOVRPose` and `RigidBodyPose` are
-      equivalent (i.e. give the same values).
-
-Bug Fixes:
-
-    - Fixed `LibOVRPose.invViewMatrix` not being returned correctly.
-
-Breaking Changes:
-
-    - None
-
-Known Issues:
-
-    - None
-
-
 Version 0.2.4 - 2021/07/12
 --------------------------
 
@@ -46,15 +20,15 @@ Overview:
     Ultimately, FOSS drivers provide a net benefit for researchers since the
     ethical pitfalls around using proprietary frameworks (e.g., third-party
     collection of biometric data, "finger printing", etc.) are generally avoided
-    and a participant's privacy is respected. There are no demos yet for OpenHMD,
-    and the API is very simple. However, the OpenHMD interface will be expanded
-    to be as close to `LibOVR` as possible in future releases. Furthermore,
-    OpenHMD provides a means to use "homebrew" HMDs which might be helpful for
-    some users. By default, the OpenHMD driver interface is built when building
-    from source and is included with binary packages. Unfortunately, while
-    OpenHMD is cross-platform (runs on Linux and Windows), PsychXR is still
-    exclusive to Windows at this point. Cross-platform (read Linux) support is a
-    priority now that there is a driver available for it.
+    and a participant's privacy is respected. There are no substantial demos yet
+    for OpenHMD, and the API is very simple. However, the OpenHMD interface will
+    be expanded to be as close to `LibOVR` as possible in future releases.
+    Furthermore, OpenHMD provides a means to use "homebrew" HMDs which might be
+    helpful for some users. By default, the OpenHMD driver interface is built
+    when building from source and is included with binary packages.
+    Unfortunately, while OpenHMD is cross-platform (runs on Linux and Windows),
+    PsychXR is still exclusive to Windows at this point. Cross-platform (read
+    Linux) support is a priority now that there is a driver available for it.
 
     The LibOVR driver also got a significant update with the inclusion of color
     management to ensure content authored on one display appears "correct" on
@@ -96,7 +70,7 @@ New Features:
       cable to use PsychXR with them. Remote desktop support is not yet
       tested but may work.
     - Added API features related to colorspace data and calibration recently
-      added to LibOVR (beta feature, may not work as inteneded through PsychXR).
+      added to LibOVR (beta feature, may not work as intended through PsychXR).
     - Removed constant `BUILD_NUMBER`, unused now.
     - Added the `psychxr.vrmath` library.
     - Deprecated `resetBoundaryColor` and `setBoundaryColor`. The API calls used
@@ -112,6 +86,9 @@ Bug Fixes:
 
     - Added missing `viewMatrix` attribute to `LibOVRPose`.
     - Fixed wrong order of return values for `LibOVRPose.getOriAxisAngle`.
+    - Fixed `LibOVRPose.inverseViewMatrix` not being returned correctly.
+    - Added unit tests to check if `LibOVRPose` and `RigidBodyPose` are
+      equivalent (i.e. give the same values).
 
 Breaking Changes:
 
@@ -123,8 +100,7 @@ Breaking Changes:
 Known Issues:
 
     - OpenHMD support is incomplete, available only for preview and not
-      available for general use.
-    - `RigidBodyPose.invViewMatrix` needs to be transposed to be correct.
+      recommended for general use yet.
 
 Version 0.2.3 - 2019/12/10
 --------------------------

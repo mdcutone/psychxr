@@ -53,12 +53,12 @@ CPP_INCLUDE_DIRS = CYTHON_INCLUDE_DIRS + ['include/', 'psychxr/tools/']
 LIBRARY_DIRS = LIB_DIRS = ['lib/']
 LIBRARIES = []  # required
 
-# extension modules to add to the package
+# Extension modules to add to the package. This grows as extensions are built.
 EXT_MODULES = []
 
 # additional package data
 PACKAGES = ['psychxr']
-PACKAGE_DATA = ['*.pxi', '*.pxd', '*.pyx', '*.cpp', '*.h']
+PACKAGE_DATA = ['*.pxi', '*.pxd', '*.pyx', '*.cpp', '*.h', '*.c']
 DATA_FILES = ['*.pyd', '*.pxi', '*.dll', '*.lib']
 
 # platform and build information
@@ -89,9 +89,9 @@ if THIS_PLATFORM == 'Windows':
     LIBRARY_DIRS.extend(
         [os.path.join('psychxr/drivers/openhmd/lib', 'win', 'x64')])
 else:
-    raise Exception(
-        "Trying to install `PsychXR` on an unsupported operating system. "
-        "Exiting.")
+    if BUILD_LIBOVR:  # windows only
+        print("WARNING: Cannot build `LibOVR`, platform is not supported.")
+        BUILD_LIBOVR = False
 
 
 # ------------------------------------------------------------------------------
