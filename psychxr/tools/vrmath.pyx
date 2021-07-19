@@ -1,6 +1,6 @@
 # distutils: language=c++
 #  =============================================================================
-#  pyx - Toolbox of VR math classes and functions
+#  vrmath.pyx - Toolbox of VR math classes and functions
 #  =============================================================================
 #
 #  Copyright 2021 Matthew Cutone <mcutone@opensciencetools.com>
