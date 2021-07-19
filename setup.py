@@ -41,6 +41,10 @@ from setuptools.extension import Extension
 from Cython.Build import cythonize, build_ext
 import numpy
 
+# Version string for the project. Make sure this is updated to reflect the
+# project branch version.
+PSYCHXR_VERSION_STRING = '0.2.4rc2'
+
 # environment variable values
 ENV_TRUE = '1'
 ENV_FALSE = '0'
@@ -280,7 +284,7 @@ setup_pars = {
     "packages": PACKAGES,
     "url": "http://psychxr.org",
     "include_package_data": True,
-    "version": "0.2.4rc2",
+    "version": PSYCHXR_VERSION_STRING,
     "license": "MIT",
     "description":
         "Python extension library for interacting with eXtended Reality "
