@@ -95,8 +95,15 @@ if THIS_PLATFORM == 'Windows':
     os.environ["MSSdk"] = ENV_TRUE  # ensure correct compiler is used
     os.environ["DISTUTILS_USE_SDK"] = ENV_TRUE
     LIBRARIES.extend(['opengl32', 'User32'])  # required Windows libraries
-    LIBRARY_DIRS.extend(
-        [os.path.join('psychxr/drivers/openhmd/lib', 'win', 'x64')])
+
+    if BUILD_OPENHMD:
+        LIBRARY_DIRS.extend(
+            [os.path.join('psychxr/drivers/openhmd/lib', 'win', 'x64')])
+
+    if BUILD_OPENXR:
+        LIBRARY_DIRS.extend(
+            [os.path.join('psychxr/drivers/openxr/lib', 'win', 'x64')])
+
 else:
     if BUILD_LIBOVR:  # windows only
         print("WARNING: Cannot build `LibOVR`, platform is not supported.")
@@ -196,6 +203,29 @@ PACKAGES.extend(vrmath_build_params['packages'])
 # ------------------------------------------------------------------------------
 # Build driver extension libraries (e.g., libovr, openhmd, etc.)
 #
+if BUILD_OPENXR:
+    print("Building `psychxr.drivers.openxr` extension module ...")
+
+    openxr_package_data = {
+        'psychxr.drivers.openxr': PACKAGE_DATA}
+    openxr_data_files = {
+        'psychxr/drivers/openxr': DATA_FILES}
+    openxr_build_params = {
+        'libraries': LIBRARIES + ['OpenXR'],
+        'library_dirs': LIBRARY_DIRS,
+        'include_dirs': [  # header files for needed libraries
+            fix_path('include/openxr')],
+        'packages': ['psychxr.drivers.openxr'],
+        'package_data': openxr_package_data,
+        'data_files': openxr_data_files}
+
+    # compile the `openhmd` extension
+    EXT_MODULES.extend(
+        [build_extension(
+            "psychxr.drivers.openxr._openxr",
+            **openxr_build_params)])
+    PACKAGES.extend(openxr_build_params['packages'])
+
 
 if BUILD_LIBOVR:
     print("Building `psychxr.drivers.libovr` extension module ...")
