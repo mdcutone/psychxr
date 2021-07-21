@@ -67,6 +67,7 @@ DATA_FILES = ['*.pyd', '*.pxi', '*.dll', '*.lib']
 
 # platform and build information
 THIS_PLATFORM = platform.system()
+BUILD_OPENXR = os.environ.get('PSYCHXR_BUILD_OPENXR', ENV_TRUE) == ENV_TRUE
 BUILD_LIBOVR = os.environ.get('PSYCHXR_BUILD_LIBOVR', ENV_TRUE) == ENV_TRUE
 BUILD_OPENHMD = os.environ.get('PSYCHXR_BUILD_OPENHMD', ENV_TRUE) == ENV_TRUE
 
@@ -76,6 +77,10 @@ BUILD_OPENHMD = os.environ.get('PSYCHXR_BUILD_OPENHMD', ENV_TRUE) == ENV_TRUE
 #
 
 # print out the build configuration
+if BUILD_OPENXR:
+    print("Configured to build `OpenXR` extension modules "
+          "(`PSYCHXR_BUILD_OPENXR=1`).")
+
 if BUILD_LIBOVR:
     print("Configured to build `LibOVR` extension modules "
           "(`PSYCHXR_BUILD_LIBOVR=1`).")

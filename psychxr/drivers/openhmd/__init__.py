@@ -1,4 +1,4 @@
-"""Interface and tools for HMDs using OpenHMD.
+"""Interface and tools for HMDs using OpenXR.
 
 """
 # ------------------
@@ -24,10 +24,11 @@ import os
 import sys
 import platform
 
-# add library directory to PATH before loading the pyd
+# Add library directory to PATH before loading the pyd, points to the OpenXR
+# loader.
 if platform.system() == "Windows":
     here, _ = os.path.split(sys.modules[__name__].__file__)
     os.environ["PATH"] += r";" + os.path.join(here, 'lib', 'win', 'x64')
 
 # load exported data from the _openhmd extension module into the namespace
-from ._openhmd import *
+from ._openxr import *
