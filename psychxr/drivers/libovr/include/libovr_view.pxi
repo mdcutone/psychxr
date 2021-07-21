@@ -221,7 +221,7 @@ def getDistortedViewport(int eye):
         distVp.Pos.x,
         distVp.Size.w,
         distVp.Size.h],
-        dtype=np.int)
+        dtype=int)
 
     return toReturn
 
@@ -861,7 +861,7 @@ def getEyeRenderViewport(int eye, np.ndarray[np.int_t, ndim=1] out=None):
     cdef np.ndarray[np.int_t, ndim=1] to_return
 
     if out is None:
-        to_return = np.zeros((4,), dtype=np.int)
+        to_return = np.zeros((4,), dtype=int)
     else:
         to_return = out
 

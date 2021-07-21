@@ -129,7 +129,12 @@ def calcEyeBufferSize(int eye, float texelsPerPixel=1.0):
     return bufferSize.w, bufferSize.h
 
 
-def createTextureSwapChainGL(int swapChain, int width, int height, int textureFormat=FORMAT_R8G8B8A8_UNORM_SRGB, int levels=1):
+def createTextureSwapChainGL(
+        int swapChain,
+        int width,
+        int height,
+        int textureFormat=FORMAT_R8G8B8A8_UNORM_SRGB,
+        int levels=1):
     """Create a texture swap chain for eye image buffers.
 
     Parameters
@@ -387,7 +392,11 @@ def setEyeColorTextureSwapChain(int eye, int swapChain):
     _eyeLayer.ColorTexture[eye] = _swapChains[swapChain]
 
 
-def createMirrorTexture(int width, int height, int textureFormat=FORMAT_R8G8B8A8_UNORM_SRGB, int mirrorOptions=MIRROR_OPTION_DEFAULT):
+def createMirrorTexture(
+        int width,
+        int height,
+        int textureFormat=FORMAT_R8G8B8A8_UNORM_SRGB,
+        int mirrorOptions=MIRROR_OPTION_DEFAULT):
     """Create a mirror texture.
 
     This displays the content of the rendered images being presented on the

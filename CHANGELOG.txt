@@ -99,6 +99,12 @@ Breaking Changes:
 
 Known Issues:
 
+    - Calling `psychxr.drivers.libovr.shutdown()` results in the application
+      quitting with exit code -1073741819 (0xC0000005) on Windows. This seems to
+      only occur after creating an OpenGL swap chain, so it might be related to
+      how the library interacts with the driver. You can ignore calling
+      `shutdown` to circumvent this issue for now, hopefully the `LibOVR`
+      runtime will free up resources associated with your app automatically.
     - OpenHMD support is incomplete, available only for preview and not
       recommended for general use yet.
 

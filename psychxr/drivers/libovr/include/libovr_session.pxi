@@ -311,6 +311,12 @@ def shutdown():
     texture buffers, afterwards control is returned to Oculus Home. This
     must be called after every successful :func:`initialize` call.
 
+    Notes
+    -----
+    * As of `PsychXR` version `0.2.4`, calling `shutdown` results in an
+      access violation (0xC0000005) when Python exits after creating a swap
+      chain.
+
     """
     capi.ovr_Shutdown()
 
