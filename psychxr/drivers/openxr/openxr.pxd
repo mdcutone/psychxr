@@ -24,7 +24,7 @@
 #  SOFTWARE.
 #
 
-from libc.stdint cimport uint32_t, uint64_t, int64_t, uint8_t
+from libc.stdint cimport uint32_t, uint64_t, int64_t, uint8_t, int32_t
 
 
 cdef extern from "openxr.h":
@@ -584,3 +584,300 @@ cdef extern from "openxr.h":
         uint32_t faceCount
         uint32_t arraySize
         uint32_t mipCount
+
+    ctypedef struct XrSwapchainImageBaseHeader:
+        XrStructureType type
+        void* next
+    
+    ctypedef struct XrSwapchainImageAcquireInfo:
+        XrStructureType type
+        const void* next
+    
+    ctypedef struct XrSwapchainImageWaitInfo:
+        XrStructureType type
+        const void* next
+        XrDuration timeout
+    
+    ctypedef struct XrSwapchainImageReleaseInfo:
+        XrStructureType type
+        const void* next
+    
+    ctypedef struct XrSessionBeginInfo:
+        XrStructureType type
+        const void* next
+        XrViewConfigurationType     primaryViewConfigurationType
+    
+    ctypedef struct XrFrameWaitInfo:
+        XrStructureType type
+        const void* next
+    
+    ctypedef struct XrFrameState:
+        XrStructureType type
+        void* next
+        XrTime predictedDisplayTime
+        XrDuration  predictedDisplayPeriod
+        XrBool32 shouldRender
+    
+    ctypedef struct XrFrameBeginInfo:
+        XrStructureType type
+        const void* next
+    
+    ctypedef struct  XrCompositionLayerBaseHeader:
+        XrStructureType type
+        const void* next
+        XrCompositionLayerFlags layerFlags
+        XrSpace space
+   
+    ctypedef struct XrFrameEndInfo:
+        XrStructureType type
+        const void*  next
+        XrTime displayTime
+        XrEnvironmentBlendMode environmentBlendMode
+        uint32_t layerCount
+        const XrCompositionLayerBaseHeader* const* layers
+    
+    ctypedef struct XrViewLocateInfo:
+        XrStructureType type
+        const void* next
+        XrViewConfigurationType viewConfigurationType
+        XrTime displayTime
+        XrSpace space
+    
+    ctypedef struct XrViewState:
+        XrStructureType type
+        void* next
+        XrViewStateFlags viewStateFlags
+    
+    ctypedef struct XrFovf:
+        float angleLeft
+        float angleRight
+        float angleUp
+        float angleDown
+    
+    ctypedef struct XrView:
+        XrStructureType type
+        void* next
+        XrPosef pose
+        XrFovf fov
+    
+    ctypedef struct XrActionSetCreateInfo:
+        XrStructureType type
+        const void* next
+        char actionSetName[XR_MAX_ACTION_SET_NAME_SIZE]
+        char localizedActionSetName[XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE]
+        uint32_t priority
+    
+    ctypedef struct XrActionCreateInfo:
+        XrStructureType type
+        const void* next
+        char actionName[XR_MAX_ACTION_NAME_SIZE]
+        XrActionType actionType
+        uint32_t countSubactionPaths
+        const XrPath* subactionPaths
+        char localizedActionName[XR_MAX_LOCALIZED_ACTION_NAME_SIZE]
+    
+    ctypedef struct XrActionSuggestedBinding:
+        XrAction    action
+        XrPath      binding
+    
+    ctypedef struct XrInteractionProfileSuggestedBinding:
+        XrStructureType                    type
+        const void*            next
+        XrPath                             interactionProfile
+        uint32_t                           countSuggestedBindings
+        const XrActionSuggestedBinding*    suggestedBindings
+    
+    ctypedef struct XrSessionActionSetsAttachInfo:
+        XrStructureType             type
+        const void*     next
+        uint32_t                    countActionSets
+        const XrActionSet*          actionSets
+    
+    ctypedef struct XrInteractionProfileState:
+        XrStructureType       type
+        void*     next
+        XrPath                interactionProfile
+    
+    ctypedef struct XrActionStateGetInfo:
+        XrStructureType             type
+        const void*     next
+        XrAction                    action
+        XrPath                      subactionPath
+    
+    ctypedef struct XrActionStateBoolean:
+        XrStructureType       type
+        void*     next
+        XrBool32              currentState
+        XrBool32              changedSinceLastSync
+        XrTime                lastChangeTime
+        XrBool32              isActive
+    
+    ctypedef struct XrActionStateFloat:
+        XrStructureType       type
+        void*     next
+        float                 currentState
+        XrBool32              changedSinceLastSync
+        XrTime                lastChangeTime
+        XrBool32              isActive
+    
+    ctypedef struct XrVector2f:
+        float    x
+        float    y
+    
+    ctypedef struct XrActionStateVector2f:
+        XrStructureType       type
+        void*     next
+        XrVector2f            currentState
+        XrBool32              changedSinceLastSync
+        XrTime                lastChangeTime
+        XrBool32              isActive
+    
+    ctypedef struct XrActionStatePose:
+        XrStructureType       type
+        void*     next
+        XrBool32              isActive
+    
+    ctypedef struct XrActiveActionSet:
+        XrActionSet    actionSet
+        XrPath         subactionPath
+    
+    ctypedef struct XrActionsSyncInfo:
+        XrStructureType             type
+        const void*     next
+        uint32_t                    countActiveActionSets
+        const XrActiveActionSet*    activeActionSets
+    
+    ctypedef struct XrBoundSourcesForActionEnumerateInfo:
+        XrStructureType             type
+        const void*     next
+        XrAction                    action
+    
+    ctypedef struct XrInputSourceLocalizedNameGetInfo:
+        XrStructureType                    type
+        const void*            next
+        XrPath                             sourcePath
+        XrInputSourceLocalizedNameFlags    whichComponents
+    
+    ctypedef struct XrHapticActionInfo:
+        XrStructureType             type
+        const void*     next
+        XrAction                    action
+        XrPath                      subactionPath
+    
+    ctypedef struct  XrHapticBaseHeader:
+        XrStructureType             type
+        const void*     next
+
+    ctypedef struct _XrBaseInStructure
+    ctypedef struct  XrBaseInStructure:
+        XrStructureType type
+        _XrBaseInStructure* next
+
+    ctypedef struct _XrBaseOutStructure
+    ctypedef struct  XrBaseOutStructure:
+        XrStructureType type
+        _XrBaseOutStructure* next
+    
+    ctypedef struct XrOffset2Di:
+        int32_t x
+        int32_t y
+    
+    ctypedef struct XrExtent2Di:
+        int32_t width
+        int32_t height
+    
+    ctypedef struct XrRect2Di:
+        XrOffset2Di offset
+        XrExtent2Di extent
+    
+    ctypedef struct XrSwapchainSubImage:
+        XrSwapchain swapchain
+        XrRect2Di imageRect
+        uint32_t imageArrayIndex
+    
+    ctypedef struct XrCompositionLayerProjectionView:
+        XrStructureType type
+        const void* next
+        XrPosef pose
+        XrFovf fov
+        XrSwapchainSubImage subImage
+    
+    ctypedef struct XrCompositionLayerProjection:
+        XrStructureType type
+        const void* next
+        XrCompositionLayerFlags layerFlags
+        XrSpace space
+        uint32_t viewCount
+        const XrCompositionLayerProjectionView* views
+    
+    ctypedef struct XrCompositionLayerQuad:
+        XrStructureType type
+        const void* next
+        XrCompositionLayerFlags layerFlags
+        XrSpace space
+        XrEyeVisibility eyeVisibility
+        XrSwapchainSubImage subImage
+        XrPosef pose
+        XrExtent2Df size
+   
+    ctypedef struct  XrEventDataBaseHeader:
+        XrStructureType type
+        const void* next
+    
+    ctypedef struct XrEventDataEventsLost:
+        XrStructureType type
+        const void* next
+        uint32_t lostEventCount
+    
+    ctypedef struct XrEventDataInstanceLossPending:
+        XrStructureType type
+        const void* next
+        XrTime lossTime
+    
+    ctypedef struct XrEventDataSessionStateChanged:
+        XrStructureType  type
+        const void* next
+        XrSession session
+        XrSessionState state
+        XrTime time
+    
+    ctypedef struct XrEventDataReferenceSpaceChangePending:
+        XrStructureType type
+        const void* next
+        XrSession session
+        XrReferenceSpaceType referenceSpaceType
+        XrTime changeTime
+        XrBool32 poseValid
+        XrPosef poseInPreviousSpace
+    
+    ctypedef struct XrEventDataInteractionProfileChanged:
+        XrStructureType type
+        const void* next
+        XrSession session
+    
+    ctypedef struct XrHapticVibration:
+        XrStructureType type
+        const void* next
+        XrDuration duration
+        float frequency
+        float amplitude
+    
+    ctypedef struct XrOffset2Df:
+        float x
+        float y
+    
+    ctypedef struct XrRect2Df:
+        XrOffset2Df    offset
+        XrExtent2Df    extent
+    
+    ctypedef struct XrVector4f:
+        float x
+        float y
+        float z
+        float w
+    
+    ctypedef struct XrColor4f:
+        float r
+        float g
+        float b
+        float a
