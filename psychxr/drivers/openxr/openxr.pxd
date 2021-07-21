@@ -439,6 +439,8 @@ cdef extern from "openxr.h":
     cdef XrInputSourceLocalizedNameFlags XR_INPUT_SOURCE_LOCALIZED_NAME_INTERACTION_PROFILE_BIT
     cdef XrInputSourceLocalizedNameFlags XR_INPUT_SOURCE_LOCALIZED_NAME_COMPONENT_BIT
 
+    ctypedef void xrVoidFunction(void)
+
     ctypedef struct XrApiLayerProperties:
         XrStructureType type
         void* next
@@ -605,7 +607,7 @@ cdef extern from "openxr.h":
     ctypedef struct XrSessionBeginInfo:
         XrStructureType type
         const void* next
-        XrViewConfigurationType     primaryViewConfigurationType
+        XrViewConfigurationType primaryViewConfigurationType
     
     ctypedef struct XrFrameWaitInfo:
         XrStructureType type
@@ -622,7 +624,7 @@ cdef extern from "openxr.h":
         XrStructureType type
         const void* next
     
-    ctypedef struct  XrCompositionLayerBaseHeader:
+    ctypedef struct XrCompositionLayerBaseHeader:
         XrStructureType type
         const void* next
         XrCompositionLayerFlags layerFlags
@@ -677,96 +679,96 @@ cdef extern from "openxr.h":
         char localizedActionName[XR_MAX_LOCALIZED_ACTION_NAME_SIZE]
     
     ctypedef struct XrActionSuggestedBinding:
-        XrAction    action
-        XrPath      binding
+        XrAction action
+        XrPath binding
     
     ctypedef struct XrInteractionProfileSuggestedBinding:
-        XrStructureType                    type
-        const void*            next
-        XrPath                             interactionProfile
-        uint32_t                           countSuggestedBindings
-        const XrActionSuggestedBinding*    suggestedBindings
+        XrStructureType type
+        const void* next
+        XrPath interactionProfile
+        uint32_t countSuggestedBindings
+        const XrActionSuggestedBinding* suggestedBindings
     
     ctypedef struct XrSessionActionSetsAttachInfo:
-        XrStructureType             type
-        const void*     next
-        uint32_t                    countActionSets
-        const XrActionSet*          actionSets
+        XrStructureType type
+        const void* next
+        uint32_t countActionSets
+        const XrActionSet* actionSets
     
     ctypedef struct XrInteractionProfileState:
-        XrStructureType       type
-        void*     next
-        XrPath                interactionProfile
+        XrStructureType type
+        void* next
+        XrPath interactionProfile
     
     ctypedef struct XrActionStateGetInfo:
-        XrStructureType             type
-        const void*     next
-        XrAction                    action
-        XrPath                      subactionPath
+        XrStructureType type
+        const void* next
+        XrAction action
+        XrPath subactionPath
     
     ctypedef struct XrActionStateBoolean:
-        XrStructureType       type
-        void*     next
-        XrBool32              currentState
-        XrBool32              changedSinceLastSync
-        XrTime                lastChangeTime
-        XrBool32              isActive
+        XrStructureType type
+        void* next
+        XrBool32 currentState
+        XrBool32 changedSinceLastSync
+        XrTime lastChangeTime
+        XrBool32 isActive
     
     ctypedef struct XrActionStateFloat:
-        XrStructureType       type
-        void*     next
-        float                 currentState
-        XrBool32              changedSinceLastSync
-        XrTime                lastChangeTime
-        XrBool32              isActive
+        XrStructureType type
+        void* next
+        float currentState
+        XrBool32 changedSinceLastSync
+        XrTime lastChangeTime
+        XrBool32 isActive
     
     ctypedef struct XrVector2f:
-        float    x
-        float    y
+        float x
+        float y
     
     ctypedef struct XrActionStateVector2f:
-        XrStructureType       type
-        void*     next
-        XrVector2f            currentState
-        XrBool32              changedSinceLastSync
-        XrTime                lastChangeTime
-        XrBool32              isActive
+        XrStructureType type
+        void* next
+        XrVector2f currentState
+        XrBool32 changedSinceLastSync
+        XrTime lastChangeTime
+        XrBool32 isActive
     
     ctypedef struct XrActionStatePose:
-        XrStructureType       type
-        void*     next
-        XrBool32              isActive
+        XrStructureType type
+        void* next
+        XrBool32 isActive
     
     ctypedef struct XrActiveActionSet:
-        XrActionSet    actionSet
-        XrPath         subactionPath
+        XrActionSet actionSet
+        XrPath subactionPath
     
     ctypedef struct XrActionsSyncInfo:
-        XrStructureType             type
-        const void*     next
-        uint32_t                    countActiveActionSets
-        const XrActiveActionSet*    activeActionSets
+        XrStructureType type
+        const void* next
+        uint32_t countActiveActionSets
+        const XrActiveActionSet* activeActionSets
     
     ctypedef struct XrBoundSourcesForActionEnumerateInfo:
-        XrStructureType             type
-        const void*     next
-        XrAction                    action
+        XrStructureType type
+        const void* next
+        XrAction action
     
     ctypedef struct XrInputSourceLocalizedNameGetInfo:
-        XrStructureType                    type
-        const void*            next
-        XrPath                             sourcePath
-        XrInputSourceLocalizedNameFlags    whichComponents
+        XrStructureType type
+        const void* next
+        XrPath sourcePath
+        XrInputSourceLocalizedNameFlags whichComponents
     
     ctypedef struct XrHapticActionInfo:
-        XrStructureType             type
-        const void*     next
-        XrAction                    action
-        XrPath                      subactionPath
+        XrStructureType type
+        const void* next
+        XrAction action
+        XrPath subactionPath
     
     ctypedef struct  XrHapticBaseHeader:
-        XrStructureType             type
-        const void*     next
+        XrStructureType type
+        const void* next
 
     ctypedef struct _XrBaseInStructure
     ctypedef struct  XrBaseInStructure:
@@ -867,8 +869,8 @@ cdef extern from "openxr.h":
         float y
     
     ctypedef struct XrRect2Df:
-        XrOffset2Df    offset
-        XrExtent2Df    extent
+        XrOffset2Df offset
+        XrExtent2Df extent
     
     ctypedef struct XrVector4f:
         float x
@@ -881,3 +883,297 @@ cdef extern from "openxr.h":
         float g
         float b
         float a
+
+    ctypedef XrResult xrGetInstanceProcAddr(
+            XrInstance instance,
+            const char* name,
+            xrVoidFunction* function)
+    ctypedef XrResult xrEnumerateApiLayerProperties(
+            uint32_t propertyCapacityInput,
+            uint32_t* propertyCountOutput,
+            XrApiLayerProperties* properties)
+    ctypedef XrResult xrEnumerateInstanceExtensionProperties(
+            const char* layerName,
+            uint32_t propertyCapacityInput,
+            uint32_t* propertyCountOutput,
+            XrExtensionProperties* properties)
+    ctypedef XrResult xrCreateInstance(
+            const XrInstanceCreateInfo* createInfo,
+            XrInstance* instance)
+    ctypedef XrResult xrDestroyInstance(XrInstance instance)
+    ctypedef XrResult xrGetInstanceProperties(
+            XrInstance instance,
+            XrInstanceProperties* instanceProperties)
+    ctypedef XrResult xrPollEvent(
+            XrInstance instance,
+            XrEventDataBuffer* eventData)
+    ctypedef XrResult xrResultToString(
+            XrInstance instance,
+            XrResult value,
+            char buffer[XR_MAX_RESULT_STRING_SIZE])
+    ctypedef XrResult xrStructureTypeToString(
+            XrInstance instance,
+            XrStructureType value,
+            char buffer[XR_MAX_STRUCTURE_NAME_SIZE])
+    ctypedef XrResult xrGetSystem(
+            XrInstance instance,
+            const XrSystemGetInfo* getInfo,
+            XrSystemId* systemId)
+    ctypedef XrResult xrGetSystemProperties(
+            XrInstance instance,
+            XrSystemId systemId,
+            XrSystemProperties* properties)
+    ctypedef XrResult xrEnumerateEnvironmentBlendModes(
+            XrInstance instance,
+            XrSystemId systemId,
+            XrViewConfigurationType viewConfigurationType,
+            uint32_t environmentBlendModeCapacityInput,
+            uint32_t* environmentBlendModeCountOutput,
+            XrEnvironmentBlendMode* environmentBlendModes)
+    ctypedef XrResult xrCreateSession(
+            XrInstance instance,
+            const XrSessionCreateInfo* createInfo,
+            XrSession* session)
+    ctypedef XrResult xrDestroySession(XrSession session)
+    ctypedef XrResult xrEnumerateReferenceSpaces(
+            XrSession session,
+            uint32_t spaceCapacityInput,
+            uint32_t* spaceCountOutput,
+            XrReferenceSpaceType* spaces)
+    ctypedef XrResult xrCreateReferenceSpace(
+            XrSession session,
+            XrReferenceSpaceCreateInfo* createInfo,
+            XrSpace* space)
+    ctypedef XrResult xrGetReferenceSpaceBoundsRect(
+            XrSession session,
+            XrReferenceSpaceType referenceSpaceType,
+            XrExtent2Df* bounds)
+    ctypedef XrResult xrCreateActionSpace(
+            XrSession session,
+            XrActionSpaceCreateInfo* createInfo,
+            XrSpace* space)
+    ctypedef XrResult xrLocateSpace(
+            XrSpace space,
+            XrSpace baseSpace,
+            XrTime time,
+            XrSpaceLocation* location)
+    ctypedef XrResult xrDestroySpace(XrSpace space)
+    ctypedef XrResult xrEnumerateViewConfigurations(
+            XrInstance instance,
+            XrSystemId systemId,
+            uint32_t viewConfigurationTypeCapacityInput,
+            uint32_t* viewConfigurationTypeCountOutput,
+            XrViewConfigurationType* viewConfigurationTypes)
+    ctypedef XrResult xrGetViewConfigurationProperties(
+            XrInstance instance,
+            XrSystemId systemId,
+            XrViewConfigurationType viewConfigurationType,
+            XrViewConfigurationProperties* configurationProperties)
+    ctypedef XrResult xrEnumerateViewConfigurationViews(
+            XrInstance instance,
+            XrSystemId systemId,
+            XrViewConfigurationType viewConfigurationType,
+            uint32_t viewCapacityInput,
+            uint32_t* viewCountOutput,
+            XrViewConfigurationView* views)
+    ctypedef XrResult xrEnumerateSwapchainFormats(
+            XrSession session,
+            uint32_t formatCapacityInput,
+            uint32_t* formatCountOutput,
+            int64_t* formats)
+    ctypedef XrResult xrCreateSwapchain(
+            XrSession session,
+            XrSwapchainCreateInfo* createInfo,
+            XrSwapchain* swapchain)
+    ctypedef XrResult xrDestroySwapchain(XrSwapchain swapchain)
+    ctypedef XrResult xrEnumerateSwapchainImages(
+            XrSwapchain swapchain,
+            uint32_t imageCapacityInput,
+            uint32_t* imageCountOutput,
+            XrSwapchainImageBaseHeader* images)
+    ctypedef XrResult xrAcquireSwapchainImage(
+            XrSwapchain swapchain,
+            XrSwapchainImageAcquireInfo* acquireInfo,
+            uint32_t* index)
+    ctypedef XrResult xrWaitSwapchainImage(
+            XrSwapchain swapchain,
+            XrSwapchainImageWaitInfo* waitInfo)
+    ctypedef XrResult xrReleaseSwapchainImage(
+            XrSwapchain swapchain,
+            XrSwapchainImageReleaseInfo* releaseInfo)
+    ctypedef XrResult xrBeginSession(
+            XrSession session,
+            XrSessionBeginInfo* beginInfo)
+    ctypedef XrResult xrEndSession(XrSession session)
+    ctypedef XrResult xrRequestExitSession(XrSession session)
+    ctypedef XrResult xrWaitFrame(
+            XrSession session,
+            XrFrameWaitInfo* frameWaitInfo,
+            XrFrameState* frameState)
+    ctypedef XrResult xrBeginFrame(
+            XrSession session, XrFrameBeginInfo* frameBeginInfo)
+    ctypedef XrResult xrEndFrame(
+            XrSession session, XrFrameEndInfo* frameEndInfo)
+    ctypedef XrResult xrLocateViews(
+            XrSession session, XrViewLocateInfo* viewLocateInfo,
+            XrViewState* viewState,
+            uint32_t viewCapacityInput,
+            uint32_t* viewCountOutput,
+            XrView* views)
+    ctypedef XrResult xrStringToPath(
+            XrInstance instance,
+            const char* pathString,
+            XrPath* path)
+    ctypedef XrResult xrPathToString(
+            XrInstance instance,
+            XrPath path,
+            uint32_t bufferCapacityInput,
+            uint32_t* bufferCountOutput,
+            char* buffer)
+    ctypedef XrResult xrCreateActionSet(
+            XrInstance instance,
+            XrActionSetCreateInfo* createInfo,
+            XrActionSet* actionSet)
+    ctypedef XrResult xrDestroyActionSet(XrActionSet actionSet)
+    ctypedef XrResult xrCreateAction(
+            XrActionSet actionSet,
+            XrActionCreateInfo* createInfo,
+            XrAction* action)
+    ctypedef XrResult xrDestroyAction(XrAction action)
+    ctypedef XrResult xrSuggestInteractionProfileBindings(
+            XrInstance instance,
+            XrInteractionProfileSuggestedBinding* suggestedBindings)
+    ctypedef XrResult xrAttachSessionActionSets(
+            XrSession session,
+            XrSessionActionSetsAttachInfo* attachInfo)
+    ctypedef XrResult xrGetCurrentInteractionProfile(
+            XrSession session,
+            XrPath topLevelUserPath,
+            XrInteractionProfileState* interactionProfile)
+    ctypedef XrResult xrGetActionStateBoolean(
+            XrSession session,
+            XrActionStateGetInfo* getInfo,
+            XrActionStateBoolean* state)
+    ctypedef XrResult xrGetActionStateFloat(
+            XrSession session,
+            XrActionStateGetInfo* getInfo,
+            XrActionStateFloat* state)
+    ctypedef XrResult xrGetActionStateVector2(
+            XrSession session,
+            XrActionStateGetInfo* getInfo,
+            XrActionStateVector2f* state)
+    ctypedef XrResult xrGetActionStatePose(
+            XrSession session,
+            XrActionStateGetInfo* getInfo,
+            XrActionStatePose* state)
+    ctypedef XrResult xrSyncActions(
+            XrSession session,
+            XrActionsSyncInfo* syncInfo)
+    ctypedef XrResult xrEnumerateBoundSourcesForAction(
+            XrSession session,
+            XrBoundSourcesForActionEnumerateInfo* enumerateInfo,
+            uint32_t sourceCapacityInput,
+            uint32_t* sourceCountOutput,
+            XrPath* sources)
+    ctypedef XrResult xrGetInputSourceLocalizedName(
+            XrSession session,
+            XrInputSourceLocalizedNameGetInfo* getInfo,
+            uint32_t bufferCapacityInput,
+            uint32_t* bufferCountOutput,
+            char* buffer)
+    ctypedef XrResult xrApplyHapticFeedback(
+            XrSession session,
+            XrHapticActionInfo* hapticActionInfo,
+            XrHapticBaseHeader* hapticFeedback)
+    ctypedef XrResult xrStopHapticFeedback(
+            XrSession session,
+            XrHapticActionInfo* hapticActionInfo)
+
+    cdef int XR_KHR_composition_layer_cube
+    cdef int XR_KHR_composition_layer_cube_SPEC_VERSION
+    cdef const char* XR_KHR_COMPOSITION_LAYER_CUBE_EXTENSION_NAME
+
+    ctypedef struct XrCompositionLayerCubeKHR:
+        XrStructureType type
+        const void* next
+        XrCompositionLayerFlags layerFlags
+        XrSpace space
+        XrEyeVisibility eyeVisibility
+        XrSwapchain swapchain
+        uint32_t imageArrayIndex
+        XrQuaternionf orientation
+
+    cdef int XR_KHR_composition_layer_depth
+    cdef int XR_KHR_composition_layer_depth_SPEC_VERSION
+    cdef const char* XR_KHR_COMPOSITION_LAYER_DEPTH_EXTENSION_NAME
+    
+    # XrCompositionLayerDepthInfoKHR extends XrCompositionLayerProjectionView
+    ctypedef struct XrCompositionLayerDepthInfoKHR:
+        XrStructureType type
+        const void* next
+        XrSwapchainSubImage subImage
+        float minDepth
+        float maxDepth
+        float nearZ
+        float farZ
+
+    cdef int XR_KHR_composition_layer_equirect
+    cdef int XR_KHR_composition_layer_equirect_SPEC_VERSION
+    cdef const char* XR_KHR_COMPOSITION_LAYER_EQUIRECT_EXTENSION_NAME
+    ctypedef struct XrCompositionLayerEquirectKHR:
+        XrStructureType type
+        const void* next
+        XrCompositionLayerFlags layerFlags
+        XrSpace space
+        XrEyeVisibility eyeVisibility
+        XrSwapchainSubImage subImage
+        XrPosef pose
+        float radius
+        XrVector2f scale
+        XrVector2f bias
+
+    cdef int XR_KHR_visibility_mask
+    cdef int XR_KHR_visibility_mask_SPEC_VERSION
+    cdef const char* XR_KHR_VISIBILITY_MASK_EXTENSION_NAME
+
+    ctypedef enum XrVisibilityMaskTypeKHR:
+        XR_VISIBILITY_MASK_TYPE_HIDDEN_TRIANGLE_MESH_KHR = 1,
+        XR_VISIBILITY_MASK_TYPE_VISIBLE_TRIANGLE_MESH_KHR = 2,
+        XR_VISIBILITY_MASK_TYPE_LINE_LOOP_KHR = 3,
+        XR_VISIBILITY_MASK_TYPE_MAX_ENUM_KHR = 0x7FFFFFFF
+
+    ctypedef struct XrVisibilityMaskKHR:
+        XrStructureType type
+        void* next
+        uint32_t vertexCapacityInput
+        uint32_t vertexCountOutput
+        XrVector2f* vertices
+        uint32_t indexCapacityInput
+        uint32_t indexCountOutput
+        uint32_t* indices
+
+    ctypedef struct XrEventDataVisibilityMaskChangedKHR:
+        XrStructureType type
+        const void* next
+        XrSession session
+        XrViewConfigurationType viewConfigurationType
+        uint32_t viewIndex
+
+    ctypedef XrResult xrGetVisibilityMaskKHR(
+            XrSession session,
+            XrViewConfigurationType viewConfigurationType,
+            uint32_t viewIndex,
+            XrVisibilityMaskTypeKHR visibilityMaskType,
+            XrVisibilityMaskKHR* visibilityMask)
+
+    cdef int XR_KHR_composition_layer_color_scale_bias
+    cdef int XR_KHR_composition_layer_color_scale_bias_SPEC_VERSION
+    cdef const char* XR_KHR_COMPOSITION_LAYER_COLOR_SCALE_BIAS_EXTENSION_NAME
+    # XrCompositionLayerColorScaleBiasKHR extends XrCompositionLayerBaseHeader
+    ctypedef struct XrCompositionLayerColorScaleBiasKHR:
+        XrStructureType type
+        const void* next
+        XrColor4f colorScale
+        XrColor4f colorBias
+
+

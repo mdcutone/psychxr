@@ -44,5 +44,16 @@ __email__ = "mcutone@opensciencetools.com"
 # Module information
 #
 
-__all__ = []
+__all__ = [
+    'create',
+    'destroy']
 
+
+def create():
+    """Create an OpenXR session."""
+    pass
+
+
+def destroy():
+    """Destroy an OpenXR session."""
+    pass
