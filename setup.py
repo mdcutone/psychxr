@@ -191,7 +191,8 @@ vrmath_build_params = {
     'include_dirs': [fix_path('include/linmath')],
     'packages': ['psychxr.tools'],
     'package_data': vrmath_package_data,
-    'data_files': vrmath_data_files}
+    'data_files': vrmath_data_files,
+    'define_macros': [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]}
 
 # compile the `tools` extension
 EXT_MODULES.extend(
@@ -218,7 +219,11 @@ if BUILD_OPENXR:
             fix_path('include/openxr')],
         'packages': ['psychxr.drivers.openxr'],
         'package_data': openxr_package_data,
-        'data_files': openxr_data_files}
+        'data_files': openxr_data_files,
+        'define_macros': [
+            ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"),
+            ("XR_NO_PROTOTYPES", "1"),
+            ("XR_USE_GRAPHICS_API_OPENGL", "1")]}
 
     # compile the `openhmd` extension
     EXT_MODULES.extend(
@@ -241,7 +246,8 @@ if BUILD_LIBOVR:
         'include_dirs': [],
         'packages': ['psychxr.drivers.libovr'],
         'package_data': libovr_package_data,
-        'data_files': libovr_data_files}
+        'data_files': libovr_data_files,
+        'define_macros': [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]}
 
     # get the path to the SDK, uses the `cohorts` folder if not defined
     env_libovr_sdk_path = os.environ.get(
@@ -297,7 +303,8 @@ if BUILD_OPENHMD:
             fix_path('include/openhmd')],
         'packages': ['psychxr.drivers.openhmd'],
         'package_data': ohmd_package_data,
-        'data_files': ohmd_data_files}
+        'data_files': ohmd_data_files,
+        'define_macros': [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]}
 
     # compile the `openhmd` extension
     EXT_MODULES.extend(

@@ -9,7 +9,10 @@ import glfw
 import atexit
 from psychxr.drivers.libovr import *
 
-atexit.register(glfw.terminate)
+
+# called on exit
+atexit.register(glfw.terminate)  # close the window
+atexit.register(shutdown)  # shutdown the session, uncomment if you get a segfault on exit
 
 
 def main():
@@ -197,7 +200,6 @@ def main():
     destroyMirrorTexture()
     destroyTextureSwapChain(TEXTURE_SWAP_CHAIN0)
     destroy()
-    # shutdown()  causes access violation on exit
 
     return 0
 

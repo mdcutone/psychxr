@@ -40,20 +40,30 @@ __status__ = "Stable"
 __maintainer__ = "Matthew D. Cutone"
 __email__ = "mcutone@opensciencetools.com"
 
+__all__ = [
+    'createInstance',
+    'destroyInstance'
+]
+
+from . cimport openxr
+cimport numpy as np
+import numpy as np
+np.import_array()
+import warnings
+
+
 # ------------------------------------------------------------------------------
-# Module information
+# Module level constants
 #
 
-__all__ = [
-    'create',
-    'destroy']
+cdef openxr.XrInstance _ptrInstance = NULL  # pointer to instance
+cdef openxr.XrSession _ptrSession = NULL  # pointer to session
 
 
-def create():
-    """Create an OpenXR session."""
+def createInstance():
+    """Create an OpenXR instance."""
     pass
 
-
-def destroy():
-    """Destroy an OpenXR session."""
+def destroyInstance():
+    """Destroy an OpenXR instance."""
     pass

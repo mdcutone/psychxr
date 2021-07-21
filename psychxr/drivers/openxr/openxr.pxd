@@ -27,6 +27,32 @@
 from libc.stdint cimport uint32_t, uint64_t, int64_t, uint8_t, int32_t
 
 
+# Windows types we need below
+cdef extern from "Windows.h":
+    ctypedef void* HANDLE
+    ctypedef HANDLE HWND
+    ctypedef HANDLE HDC
+    ctypedef HANDLE HGLRC
+
+
+# defines from `openxr.h` used for defining array lengths
+DEF XR_MAX_EXTENSION_NAME_SIZE = 128
+DEF XR_MAX_API_LAYER_NAME_SIZE = 256
+DEF XR_MAX_API_LAYER_DESCRIPTION_SIZE = 256
+DEF XR_MAX_SYSTEM_NAME_SIZE = 256
+DEF XR_MAX_APPLICATION_NAME_SIZE = 128
+DEF XR_MAX_ENGINE_NAME_SIZE = 128
+DEF XR_MAX_RUNTIME_NAME_SIZE = 128
+DEF XR_MAX_PATH_LENGTH = 256
+DEF XR_MAX_STRUCTURE_NAME_SIZE = 64
+DEF XR_MAX_RESULT_STRING_SIZE = 64
+DEF XR_MIN_COMPOSITION_LAYERS_SUPPORTED = 16
+DEF XR_MAX_ACTION_SET_NAME_SIZE = 64
+DEF XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE = 128
+DEF XR_MAX_ACTION_NAME_SIZE = 64
+DEF XR_MAX_LOCALIZED_ACTION_NAME_SIZE = 128
+
+
 cdef extern from "openxr.h":
     cdef int XR_VERSION_1_0
     cdef int XR_MAKE_VERSION
@@ -55,36 +81,36 @@ cdef extern from "openxr.h":
     ctypedef int64_t XrTime
     ctypedef int64_t XrDuration
 
-    ctypedef struct XrInstance
-    ctypedef XrInstance* XrInstance
-    ctypedef struct XrSession
-    ctypedef XrSession* XrSession
-    ctypedef struct XrSpace
-    ctypedef XrSpace* XrSpace
-    ctypedef struct XrAction
-    ctypedef XrAction* XrAction
-    ctypedef struct XrSwapchain
-    ctypedef XrSwapchain* XrSwapchain
-    ctypedef struct XrActionSet
-    ctypedef XrActionSet* XrActionSet
+    ctypedef struct XrInstance_t
+    ctypedef struct XrSession_t
+    ctypedef struct XrSpace_t
+    ctypedef struct XrAction_t
+    ctypedef struct XrSwapchain_t
+    ctypedef struct XrActionSet_t
+    ctypedef XrInstance_t* XrInstance
+    ctypedef XrSession_t* XrSession
+    ctypedef XrSpace_t* XrSpace
+    ctypedef XrAction_t* XrAction
+    ctypedef XrSwapchain_t* XrSwapchain
+    ctypedef XrActionSet_t* XrActionSet
 
-    ctypedef XR_TRUE
-    ctypedef XR_FALSE
-    ctypedef XR_MAX_EXTENSION_NAME_SIZE
-    ctypedef XR_MAX_API_LAYER_NAME_SIZE
-    ctypedef XR_MAX_API_LAYER_DESCRIPTION_SIZE
-    ctypedef XR_MAX_SYSTEM_NAME_SIZE
-    ctypedef XR_MAX_APPLICATION_NAME_SIZE
-    ctypedef XR_MAX_ENGINE_NAME_SIZE
-    ctypedef XR_MAX_RUNTIME_NAME_SIZE
-    ctypedef XR_MAX_PATH_LENGTH
-    ctypedef XR_MAX_STRUCTURE_NAME_SIZE
-    ctypedef XR_MAX_RESULT_STRING_SIZE
-    ctypedef XR_MIN_COMPOSITION_LAYERS_SUPPORTED
-    ctypedef XR_MAX_ACTION_SET_NAME_SIZE
-    ctypedef XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE
-    ctypedef XR_MAX_ACTION_NAME_SIZE
-    ctypedef XR_MAX_LOCALIZED_ACTION_NAME_SIZE
+    cdef int XR_TRUE
+    cdef int XR_FALSE
+    # cdef int XR_MAX_EXTENSION_NAME_SIZE
+    # cdef int XR_MAX_API_LAYER_NAME_SIZE
+    # cdef int XR_MAX_API_LAYER_DESCRIPTION_SIZE
+    # cdef int XR_MAX_SYSTEM_NAME_SIZE
+    # cdef int XR_MAX_APPLICATION_NAME_SIZE
+    # cdef int XR_MAX_ENGINE_NAME_SIZE
+    # cdef int XR_MAX_RUNTIME_NAME_SIZE
+    # cdef int XR_MAX_PATH_LENGTH
+    # cdef int XR_MAX_STRUCTURE_NAME_SIZE
+    # cdef int XR_MAX_RESULT_STRING_SIZE
+    # cdef int XR_MIN_COMPOSITION_LAYERS_SUPPORTED
+    # cdef int XR_MAX_ACTION_SET_NAME_SIZE
+    # cdef int XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE
+    # cdef int XR_MAX_ACTION_NAME_SIZE
+    # cdef int XR_MAX_LOCALIZED_ACTION_NAME_SIZE
 
     ctypedef enum XrResult:
         XR_SUCCESS = 0,
@@ -439,7 +465,7 @@ cdef extern from "openxr.h":
     cdef XrInputSourceLocalizedNameFlags XR_INPUT_SOURCE_LOCALIZED_NAME_INTERACTION_PROFILE_BIT
     cdef XrInputSourceLocalizedNameFlags XR_INPUT_SOURCE_LOCALIZED_NAME_COMPONENT_BIT
 
-    ctypedef void xrVoidFunction(void)
+    ctypedef void xrVoidFunction()
 
     ctypedef struct XrApiLayerProperties:
         XrStructureType type
@@ -770,15 +796,15 @@ cdef extern from "openxr.h":
         XrStructureType type
         const void* next
 
-    ctypedef struct _XrBaseInStructure
+    ctypedef struct XrBaseInStructure_t
     ctypedef struct  XrBaseInStructure:
         XrStructureType type
-        _XrBaseInStructure* next
+        XrBaseInStructure_t* next
 
-    ctypedef struct _XrBaseOutStructure
+    ctypedef struct XrBaseOutStructure_t
     ctypedef struct  XrBaseOutStructure:
         XrStructureType type
-        _XrBaseOutStructure* next
+        XrBaseOutStructure_t* next
     
     ctypedef struct XrOffset2Di:
         int32_t x
@@ -1160,11 +1186,11 @@ cdef extern from "openxr.h":
         uint32_t viewIndex
 
     ctypedef XrResult xrGetVisibilityMaskKHR(
-            XrSession session,
-            XrViewConfigurationType viewConfigurationType,
-            uint32_t viewIndex,
-            XrVisibilityMaskTypeKHR visibilityMaskType,
-            XrVisibilityMaskKHR* visibilityMask)
+        XrSession session,
+        XrViewConfigurationType viewConfigurationType,
+        uint32_t viewIndex,
+        XrVisibilityMaskTypeKHR visibilityMaskType,
+        XrVisibilityMaskKHR* visibilityMask)
 
     cdef int XR_KHR_composition_layer_color_scale_bias
     cdef int XR_KHR_composition_layer_color_scale_bias_SPEC_VERSION
@@ -1175,5 +1201,30 @@ cdef extern from "openxr.h":
         const void* next
         XrColor4f colorScale
         XrColor4f colorBias
+
+
+cdef extern from "openxr_platform.h":
+    # only care about OpenGL on Windows here
+    cdef int XR_KHR_opengl_enable
+    cdef int XR_KHR_opengl_enable_SPEC_VERSION
+    cdef const char* XR_KHR_OPENGL_ENABLE_EXTENSION_NAME
+
+    ctypedef struct XrGraphicsBindingOpenGLWin32KHR:
+        XrStructureType type
+        const void* next
+        HDC hDC
+        HGLRC hGLRC
+
+    ctypedef struct XrSwapchainImageOpenGLKHR:
+        XrStructureType type
+        void* next
+        uint32_t image
+
+    ctypedef struct XrGraphicsRequirementsOpenGLKHR:
+        XrStructureType type
+        void* next
+        XrVersion minApiVersionSupported
+        XrVersion maxApiVersionSupported
+
 
 
