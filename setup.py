@@ -103,6 +103,7 @@ if THIS_PLATFORM == 'Windows':
     if BUILD_OPENXR:
         LIBRARY_DIRS.extend(
             [os.path.join('psychxr/drivers/openxr/lib', 'win', 'x64')])
+        LIBRARIES.extend(['openxr_loader'])
 
 else:
     if BUILD_LIBOVR:  # windows only
@@ -211,7 +212,7 @@ if BUILD_OPENXR:
     openxr_data_files = {
         'psychxr/drivers/openxr': DATA_FILES}
     openxr_build_params = {
-        'libraries': LIBRARIES + ['OpenXR'],
+        'libraries': LIBRARIES + ['openxr_loader'],
         'library_dirs': LIBRARY_DIRS,
         'include_dirs': [  # header files for needed libraries
             fix_path('include/openxr')],
