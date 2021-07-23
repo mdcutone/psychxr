@@ -597,7 +597,7 @@ cdef extern from "openxr.h":
         XrStructureType type
         void* next
         uint32_t recommendedImageRectWidth;
-        uint32_t maxImageRectWidt
+        uint32_t maxImageRectWidth
         uint32_t recommendedImageRectHeight
         uint32_t maxImageRectHeight
         uint32_t recommendedSwapchainSampleCount

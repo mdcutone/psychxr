@@ -45,18 +45,24 @@ __all__ = [
     'XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY',
     'XR_FORM_FACTOR_HANDHELD_DISPLAY',
     'XR_NULL_SYSTEM_ID',
+    'XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO',
+    'XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO',
     'OpenXRApplicationInfo',
     'OpenXRSystemInfo',
+    'OpenXRViewConfigInfo',
     'createInstance',
     'hasInstance',
     'destroyInstance',
-    'getSystem'
+    'getSystem',
+    'getViewConfigurations'
 ]
 
 # ------------------------------------------------------------------------------
 # Imports
 #
 
+from libc.stdint cimport uint32_t
+from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from . cimport openxr
 cimport numpy as np
 import numpy as np
@@ -77,6 +83,8 @@ XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY = openxr.XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
 XR_FORM_FACTOR_HANDHELD_DISPLAY = openxr.XR_FORM_FACTOR_HANDHELD_DISPLAY
 XR_NULL_SYSTEM_ID = openxr.XR_NULL_SYSTEM_ID
 XR_MIN_COMPOSITION_LAYERS_SUPPORTED = openxr.XR_MIN_COMPOSITION_LAYERS_SUPPORTED
+XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO = openxr.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO
+XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO = openxr.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
 
 
 # ------------------------------------------------------------------------------
@@ -166,6 +174,14 @@ class OpenXRFormFactorUnavailableError(OpenXRError):
     pass
 
 
+class OpenXRSizeInsufficientError(OpenXRError):
+    pass
+
+
+class OpenXRViewConfigurationNotSupportedError(OpenXRError):
+    pass
+
+
 # lookup table of exceptions
 cdef dict openxr_error_lut = {
     openxr.XR_ERROR_VALIDATION_FAILURE: OpenXRValidationFailureError,
@@ -182,7 +198,10 @@ cdef dict openxr_error_lut = {
     openxr.XR_ERROR_API_VERSION_UNSUPPORTED: OpenXRApiVersionNotSupportedError,
     openxr.XR_ERROR_API_LAYER_NOT_PRESENT: OpenXRApiLayerNotPresentError,
     openxr.XR_ERROR_FORM_FACTOR_UNSUPPORTED: OpenXRFormFactorUnsupportedError,
-    openxr.XR_ERROR_FORM_FACTOR_UNAVAILABLE: OpenXRFormFactorUnavailableError
+    openxr.XR_ERROR_FORM_FACTOR_UNAVAILABLE: OpenXRFormFactorUnavailableError,
+    openxr.XR_ERROR_SIZE_INSUFFICIENT: OpenXRSizeInsufficientError,
+    openxr.XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED:
+        OpenXRViewConfigurationNotSupportedError
 }
 
 
@@ -363,7 +382,7 @@ cdef class OpenXRSystemInfo:
 
     def __repr__(self):
         return (
-            f"OpenXRSystem("
+            f"OpenXRSystemInfo("
             f"systemId={self.systemId}, "
             f"vendorId={self.vendorId}, "
             f"systemName='{self.systemName}', "
@@ -512,6 +531,125 @@ cdef class OpenXRSystemInfo:
         capabilities (`bool`).
         """
         return self.positionTracking and self.orientationTracking
+
+
+cdef class OpenXRViewConfigInfo:
+    """Descriptor describing the configuration of a system view.
+    """
+    cdef openxr.XrViewConfigurationView c_data
+    def __init__(self,
+                 recommendedImageRectWidth=0,
+                 recommendedImageRectHeight=0,
+                 maxImageRectWidth=0,
+                 maxImageRectHeight=0,
+                 recommendedSwapchainSampleCount=0,
+                 maxSwapchainSampleCount=0):
+
+        self.recommendedImageRectWidth = recommendedImageRectWidth
+        self.maxImageRectWidth = maxImageRectWidth
+        self.recommendedImageRectHeight = recommendedImageRectHeight
+        self.maxImageRectHeight = maxImageRectHeight
+        self.recommendedSwapchainSampleCount = recommendedSwapchainSampleCount
+        self.maxSwapchainSampleCount = maxSwapchainSampleCount
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data.type = openxr.XR_TYPE_VIEW_CONFIGURATION_VIEW
+        self.c_data.next = NULL
+
+    def __repr__(self):
+        return (
+            f"OpenXRViewConfig("
+            f"recommendedImageRectWidth={self.recommendedImageRectWidth}, "
+            f"recommendedImageRectHeight={self.recommendedImageRectHeight}, "
+            f"maxImageRectWidth={self.maxImageRectWidth}, "
+            f"maxImageRectHeight={self.maxImageRectHeight}, "
+            f"recommendedSwapchainSampleCount={self.recommendedSwapchainSampleCount}, "
+            f"maxSwapchainSampleCount={self.maxSwapchainSampleCount})"
+        )
+
+    @property
+    def recommendedImageRectWidth(self):
+        return <int>self.c_data.recommendedImageRectWidth
+
+    @recommendedImageRectWidth.setter
+    def recommendedImageRectWidth(self, value):
+        if not isinstance(value, int):  # check type
+            raise TypeError(
+                'Property `OpenXRViewConfig.recommendedImageRectWidth` must be '
+                'type `int`.'
+            )
+
+        self.c_data.recommendedImageRectWidth = <uint32_t>value
+
+    @property
+    def recommendedImageRectHeight(self):
+        return <int>self.c_data.recommendedImageRectHeight
+
+    @recommendedImageRectHeight.setter
+    def recommendedImageRectHeight(self, value):
+        if not isinstance(value, int):  # check type
+            raise TypeError(
+                'Property `OpenXRViewConfig.recommendedImageRectHeight` must '
+                'be type `int`.'
+            )
+
+        self.c_data.recommendedImageRectHeight = <uint32_t>value
+
+    @property
+    def maxImageRectWidth(self):
+        return <int>self.c_data.maxImageRectWidth
+
+    @maxImageRectWidth.setter
+    def maxImageRectWidth(self, value):
+        if not isinstance(value, int):  # check type
+            raise TypeError(
+                'Property `OpenXRViewConfig.maxImageRectWidth` must be type '
+                '`int`.'
+            )
+
+        self.c_data.maxImageRectWidth = <uint32_t>value
+
+    @property
+    def maxImageRectHeight(self):
+        return <int>self.c_data.maxImageRectWidth
+
+    @maxImageRectHeight.setter
+    def maxImageRectHeight(self, value):
+        if not isinstance(value, int):  # check type
+            raise TypeError(
+                'Property `OpenXRViewConfig.maxImageRectHeight` must be type '
+                '`int`.'
+            )
+
+        self.c_data.maxImageRectHeight = <uint32_t>value
+
+    @property
+    def recommendedSwapchainSampleCount(self):
+        return <int>self.c_data.recommendedSwapchainSampleCount
+
+    @recommendedSwapchainSampleCount.setter
+    def recommendedSwapchainSampleCount(self, value):
+        if not isinstance(value, int):  # check type
+            raise TypeError(
+                'Property `OpenXRViewConfig.recommendedSwapchainSampleCount` '
+                'must be type `int`.'
+            )
+
+        self.c_data.recommendedSwapchainSampleCount = <uint32_t>value
+
+    @property
+    def maxSwapchainSampleCount(self):
+        return <int>self.c_data.maxSwapchainSampleCount
+
+    @maxSwapchainSampleCount.setter
+    def maxSwapchainSampleCount(self, value):
+        if not isinstance(value, int):  # check type
+            raise TypeError(
+                'Property `OpenXRViewConfig.maxSwapchainSampleCount` must be '
+                'type `int`.'
+            )
+
+        self.c_data.maxSwapchainSampleCount = <uint32_t>value
 
 
 def createInstance(OpenXRApplicationInfo applicationInfo):
@@ -663,3 +801,79 @@ def getSystem(formFactor):
     system_desc.c_data = system_props
 
     return system_desc
+
+
+def getViewConfigurations(OpenXRSystemInfo system, int viewType):
+    """Get configuration for each view supported by the provided system.
+
+    Parameters
+    ----------
+    system : OpenXRSystemInfo
+        Descriptor for the system to query view information.
+    viewType : int
+        Symbolic constant representing the type of view data to retrieve. Value
+        may be one of ``XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO`` or
+        ``XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO``.
+
+    Returns
+    -------
+    list of OpenXRViewConfigInfo
+        View configurations for each view provided by the system.
+
+    """
+    global _ptrInstance
+
+    cdef openxr.XrViewConfigurationType view_type = \
+        <openxr.XrViewConfigurationType>viewType  # return value
+    cdef openxr.XrSystemId system_id = system.c_data.systemId
+
+    # get the number of views in the first pass
+    cdef uint32_t view_count = 0
+    cdef openxr.XrResult result
+    result = openxr.xrEnumerateViewConfigurationViews(
+        _ptrInstance,
+        system_id,
+        view_type,
+        0,  # write no values
+        &view_count,
+        NULL)  # pass NULL to just get the count right now
+
+    if result < openxr.XR_SUCCESS:  # check errors
+        raise openxr_error_lut[result]()
+
+    # allocate arrays to hold view config data
+    cdef openxr.XrViewConfigurationView* c_view_configs = \
+        <openxr.XrViewConfigurationView*>PyMem_Malloc(
+            sizeof(openxr.XrViewConfigurationView) * view_count)
+
+    if c_view_configs is NULL:
+        raise MemoryError("Failed to allocate array `c_view_configs`.")
+
+    cdef Py_ssize_t i = 0
+    for i in range(<Py_ssize_t>view_count):
+        c_view_configs[i].type = openxr.XR_TYPE_VIEW_CONFIGURATION_VIEW
+        c_view_configs[i].next = NULL
+
+    # call again with the array to write values
+    result = openxr.xrEnumerateViewConfigurationViews(
+        _ptrInstance,
+        system_id,
+        view_type,
+        view_count,
+        &view_count,
+        c_view_configs)
+
+    if result < openxr.XR_SUCCESS:  # check errors
+        raise openxr_error_lut[result]()
+
+    # loop over returned view configs and write them to Python objects
+    cdef list to_return = []  # returns a list of view settings
+    cdef OpenXRViewConfigInfo view_desc
+    for i in range(<Py_ssize_t>view_count):
+        view_desc = OpenXRViewConfigInfo()
+        view_desc.c_data = c_view_configs[i]
+        to_return.append(view_desc)
+
+    PyMem_Free(c_view_configs)  # free the array
+
+    return to_return
