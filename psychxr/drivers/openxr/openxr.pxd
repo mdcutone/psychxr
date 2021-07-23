@@ -26,6 +26,9 @@
 
 from libc.stdint cimport uint32_t, uint64_t, int64_t, uint8_t, int32_t
 
+cdef extern from "build_defs.h":
+    pass
+
 
 # Windows types we need below
 cdef extern from "Windows.h":
@@ -55,8 +58,7 @@ DEF XR_MAX_LOCALIZED_ACTION_NAME_SIZE = 128
 
 cdef extern from "openxr.h":
     cdef int XR_VERSION_1_0
-    cdef int XR_MAKE_VERSION
-    cdef int XR_CURRENT_API_VERSION
+    cdef uint64_t XR_CURRENT_API_VERSION = (((1 & 0xffffULL) << 48) | ((0 & 0xffffULL) << 32) | (17 & 0xffffffffULL))
     cdef int XR_VERSION_MAJOR
     cdef int XR_VERSION_MINOR
     cdef int XR_VERSION_PATCH
@@ -910,210 +912,210 @@ cdef extern from "openxr.h":
         float b
         float a
 
-    ctypedef XrResult xrGetInstanceProcAddr(
-            XrInstance instance,
-            const char* name,
-            xrVoidFunction* function)
-    ctypedef XrResult xrEnumerateApiLayerProperties(
-            uint32_t propertyCapacityInput,
-            uint32_t* propertyCountOutput,
-            XrApiLayerProperties* properties)
-    ctypedef XrResult xrEnumerateInstanceExtensionProperties(
-            const char* layerName,
-            uint32_t propertyCapacityInput,
-            uint32_t* propertyCountOutput,
-            XrExtensionProperties* properties)
-    ctypedef XrResult xrCreateInstance(
-            const XrInstanceCreateInfo* createInfo,
-            XrInstance* instance)
-    ctypedef XrResult xrDestroyInstance(XrInstance instance)
-    ctypedef XrResult xrGetInstanceProperties(
-            XrInstance instance,
-            XrInstanceProperties* instanceProperties)
-    ctypedef XrResult xrPollEvent(
-            XrInstance instance,
-            XrEventDataBuffer* eventData)
-    ctypedef XrResult xrResultToString(
-            XrInstance instance,
-            XrResult value,
-            char buffer[XR_MAX_RESULT_STRING_SIZE])
-    ctypedef XrResult xrStructureTypeToString(
-            XrInstance instance,
-            XrStructureType value,
-            char buffer[XR_MAX_STRUCTURE_NAME_SIZE])
-    ctypedef XrResult xrGetSystem(
-            XrInstance instance,
-            const XrSystemGetInfo* getInfo,
-            XrSystemId* systemId)
-    ctypedef XrResult xrGetSystemProperties(
-            XrInstance instance,
-            XrSystemId systemId,
-            XrSystemProperties* properties)
-    ctypedef XrResult xrEnumerateEnvironmentBlendModes(
-            XrInstance instance,
-            XrSystemId systemId,
-            XrViewConfigurationType viewConfigurationType,
-            uint32_t environmentBlendModeCapacityInput,
-            uint32_t* environmentBlendModeCountOutput,
-            XrEnvironmentBlendMode* environmentBlendModes)
-    ctypedef XrResult xrCreateSession(
-            XrInstance instance,
-            const XrSessionCreateInfo* createInfo,
-            XrSession* session)
-    ctypedef XrResult xrDestroySession(XrSession session)
-    ctypedef XrResult xrEnumerateReferenceSpaces(
-            XrSession session,
-            uint32_t spaceCapacityInput,
-            uint32_t* spaceCountOutput,
-            XrReferenceSpaceType* spaces)
-    ctypedef XrResult xrCreateReferenceSpace(
-            XrSession session,
-            XrReferenceSpaceCreateInfo* createInfo,
-            XrSpace* space)
-    ctypedef XrResult xrGetReferenceSpaceBoundsRect(
-            XrSession session,
-            XrReferenceSpaceType referenceSpaceType,
-            XrExtent2Df* bounds)
-    ctypedef XrResult xrCreateActionSpace(
-            XrSession session,
-            XrActionSpaceCreateInfo* createInfo,
-            XrSpace* space)
-    ctypedef XrResult xrLocateSpace(
-            XrSpace space,
-            XrSpace baseSpace,
-            XrTime time,
-            XrSpaceLocation* location)
-    ctypedef XrResult xrDestroySpace(XrSpace space)
-    ctypedef XrResult xrEnumerateViewConfigurations(
-            XrInstance instance,
-            XrSystemId systemId,
-            uint32_t viewConfigurationTypeCapacityInput,
-            uint32_t* viewConfigurationTypeCountOutput,
-            XrViewConfigurationType* viewConfigurationTypes)
-    ctypedef XrResult xrGetViewConfigurationProperties(
-            XrInstance instance,
-            XrSystemId systemId,
-            XrViewConfigurationType viewConfigurationType,
-            XrViewConfigurationProperties* configurationProperties)
-    ctypedef XrResult xrEnumerateViewConfigurationViews(
-            XrInstance instance,
-            XrSystemId systemId,
-            XrViewConfigurationType viewConfigurationType,
-            uint32_t viewCapacityInput,
-            uint32_t* viewCountOutput,
-            XrViewConfigurationView* views)
-    ctypedef XrResult xrEnumerateSwapchainFormats(
-            XrSession session,
-            uint32_t formatCapacityInput,
-            uint32_t* formatCountOutput,
-            int64_t* formats)
-    ctypedef XrResult xrCreateSwapchain(
-            XrSession session,
-            XrSwapchainCreateInfo* createInfo,
-            XrSwapchain* swapchain)
-    ctypedef XrResult xrDestroySwapchain(XrSwapchain swapchain)
-    ctypedef XrResult xrEnumerateSwapchainImages(
-            XrSwapchain swapchain,
-            uint32_t imageCapacityInput,
-            uint32_t* imageCountOutput,
-            XrSwapchainImageBaseHeader* images)
-    ctypedef XrResult xrAcquireSwapchainImage(
-            XrSwapchain swapchain,
-            XrSwapchainImageAcquireInfo* acquireInfo,
-            uint32_t* index)
-    ctypedef XrResult xrWaitSwapchainImage(
-            XrSwapchain swapchain,
-            XrSwapchainImageWaitInfo* waitInfo)
-    ctypedef XrResult xrReleaseSwapchainImage(
-            XrSwapchain swapchain,
-            XrSwapchainImageReleaseInfo* releaseInfo)
-    ctypedef XrResult xrBeginSession(
-            XrSession session,
-            XrSessionBeginInfo* beginInfo)
-    ctypedef XrResult xrEndSession(XrSession session)
-    ctypedef XrResult xrRequestExitSession(XrSession session)
-    ctypedef XrResult xrWaitFrame(
-            XrSession session,
-            XrFrameWaitInfo* frameWaitInfo,
-            XrFrameState* frameState)
-    ctypedef XrResult xrBeginFrame(
-            XrSession session, XrFrameBeginInfo* frameBeginInfo)
-    ctypedef XrResult xrEndFrame(
-            XrSession session, XrFrameEndInfo* frameEndInfo)
-    ctypedef XrResult xrLocateViews(
-            XrSession session, XrViewLocateInfo* viewLocateInfo,
-            XrViewState* viewState,
-            uint32_t viewCapacityInput,
-            uint32_t* viewCountOutput,
-            XrView* views)
-    ctypedef XrResult xrStringToPath(
-            XrInstance instance,
-            const char* pathString,
-            XrPath* path)
-    ctypedef XrResult xrPathToString(
-            XrInstance instance,
-            XrPath path,
-            uint32_t bufferCapacityInput,
-            uint32_t* bufferCountOutput,
-            char* buffer)
-    ctypedef XrResult xrCreateActionSet(
-            XrInstance instance,
-            XrActionSetCreateInfo* createInfo,
-            XrActionSet* actionSet)
-    ctypedef XrResult xrDestroyActionSet(XrActionSet actionSet)
-    ctypedef XrResult xrCreateAction(
-            XrActionSet actionSet,
-            XrActionCreateInfo* createInfo,
-            XrAction* action)
-    ctypedef XrResult xrDestroyAction(XrAction action)
-    ctypedef XrResult xrSuggestInteractionProfileBindings(
-            XrInstance instance,
-            XrInteractionProfileSuggestedBinding* suggestedBindings)
-    ctypedef XrResult xrAttachSessionActionSets(
-            XrSession session,
-            XrSessionActionSetsAttachInfo* attachInfo)
-    ctypedef XrResult xrGetCurrentInteractionProfile(
-            XrSession session,
-            XrPath topLevelUserPath,
-            XrInteractionProfileState* interactionProfile)
-    ctypedef XrResult xrGetActionStateBoolean(
-            XrSession session,
-            XrActionStateGetInfo* getInfo,
-            XrActionStateBoolean* state)
-    ctypedef XrResult xrGetActionStateFloat(
-            XrSession session,
-            XrActionStateGetInfo* getInfo,
-            XrActionStateFloat* state)
-    ctypedef XrResult xrGetActionStateVector2(
-            XrSession session,
-            XrActionStateGetInfo* getInfo,
-            XrActionStateVector2f* state)
-    ctypedef XrResult xrGetActionStatePose(
-            XrSession session,
-            XrActionStateGetInfo* getInfo,
-            XrActionStatePose* state)
-    ctypedef XrResult xrSyncActions(
-            XrSession session,
-            XrActionsSyncInfo* syncInfo)
-    ctypedef XrResult xrEnumerateBoundSourcesForAction(
-            XrSession session,
-            XrBoundSourcesForActionEnumerateInfo* enumerateInfo,
-            uint32_t sourceCapacityInput,
-            uint32_t* sourceCountOutput,
-            XrPath* sources)
-    ctypedef XrResult xrGetInputSourceLocalizedName(
-            XrSession session,
-            XrInputSourceLocalizedNameGetInfo* getInfo,
-            uint32_t bufferCapacityInput,
-            uint32_t* bufferCountOutput,
-            char* buffer)
-    ctypedef XrResult xrApplyHapticFeedback(
-            XrSession session,
-            XrHapticActionInfo* hapticActionInfo,
-            XrHapticBaseHeader* hapticFeedback)
-    ctypedef XrResult xrStopHapticFeedback(
-            XrSession session,
-            XrHapticActionInfo* hapticActionInfo)
+    cdef XrResult xrGetInstanceProcAddr(
+        XrInstance instance,
+        const char* name,
+        xrVoidFunction* function)
+    cdef XrResult xrEnumerateApiLayerProperties(
+        uint32_t propertyCapacityInput,
+        uint32_t* propertyCountOutput,
+        XrApiLayerProperties* properties)
+    cdef XrResult xrEnumerateInstanceExtensionProperties(
+        const char* layerName,
+        uint32_t propertyCapacityInput,
+        uint32_t* propertyCountOutput,
+        XrExtensionProperties* properties)
+    cdef XrResult xrCreateInstance(
+        const XrInstanceCreateInfo* createInfo,
+        XrInstance* instance)
+    cdef XrResult xrDestroyInstance(XrInstance instance)
+    cdef XrResult xrGetInstanceProperties(
+        XrInstance instance,
+        XrInstanceProperties* instanceProperties)
+    cdef XrResult xrPollEvent(
+        XrInstance instance,
+        XrEventDataBuffer* eventData)
+    cdef XrResult xrResultToString(
+        XrInstance instance,
+        XrResult value,
+        char buffer[XR_MAX_RESULT_STRING_SIZE])
+    cdef XrResult xrStructureTypeToString(
+        XrInstance instance,
+        XrStructureType value,
+        char buffer[XR_MAX_STRUCTURE_NAME_SIZE])
+    cdef XrResult xrGetSystem(
+        XrInstance instance,
+        const XrSystemGetInfo* getInfo,
+        XrSystemId* systemId)
+    cdef XrResult xrGetSystemProperties(
+        XrInstance instance,
+        XrSystemId systemId,
+        XrSystemProperties* properties)
+    cdef XrResult xrEnumerateEnvironmentBlendModes(
+        XrInstance instance,
+        XrSystemId systemId,
+        XrViewConfigurationType viewConfigurationType,
+        uint32_t environmentBlendModeCapacityInput,
+        uint32_t* environmentBlendModeCountOutput,
+        XrEnvironmentBlendMode* environmentBlendModes)
+    cdef XrResult xrCreateSession(
+        XrInstance instance,
+        const XrSessionCreateInfo* createInfo,
+        XrSession* session)
+    cdef XrResult xrDestroySession(XrSession session)
+    cdef XrResult xrEnumerateReferenceSpaces(
+        XrSession session,
+        uint32_t spaceCapacityInput,
+        uint32_t* spaceCountOutput,
+        XrReferenceSpaceType* spaces)
+    cdef XrResult xrCreateReferenceSpace(
+        XrSession session,
+        XrReferenceSpaceCreateInfo* createInfo,
+        XrSpace* space)
+    cdef XrResult xrGetReferenceSpaceBoundsRect(
+        XrSession session,
+        XrReferenceSpaceType referenceSpaceType,
+        XrExtent2Df* bounds)
+    cdef XrResult xrCreateActionSpace(
+        XrSession session,
+        XrActionSpaceCreateInfo* createInfo,
+        XrSpace* space)
+    cdef XrResult xrLocateSpace(
+        XrSpace space,
+        XrSpace baseSpace,
+        XrTime time,
+        XrSpaceLocation* location)
+    cdef XrResult xrDestroySpace(XrSpace space)
+    cdef XrResult xrEnumerateViewConfigurations(
+        XrInstance instance,
+        XrSystemId systemId,
+        uint32_t viewConfigurationTypeCapacityInput,
+        uint32_t* viewConfigurationTypeCountOutput,
+        XrViewConfigurationType* viewConfigurationTypes)
+    cdef XrResult xrGetViewConfigurationProperties(
+        XrInstance instance,
+        XrSystemId systemId,
+        XrViewConfigurationType viewConfigurationType,
+        XrViewConfigurationProperties* configurationProperties)
+    cdef XrResult xrEnumerateViewConfigurationViews(
+        XrInstance instance,
+        XrSystemId systemId,
+        XrViewConfigurationType viewConfigurationType,
+        uint32_t viewCapacityInput,
+        uint32_t* viewCountOutput,
+        XrViewConfigurationView* views)
+    cdef XrResult xrEnumerateSwapchainFormats(
+        XrSession session,
+        uint32_t formatCapacityInput,
+        uint32_t* formatCountOutput,
+        int64_t* formats)
+    cdef XrResult xrCreateSwapchain(
+        XrSession session,
+        XrSwapchainCreateInfo* createInfo,
+        XrSwapchain* swapchain)
+    cdef XrResult xrDestroySwapchain(XrSwapchain swapchain)
+    cdef XrResult xrEnumerateSwapchainImages(
+        XrSwapchain swapchain,
+        uint32_t imageCapacityInput,
+        uint32_t* imageCountOutput,
+        XrSwapchainImageBaseHeader* images)
+    cdef XrResult xrAcquireSwapchainImage(
+        XrSwapchain swapchain,
+        XrSwapchainImageAcquireInfo* acquireInfo,
+        uint32_t* index)
+    cdef XrResult xrWaitSwapchainImage(
+        XrSwapchain swapchain,
+        XrSwapchainImageWaitInfo* waitInfo)
+    cdef XrResult xrReleaseSwapchainImage(
+        XrSwapchain swapchain,
+        XrSwapchainImageReleaseInfo* releaseInfo)
+    cdef XrResult xrBeginSession(
+        XrSession session,
+        XrSessionBeginInfo* beginInfo)
+    cdef XrResult xrEndSession(XrSession session)
+    cdef XrResult xrRequestExitSession(XrSession session)
+    cdef XrResult xrWaitFrame(
+        XrSession session,
+        XrFrameWaitInfo* frameWaitInfo,
+        XrFrameState* frameState)
+    cdef XrResult xrBeginFrame(
+        XrSession session, XrFrameBeginInfo* frameBeginInfo)
+    cdef XrResult xrEndFrame(
+        XrSession session, XrFrameEndInfo* frameEndInfo)
+    cdef XrResult xrLocateViews(
+        XrSession session, XrViewLocateInfo* viewLocateInfo,
+        XrViewState* viewState,
+        uint32_t viewCapacityInput,
+        uint32_t* viewCountOutput,
+        XrView* views)
+    cdef XrResult xrStringToPath(
+        XrInstance instance,
+        const char* pathString,
+        XrPath* path)
+    cdef XrResult xrPathToString(
+        XrInstance instance,
+        XrPath path,
+        uint32_t bufferCapacityInput,
+        uint32_t* bufferCountOutput,
+        char* buffer)
+    cdef XrResult xrCreateActionSet(
+        XrInstance instance,
+        XrActionSetCreateInfo* createInfo,
+        XrActionSet* actionSet)
+    cdef XrResult xrDestroyActionSet(XrActionSet actionSet)
+    cdef XrResult xrCreateAction(
+        XrActionSet actionSet,
+        XrActionCreateInfo* createInfo,
+        XrAction* action)
+    cdef XrResult xrDestroyAction(XrAction action)
+    cdef XrResult xrSuggestInteractionProfileBindings(
+        XrInstance instance,
+        XrInteractionProfileSuggestedBinding* suggestedBindings)
+    cdef XrResult xrAttachSessionActionSets(
+        XrSession session,
+        XrSessionActionSetsAttachInfo* attachInfo)
+    cdef XrResult xrGetCurrentInteractionProfile(
+        XrSession session,
+        XrPath topLevelUserPath,
+        XrInteractionProfileState* interactionProfile)
+    cdef XrResult xrGetActionStateBoolean(
+        XrSession session,
+        XrActionStateGetInfo* getInfo,
+        XrActionStateBoolean* state)
+    cdef XrResult xrGetActionStateFloat(
+        XrSession session,
+        XrActionStateGetInfo* getInfo,
+        XrActionStateFloat* state)
+    cdef XrResult xrGetActionStateVector2(
+        XrSession session,
+        XrActionStateGetInfo* getInfo,
+        XrActionStateVector2f* state)
+    cdef XrResult xrGetActionStatePose(
+        XrSession session,
+        XrActionStateGetInfo* getInfo,
+        XrActionStatePose* state)
+    cdef XrResult xrSyncActions(
+        XrSession session,
+        XrActionsSyncInfo* syncInfo)
+    cdef XrResult xrEnumerateBoundSourcesForAction(
+        XrSession session,
+        XrBoundSourcesForActionEnumerateInfo* enumerateInfo,
+        uint32_t sourceCapacityInput,
+        uint32_t* sourceCountOutput,
+        XrPath* sources)
+    cdef XrResult xrGetInputSourceLocalizedName(
+        XrSession session,
+        XrInputSourceLocalizedNameGetInfo* getInfo,
+        uint32_t bufferCapacityInput,
+        uint32_t* bufferCountOutput,
+        char* buffer)
+    cdef XrResult xrApplyHapticFeedback(
+        XrSession session,
+        XrHapticActionInfo* hapticActionInfo,
+        XrHapticBaseHeader* hapticFeedback)
+    cdef XrResult xrStopHapticFeedback(
+        XrSession session,
+        XrHapticActionInfo* hapticActionInfo)
 
     cdef int XR_KHR_composition_layer_cube
     cdef int XR_KHR_composition_layer_cube_SPEC_VERSION

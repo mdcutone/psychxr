@@ -212,6 +212,11 @@ if BUILD_OPENXR:
         'psychxr.drivers.openxr': PACKAGE_DATA}
     openxr_data_files = {
         'psychxr/drivers/openxr': DATA_FILES}
+    openxr_macro_defs = [
+        ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"),
+        ("XR_NO_PROTOTYPES", '1'),
+        ("XR_USE_GRAPHICS_API_OPENGL", '1'),
+        ("XR_USE_PLATFORM_WIN32", '1')]
     openxr_build_params = {
         'libraries': LIBRARIES + ['openxr_loader'],
         'library_dirs': LIBRARY_DIRS,
@@ -220,10 +225,8 @@ if BUILD_OPENXR:
         'packages': ['psychxr.drivers.openxr'],
         'package_data': openxr_package_data,
         'data_files': openxr_data_files,
-        'define_macros': [
-            ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"),
-            ("XR_NO_PROTOTYPES", "1"),
-            ("XR_USE_GRAPHICS_API_OPENGL", "1")]}
+        'define_macros': openxr_macro_defs
+    }
 
     # compile the `openhmd` extension
     EXT_MODULES.extend(

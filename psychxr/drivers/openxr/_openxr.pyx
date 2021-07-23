@@ -62,7 +62,34 @@ cdef openxr.XrSession _ptrSession = NULL  # pointer to session
 
 def createInstance():
     """Create an OpenXR instance."""
-    pass
+    global _ptrInstance
+
+    if _ptrInstance is not NULL:
+        return
+
+    cdef openxr.XrGraphicsBindingOpenGLWin32KHR graphics_binding_gl
+    cdef openxr.XrApplicationInfo app_info
+    app_info.applicationName = ""
+    app_info.applicationVersion = 1
+    app_info.engineName = ""
+    app_info.engineVersion = 0
+    app_info.apiVersion = openxr.XR_CURRENT_API_VERSION
+
+    cdef const char* enabled_exts[1]
+    enabled_exts[0] = openxr.XR_KHR_OPENGL_ENABLE_EXTENSION_NAME
+    cdef openxr.XrInstanceCreateInfo instance_create_info
+    instance_create_info.type = openxr.XR_TYPE_INSTANCE_CREATE_INFO
+    instance_create_info.next = NULL
+    instance_create_info.createFlags = 0
+    instance_create_info.enabledExtensionCount = 1
+    instance_create_info.enabledExtensionNames = enabled_exts
+    instance_create_info.enabledApiLayerCount = 0
+    instance_create_info.enabledApiLayerNames = NULL
+    instance_create_info.applicationInfo = app_info
+
+    cdef openxr.XrResult result
+    result = openxr.xrCreateInstance(&instance_create_info, &_ptrInstance)
+
 
 def destroyInstance():
     """Destroy an OpenXR instance."""
