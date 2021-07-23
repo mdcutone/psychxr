@@ -24,11 +24,11 @@ import os
 import sys
 import platform
 
-# Add library directory to PATH before loading the pyd, points to the OpenXR
+# Add library directory to PATH before loading the pyd, points to the OpenHMD
 # loader.
 if platform.system() == "Windows":
     here, _ = os.path.split(sys.modules[__name__].__file__)
     os.environ["PATH"] += r";" + os.path.join(here, 'lib', 'win', 'x64')
 
 # load exported data from the _openhmd extension module into the namespace
-from ._openxr import *
+from ._openhmd import *

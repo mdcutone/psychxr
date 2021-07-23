@@ -26,6 +26,7 @@
 
 from libc.stdint cimport uint32_t, uint64_t, int64_t, uint8_t, int32_t
 
+# needed to define preprocessor values
 cdef extern from "build_defs.h":
     pass
 
@@ -38,22 +39,22 @@ cdef extern from "Windows.h":
     ctypedef HANDLE HGLRC
 
 
-# defines from `openxr.h` used for defining array lengths
-DEF XR_MAX_EXTENSION_NAME_SIZE = 128
-DEF XR_MAX_API_LAYER_NAME_SIZE = 256
-DEF XR_MAX_API_LAYER_DESCRIPTION_SIZE = 256
-DEF XR_MAX_SYSTEM_NAME_SIZE = 256
-DEF XR_MAX_APPLICATION_NAME_SIZE = 128
-DEF XR_MAX_ENGINE_NAME_SIZE = 128
-DEF XR_MAX_RUNTIME_NAME_SIZE = 128
-DEF XR_MAX_PATH_LENGTH = 256
-DEF XR_MAX_STRUCTURE_NAME_SIZE = 64
-DEF XR_MAX_RESULT_STRING_SIZE = 64
-DEF XR_MIN_COMPOSITION_LAYERS_SUPPORTED = 16
-DEF XR_MAX_ACTION_SET_NAME_SIZE = 64
-DEF XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE = 128
-DEF XR_MAX_ACTION_NAME_SIZE = 64
-DEF XR_MAX_LOCALIZED_ACTION_NAME_SIZE = 128
+# defines from `openxr.h` used for defining array lengths, just used in this file
+DEF _XR_MAX_EXTENSION_NAME_SIZE = 128
+DEF _XR_MAX_API_LAYER_NAME_SIZE = 256
+DEF _XR_MAX_API_LAYER_DESCRIPTION_SIZE = 256
+DEF _XR_MAX_SYSTEM_NAME_SIZE = 256
+DEF _XR_MAX_APPLICATION_NAME_SIZE = 128
+DEF _XR_MAX_ENGINE_NAME_SIZE = 128
+DEF _XR_MAX_RUNTIME_NAME_SIZE = 128
+DEF _XR_MAX_PATH_LENGTH = 256
+DEF _XR_MAX_STRUCTURE_NAME_SIZE = 64
+DEF _XR_MAX_RESULT_STRING_SIZE = 64
+DEF _XR_MIN_COMPOSITION_LAYERS_SUPPORTED = 16
+DEF _XR_MAX_ACTION_SET_NAME_SIZE = 64
+DEF _XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE = 128
+DEF _XR_MAX_ACTION_NAME_SIZE = 64
+DEF _XR_MAX_LOCALIZED_ACTION_NAME_SIZE = 128
 
 
 cdef extern from "openxr.h":
@@ -98,21 +99,21 @@ cdef extern from "openxr.h":
 
     cdef int XR_TRUE
     cdef int XR_FALSE
-    # cdef int XR_MAX_EXTENSION_NAME_SIZE
-    # cdef int XR_MAX_API_LAYER_NAME_SIZE
-    # cdef int XR_MAX_API_LAYER_DESCRIPTION_SIZE
-    # cdef int XR_MAX_SYSTEM_NAME_SIZE
-    # cdef int XR_MAX_APPLICATION_NAME_SIZE
-    # cdef int XR_MAX_ENGINE_NAME_SIZE
-    # cdef int XR_MAX_RUNTIME_NAME_SIZE
-    # cdef int XR_MAX_PATH_LENGTH
-    # cdef int XR_MAX_STRUCTURE_NAME_SIZE
-    # cdef int XR_MAX_RESULT_STRING_SIZE
-    # cdef int XR_MIN_COMPOSITION_LAYERS_SUPPORTED
-    # cdef int XR_MAX_ACTION_SET_NAME_SIZE
-    # cdef int XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE
-    # cdef int XR_MAX_ACTION_NAME_SIZE
-    # cdef int XR_MAX_LOCALIZED_ACTION_NAME_SIZE
+    cdef int XR_MAX_EXTENSION_NAME_SIZE
+    cdef int XR_MAX_API_LAYER_NAME_SIZE
+    cdef int XR_MAX_API_LAYER_DESCRIPTION_SIZE
+    cdef int XR_MAX_SYSTEM_NAME_SIZE
+    cdef int XR_MAX_APPLICATION_NAME_SIZE
+    cdef int XR_MAX_ENGINE_NAME_SIZE
+    cdef int XR_MAX_RUNTIME_NAME_SIZE
+    cdef int XR_MAX_PATH_LENGTH
+    cdef int XR_MAX_STRUCTURE_NAME_SIZE
+    cdef int XR_MAX_RESULT_STRING_SIZE
+    cdef int XR_MIN_COMPOSITION_LAYERS_SUPPORTED
+    cdef int XR_MAX_ACTION_SET_NAME_SIZE
+    cdef int XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE
+    cdef int XR_MAX_ACTION_NAME_SIZE
+    cdef int XR_MAX_LOCALIZED_ACTION_NAME_SIZE
 
     ctypedef enum XrResult:
         XR_SUCCESS = 0,
@@ -472,21 +473,21 @@ cdef extern from "openxr.h":
     ctypedef struct XrApiLayerProperties:
         XrStructureType type
         void* next
-        char layerName[XR_MAX_API_LAYER_NAME_SIZE];
+        char layerName[_XR_MAX_API_LAYER_NAME_SIZE];
         XrVersion specVersion
         uint32_t layerVersion
-        char description[XR_MAX_API_LAYER_DESCRIPTION_SIZE]
+        char description[_XR_MAX_API_LAYER_DESCRIPTION_SIZE]
 
     ctypedef struct XrExtensionProperties:
         XrStructureType type
         void* next;
-        char extensionName[XR_MAX_EXTENSION_NAME_SIZE]
+        char extensionName[_XR_MAX_EXTENSION_NAME_SIZE]
         uint32_t extensionVersion
 
     ctypedef struct XrApplicationInfo:
-        char applicationName[XR_MAX_APPLICATION_NAME_SIZE]
+        char applicationName[_XR_MAX_APPLICATION_NAME_SIZE]
         uint32_t applicationVersion
-        char engineName[XR_MAX_ENGINE_NAME_SIZE]
+        char engineName[_XR_MAX_ENGINE_NAME_SIZE]
         uint32_t engineVersion
         XrVersion apiVersion
 
@@ -504,7 +505,7 @@ cdef extern from "openxr.h":
         XrStructureType type
         void* next
         XrVersion runtimeVersion
-        char runtimeName[XR_MAX_RUNTIME_NAME_SIZE]
+        char runtimeName[_XR_MAX_RUNTIME_NAME_SIZE]
 
     ctypedef struct XrEventDataBuffer:
         XrStructureType type
@@ -530,7 +531,7 @@ cdef extern from "openxr.h":
         void* next
         XrSystemId systemId
         uint32_t vendorId
-        char systemName[XR_MAX_SYSTEM_NAME_SIZE]
+        char systemName[_XR_MAX_SYSTEM_NAME_SIZE]
         XrSystemGraphicsProperties graphicsProperties
         XrSystemTrackingProperties trackingProperties
 
@@ -693,18 +694,18 @@ cdef extern from "openxr.h":
     ctypedef struct XrActionSetCreateInfo:
         XrStructureType type
         const void* next
-        char actionSetName[XR_MAX_ACTION_SET_NAME_SIZE]
-        char localizedActionSetName[XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE]
+        char actionSetName[_XR_MAX_ACTION_SET_NAME_SIZE]
+        char localizedActionSetName[_XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE]
         uint32_t priority
     
     ctypedef struct XrActionCreateInfo:
         XrStructureType type
         const void* next
-        char actionName[XR_MAX_ACTION_NAME_SIZE]
+        char actionName[_XR_MAX_ACTION_NAME_SIZE]
         XrActionType actionType
         uint32_t countSubactionPaths
         const XrPath* subactionPaths
-        char localizedActionName[XR_MAX_LOCALIZED_ACTION_NAME_SIZE]
+        char localizedActionName[_XR_MAX_LOCALIZED_ACTION_NAME_SIZE]
     
     ctypedef struct XrActionSuggestedBinding:
         XrAction action
@@ -938,11 +939,11 @@ cdef extern from "openxr.h":
     cdef XrResult xrResultToString(
         XrInstance instance,
         XrResult value,
-        char buffer[XR_MAX_RESULT_STRING_SIZE])
+        char buffer[_XR_MAX_RESULT_STRING_SIZE])
     cdef XrResult xrStructureTypeToString(
         XrInstance instance,
         XrStructureType value,
-        char buffer[XR_MAX_STRUCTURE_NAME_SIZE])
+        char buffer[_XR_MAX_STRUCTURE_NAME_SIZE])
     cdef XrResult xrGetSystem(
         XrInstance instance,
         const XrSystemGetInfo* getInfo,
@@ -1227,6 +1228,3 @@ cdef extern from "openxr_platform.h":
         void* next
         XrVersion minApiVersionSupported
         XrVersion maxApiVersionSupported
-
-
-
