@@ -41,8 +41,13 @@ __maintainer__ = "Matthew D. Cutone"
 __email__ = "mcutone@opensciencetools.org"
 
 __all__ = [
+    'XR_SUCCESS',
+    'XR_ERROR_HANDLE_INVALID',
+    'XR_CURRENT_API_VERSION',
     'XrApplicationInfo',
-    'createInstance'
+    'createInstance',
+    'hasInstance',
+    'destroyInstance'
 ]
 
 # ------------------------------------------------------------------------------
@@ -64,7 +69,10 @@ cdef openxr.XrInstance _ptrInstance = NULL  # pointer to instance
 cdef openxr.XrSession _ptrSession = NULL  # pointer to session
 cdef openxr.XrSystemId _systemId = openxr.XR_NULL_SYSTEM_ID
 
+XR_SUCCESS = openxr.XR_SUCCESS
+XR_ERROR_HANDLE_INVALID = openxr.XR_ERROR_HANDLE_INVALID
 XR_CURRENT_API_VERSION = openxr.XR_CURRENT_API_VERSION
+
 
 cdef char* str2bytes(str strIn):
     """Convert UTF-8 encoded strings to bytes."""
@@ -242,7 +250,7 @@ def createInstance(XrApplicationInfo applicationInfo):
     if _ptrInstance is not NULL:
         return
 
-    # only one extension is in use here
+    # only one extension is in use here, we'll allow the user to set these later
     cdef const char* enabled_exts[1]
     enabled_exts[0] = openxr.XR_KHR_OPENGL_ENABLE_EXTENSION_NAME
 
@@ -263,5 +271,41 @@ def createInstance(XrApplicationInfo applicationInfo):
     cdef openxr.XrResult result = openxr.xrCreateInstance(
         &instance_create_info,
         &_ptrInstance)
+
+    return result
+
+
+def hasInstance():
+    """Check if we have already created an OpenXR instance.
+
+    Returns
+    -------
+    bool
+        `True` if an instance has been created, otherwise `False`.
+
+    """
+    global _ptrInstance
+    cdef bint result = _ptrInstance != NULL
+
+    return result
+
+
+def destroyInstance():
+    """Destroy the current OpenXR instance. This function does nothing if no
+    instance as previously created.
+
+    Returns
+    -------
+    int
+        Returns ``XR_SUCCESS`` if the instance was successfully destroyed.
+        Otherwise, expect ``XR_ERROR_HANDLE_INVALID`` if the handle was invalid
+        or :func:`createInstance` was not previously called.
+
+    """
+    global _ptrInstance
+    if _ptrInstance == NULL:
+        return openxr.XR_ERROR_HANDLE_INVALID
+
+    cdef openxr.XrResult result = openxr.xrDestroyInstance(_ptrInstance)
 
     return result
