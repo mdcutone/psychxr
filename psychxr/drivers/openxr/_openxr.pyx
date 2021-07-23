@@ -308,4 +308,7 @@ def destroyInstance():
 
     cdef openxr.XrResult result = openxr.xrDestroyInstance(_ptrInstance)
 
+    if result == openxr.XR_SUCCESS:
+        _ptrInstance = NULL  # reset to NULL if successful
+
     return result
