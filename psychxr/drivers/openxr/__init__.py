@@ -30,5 +30,5 @@ if platform.system() == "Windows":
     here, _ = os.path.split(sys.modules[__name__].__file__)
     os.environ["PATH"] += r";" + os.path.join(here, 'lib', 'win', 'x64')
 
-# load exported data from the _openhmd extension module into the namespace
+# load exported data from the _openxr extension module into the namespace
 from ._openxr import *
