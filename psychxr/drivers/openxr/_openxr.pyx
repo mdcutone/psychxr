@@ -3,9 +3,7 @@
 #  _openxr.pyx - Python Interface Module for OpenXR
 #  =============================================================================
 #
-#  Copyright 2021 Matthew Cutone <mcutone@opensciencetools.com> and Laurie M.
-#  Wilcox <lmwilcox(a)yorku.ca>; The Centre For Vision Research, York
-#  University, Toronto, Canada
+#  Copyright 2021 Matthew Cutone <mcutone@opensciencetools.com>
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -44,10 +42,12 @@ __all__ = [
     'XR_SUCCESS',
     'XR_ERROR_HANDLE_INVALID',
     'XR_CURRENT_API_VERSION',
-    'XrApplicationInfo',
+    'OpenXRApplicationInfo',
+    'OpenXRSystem',
     'createInstance',
     'hasInstance',
-    'destroyInstance'
+    'destroyInstance',
+    'getSystem'
 ]
 
 # ------------------------------------------------------------------------------
@@ -72,6 +72,8 @@ cdef openxr.XrSystemId _systemId = openxr.XR_NULL_SYSTEM_ID
 XR_SUCCESS = openxr.XR_SUCCESS
 XR_ERROR_HANDLE_INVALID = openxr.XR_ERROR_HANDLE_INVALID
 XR_CURRENT_API_VERSION = openxr.XR_CURRENT_API_VERSION
+XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY = openxr.XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
+XR_FORM_FACTOR_HANDHELD_DISPLAY = openxr.XR_FORM_FACTOR_HANDHELD_DISPLAY
 
 
 cdef char* str2bytes(str strIn):
@@ -88,10 +90,88 @@ cdef str bytes2str(char* bytesIn):
 
 
 # ------------------------------------------------------------------------------
+# Exceptions
+#
+
+class OpenXRError(BaseException):
+    """Base exception for OpenXR related errors."""
+
+
+class OpenXRValidationFailureError(OpenXRError):
+    pass
+
+
+class OpenXRRuntimeFailureError(OpenXRError):
+    pass
+
+
+class OpenXROutOfMemoryError(OpenXRError):
+    pass
+
+
+class OpenXRHandleInvalidError(OpenXRError):
+    pass
+
+
+class OpenXRInstanceLostError(OpenXRError):
+    pass
+
+
+class OpenXRSystemInvalidError(OpenXRError):
+    pass
+
+
+class OpenXRLimitReachedError(OpenXRError):
+    pass
+
+
+class OpenXRRuntimeUnavailableError(OpenXRError):
+    pass
+
+
+class OpenXRNameInvalidError(OpenXRError):
+    pass
+
+
+class OpenXRNameInitializationFailedError(OpenXRError):
+    pass
+
+
+class OpenXRNameExtensionNotPresentError(OpenXRError):
+    pass
+
+
+class OpenXRApiVersionNotSupportedError(OpenXRError):
+    pass
+
+
+class OpenXRApiLayerNotPresentError(OpenXRError):
+    pass
+
+
+# lookup table of exceptions
+cdef dict openxr_error_lut = {
+    openxr.XR_ERROR_VALIDATION_FAILURE: OpenXRValidationFailureError,
+    openxr.XR_ERROR_RUNTIME_FAILURE: OpenXRRuntimeFailureError,
+    openxr.XR_ERROR_OUT_OF_MEMORY: OpenXROutOfMemoryError,
+    openxr.XR_ERROR_HANDLE_INVALID: OpenXRHandleInvalidError,
+    openxr.XR_ERROR_INSTANCE_LOST: OpenXRInstanceLostError,
+    openxr.XR_ERROR_SYSTEM_INVALID: OpenXRSystemInvalidError,
+    openxr.XR_ERROR_LIMIT_REACHED: OpenXRLimitReachedError,
+    openxr.XR_ERROR_RUNTIME_UNAVAILABLE : OpenXRRuntimeUnavailableError,
+    openxr.XR_ERROR_NAME_INVALID : OpenXRNameInvalidError,
+    openxr.XR_ERROR_INITIALIZATION_FAILED : OpenXRNameInitializationFailedError,
+    openxr.XR_ERROR_EXTENSION_NOT_PRESENT : OpenXRNameExtensionNotPresentError,
+    openxr.XR_ERROR_API_VERSION_UNSUPPORTED : OpenXRApiVersionNotSupportedError,
+    openxr.XR_ERROR_API_LAYER_NOT_PRESENT : OpenXRApiLayerNotPresentError
+}
+
+
+# ------------------------------------------------------------------------------
 # Classes and Functions
 #
 
-cdef class XrApplicationInfo:
+cdef class OpenXRApplicationInfo:
     """Application information descriptor.
 
     This descriptor contains information about the application which can be
@@ -228,14 +308,90 @@ cdef class XrApplicationInfo:
         self.c_data.apiVersion = <openxr.XrVersion>value
 
 
-def createInstance(XrApplicationInfo applicationInfo):
+cdef class OpenXRSystem:
+    """Descriptor for a system (HMD, controllers, etc.) available to OpenXR.
+
+    These are instanced when calling :func:`getSystem`, users should not
+    instance this themselves during regular use.
+
+    """
+    cdef openxr.XrSystemProperties c_data
+
+    def __init__(self,
+                 systemId=0,
+                 vendorId=0,
+                 systemName=""):
+
+        self.systemId = systemId
+        self.vendorId = vendorId
+        self.systemName = systemName
+        # self.graphicsProperties = graphicsProperties
+        # self.trackingProperties = trackingProperties
+
+    def __cinit__(self, *args, **kwargs):
+        self.c_data.type = openxr.XR_TYPE_SYSTEM_PROPERTIES
+
+    def __repr__(self):
+        return (f"OpenXRSystem(systemId='{self.systemId}', "
+            f"vendorId={self.vendorId}, "
+            f"engineName='{self.systemName}')")
+
+    @property
+    def systemId(self):
+        """System ID assigned by OpenXR (`int`)."""
+        return self.c_data.systemId
+
+    @systemId.setter
+    def systemId(self, value):
+        if not isinstance(value, int):  # check type
+            raise TypeError(
+                'Property `OpenXRSystem.systemId` must be type `int`.')
+
+        self.c_data.systemId = <openxr.XrSystemId>value
+
+    @property
+    def vendorId(self):
+        """Vendor ID assigned by OpenXR (`int`)."""
+        return self.c_data.vendorId
+
+    @vendorId.setter
+    def vendorId(self, value):
+        if not isinstance(value, int):  # check type
+            raise TypeError(
+                'Property `OpenXRSystem.vendorId` must be type `int`.')
+
+        self.c_data.vendorId = <int>value
+
+    @property
+    def systemName(self):
+        """System name (`str`). Name must not exceed the length of
+        ``XR_MAX_SYSTEM_NAME_SIZE``.
+        """
+        return bytes2str(self.c_data.systemName)
+
+    @systemName.setter
+    def systemName(self, value):
+        if not isinstance(value, str):  # check type
+            raise TypeError(
+                'Property `OpenXRSystem.systemName` must be type '
+                '`str`.')
+
+        if len(value) > openxr.XR_MAX_SYSTEM_NAME_SIZE:
+            raise ValueError(
+                'Value for `OpenXRSystem.systemName` must have '
+                'length <{}'.format(openxr.XR_MAX_SYSTEM_NAME_SIZE))
+
+        self.c_data.systemName = str2bytes(value)
+
+
+def createInstance(OpenXRApplicationInfo applicationInfo):
     """Create an OpenXR instance.
 
     PsychXR currently only supports creating one instance at a time.
 
     Parameters
     ----------
-    applicationInfo : XrApplicationInfo
+    applicationInfo : OpenXRApplicationInfo
         Application info descriptor.
 
     Returns
@@ -294,21 +450,72 @@ def destroyInstance():
     """Destroy the current OpenXR instance. This function does nothing if no
     instance as previously created.
 
-    Returns
-    -------
-    int
-        Returns ``XR_SUCCESS`` if the instance was successfully destroyed.
-        Otherwise, expect ``XR_ERROR_HANDLE_INVALID`` if the handle was invalid
-        or :func:`createInstance` was not previously called.
+    Raises
+    ------
+    OpenXRHandleInvalidError
+        Raised if `createInstance` was not previously called or instance handle
+        it set is not valid.
+
+    Examples
+    --------
+    Destroy an instance::
+
+        try:
+            destroyInstance()
+        except OpenXRHandleInvalidError:
+            print("`createInstance` was not previously called!")
 
     """
     global _ptrInstance
-    if _ptrInstance == NULL:
-        return openxr.XR_ERROR_HANDLE_INVALID
+    # if _ptrInstance == NULL:
+    #     return openxr.XR_ERROR_HANDLE_INVALID
 
     cdef openxr.XrResult result = openxr.xrDestroyInstance(_ptrInstance)
 
     if result == openxr.XR_SUCCESS:
         _ptrInstance = NULL  # reset to NULL if successful
+    else:
+        raise openxr_error_lut[result]()
 
-    return result
+
+def getSystem(formFactor):
+    """Query OpenXR for a system with the specified form factor.
+
+    Parameters
+    ----------
+    formFactor : int
+        Symbolic constant representing the form factor to fetch. Can be either
+        ``XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY`` or
+        ``XR_FORM_FACTOR_HANDHELD_DISPLAY``.
+
+    Returns
+    -------
+    tuple
+        API call result for `xrGetSystem` (`int`) and the enumerated system ID
+        (`int`) matching the desired `formFactor`. If no system was found, the
+        second value will be `None`.
+
+    Examples
+    --------
+    Get a system ID handle for an OpenXR supported HMD::
+
+        result, system_id =
+
+    """
+    global _ptrInstance
+    cdef openxr.XrSystemId system_id
+    cdef openxr.XrSystemGetInfo system_get_info
+
+    # set the form factor to get
+    system_get_info.formFactor = formFactor
+
+    # get the system
+    cdef openxr.XrResult result = openxr.xrGetSystem(
+        _ptrInstance,
+        &system_get_info,
+        &system_id)
+
+    if result == openxr.XR_SUCCESS:  # failed to get a system, return nothing
+        return system_id
+    else:
+        raise openxr_error_lut[result]()

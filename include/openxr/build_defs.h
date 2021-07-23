@@ -14,6 +14,9 @@ extern "C" {
 #if !defined(XR_USE_GRAPHICS_API_OPENGL)
 #define XR_USE_GRAPHICS_API_OPENGL 1
 #endif
+#if !defined(XR_EXTENSION_PROTOTYPES)
+#define XR_EXTENSION_PROTOTYPES 1
+#endif
 
 #ifdef __cplusplus
 }
