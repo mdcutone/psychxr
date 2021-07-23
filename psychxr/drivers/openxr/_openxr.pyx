@@ -61,7 +61,6 @@ from . cimport openxr
 cimport numpy as np
 import numpy as np
 np.import_array()
-import warnings
 
 
 # ------------------------------------------------------------------------------
@@ -70,7 +69,6 @@ import warnings
 
 cdef openxr.XrInstance _ptrInstance = NULL  # pointer to instance
 cdef openxr.XrSession _ptrSession = NULL  # pointer to session
-cdef openxr.XrSystemId _systemId = openxr.XR_NULL_SYSTEM_ID
 
 XR_SUCCESS = openxr.XR_SUCCESS
 XR_ERROR_HANDLE_INVALID = openxr.XR_ERROR_HANDLE_INVALID
@@ -80,6 +78,10 @@ XR_FORM_FACTOR_HANDHELD_DISPLAY = openxr.XR_FORM_FACTOR_HANDHELD_DISPLAY
 XR_NULL_SYSTEM_ID = openxr.XR_NULL_SYSTEM_ID
 XR_MIN_COMPOSITION_LAYERS_SUPPORTED = openxr.XR_MIN_COMPOSITION_LAYERS_SUPPORTED
 
+
+# ------------------------------------------------------------------------------
+# Helper functions
+#
 
 cdef char* str2bytes(str strIn):
     """Convert UTF-8 encoded strings to bytes."""
@@ -185,7 +187,7 @@ cdef dict openxr_error_lut = {
 
 
 # ------------------------------------------------------------------------------
-# Classes and Functions
+# Classes and Functions to interface with OpenXR
 #
 
 cdef class OpenXRApplicationInfo:
@@ -522,12 +524,6 @@ def createInstance(OpenXRApplicationInfo applicationInfo):
     applicationInfo : OpenXRApplicationInfo
         Application info descriptor.
 
-    Returns
-    -------
-    int
-        Result of the ``xrCreateInstance`` OpenXR API call. A value >=0
-        indicates success.
-
     """
     global _ptrInstance
 
@@ -556,7 +552,8 @@ def createInstance(OpenXRApplicationInfo applicationInfo):
         &instance_create_info,
         &_ptrInstance)
 
-    return result
+    if result < openxr.XR_SUCCESS:
+        raise openxr_error_lut[result]()
 
 
 def hasInstance():
