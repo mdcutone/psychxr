@@ -54,7 +54,8 @@ __all__ = [
     'getSystem',
     'getViewConfigurations',
     'getGraphicsRequirementsOpenGL',
-    'createGraphicsBindingOpenGLWin32'
+    'createGraphicsBindingOpenGLWin32',
+    'createSession'
 ]
 
 # ------------------------------------------------------------------------------
@@ -1007,21 +1008,69 @@ def createGraphicsBindingOpenGLWin32(hDC, hGLRC):
     hGLRC : ctypes.c_void_p
         Handle for an OpenGL rendering context.
 
+    Examples
+    --------
+    Create a graphics binding using a Pyglet window::
+
+        # create a Pyglet window
+        window = pyglet.window.Window()
+
+        # call this, OpenXR requires it even if you don't use the info returned
+        _, _ = getGraphicsRequirementsOpenGL()
+
+        # set the context bindings
+        createGraphicsBindingOpenGLWin32(window._dc, window._wgl_context)
+
+        # create a session
+        createSession(system)
+
     """
+    # We could move this logic into `createSession`, having the user pass the
+    # binding data prior to creating a session. - mdc
     global _gfxBinding
 
-    # make sure the arguments have the correct types we expect
-    if not isinstance(hDC, ctypes.c_void_p):
-        raise TypeError(
-            'Parameter `hDC` expected to have type `ctypes.c_void_p`.')
-    if not isinstance(hGLRC, ctypes.c_void_p):
-        raise TypeError(
-            'Parameter `hGLRC` expected to have type `ctypes.c_void_p`.')
-
     # need to copy over values
-    cdef uintptr_t c_hDC = <uintptr_t>hDC
-    cdef uintptr_t c_hGLRC = <uintptr_t>hGLRC
+    cdef void* c_hDC = <void*>hDC
+    cdef void* c_hGLRC = <void*>hGLRC
 
     # set the bindings
     _gfxBinding.hDC = <openxr.HDC>c_hDC
     _gfxBinding.hGLRC = <openxr.HGLRC>c_hGLRC
+
+
+def createSession(OpenXRSystemInfo system):
+    """Create an OpenXR session.
+
+    Parameters
+    ----------
+    system : OpenXRSystemInfo
+        System to use for the session.
+
+    """
+    global _ptrInstance
+    global _ptrSession
+    global _gfxBinding
+
+    if _ptrInstance == NULL:  # check if we have an instance
+        raise RuntimeError(
+            'Cannot create an OpenXR session, must create an instance first.')
+
+    # check if the user supplied window binding data
+    if _gfxBinding.hDC == NULL or _gfxBinding.hGLRC == NULL:
+        raise RuntimeError(
+            'Attempted to create a session without creating an OpenGL binding '
+            'first.')
+
+    # session info
+    cdef openxr.XrSessionCreateInfo session_create_info
+    session_create_info.type = openxr.XR_TYPE_SESSION_CREATE_INFO
+    session_create_info.next = &_gfxBinding
+    session_create_info.systemId = system.c_data.systemId
+
+    cdef openxr.XrResult result = openxr.xrCreateSession(
+        _ptrInstance,
+        &session_create_info,
+        &_ptrSession)
+
+    if result < openxr.XR_SUCCESS:  # check errors
+        raise openxr_error_lut[result]()
