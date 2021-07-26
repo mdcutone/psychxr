@@ -53,19 +53,21 @@ __all__ = [
     'destroyInstance',
     'getSystem',
     'getViewConfigurations',
-    'getGraphicsRequirementsGL'
+    'getGraphicsRequirementsOpenGL',
+    'createGraphicsBindingOpenGLWin32'
 ]
 
 # ------------------------------------------------------------------------------
 # Imports
 #
 
-from libc.stdint cimport uint32_t, uint16_t, uint64_t
+from libc.stdint cimport uint32_t, uint16_t, uint64_t, uintptr_t
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from . cimport openxr
 cimport numpy as np
 import numpy as np
 np.import_array()
+import ctypes
 
 
 # ------------------------------------------------------------------------------
@@ -75,6 +77,15 @@ np.import_array()
 cdef openxr.XrInstance _ptrInstance = NULL  # pointer to instance
 cdef openxr.XrSession _ptrSession = NULL  # pointer to session
 
+# Graphics binding data. We will need handles for the window and GL context from
+# the application before the window is initialized.
+cdef openxr.XrGraphicsBindingOpenGLWin32KHR _gfxBinding
+_gfxBinding.type = openxr.XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR  # windows only
+_gfxBinding.next = NULL
+_gfxBinding.hDC = NULL  # device context for the window
+_gfxBinding.hGLRC = NULL  # GL context handle
+
+# Python accessible constants
 XR_CURRENT_API_VERSION = openxr.XR_CURRENT_API_VERSION
 XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY = openxr.XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
 XR_FORM_FACTOR_HANDHELD_DISPLAY = openxr.XR_FORM_FACTOR_HANDHELD_DISPLAY
@@ -196,6 +207,14 @@ class OpenXRFunctionUnsupportedError(OpenXRError):
     pass
 
 
+class OpenXRGraphicsRequirementsCallMissingError(OpenXRError):
+    pass
+
+
+class OpenXRGraphicsDeviceInvalidError(OpenXRError):
+    pass
+
+
 
 # lookup table of exceptions
 cdef dict openxr_error_lut = {
@@ -217,7 +236,9 @@ cdef dict openxr_error_lut = {
     openxr.XR_ERROR_SIZE_INSUFFICIENT: OpenXRSizeInsufficientError,
     openxr.XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED:
         OpenXRViewConfigurationNotSupportedError,
-    openxr.XR_ERROR_FUNCTION_UNSUPPORTED: OpenXRFunctionUnsupportedError
+    openxr.XR_ERROR_FUNCTION_UNSUPPORTED: OpenXRFunctionUnsupportedError,
+    openxr.XR_ERROR_GRAPHICS_REQUIREMENTS_CALL_MISSING: OpenXRGraphicsRequirementsCallMissingError,
+    openxr.XR_ERROR_GRAPHICS_DEVICE_INVALID: OpenXRGraphicsDeviceInvalidError
 }
 
 
@@ -913,13 +934,14 @@ def getViewConfigurations(OpenXRSystemInfo system, int viewType):
     return to_return
 
 
-def getGraphicsRequirementsGL(OpenXRSystemInfo system):
+def getGraphicsRequirementsOpenGL(OpenXRSystemInfo system):
     """Get the graphics requirements for the given system.
 
     This provides information about the requirements for the OpenGL context
     version needed by the driver for rendering. Keep in mind that you graphics
     driver may allow for functionality outside of the recommended core
-    profiles given by OpenXR.
+    profiles specified by OpenXR for the given system. However, your graphics
+    driver must at least support the OpenGL versions returned.
 
     Parameters
     ----------
@@ -931,6 +953,13 @@ def getGraphicsRequirementsGL(OpenXRSystemInfo system):
     tuple
         Minimum and maximum OpenGL API versions supported by the system driver
         in (major, minor, patch) format.
+
+    Examples
+    --------
+    Check the minimum OpenGL version required by the system::
+
+        minVersionGL, maxVersionGL = getGraphicsRequirementsGL(mySystem)
+        major, minor, patch = minVersionGL  # something like (3, 3, 0)
 
     """
     global _ptrInstance
@@ -958,3 +987,41 @@ def getGraphicsRequirementsGL(OpenXRSystemInfo system):
 
     return (xr_get_version(opengl_reqs.minApiVersionSupported),
         xr_get_version(opengl_reqs.maxApiVersionSupported))
+
+
+def createGraphicsBindingOpenGLWin32(hDC, hGLRC):
+    """Create a graphics binding for OpenGL (MS Windows).
+
+    Call this after creating a window, passing handles for the window (HDC) and
+    OpenGL context (HGLRC). You can get these values from SDL2, Pyglet, GLFW,
+    etc.
+
+    Once bound, OpenXR will be able to allocate resources using the provided
+    OpenGL context after starting a session. You cannot start a session without
+    binding a window first.
+
+    Parameters
+    ----------
+    hDC : ctypes.c_void_p
+        Handle for the window device context.
+    hGLRC : ctypes.c_void_p
+        Handle for an OpenGL rendering context.
+
+    """
+    global _gfxBinding
+
+    # make sure the arguments have the correct types we expect
+    if not isinstance(hDC, ctypes.c_void_p):
+        raise TypeError(
+            'Parameter `hDC` expected to have type `ctypes.c_void_p`.')
+    if not isinstance(hGLRC, ctypes.c_void_p):
+        raise TypeError(
+            'Parameter `hGLRC` expected to have type `ctypes.c_void_p`.')
+
+    # need to copy over values
+    cdef uintptr_t c_hDC = <uintptr_t>hDC
+    cdef uintptr_t c_hGLRC = <uintptr_t>hGLRC
+
+    # set the bindings
+    _gfxBinding.hDC = <openxr.HDC>c_hDC
+    _gfxBinding.hGLRC = <openxr.HGLRC>c_hGLRC

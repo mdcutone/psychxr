@@ -1230,6 +1230,6 @@ cdef extern from "openxr_platform.h":
         XrVersion maxApiVersionSupported
 
     ctypedef XrResult (*PFN_xrGetOpenGLGraphicsRequirementsKHR)(
-            XrInstance instance,
-            XrSystemId systemId,
-            XrGraphicsRequirementsOpenGLKHR* graphicsRequirements)
+        XrInstance instance,
+        XrSystemId systemId,
+        XrGraphicsRequirementsOpenGLKHR* graphicsRequirements)
