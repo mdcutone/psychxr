@@ -468,7 +468,7 @@ cdef extern from "openxr.h":
     cdef XrInputSourceLocalizedNameFlags XR_INPUT_SOURCE_LOCALIZED_NAME_INTERACTION_PROFILE_BIT
     cdef XrInputSourceLocalizedNameFlags XR_INPUT_SOURCE_LOCALIZED_NAME_COMPONENT_BIT
 
-    ctypedef void xrVoidFunction()
+    ctypedef void (*PFN_xrVoidFunction)()
 
     ctypedef struct XrApiLayerProperties:
         XrStructureType type
@@ -916,7 +916,7 @@ cdef extern from "openxr.h":
     cdef XrResult xrGetInstanceProcAddr(
         XrInstance instance,
         const char* name,
-        xrVoidFunction* function)
+        PFN_xrVoidFunction* function)
     cdef XrResult xrEnumerateApiLayerProperties(
         uint32_t propertyCapacityInput,
         uint32_t* propertyCountOutput,
@@ -1228,3 +1228,8 @@ cdef extern from "openxr_platform.h":
         void* next
         XrVersion minApiVersionSupported
         XrVersion maxApiVersionSupported
+
+    ctypedef XrResult (*PFN_xrGetOpenGLGraphicsRequirementsKHR)(
+            XrInstance instance,
+            XrSystemId systemId,
+            XrGraphicsRequirementsOpenGLKHR* graphicsRequirements)

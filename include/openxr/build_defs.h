@@ -17,7 +17,6 @@ extern "C" {
 #if !defined(XR_EXTENSION_PROTOTYPES)
 #define XR_EXTENSION_PROTOTYPES 1
 #endif
-
 #ifdef __cplusplus
 }
 #endif

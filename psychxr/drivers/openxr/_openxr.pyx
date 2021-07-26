@@ -39,8 +39,6 @@ __maintainer__ = "Matthew D. Cutone"
 __email__ = "mcutone@opensciencetools.org"
 
 __all__ = [
-    'XR_SUCCESS',
-    'XR_ERROR_HANDLE_INVALID',
     'XR_CURRENT_API_VERSION',
     'XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY',
     'XR_FORM_FACTOR_HANDHELD_DISPLAY',
@@ -51,17 +49,18 @@ __all__ = [
     'OpenXRSystemInfo',
     'OpenXRViewConfigInfo',
     'createInstance',
-    'hasInstance',
+    'instanceStarted',
     'destroyInstance',
     'getSystem',
-    'getViewConfigurations'
+    'getViewConfigurations',
+    'getGraphicsRequirementsGL'
 ]
 
 # ------------------------------------------------------------------------------
 # Imports
 #
 
-from libc.stdint cimport uint32_t
+from libc.stdint cimport uint32_t, uint16_t, uint64_t
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from . cimport openxr
 cimport numpy as np
@@ -76,8 +75,6 @@ np.import_array()
 cdef openxr.XrInstance _ptrInstance = NULL  # pointer to instance
 cdef openxr.XrSession _ptrSession = NULL  # pointer to session
 
-XR_SUCCESS = openxr.XR_SUCCESS
-XR_ERROR_HANDLE_INVALID = openxr.XR_ERROR_HANDLE_INVALID
 XR_CURRENT_API_VERSION = openxr.XR_CURRENT_API_VERSION
 XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY = openxr.XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
 XR_FORM_FACTOR_HANDHELD_DISPLAY = openxr.XR_FORM_FACTOR_HANDHELD_DISPLAY
@@ -85,7 +82,6 @@ XR_NULL_SYSTEM_ID = openxr.XR_NULL_SYSTEM_ID
 XR_MIN_COMPOSITION_LAYERS_SUPPORTED = openxr.XR_MIN_COMPOSITION_LAYERS_SUPPORTED
 XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO = openxr.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO
 XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO = openxr.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
-
 
 # ------------------------------------------------------------------------------
 # Helper functions
@@ -104,14 +100,28 @@ cdef str bytes2str(char* bytesIn):
     return bytesIn.decode('UTF-8')
 
 
+cdef xr_get_version(openxr.XrVersion version):
+    """Convert the version into major, minor and patch format.
+    
+    Parameters
+    ----------
+    version : XrVersion
+        Version in OpenXR format.
+    
+    """
+    cdef uint16_t major = (version >> 48) & 0xffffULL
+    cdef uint16_t minor = (version >> 32) & 0xffffULL
+    cdef uint32_t patch = version & 0xffffffffULL
+
+    return major, minor, patch
+
 # ------------------------------------------------------------------------------
 # Exceptions
 #
 
 class OpenXRError(BaseException):
     """Base exception for OpenXR related errors."""
-    def __init__(self, message):
-        self.message = message
+    pass
 
 
 class OpenXRValidationFailureError(OpenXRError):
@@ -182,6 +192,11 @@ class OpenXRViewConfigurationNotSupportedError(OpenXRError):
     pass
 
 
+class OpenXRFunctionUnsupportedError(OpenXRError):
+    pass
+
+
+
 # lookup table of exceptions
 cdef dict openxr_error_lut = {
     openxr.XR_ERROR_VALIDATION_FAILURE: OpenXRValidationFailureError,
@@ -201,7 +216,8 @@ cdef dict openxr_error_lut = {
     openxr.XR_ERROR_FORM_FACTOR_UNAVAILABLE: OpenXRFormFactorUnavailableError,
     openxr.XR_ERROR_SIZE_INSUFFICIENT: OpenXRSizeInsufficientError,
     openxr.XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED:
-        OpenXRViewConfigurationNotSupportedError
+        OpenXRViewConfigurationNotSupportedError,
+    openxr.XR_ERROR_FUNCTION_UNSUPPORTED: OpenXRFunctionUnsupportedError
 }
 
 
@@ -558,7 +574,7 @@ cdef class OpenXRViewConfigInfo:
 
     def __repr__(self):
         return (
-            f"OpenXRViewConfig("
+            f"OpenXRViewConfigInfo("
             f"recommendedImageRectWidth={self.recommendedImageRectWidth}, "
             f"recommendedImageRectHeight={self.recommendedImageRectHeight}, "
             f"maxImageRectWidth={self.maxImageRectWidth}, "
@@ -675,7 +691,7 @@ def createInstance(OpenXRApplicationInfo applicationInfo):
     # crete descriptor for instance information
     cdef openxr.XrInstanceCreateInfo instance_create_info
     instance_create_info.type = openxr.XR_TYPE_INSTANCE_CREATE_INFO
-    instance_create_info.next = NULL  # not used
+    instance_create_info.next = NULL  # not used, but must be set
     instance_create_info.createFlags = 0  # must be zero
     instance_create_info.enabledExtensionCount = 1
     instance_create_info.enabledExtensionNames = enabled_exts
@@ -694,7 +710,7 @@ def createInstance(OpenXRApplicationInfo applicationInfo):
         raise openxr_error_lut[result]()
 
 
-def hasInstance():
+def instanceStarted():
     """Check if we have already created an OpenXR instance.
 
     Returns
@@ -820,6 +836,24 @@ def getViewConfigurations(OpenXRSystemInfo system, int viewType):
     list of OpenXRViewConfigInfo
         View configurations for each view provided by the system.
 
+    Examples
+    --------
+    Get view configurations for a given system using a stereoscopic display::
+
+        mySystem = getSystem(formFactor=XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY)
+        leftEyeView, rightEyeView = getViewConfigurations(
+            system=mySystem,
+            viewType=XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO)
+
+        # get the recommended framebuffer size for each eye
+        fboLeftSize = (
+            leftEyeView.recommendedImageRectWidth,
+            leftEyeView.recommendedImageRectHeight)
+        fboRightSize = (
+            rightEyeView.recommendedImageRectWidth,
+            rightEyeView.recommendedImageRectHeight
+        )
+
     """
     global _ptrInstance
 
@@ -877,3 +911,50 @@ def getViewConfigurations(OpenXRSystemInfo system, int viewType):
     PyMem_Free(c_view_configs)  # free the array
 
     return to_return
+
+
+def getGraphicsRequirementsGL(OpenXRSystemInfo system):
+    """Get the graphics requirements for the given system.
+
+    This provides information about the requirements for the OpenGL context
+    version needed by the driver for rendering. Keep in mind that you graphics
+    driver may allow for functionality outside of the recommended core
+    profiles given by OpenXR.
+
+    Parameters
+    ----------
+    system : OpenXRSystemInfo
+        System to query for graphics requirements.
+
+    Returns
+    -------
+    tuple
+        Minimum and maximum OpenGL API versions supported by the system driver
+        in (major, minor, patch) format.
+
+    """
+    global _ptrInstance
+    cdef openxr.XrGraphicsRequirementsOpenGLKHR opengl_reqs
+    opengl_reqs.next = NULL
+    opengl_reqs.type = openxr.XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR
+
+    # load the function to get the version
+    cdef openxr.PFN_xrGetOpenGLGraphicsRequirementsKHR \
+        pfnGetOpenGLGraphicsRequirementsKHR = NULL
+    cdef openxr.XrResult result = openxr.xrGetInstanceProcAddr(
+        _ptrInstance,
+        "xrGetOpenGLGraphicsRequirementsKHR",
+	    <openxr.PFN_xrVoidFunction*>&pfnGetOpenGLGraphicsRequirementsKHR)
+
+    if result < openxr.XR_SUCCESS:  # check for error
+        raise openxr_error_lut[result]()
+
+    # query the system for the recommended versions
+    result = pfnGetOpenGLGraphicsRequirementsKHR(
+        _ptrInstance, system.c_data.systemId, &opengl_reqs)
+
+    if result < openxr.XR_SUCCESS:  # check for error
+        raise openxr_error_lut[result]()
+
+    return (xr_get_version(opengl_reqs.minApiVersionSupported),
+        xr_get_version(opengl_reqs.maxApiVersionSupported))
