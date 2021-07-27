@@ -43,7 +43,7 @@ import numpy
 
 # Version string for the project. Make sure this is updated to reflect the
 # project branch version.
-PSYCHXR_VERSION_STRING = '0.2.4rc2'
+PSYCHXR_VERSION_STRING = '0.2.4rc3'
 
 # environment variable values
 ENV_TRUE = '1'
