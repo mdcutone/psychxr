@@ -634,6 +634,11 @@ cdef class OpenXRViewConfigInfo:
         self.c_data.recommendedImageRectHeight = <uint32_t>value
 
     @property
+    def recommendedImageRectSize(self):
+        return (<int>self.c_data.recommendedImageRectWidth,
+                <int>self.c_data.recommendedImageRectHeight)
+
+    @property
     def maxImageRectWidth(self):
         return <int>self.c_data.maxImageRectWidth
 
@@ -660,6 +665,11 @@ cdef class OpenXRViewConfigInfo:
             )
 
         self.c_data.maxImageRectHeight = <uint32_t>value
+
+    @property
+    def maxImageRectSize(self):
+        return (<int>self.c_data.maxImageRectWidth,
+                <int>self.c_data.maxImageRectHeight)
 
     @property
     def recommendedSwapchainSampleCount(self):
