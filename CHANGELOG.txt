@@ -42,7 +42,8 @@ Overview:
     Another change is the inclusion of a new `vrmath` library. This is intended
     to provide FOSS versions of classes included with `LibOVR` for 3D math. This
     will hopefully result in some degree of interoperability between drivers, by
-    providing a common set of tools of working with VR environments.
+    providing a common set of tools of working with VR environments. This
+    library is currently in development and might contain bugs.
 
     Finally, refactoring work has been done to allow PsychXR to accommodate
     multiple driver extension modules. This means that driver interface have
@@ -80,7 +81,8 @@ New Features:
       raypicking on bounding boxes belonging to other poses. The method returns
       the position in world space the intersection occurs. Bounding boxes are
       oriented by the poses they belong to.
-    - Added some automated tests for `vrmath`.
+    - Added some automated tests for `vrmath`. The `LibOVRPose` class is used
+      as a reference.
 
 Bug Fixes:
 

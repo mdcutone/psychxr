@@ -2,22 +2,7 @@
 Release Notes
 =============
 
-Version 0.2.5 - TBD
-~~~~~~~~~~~~~~~~~~~
-
-This is mainly a bugfix release of *PsychXR* which also adds some tests.
-
-See CHANGELOG for more information regarding changes this release.
-
-**General**
-
-* Fixed `LibOVRPose.invViewMatrix` not being returned correctly.
-* Added some additional unit tests to check if `vrmath.RigidBodyPose` functions
-  the same as `drivers.libovr.LibOVRPose`.
-
-`Click here to download PsychXR 0.2.5 <https://github.com/mdcutone/psychxr/releases>`_
-
-Version 0.2.4 - 2021-07-12
+Version 0.2.4 - 2021-07-27
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Finally another release of PsychXR after more than a year! The 0.2.4 release of
