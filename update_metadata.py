@@ -31,7 +31,7 @@ import os
 
 # Set this to the project version of the current release. Development branches
 # should use suffix ".devN".
-PSYCHXR_VERSION_STRING = '0.2.4rc3'
+PSYCHXR_VERSION_STRING = '0.2.4rc3.post0'
 
 # file extensions which contain source code in the project
 SRC_EXTENSIONS = ['.py', '.pyx', '.pxd']
