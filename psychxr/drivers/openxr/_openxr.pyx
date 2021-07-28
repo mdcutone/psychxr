@@ -243,6 +243,27 @@ cdef dict openxr_error_lut = {
 }
 
 
+cdef void checkResult(openxr.XrResult result):
+    """Check the result of an OpenXR API return.
+    
+    If the result is anything less than `XR_SUCCESS`, an exception will be
+    raised. Users should catch these exceptions to handle abnormal results from 
+    the OpenXR API.
+    
+    Parameters
+    ----------
+    result : openxr.XrResult
+        Returned value from an OpenXR API call.
+    
+    """
+    if result < openxr.XR_SUCCESS:
+        try:
+            raise openxr_error_lut[result]()
+        except KeyError:
+            raise RuntimeError(
+                'Caught unhandled exception ({}).'.format(<int>result))
+
+
 # ------------------------------------------------------------------------------
 # Classes and Functions to interface with OpenXR
 #
@@ -738,8 +759,7 @@ def createInstance(OpenXRApplicationInfo applicationInfo):
         &instance_create_info,
         &_ptrInstance)
 
-    if result < openxr.XR_SUCCESS:
-        raise openxr_error_lut[result]()
+    checkResult(result)
 
 
 def instanceStarted():
@@ -830,8 +850,7 @@ def getSystem(formFactor):
         &system_get_info,
         &system_id)
 
-    if result < openxr.XR_SUCCESS:  # failed to get a system, return nothing
-        raise openxr_error_lut[result]()
+    checkResult(result)
 
     # get system properties
     cdef openxr.XrSystemProperties system_props
@@ -842,8 +861,7 @@ def getSystem(formFactor):
         system_id,
         &system_props)
 
-    if result < openxr.XR_SUCCESS:
-        raise openxr_error_lut[result]()
+    checkResult(result)
 
     cdef OpenXRSystemInfo system_desc = OpenXRSystemInfo()
     system_desc.c_data = system_props
@@ -904,8 +922,7 @@ def getViewConfigurations(OpenXRSystemInfo system, int viewType):
         &view_count,
         NULL)  # pass NULL to just get the count right now
 
-    if result < openxr.XR_SUCCESS:  # check errors
-        raise openxr_error_lut[result]()
+    checkResult(result)
 
     # allocate arrays to hold view config data
     cdef openxr.XrViewConfigurationView* c_view_configs = \
@@ -929,8 +946,7 @@ def getViewConfigurations(OpenXRSystemInfo system, int viewType):
         &view_count,
         c_view_configs)
 
-    if result < openxr.XR_SUCCESS:  # check errors
-        raise openxr_error_lut[result]()
+    checkResult(result)
 
     # loop over returned view configs and write them to Python objects
     cdef list to_return = []  # returns a list of view settings
@@ -986,15 +1002,13 @@ def getGraphicsRequirementsOpenGL(OpenXRSystemInfo system):
         "xrGetOpenGLGraphicsRequirementsKHR",
 	    <openxr.PFN_xrVoidFunction*>&pfnGetOpenGLGraphicsRequirementsKHR)
 
-    if result < openxr.XR_SUCCESS:  # check for error
-        raise openxr_error_lut[result]()
+    checkResult(result)
 
     # query the system for the recommended versions
     result = pfnGetOpenGLGraphicsRequirementsKHR(
         _ptrInstance, system.c_data.systemId, &opengl_reqs)
 
-    if result < openxr.XR_SUCCESS:  # check for error
-        raise openxr_error_lut[result]()
+    checkResult(result)
 
     return (xr_get_version(opengl_reqs.minApiVersionSupported),
         xr_get_version(opengl_reqs.maxApiVersionSupported))
@@ -1082,5 +1096,4 @@ def createSession(OpenXRSystemInfo system):
         &session_create_info,
         &_ptrSession)
 
-    if result < openxr.XR_SUCCESS:  # check errors
-        raise openxr_error_lut[result]()
+    checkResult(result)
