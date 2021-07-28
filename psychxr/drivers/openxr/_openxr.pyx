@@ -256,12 +256,14 @@ cdef void checkResult(openxr.XrResult result):
         Returned value from an OpenXR API call.
     
     """
-    if result < openxr.XR_SUCCESS:
-        try:
-            raise openxr_error_lut[result]()
-        except KeyError:
-            raise RuntimeError(
-                'Caught unhandled exception ({}).'.format(<int>result))
+    if result >= openxr.XR_SUCCESS:
+        return
+    
+    try:
+        raise openxr_error_lut[result]()
+    except KeyError:
+        raise RuntimeError(
+            'Caught unhandled exception ({}).'.format(<int>result))
 
 
 # ------------------------------------------------------------------------------
