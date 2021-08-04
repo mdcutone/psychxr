@@ -48,6 +48,7 @@ __all__ = [
     'XR_REFERENCE_SPACE_TYPE_VIEW',
     'XR_REFERENCE_SPACE_TYPE_LOCAL',
     'XR_REFERENCE_SPACE_TYPE_STAGE',
+    'OpenXRPose',
     'OpenXRApplicationInfo',
     'OpenXRSystemInfo',
     'OpenXRViewConfigInfo',
@@ -59,7 +60,8 @@ __all__ = [
     'getGraphicsRequirementsOpenGL',
     'createGraphicsBindingOpenGLWin32',
     'createSession',
-    'createReferenceSpace'
+    'createSpace',
+    'destroySpace'
 ]
 
 # ------------------------------------------------------------------------------
@@ -144,6 +146,22 @@ cdef xr_get_version(openxr.XrVersion version):
     cdef uint32_t patch = version & 0xffffffffULL
 
     return major, minor, patch
+
+
+cdef np.npy_intp[1] VEC3_SHAPE = [3]
+cdef np.npy_intp[1] QUAT_SHAPE = [4]
+
+cdef np.ndarray _wrap_XrVector3f_as_ndarray(openxr.XrVector3f* prtVec):
+    """Wrap an XrVector3f object with a NumPy array."""
+    return np.PyArray_SimpleNewFromData(
+        1, VEC3_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
+
+
+cdef np.ndarray _wrap_XrQuaternionf_as_ndarray(openxr.XrQuaternionf* prtVec):
+    """Wrap an XrQuaternionf object with a NumPy array."""
+    return np.PyArray_SimpleNewFromData(
+        1, QUAT_SHAPE, np.NPY_FLOAT32, <void*>prtVec)
+
 
 # ------------------------------------------------------------------------------
 # Exceptions
@@ -741,6 +759,182 @@ cdef class OpenXRViewConfigInfo:
         self.c_data.maxSwapchainSampleCount = <uint32_t>value
 
 
+cdef class OpenXRPose(object):
+    """Class for representing rigid body poses.
+
+    Parameters
+    ----------
+    pos : array_like
+        Initial position vector (x, y, z).
+    ori : array_like
+        Initial orientation quaternion (x, y, z, w).
+
+    """
+    cdef openxr.XrPosef* c_data
+    cdef bint ptr_owner
+
+    cdef np.ndarray _pos
+    cdef np.ndarray _ori
+
+    def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+        self._new_struct(pos, ori)
+
+    def __cinit__(self, *args, **kwargs):
+        self.ptr_owner = False
+
+    @staticmethod
+    cdef OpenXRPose fromPtr(openxr.XrPosef* ptr, bint owner=False):
+        cdef OpenXRPose wrapper = OpenXRPose.__new__(OpenXRPose)
+        wrapper.c_data = ptr
+        wrapper.ptr_owner = owner
+
+        wrapper._pos = _wrap_XrVector3f_as_ndarray(&ptr.position)
+        wrapper._ori = _wrap_XrQuaternionf_as_ndarray(&ptr.orientation)
+
+        return wrapper
+
+    cdef void _new_struct(self, object pos, object ori):
+        if self.c_data is not NULL:
+            return
+
+        cdef openxr.XrPosef* ptr = <openxr.XrPosef*>PyMem_Malloc(
+            sizeof(openxr.XrPosef))
+
+        if ptr is NULL:
+            raise MemoryError
+
+        # clear memory
+        ptr.position.x = <float>pos[0]
+        ptr.position.y = <float>pos[1]
+        ptr.position.z = <float>pos[2]
+        ptr.orientation.x = <float>ori[0]
+        ptr.orientation.y = <float>ori[1]
+        ptr.orientation.z = <float>ori[2]
+        ptr.orientation.w = <float>ori[3]
+
+        self.c_data = ptr
+        self.ptr_owner = True
+
+        self._pos = _wrap_XrVector3f_as_ndarray(&ptr.position)
+        self._ori = _wrap_XrQuaternionf_as_ndarray(&ptr.orientation)
+
+    def __dealloc__(self):
+        # don't do anything crazy like set c_data=NULL without deallocating!
+        if self.c_data is not NULL:
+            if self.ptr_owner is True:
+                PyMem_Free(self.c_data)
+                self.c_data = NULL
+
+    def __repr__(self):
+        return f'OpenXRPose(pos={repr(self.pos)}, ori={repr(self.ori)})'
+
+    @property
+    def pos(self):
+        """ndarray : Position vector [X, Y, Z].
+        """
+        return self._pos
+
+    @pos.setter
+    def pos(self, object value):
+        self._pos[:] = value
+
+    def getPos(self, np.ndarray[np.float32_t, ndim=1] out=None):
+        """Position vector X, Y, Z.
+
+        Parameters
+        ----------
+        out : ndarray or None
+            Optional array to write values to. Must have a float32 data type.
+
+        Returns
+        -------
+        ndarray
+            Position coordinate of this pose.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((3,), dtype=np.float32)
+        else:
+            toReturn = out
+
+        toReturn[0] = self.c_data[0].position.x
+        toReturn[1] = self.c_data[0].position.y
+        toReturn[2] = self.c_data[0].position.z
+
+        return toReturn
+
+    def setPos(self, object pos):
+        """Set the position of the pose in a scene.
+
+        Parameters
+        ----------
+        pos : array_like
+            Position vector [X, Y, Z].
+
+        """
+        self.c_data[0].position.x = <float>pos[0]
+        self.c_data[0].position.y = <float>pos[1]
+        self.c_data[0].position.z = <float>pos[2]
+
+    @property
+    def ori(self):
+        """ndarray : Orientation quaternion [X, Y, Z, W].
+        """
+        return self._ori
+
+    @ori.setter
+    def ori(self, object value):
+        self._ori[:] = value
+
+    def getOri(self, np.ndarray[np.float32_t, ndim=1] out=None):
+        """Orientation quaternion X, Y, Z, W. Components X, Y, Z are imaginary
+        and W is real.
+
+        Parameters
+        ----------
+        out : ndarray  or None
+            Optional array to write values to. Must have a float32 data type.
+
+        Returns
+        -------
+        ndarray
+            Orientation quaternion of this pose.
+
+        Notes
+        -----
+
+        * The orientation quaternion should be normalized.
+
+        """
+        cdef np.ndarray[np.float32_t, ndim=1] toReturn
+        if out is None:
+            toReturn = np.zeros((4,), dtype=np.float32)
+        else:
+            toReturn = out
+
+        toReturn[0] = self.c_data[0].orientation.x
+        toReturn[1] = self.c_data[0].orientation.y
+        toReturn[2] = self.c_data[0].orientation.z
+        toReturn[3] = self.c_data[0].orientation.w
+
+        return toReturn
+
+    def setOri(self, object ori):
+        """Set the orientation of the pose in a scene.
+
+        Parameters
+        ----------
+        ori : array_like
+            Orientation quaternion [X, Y, Z, W].
+
+        """
+        self.c_data[0].orientation.x = <float>ori[0]
+        self.c_data[0].orientation.y = <float>ori[1]
+        self.c_data[0].orientation.z = <float>ori[2]
+        self.c_data[0].orientation.w = <float>ori[3]
+
+
 def createInstance(OpenXRApplicationInfo applicationInfo):
     """Create an OpenXR instance.
 
@@ -1119,7 +1313,7 @@ def createSession(OpenXRSystemInfo system):
     checkResult(result)
 
 
-def createReferenceSpace(int referenceSpaceType):
+def createSpace(int referenceSpaceType, OpenXRPose poseInReferenceSpace):
     """Create a reference space.
 
     Parameters
@@ -1128,6 +1322,8 @@ def createReferenceSpace(int referenceSpaceType):
         Symbolic constant representing a reference space type to use. Can be one
         of ``XR_REFERENCE_SPACE_TYPE_VIEW``, ``XR_REFERENCE_SPACE_TYPE_LOCAL``,
         or ``XR_REFERENCE_SPACE_TYPE_STAGE``.
+    poseInReferenceSpace : OpenXRPose
+        Base pose in the reference space.
 
     """
     global _ptrSession
@@ -1136,14 +1332,12 @@ def createReferenceSpace(int referenceSpaceType):
     if _ptrSession == NULL:
         raise RuntimeError('Cannot create a reference space without a session.')
 
-    cdef openxr.XrPosef pose
-    pose.position = [0, 0, 0]  # for now
-    pose.orientation = [0, 0, 0, -1]
     cdef openxr.XrReferenceSpaceCreateInfo ref_space_info
     ref_space_info.type = openxr.XR_TYPE_REFERENCE_SPACE_CREATE_INFO
     ref_space_info.next = NULL
-    ref_space_info.referenceSpaceType = <openxr.XrReferenceSpaceType>referenceSpaceType
-    ref_space_info.poseInReferenceSpace = pose
+    ref_space_info.referenceSpaceType = \
+        <openxr.XrReferenceSpaceType>referenceSpaceType
+    ref_space_info.poseInReferenceSpace = poseInReferenceSpace.c_data[0]
 
     cdef openxr.XrResult result = openxr.xrCreateReferenceSpace(
         _ptrSession,
@@ -1152,3 +1346,17 @@ def createReferenceSpace(int referenceSpaceType):
 
     checkResult(result)
 
+
+def destroySpace():
+    """Destroy a previously created reference space.
+    """
+    global _refSpace
+
+    if _refSpace == NULL:
+        return  # nop if there is no reference space
+
+    cdef openxr.XrResult result = openxr.xrDestroySpace(_refSpace)
+
+    checkResult(result)
+
+    _refSpace = NULL  # reset
