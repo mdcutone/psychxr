@@ -45,6 +45,9 @@ __all__ = [
     'XR_NULL_SYSTEM_ID',
     'XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO',
     'XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO',
+    'XR_REFERENCE_SPACE_TYPE_VIEW',
+    'XR_REFERENCE_SPACE_TYPE_LOCAL',
+    'XR_REFERENCE_SPACE_TYPE_STAGE',
     'OpenXRApplicationInfo',
     'OpenXRSystemInfo',
     'OpenXRViewConfigInfo',
@@ -55,7 +58,8 @@ __all__ = [
     'getViewConfigurations',
     'getGraphicsRequirementsOpenGL',
     'createGraphicsBindingOpenGLWin32',
-    'createSession'
+    'createSession',
+    'createReferenceSpace'
 ]
 
 # ------------------------------------------------------------------------------
@@ -89,10 +93,13 @@ _gfxBinding.hGLRC = NULL  # GL context handle
 # Swapchains for color and depth buffers, allocated when creating a session
 cdef openxr.XrSwapchain* colorSwapChain = NULL
 cdef openxr.XrSwapchain* depthSwapChain = NULL
-cdef uint32_t colorSwapChainsLength = NULL
-cdef uint32_t depthSwapChainLength = NULL
+cdef uint32_t* colorSwapChainLengths = NULL
+cdef uint32_t* depthSwapChainLengths = NULL
 cdef openxr.XrSwapchainImageOpenGLKHR** colorSwapChainImagesGL = NULL
 cdef openxr.XrSwapchainImageOpenGLKHR** depthSwapChainImagesGL = NULL
+
+# reference space data, just one like LibOVR
+cdef openxr.XrSpace _refSpace = NULL
 
 # Python accessible constants
 XR_CURRENT_API_VERSION = openxr.XR_CURRENT_API_VERSION
@@ -102,6 +109,9 @@ XR_NULL_SYSTEM_ID = openxr.XR_NULL_SYSTEM_ID
 XR_MIN_COMPOSITION_LAYERS_SUPPORTED = openxr.XR_MIN_COMPOSITION_LAYERS_SUPPORTED
 XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO = openxr.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO
 XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO = openxr.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
+XR_REFERENCE_SPACE_TYPE_VIEW = openxr.XR_REFERENCE_SPACE_TYPE_VIEW
+XR_REFERENCE_SPACE_TYPE_LOCAL = openxr.XR_REFERENCE_SPACE_TYPE_LOCAL
+XR_REFERENCE_SPACE_TYPE_STAGE = openxr.XR_REFERENCE_SPACE_TYPE_STAGE
 
 # ------------------------------------------------------------------------------
 # Helper functions
@@ -251,7 +261,7 @@ cdef dict openxr_error_lut = {
 }
 
 
-cdef void checkResult(openxr.XrResult result):
+def checkResult(int result):
     """Check the result of an OpenXR API return.
     
     If the result is anything less than `XR_SUCCESS`, an exception will be
@@ -1108,4 +1118,37 @@ def createSession(OpenXRSystemInfo system):
 
     checkResult(result)
 
+
+def createReferenceSpace(int referenceSpaceType):
+    """Create a reference space.
+
+    Parameters
+    ----------
+    referenceSpaceType : int
+        Symbolic constant representing a reference space type to use. Can be one
+        of ``XR_REFERENCE_SPACE_TYPE_VIEW``, ``XR_REFERENCE_SPACE_TYPE_LOCAL``,
+        or ``XR_REFERENCE_SPACE_TYPE_STAGE``.
+
+    """
+    global _ptrSession
+    global _refSpace
+
+    if _ptrSession == NULL:
+        raise RuntimeError('Cannot create a reference space without a session.')
+
+    cdef openxr.XrPosef pose
+    pose.position = [0, 0, 0]  # for now
+    pose.orientation = [0, 0, 0, -1]
+    cdef openxr.XrReferenceSpaceCreateInfo ref_space_info
+    ref_space_info.type = openxr.XR_TYPE_REFERENCE_SPACE_CREATE_INFO
+    ref_space_info.next = NULL
+    ref_space_info.referenceSpaceType = <openxr.XrReferenceSpaceType>referenceSpaceType
+    ref_space_info.poseInReferenceSpace = pose
+
+    cdef openxr.XrResult result = openxr.xrCreateReferenceSpace(
+        _ptrSession,
+        &ref_space_info,
+        &_refSpace)
+
+    checkResult(result)
 
