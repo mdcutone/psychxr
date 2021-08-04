@@ -86,6 +86,14 @@ _gfxBinding.next = NULL
 _gfxBinding.hDC = NULL  # device context for the window
 _gfxBinding.hGLRC = NULL  # GL context handle
 
+# Swapchains for color and depth buffers, allocated when creating a session
+cdef openxr.XrSwapchain* colorSwapChain = NULL
+cdef openxr.XrSwapchain* depthSwapChain = NULL
+cdef uint32_t colorSwapChainsLength = NULL
+cdef uint32_t depthSwapChainLength = NULL
+cdef openxr.XrSwapchainImageOpenGLKHR** colorSwapChainImagesGL = NULL
+cdef openxr.XrSwapchainImageOpenGLKHR** depthSwapChainImagesGL = NULL
+
 # Python accessible constants
 XR_CURRENT_API_VERSION = openxr.XR_CURRENT_API_VERSION
 XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY = openxr.XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
@@ -258,7 +266,7 @@ cdef void checkResult(openxr.XrResult result):
     """
     if result >= openxr.XR_SUCCESS:
         return
-    
+
     try:
         raise openxr_error_lut[result]()
     except KeyError:
@@ -1099,3 +1107,5 @@ def createSession(OpenXRSystemInfo system):
         &_ptrSession)
 
     checkResult(result)
+
+
