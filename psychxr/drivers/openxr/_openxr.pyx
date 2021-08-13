@@ -48,6 +48,8 @@ __all__ = [
     'XR_REFERENCE_SPACE_TYPE_VIEW',
     'XR_REFERENCE_SPACE_TYPE_LOCAL',
     'XR_REFERENCE_SPACE_TYPE_STAGE',
+    'XR_SWAPCHAIN_USAGE_SAMPLED_BIT',
+    'XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT',
     'OpenXRPose',
     'OpenXRApplicationInfo',
     'OpenXRSystemInfo',
@@ -55,11 +57,12 @@ __all__ = [
     'createInstance',
     'instanceStarted',
     'destroyInstance',
-    'getSystem',
+    'findSystem',
     'getViewConfigurations',
     'getGraphicsRequirementsOpenGL',
     'createGraphicsBindingOpenGLWin32',
     'createSession',
+    'createSwapChainColorOpenGL',
     'createSpace',
     'destroySpace'
 ]
@@ -68,7 +71,7 @@ __all__ = [
 # Imports
 #
 
-from libc.stdint cimport uint32_t, uint16_t, uint64_t, uintptr_t
+from libc.stdint cimport uint32_t, uint16_t, uint64_t, uintptr_t, int64_t
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from . cimport openxr
 cimport numpy as np
@@ -84,6 +87,15 @@ import ctypes
 cdef openxr.XrInstance _ptrInstance = NULL  # pointer to instance
 cdef openxr.XrSession _ptrSession = NULL  # pointer to session
 
+# system to use
+cdef openxr.XrSystemProperties _system
+_system.type = openxr.XR_TYPE_SYSTEM_PROPERTIES
+_system.next = NULL
+
+# view information for each system
+cdef uint32_t _systemViewCount = 0
+cdef openxr.XrViewConfigurationView* _systemViewConfigs = NULL
+
 # Graphics binding data. We will need handles for the window and GL context from
 # the application before the window is initialized.
 cdef openxr.XrGraphicsBindingOpenGLWin32KHR _gfxBinding
@@ -93,8 +105,12 @@ _gfxBinding.hDC = NULL  # device context for the window
 _gfxBinding.hGLRC = NULL  # GL context handle
 
 # Swapchains for color and depth buffers, allocated when creating a session
-cdef openxr.XrSwapchain* colorSwapChain = NULL
-cdef openxr.XrSwapchain* depthSwapChain = NULL
+cdef uint32_t numSupportedSwapChainFormats = 0
+cdef int64_t* supportedSwapChainFormats = NULL
+cdef int64_t colorSwapChainFormat = 0
+cdef int64_t depthSwapChainFormat = 0
+cdef openxr.XrSwapchain* colorSwapChains = NULL
+cdef openxr.XrSwapchain* depthSwapChains = NULL
 cdef uint32_t* colorSwapChainLengths = NULL
 cdef uint32_t* depthSwapChainLengths = NULL
 cdef openxr.XrSwapchainImageOpenGLKHR** colorSwapChainImagesGL = NULL
@@ -114,6 +130,8 @@ XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO = openxr.XR_VIEW_CONFIGURATION_TYPE_PR
 XR_REFERENCE_SPACE_TYPE_VIEW = openxr.XR_REFERENCE_SPACE_TYPE_VIEW
 XR_REFERENCE_SPACE_TYPE_LOCAL = openxr.XR_REFERENCE_SPACE_TYPE_LOCAL
 XR_REFERENCE_SPACE_TYPE_STAGE = openxr.XR_REFERENCE_SPACE_TYPE_STAGE
+XR_SWAPCHAIN_USAGE_SAMPLED_BIT = openxr.XR_SWAPCHAIN_USAGE_SAMPLED_BIT
+XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT = openxr.XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT
 
 # ------------------------------------------------------------------------------
 # Helper functions
@@ -1023,7 +1041,7 @@ def destroyInstance():
         raise openxr_error_lut[result]()
 
 
-def getSystem(formFactor):
+def findSystem(formFactor):
     """Query OpenXR for a system with the specified form factor.
 
     Parameters
@@ -1051,17 +1069,17 @@ def getSystem(formFactor):
     global _ptrInstance
     cdef openxr.XrSystemId system_id
     cdef openxr.XrResult result
-    cdef openxr.XrSystemGetInfo system_get_info
+    cdef openxr.XrSystemGetInfo systemGetInfo
 
     # set the form factor to get
-    system_get_info.type = openxr.XR_TYPE_SYSTEM_GET_INFO
-    system_get_info.formFactor = formFactor
-    system_get_info.next = NULL
+    systemGetInfo.type = openxr.XR_TYPE_SYSTEM_GET_INFO
+    systemGetInfo.formFactor = formFactor
+    systemGetInfo.next = NULL
 
     # get the system
     result = openxr.xrGetSystem(
         _ptrInstance,
-        &system_get_info,
+        &systemGetInfo,
         &system_id)
 
     checkResult(result)
@@ -1276,18 +1294,30 @@ def createGraphicsBindingOpenGLWin32(hDC, hGLRC):
     _gfxBinding.hGLRC = <openxr.HGLRC>c_hGLRC
 
 
-def createSession(OpenXRSystemInfo system):
+def createSession(OpenXRSystemInfo system, int viewType):
     """Create an OpenXR session.
 
     Parameters
     ----------
     system : OpenXRSystemInfo
-        System to use for the session.
+        System to use for the session. This cannot be changed once the session
+        is created until `destroySession` is called.
+    viewType : int
+        Symbolic constant representing the view type to use for the session.
+        Value may be one of ``XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO`` or
+        ``XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO``. View type must be
+        supported by the `system`.
 
     """
     global _ptrInstance
     global _ptrSession
     global _gfxBinding
+    global _system  # system to use
+    global _systemViewConfigs
+    global _systemViewCount
+    global numSupportedSwapChainFormats
+
+    cdef openxr.XrResult result  # for API return values
 
     if _ptrInstance == NULL:  # check if we have an instance
         raise RuntimeError(
@@ -1299,16 +1329,68 @@ def createSession(OpenXRSystemInfo system):
             'Attempted to create a session without creating an OpenGL binding '
             'first.')
 
-    # session info
-    cdef openxr.XrSessionCreateInfo session_create_info
-    session_create_info.type = openxr.XR_TYPE_SESSION_CREATE_INFO
-    session_create_info.next = &_gfxBinding
-    session_create_info.systemId = system.c_data.systemId
+    # set the system
+    _system = system.c_data
 
-    cdef openxr.XrResult result = openxr.xrCreateSession(
+    # get the number of views in the first pass
+    _systemViewCount = 0
+    result = openxr.xrEnumerateViewConfigurationViews(
         _ptrInstance,
-        &session_create_info,
+        _system.systemId,
+        <openxr.XrViewConfigurationType>viewType,
+        0,  # write no values
+        &_systemViewCount,
+        NULL)  # pass NULL to just get the count right now
+
+    checkResult(result)
+
+    # allocate arrays to hold view config data
+    _systemViewConfigs = <openxr.XrViewConfigurationView*>PyMem_Malloc(
+        sizeof(openxr.XrViewConfigurationView) * _systemViewCount)
+
+    if _systemViewConfigs is NULL:
+        raise MemoryError("Failed to allocate array `_systemViewConfigs`.")
+
+    # array to hold view config data
+    cdef Py_ssize_t i = 0
+    for i in range(<Py_ssize_t>_systemViewCount):
+        _systemViewConfigs[i].type = openxr.XR_TYPE_VIEW_CONFIGURATION_VIEW
+        _systemViewConfigs[i].next = NULL
+
+    # call again with the array to write values
+    result = openxr.xrEnumerateViewConfigurationViews(
+        _ptrInstance,
+        _system.systemId,
+        <openxr.XrViewConfigurationType>viewType,
+        _systemViewCount,
+        &_systemViewCount,
+        _systemViewConfigs)
+
+    checkResult(result)
+
+    # session info
+    cdef openxr.XrSessionCreateInfo sessionCreateInfo
+    sessionCreateInfo.type = openxr.XR_TYPE_SESSION_CREATE_INFO
+    sessionCreateInfo.next = &_gfxBinding
+    sessionCreateInfo.systemId = system.c_data.systemId
+
+    # call this to have the API load the required pointer functions for OpenGL
+    getGraphicsRequirementsOpenGL(system)
+
+    # create a session
+    result = openxr.xrCreateSession(
+        _ptrInstance,
+        &sessionCreateInfo,
         &_ptrSession)
+
+    checkResult(result)
+
+    # get number of swap chain formats
+    result = openxr.xrEnumerateSwapchainFormats(
+        _ptrSession,
+        0,
+        &numSupportedSwapChainFormats,
+        NULL)
 
     checkResult(result)
 
@@ -1360,3 +1442,50 @@ def destroySpace():
     checkResult(result)
 
     _refSpace = NULL  # reset
+
+
+def createSwapChainColorOpenGL(
+        int width,
+        int height,
+        int format,
+        int viewCount,
+        int sampleCount=1,
+        int mipCount=1,
+        int faceCount=1,
+        int arraySize=1,
+        int usageFlags=0):
+    """Create a swap for color images."""
+    # Need to figure out if we want to go about creating swap chains this way.
+    global _ptrSession
+    global colorSwapChains
+    global colorSwapChainImagesGL
+
+    cdef openxr.XrResult result
+    colorSwapChains = <openxr.XrSwapchain*>PyMem_Malloc(
+        sizeof(openxr.XrSwapchain) * viewCount)
+
+    if colorSwapChains is NULL:
+        raise MemoryError
+
+    # create a swap chain for each view
+    cdef openxr.XrSwapchainCreateInfo swapChainCreateInfo
+    cdef int i = 0
+    for i in range(viewCount):
+        # parameters for swap chain
+        swapChainCreateInfo.type = openxr.XR_TYPE_SWAPCHAIN_CREATE_INFO
+        swapChainCreateInfo.format = format
+        swapChainCreateInfo.width = width
+        swapChainCreateInfo.height = height
+        swapChainCreateInfo.sampleCount = sampleCount
+        swapChainCreateInfo.faceCount = faceCount
+        swapChainCreateInfo.arraySize = arraySize
+        swapChainCreateInfo.mipCount = mipCount
+        swapChainCreateInfo.usageFlags = usageFlags
+
+        # create the swap chains for each eye
+        result = openxr.xrCreateSwapchain(
+            _ptrSession, &swapChainCreateInfo, &colorSwapChains[i])
+
+        checkResult(result)
+
+
