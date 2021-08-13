@@ -26,6 +26,9 @@
 """This extension module exposes the OpenXR driver interface.
 """
 
+# The code below is based off routines found in:
+#   https://gitlab.freedesktop.org/monado/demos/openxr-simple-example/-/blob/master/main.c
+
 # ------------------------------------------------------------------------------
 # Module information
 #
@@ -1448,29 +1451,68 @@ def createSwapChainColorOpenGL(
         int width,
         int height,
         int format,
-        int viewCount,
         int sampleCount=1,
         int mipCount=1,
         int faceCount=1,
         int arraySize=1,
         int usageFlags=0):
-    """Create a swap for color images."""
+    """Create a swapchain for color images needed to each view provided by the
+    system.
+
+    Can only be called after `createSession`.
+
+    Parameters
+    ----------
+    width : int
+        Width of the swapchain texture in pixels.
+    height : int
+        Height of the swapchain texture in pixels.
+    format : int
+        Symbolic constant representing the format for the color texture (e.g.,
+        ``GL_SRGB8_ALPHA8_EXT``.
+    sampleCount : int
+    mipCount : int
+    faceCount : int
+    arraySize : int
+    usageFlags : int
+
+    """
     # Need to figure out if we want to go about creating swap chains this way.
     global _ptrSession
     global colorSwapChains
+    global colorSwapChainLengths
     global colorSwapChainImagesGL
+    global _systemViewCount
+
+    if _ptrSession is NULL:
+        raise RuntimeError(
+            "Function `createSession` must be called before creating "
+            "swapchains.")
 
     cdef openxr.XrResult result
     colorSwapChains = <openxr.XrSwapchain*>PyMem_Malloc(
-        sizeof(openxr.XrSwapchain) * viewCount)
+        sizeof(openxr.XrSwapchain) * _systemViewCount)
 
+    # allocate arrays for swap chains
     if colorSwapChains is NULL:
-        raise MemoryError
+        raise MemoryError("Failed to allocated array `colorSwapChains`.")
+
+    colorSwapChainLengths = <uint32_t*>PyMem_Malloc(
+        sizeof(uint32_t) * _systemViewCount)
+
+    if colorSwapChainLengths is NULL:
+        raise MemoryError("Failed to allocated array `colorSwapChainLengths`.")
+
+    colorSwapChainImagesGL = <openxr.XrSwapchainImageOpenGLKHR**>PyMem_Malloc(
+        sizeof(openxr.XrSwapchainImageOpenGLKHR*) * _systemViewCount)
+
+    if colorSwapChainImagesGL is NULL:
+        raise MemoryError("Failed to allocated array `colorSwapChainImagesGL`.")
 
     # create a swap chain for each view
     cdef openxr.XrSwapchainCreateInfo swapChainCreateInfo
-    cdef int i = 0
-    for i in range(viewCount):
+    cdef int i, j
+    for i in range(_systemViewCount):
         # parameters for swap chain
         swapChainCreateInfo.type = openxr.XR_TYPE_SWAPCHAIN_CREATE_INFO
         swapChainCreateInfo.format = format
@@ -1478,7 +1520,7 @@ def createSwapChainColorOpenGL(
         swapChainCreateInfo.height = height
         swapChainCreateInfo.sampleCount = sampleCount
         swapChainCreateInfo.faceCount = faceCount
-        swapChainCreateInfo.arraySize = arraySize
+        swapChainCreateInfo.arraySize = arraySize   # always 1?
         swapChainCreateInfo.mipCount = mipCount
         swapChainCreateInfo.usageFlags = usageFlags
 
@@ -1488,4 +1530,29 @@ def createSwapChainColorOpenGL(
 
         checkResult(result)
 
+        # get swap chain images provided by the runtime
+        result = openxr.xrEnumerateSwapchainImages(
+            colorSwapChains[i],
+            <uint32_t>0,
+            &colorSwapChainLengths[i],
+            NULL)
 
+        checkResult(result)
+
+        # populate array of swapchain images
+        colorSwapChainImagesGL[i] = \
+            <openxr.XrSwapchainImageOpenGLKHR*>PyMem_Malloc(
+                sizeof(openxr.XrSwapchain) * _systemViewCount)
+
+        for j in range(<int>colorSwapChainLengths[i]):
+            colorSwapChainImagesGL[i][j].type = \
+                openxr.XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR
+            colorSwapChainImagesGL[i][j].next = NULL
+
+        result = openxr.xrEnumerateSwapchainImages(
+            colorSwapChains[i],
+            colorSwapChainLengths[i],
+            &colorSwapChainLengths[i],
+            <openxr.XrSwapchainImageBaseHeader*>colorSwapChainImagesGL[i])
+
+        checkResult(result)
