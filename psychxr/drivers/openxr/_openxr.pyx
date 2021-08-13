@@ -137,6 +137,20 @@ XR_REFERENCE_SPACE_TYPE_STAGE = openxr.XR_REFERENCE_SPACE_TYPE_STAGE
 XR_SWAPCHAIN_USAGE_SAMPLED_BIT = openxr.XR_SWAPCHAIN_USAGE_SAMPLED_BIT
 XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT = openxr.XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT
 
+# Symbolic constants for OpenGL texture formats typically used
+GL_RGBA8 = 0x8058
+GL_RGB16F = RGB16F_ARB = 0x881b
+GL_DEPTH24_STENCIL8 = GL_DEPTH24_STENCIL8_EXT = 0x88f0
+GL_R11F_G11F_B10F = GL_R11F_G11F_B10F_EXT = 0x8c3a
+GL_SRGB8_ALPHA8 = GL_SRGB8_ALPHA8_EXT = 0x8c43
+# depth formats
+GL_DEPTH_COMPONENT16 = 0x81a5
+GL_DEPTH_COMPONENT24 = 0x81a6
+GL_DEPTH_COMPONENT32 = 0x81a7
+GL_DEPTH32F_STENCIL8 = 0x8cad
+# combined formats
+GL_RGBA8_DEPTH_COMPONENT32F = 0x8cac
+
 # ------------------------------------------------------------------------------
 # Helper functions
 #
@@ -1122,7 +1136,8 @@ def findSystem(formFactor):
 
 
 def getViewConfigurations(OpenXRSystemInfo system, int viewType):
-    """Get configuration for each view supported by the provided system.
+    """Get configuration information for each view supported by the provided
+    `system` and `viewType`.
 
     Parameters
     ----------
@@ -1473,11 +1488,18 @@ def getSupportedSwapchainFormats():
         # as our swapchain image format.
 
         formats = getSupportedSwapchainFormats()
-        # formats == 32856, 33189, 34843, 35056, 35898, 35907, 36012, 36013]
+        # formats == [32856, 33189, 34843, 35056, 35898, 35907, 36012, 36013]
 
         colorFormatSupported = GL_SRGB8_ALPHA8_EXT in formats
         if not colorFormatSupported:  # error!
             print('Color format not supported!')
+
+    Sometimes these values are represented as hex in reference material, you can
+    convert the values to hex using::
+
+        formats = [hex(i) for i in getSupportedSwapchainFormats()]
+        # formats == ['0x8058', '0x81a5', '0x881b', '0x88f0', '0x8c3a',
+        #   '0x8c43', '0x8cac', '0x8cad']
 
     """
     global _ptrSession
