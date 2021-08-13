@@ -62,10 +62,11 @@ __all__ = [
     'destroyInstance',
     'findSystem',
     'getViewConfigurations',
+    'getSupportedSwapchainFormats',
     'getGraphicsRequirementsOpenGL',
     'createGraphicsBindingOpenGLWin32',
     'createSession',
-    'createSwapChainColorOpenGL',
+    'createSwapChainsColorOpenGL',
     'createSpace',
     'destroySpace'
 ]
@@ -959,12 +960,17 @@ cdef class OpenXRPose(object):
 def createInstance(OpenXRApplicationInfo applicationInfo):
     """Create an OpenXR instance.
 
-    PsychXR currently only supports creating one instance at a time.
+    Upon creating an instance, you can query the system for devices using
+    :func:`findDevices` and start a session using `createSession`.
 
     Parameters
     ----------
     applicationInfo : OpenXRApplicationInfo
         Application info descriptor.
+
+    Notes
+    -----
+    * PsychXR currently only supports creating one instance at a time.
 
     """
     global _ptrInstance
@@ -1016,6 +1022,9 @@ def destroyInstance():
     """Destroy the current OpenXR instance. This function does nothing if no
     instance as previously created.
 
+    If a session has been created previously, calling this function will
+    destroy it and any resources associated with it.
+
     Raises
     ------
     OpenXRHandleInvalidError
@@ -1036,12 +1045,20 @@ def destroyInstance():
     # if _ptrInstance == NULL:
     #     return openxr.XR_ERROR_HANDLE_INVALID
 
-    cdef openxr.XrResult result = openxr.xrDestroyInstance(_ptrInstance)
+    cdef openxr.XrResult result
 
-    if result == openxr.XR_SUCCESS:
-        _ptrInstance = NULL  # reset to NULL if successful
-    else:
-        raise openxr_error_lut[result]()
+    if _ptrInstance != NULL:
+        checkResult(openxr.xrDestroyInstance(_ptrInstance))
+        _ptrInstance = NULL
+
+    # cleanup resources we allocated for the session
+    PyMem_Free(supportedSwapChainFormats)
+    PyMem_Free(colorSwapChains)
+    PyMem_Free(depthSwapChains)
+    PyMem_Free(colorSwapChainImagesGL)
+    PyMem_Free(depthSwapChainImagesGL)
+    PyMem_Free(colorSwapChainLengths)
+    PyMem_Free(depthSwapChainLengths)
 
 
 def findSystem(formFactor):
@@ -1388,15 +1405,6 @@ def createSession(OpenXRSystemInfo system, int viewType):
 
     checkResult(result)
 
-    # get number of swap chain formats
-    result = openxr.xrEnumerateSwapchainFormats(
-        _ptrSession,
-        0,
-        &numSupportedSwapChainFormats,
-        NULL)
-
-    checkResult(result)
-
 
 def createSpace(int referenceSpaceType, OpenXRPose poseInReferenceSpace):
     """Create a reference space.
@@ -1447,7 +1455,74 @@ def destroySpace():
     _refSpace = NULL  # reset
 
 
-def createSwapChainColorOpenGL(
+def getSupportedSwapchainFormats():
+    """Get a list of swapchain OpenGL image formats supported by the runtime.
+
+    Returns
+    -------
+    list or ints
+        List of swapchain formats (color and depth) supported by the runtime.
+        These values reflect those of symbolic constants within the OpenGL API
+        representing image formats (e.g., `GL_RGB8`).
+
+    Examples
+    --------
+    Check if a given format is supported::
+
+        # `GL_SRGB8_ALPHA8_EXT` comes from Pyglet or PyOpenGL, we want to use it
+        # as our swapchain image format.
+
+        formats = getSupportedSwapchainFormats()
+        # formats == 32856, 33189, 34843, 35056, 35898, 35907, 36012, 36013]
+
+        colorFormatSupported = GL_SRGB8_ALPHA8_EXT in formats
+        if not colorFormatSupported:  # error!
+            print('Color format not supported!')
+
+    """
+    global _ptrSession
+
+    if _ptrSession == NULL:
+        raise RuntimeError('Cannot get swapchain formats without a session.')
+
+    # get number of swap chain formats
+    cdef uint32_t supportedFormatCount
+    cdef openxr.XrResult result = openxr.xrEnumerateSwapchainFormats(
+        _ptrSession,
+        0,
+        &supportedFormatCount,
+        NULL)
+
+    checkResult(result)
+
+    if not supportedFormatCount:  # no supported formats, return empty list
+        return list()
+
+    # allocate an array for format values
+    cdef int64_t* swapChainFormats = <int64_t*>PyMem_Malloc(
+        sizeof(int64_t) * supportedFormatCount)
+
+    if swapChainFormats is NULL:
+        raise MemoryError("Failed to allocated array `swapChainFormats`.")
+
+    result = openxr.xrEnumerateSwapchainFormats(
+        _ptrSession,
+        supportedFormatCount,
+        &supportedFormatCount,
+    	swapChainFormats)
+
+    checkResult(result)
+
+    # now put the values obtained in a Python list
+    cdef list toReturn = list()
+    cdef Py_ssize_t i
+    for i in range(<Py_ssize_t>supportedFormatCount):
+        toReturn.append(<int>swapChainFormats[i])
+
+    return toReturn
+
+
+def createSwapChainsColorOpenGL(
         int width,
         int height,
         int format,
@@ -1456,10 +1531,11 @@ def createSwapChainColorOpenGL(
         int faceCount=1,
         int arraySize=1,
         int usageFlags=0):
-    """Create a swapchain for color images needed to each view provided by the
-    system.
+    """Create swapchains for color images (textures) needed to render views for
+    the system.
 
-    Can only be called after `createSession`.
+    Can only be called after a session has been created successfully
+    (`createSession`).
 
     Parameters
     ----------
