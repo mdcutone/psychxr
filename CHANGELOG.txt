@@ -1,6 +1,32 @@
 This file contains changes introduced to PsychXR for each version. Breaking
 changes may be incompatible with your current code or build environment.
 
+Version 0.2.5 - 2022/10/10
+--------------------------
+
+Overview:
+
+This release is just an enhancement to upgrade the Oculus PC SDK from v23 to v32.
+
+New Features:
+
+- Version bump of the Oculus PC SDK to 32.0 (latest as of this release).
+
+Breaking changes:
+
+- Removed HMD_DK1 and HMD_DKHD due to their removal from the Oculus PC SDK.
+
+Known Issues:
+
+    - Calling `psychxr.drivers.libovr.shutdown()` results in the application
+      quitting with exit code -1073741819 (0xC0000005) on Windows. This seems to
+      only occur after creating an OpenGL swap chain, so it might be related to
+      how the library interacts with the driver. You can ignore calling
+      `shutdown` to circumvent this issue for now, hopefully the `LibOVR`
+      runtime will free up resources associated with your app automatically.
+    - OpenHMD support is incomplete, available only for preview and not
+      recommended for general use yet.
+
 Version 0.2.4 - 2021/07/12
 --------------------------
 

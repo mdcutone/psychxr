@@ -27,8 +27,6 @@
 
 # HMD types
 HMD_NONE = capi.ovrHmd_None
-HMD_DK1 = capi.ovrHmd_DK1
-HMD_DKHD = capi.ovrHmd_DKHD
 HMD_DK2 = capi.ovrHmd_DK2
 HMD_CB = capi.ovrHmd_CB
 HMD_OTHER = capi.ovrHmd_Other
