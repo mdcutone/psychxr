@@ -107,7 +107,7 @@ def fix_path(path):
 
     Parameters
     ----------
-    path : str
+    path : str or Path
         Path to fix.
 
     Returns
