@@ -307,7 +307,7 @@ setup_pars = {
         'Intended Audience :: Science/Research'],
     "ext_modules": EXT_MODULES,
     "install_requires": ["Cython>=0.29.3", "numpy>=1.13.3"],
-    "requires": [],
+    "requires": ["numpy>=1.13.3"],
     "cmdclass": {"build_ext": build_ext},
     "zip_safe": False
 }
